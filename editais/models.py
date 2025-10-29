@@ -17,7 +17,8 @@ class Edital(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 
-    # Campos do conteúdo do edital
+    # Conteúdo
+    analise = models.TextField(blank=True)  # Nova seção: Análise do Edital
     objetivo = models.TextField(blank=True)
     etapas = models.TextField(blank=True)
     recursos = models.TextField(blank=True)
@@ -58,4 +59,3 @@ class Cronograma(models.Model):
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.descricao}'
-

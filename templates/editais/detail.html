@@ -10,46 +10,52 @@
     <p><a href="{{ edital.url }}" target="_blank" rel="noopener" class="btn btn-outline">Acessar link do edital</a></p>
   </header>
 
-  <section>
+  {% if edital.analise %}
+  <section class="analise-hero">
+    <h2>Análise do Edital</h2>
+    <div class="prose">{{ edital.analise|linebreaks }}</div>
+  </section>
+  {% endif %}
+
+  <section class="edital-sections">
     {% if edital.objetivo %}
       <h3>Objetivo</h3>
-      <p>{{ edital.objetivo|linebreaks }}</p>
+      <div class="prose">{{ edital.objetivo|linebreaks }}</div>
     {% endif %}
     {% if edital.etapas %}
       <h3>Etapas</h3>
-      <p>{{ edital.etapas|linebreaks }}</p>
+      <div class="prose">{{ edital.etapas|linebreaks }}</div>
     {% endif %}
     {% if edital.recursos %}
       <h3>Recursos</h3>
-      <p>{{ edital.recursos|linebreaks }}</p>
+      <div class="prose">{{ edital.recursos|linebreaks }}</div>
     {% endif %}
     {% if edital.itens_financiaveis %}
       <h3>Itens Financiáveis</h3>
-      <p>{{ edital.itens_financiaveis|linebreaks }}</p>
+      <div class="prose">{{ edital.itens_financiaveis|linebreaks }}</div>
     {% endif %}
     {% if edital.criterios_elegibilidade %}
       <h3>Critérios de Elegibilidade</h3>
-      <p>{{ edital.criterios_elegibilidade|linebreaks }}</p>
+      <div class="prose">{{ edital.criterios_elegibilidade|linebreaks }}</div>
     {% endif %}
     {% if edital.criterios_avaliacao %}
       <h3>Critérios de Avaliação</h3>
-      <p>{{ edital.criterios_avaliacao|linebreaks }}</p>
+      <div class="prose">{{ edital.criterios_avaliacao|linebreaks }}</div>
     {% endif %}
     {% if edital.itens_essenciais_observacoes %}
       <h3>Itens Essenciais/Observações</h3>
-      <p>{{ edital.itens_essenciais_observacoes|linebreaks }}</p>
+      <div class="prose">{{ edital.itens_essenciais_observacoes|linebreaks }}</div>
     {% endif %}
     {% if edital.detalhes_unirv %}
       <h3>Detalhes UniRV</h3>
-      <p>{{ edital.detalhes_unirv|linebreaks }}</p>
+      <div class="prose">{{ edital.detalhes_unirv|linebreaks }}</div>
     {% endif %}
   </section>
 
-  <footer>
+  <footer class="detail-actions">
     <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">Editar</a>
     <a href="{% url 'edital_delete' edital.pk %}" class="btn btn-outline">Excluir</a>
     <a href="{% url 'editais_index' %}" class="btn">Voltar</a>
   </footer>
 </article>
 {% endblock %}
-

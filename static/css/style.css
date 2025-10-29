@@ -75,3 +75,25 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial
 .navbar-right a.active { color: #0d6efd; font-weight: 600; }
 .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
 
+/* Typography and prose for Markdown content */
+.prose { color: #1f2937; font-size: 16px; line-height: 1.75; }
+.prose h1, .prose h2, .prose h3, .prose h4 { color: #111827; margin-top: 1.5em; margin-bottom: 0.5em; }
+.prose h2 { font-size: 1.5rem; }
+.prose h3 { font-size: 1.25rem; }
+.prose p { margin: 0.75em 0; }
+.prose ul, .prose ol { margin: 0.5em 0 0.5em 1.25em; }
+.prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1em; color: #374151; background: #fafafa; }
+.prose table { border-collapse: collapse; width: 100%; font-size: 0.95em; }
+.prose table th, .prose table td { border: 1px solid #e5e7eb; padding: 8px 10px; }
+.prose code { background: #f3f4f6; padding: 2px 5px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.prose pre { background: #0b1020; color: #e5e7eb; padding: 14px; border-radius: 6px; overflow: auto; }
+
+/* Detail page polish */
+.edital-detail header { margin-bottom: 18px; }
+.edital-sections { background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,.06); }
+.edital-sections h3 { margin-top: 1.25rem; color: #0d6efd; }
+.detail-actions { display: flex; gap: 10px; margin-top: 18px; }
+
+/* Análise hero */
+.analise-hero { background: #ffffff; border-left: 5px solid #28a745; padding: 22px 24px; border-radius: 6px; margin: 18px 0 24px; box-shadow: 0 6px 16px rgba(0,0,0,.06); }
+.analise-hero h2 { margin: 0 0 10px; color: #1b5e20; }
