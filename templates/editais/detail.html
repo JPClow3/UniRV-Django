@@ -13,45 +13,114 @@
   {% if edital.analise %}
   <section class="analise-hero">
     <h2>Análise do Edital</h2>
-    <div class="prose">{{ edital.analise|linebreaks }}</div>
+    <div class="prose">{{ edital.analise|safe }}</div>
   </section>
   {% endif %}
+<body>
+{%autoescape off%}
+    <div class="container">
+     </div>
+  <nav class="edital-toc">
+    <ul>
+      {% if edital.objetivo %}<li><a href="#objetivo">1. Objetivo do Edital</a></li>{% endif %}
+      {% if edital.etapas %}<li><a href="#etapas">2. Etapas do Edital</a></li>{% endif %}
+      {% if cronogramas %}<li><a href="#cronograma">3. Cronograma (Vigência)</a></li>{% endif %}
+      {% if valores %}<li><a href="#recursos-financeiros">4. Recursos Financeiros</a></li>{% endif %}
+      {% if edital.itens_financiaveis %}<li><a href="#itens-financiaveis">5. Itens Financiáveis</a></li>{% endif %}
+      {% if edital.criterios_elegibilidade %}<li><a href="#elegibilidade-coordenador">6. Critérios de Elegibilidade</a></li>{% endif %}
+      {% if edital.criterios_avaliacao %}<li><a href="#criterios-avaliacao">7. Critérios de Avaliação</a></li>{% endif %}
+      {% if edital.itens_essenciais_observacoes %}<li><a href="#itens-essenciais">Itens Essenciais</a></li>{% endif %}
+      {% if edital.detalhes_unirv %}<li><a href="#pontos-unirv">Pontos para a UNIRV</a></li>{% endif %}
+    </ul>
+  </nav>
+
 
   <section class="edital-sections">
     {% if edital.objetivo %}
-      <h3>Objetivo</h3>
-      <div class="prose">{{ edital.objetivo|linebreaks }}</div>
+      <div class="edital-section" id="objetivo">
+        <h3>1. Objetivo do Edital</h3>
+        <div class="prose">{{ edital.objetivo|safe }}</div>
+      </div>
     {% endif %}
+
     {% if edital.etapas %}
-      <h3>Etapas</h3>
-      <div class="prose">{{ edital.etapas|linebreaks }}</div>
+      <div class="edital-section" id="etapas">
+        <h3>2. Etapas do Edital</h3>
+        <div class="prose">{{ edital.etapas|safe }}</div>
+      </div>
     {% endif %}
-    {% if edital.recursos %}
-      <h3>Recursos</h3>
-      <div class="prose">{{ edital.recursos|linebreaks }}</div>
+
+    {% if cronogramas %}
+      <div class="edital-section" id="cronograma">
+        <h3>3. Cronograma (Vigência)</h3>
+        <ul>
+          {% for c in cronogramas %}
+            <li>
+              {% if c.descricao %}<strong>{{ c.descricao }}:</strong> {% endif %}
+              {% if c.data_publicacao %} Publicação: {{ c.data_publicacao|date:"d/m/Y" }}{% endif %}
+              {% if c.data_inicio or c.data_fim %}
+                {% if c.data_publicacao %} — {% endif %}
+                {{ c.data_inicio|date:"d/m/Y" }}{% if c.data_fim %} a {{ c.data_fim|date:"d/m/Y" }}{% endif %}
+              {% endif %}
+            </li>
+          {% empty %}
+            <li>Sem cronograma cadastrado.</li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
+
+    {% if valores %}
+      <div class="edital-section" id="recursos-financeiros">
+        <h3>4. Recursos Financeiros e Faixas de Financiamento</h3>
+        <ul>
+          {% for v in valores %}
+            <li><strong>Valor total:</strong> R$ {{ v.valor_total }} <small>{{ v.moeda }}</small></li>
+          {% endfor %}
+        </ul>
+        {% if edital.recursos %}
+          <div class="prose">{{ edital.recursos|safe }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+
     {% if edital.itens_financiaveis %}
-      <h3>Itens Financiáveis</h3>
-      <div class="prose">{{ edital.itens_financiaveis|linebreaks }}</div>
+      <div class="edital-section" id="itens-financiaveis">
+        <h3>5. Itens Financiáveis e Não Financiáveis</h3>
+        <div class="prose">{{ edital.itens_financiaveis|safe }}</div>
+      </div>
     {% endif %}
+
     {% if edital.criterios_elegibilidade %}
-      <h3>Critérios de Elegibilidade</h3>
-      <div class="prose">{{ edital.criterios_elegibilidade|linebreaks }}</div>
+      <div class="edital-section" id="elegibilidade-coordenador">
+        <h3>6. Critérios de Elegibilidade</h3>
+        <div class="prose">{{ edital.criterios_elegibilidade|safe }}</div>
+      </div>
     {% endif %}
+
     {% if edital.criterios_avaliacao %}
-      <h3>Critérios de Avaliação</h3>
-      <div class="prose">{{ edital.criterios_avaliacao|linebreaks }}</div>
+      <div class="edital-section" id="criterios-avaliacao">
+        <h3>7. Critérios de Avaliação e Julgamento</h3>
+        <div class="prose">{{ edital.criterios_avaliacao|safe }}</div>
+      </div>
     {% endif %}
+
     {% if edital.itens_essenciais_observacoes %}
-      <h3>Itens Essenciais/Observações</h3>
-      <div class="prose">{{ edital.itens_essenciais_observacoes|linebreaks }}</div>
+      <div class="edital-section" id="itens-essenciais">
+        <h3>Itens Essenciais a Serem Observados</h3>
+        <div class="prose">{{ edital.itens_essenciais_observacoes|safe }}</div>
+      </div>
     {% endif %}
+
     {% if edital.detalhes_unirv %}
-      <h3>Detalhes UniRV</h3>
-      <div class="prose">{{ edital.detalhes_unirv|linebreaks }}</div>
+      <div class="edital-section" id="pontos-unirv">
+        <h3>Pontos para a UNIRV Concorrer</h3>
+        <div class="prose">{{ edital.detalhes_unirv|safe }}</div>
+      </div>
     {% endif %}
   </section>
-
+{%endautoescape%}
+</body>
   <footer class="detail-actions">
     <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">Editar</a>
     <a href="{% url 'edital_delete' edital.pk %}" class="btn btn-outline">Excluir</a>

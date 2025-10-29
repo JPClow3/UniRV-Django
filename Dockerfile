@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY UniRV_Django/requirements.txt /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
@@ -20,4 +20,3 @@ EXPOSE 8000
 
 # Simple entrypoint: run DB migrations then server
 CMD ["sh", "-c", "python manage.py migrate && gunicorn UniRV_Django.wsgi:application --bind 0.0.0.0:8000"]
-
