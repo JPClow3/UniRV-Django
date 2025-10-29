@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Cadastrar Edital - AgroHub{% endblock %}
+{% block content %}
+<h1>Cadastrar Edital</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary">Salvar</button>
+  <a href="{% url 'editais_index' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
+

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Detalhes do Edital - AgroHub{% endblock %}
+{% block content %}
+<article class="edital-detail">
+  <header>
+    <h1>{{ edital.titulo }}</h1>
+    <p><strong>Status:</strong> <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span></p>
+    {% if edital.numero_edital %}<p><strong>Número do Edital:</strong> {{ edital.numero_edital }}</p>{% endif %}
+    {% if edital.entidade_principal %}<p><strong>Entidade:</strong> {{ edital.entidade_principal }}</p>{% endif %}
+    <p><a href="{{ edital.url }}" target="_blank" rel="noopener" class="btn btn-outline">Acessar link do edital</a></p>
+  </header>
+
+  <section>
+    {% if edital.objetivo %}
+      <h3>Objetivo</h3>
+      <p>{{ edital.objetivo|linebreaks }}</p>
+    {% endif %}
+    {% if edital.etapas %}
+      <h3>Etapas</h3>
+      <p>{{ edital.etapas|linebreaks }}</p>
+    {% endif %}
+    {% if edital.recursos %}
+      <h3>Recursos</h3>
+      <p>{{ edital.recursos|linebreaks }}</p>
+    {% endif %}
+    {% if edital.itens_financiaveis %}
+      <h3>Itens Financiáveis</h3>
+      <p>{{ edital.itens_financiaveis|linebreaks }}</p>
+    {% endif %}
+    {% if edital.criterios_elegibilidade %}
+      <h3>Critérios de Elegibilidade</h3>
+      <p>{{ edital.criterios_elegibilidade|linebreaks }}</p>
+    {% endif %}
+    {% if edital.criterios_avaliacao %}
+      <h3>Critérios de Avaliação</h3>
+      <p>{{ edital.criterios_avaliacao|linebreaks }}</p>
+    {% endif %}
+    {% if edital.itens_essenciais_observacoes %}
+      <h3>Itens Essenciais/Observações</h3>
+      <p>{{ edital.itens_essenciais_observacoes|linebreaks }}</p>
+    {% endif %}
+    {% if edital.detalhes_unirv %}
+      <h3>Detalhes UniRV</h3>
+      <p>{{ edital.detalhes_unirv|linebreaks }}</p>
+    {% endif %}
+  </section>
+
+  <footer>
+    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">Editar</a>
+    <a href="{% url 'edital_delete' edital.pk %}" class="btn btn-outline">Excluir</a>
+    <a href="{% url 'editais_index' %}" class="btn">Voltar</a>
+  </footer>
+</article>
+{% endblock %}
+

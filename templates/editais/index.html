@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Editais de Fomento - AgroHub{% endblock %}
+
+{% block content %}
+<div class="editais-header">
+    <h1 class="main-title">Editais de Fomento</h1>
+
+    <div class="filters-container">
+        <form method="GET" class="search-form">
+            <div class="search-group">
+                <input type="text" name="search" value="{{ search_query }}"
+                       placeholder="Buscar por título, entidade ou número do edital..."
+                       class="search-input">
+
+                <select name="status" class="status-filter">
+                    <option value="">Todos os Status</option>
+                    {% for value, display in status_choices %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+
+        <a href="{% url 'edital_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Cadastrar Edital
+        </a>
+    </div>
+</div>
+
+<div class="editais-grid">
+    {% for edital in page_obj %}
+        <div class="edital-card">
+            <div class="card-header">
+                <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+                {% if edital.numero_edital %}
+                    <span class="edital-number">{{ edital.numero_edital }}</span>
+                {% endif %}
+            </div>
+
+            <h3 class="edital-title">
+                <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatechars:80 }}</a>
+            </h3>
+
+            {% if edital.entidade_principal %}
+                <p class="edital-entity"><i class="fas fa-building"></i> {{ edital.entidade_principal }}</p>
+            {% endif %}
+
+            {% if edital.objetivo %}
+                <p class="edital-objective">{{ edital.objetivo|truncatechars:120 }}</p>
+            {% endif %}
+
+            <div class="card-footer">
+                <small class="update-date">
+                    <i class="fas fa-calendar-alt"></i>
+                    Atualizado em {{ edital.data_atualizacao|date:"d/m/Y" }}
+                </small>
+
+                <div class="card-actions">
+                    <a href="{{ edital.get_absolute_url }}" class="btn btn-sm btn-outline">Ver Detalhes</a>
+                    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <h3>Nenhum edital encontrado</h3>
+            <p>Tente ajustar os filtros ou <a href="{% url 'edital_create' %}">cadastre um novo edital</a>.</p>
+        </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">&laquo; Primeira</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">Anterior</a>
+            {% endif %}
+
+            <span class="page-info">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">Próxima</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">Última &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
