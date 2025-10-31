@@ -1,24 +1,35 @@
-// placeholder for future interactivity
 console.log('AgroHub static JS loaded');
 
+// Move a curva DEVAGAR conforme o scroll (parallax) para criar sensação de fluir pela curva
 (function(){
-  const page = document.querySelector('.edital-detail-page');
-  const curve = document.querySelector('.edital-detail-page .side-curve');
-  if(!page || !curve) return;
+  const curve = document.querySelector('.green-curve');
+  if(!curve) return;
 
-  let ticking = false;
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const speed = 0.15; // lower = subtler parallax
+  function updateCurvePosition() {
+    const scrolled = window.pageYOffset || document.documentElement.scrollTop;
 
-  function onScroll(){
-    if(ticking || prefersReduced) return;
-    window.requestAnimationFrame(() => {
-      const y = window.scrollY || window.pageYOffset;
-      curve.style.transform = `translateY(${y * speed}px)`;
-      ticking = false;
-    });
-    ticking = true;
+    // A curva se move MAIS DEVAGAR que o scroll (fator 0.22 para movimento ultra suave)
+    // Isso cria o efeito de você "passar" pela curva enquanto scrolla
+    const parallaxFactor = 0.22;
+    const translateY = -(scrolled * parallaxFactor);
+
+    curve.style.transform = `translateY(${translateY}px)`;
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
+  // Atualiza na inicialização
+  updateCurvePosition();
+
+  // Atualiza conforme scrolla (com throttle leve via requestAnimationFrame)
+  let ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        updateCurvePosition();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', updateCurvePosition);
 })();

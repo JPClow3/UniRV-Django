@@ -122,18 +122,6 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial
 /* .page-detail body { background-color: #f0f2f5; } */
 body.page-detail { background-color: #f0f2f5; }
 
-/* Fix mobile media query selector typo */
-@media (max-width: 767px){
-  body.page-detail::before {
-    width: 400px;
-    height: 80vh;
-    border-top-right-radius: 600px 40%;
-    border-bottom-right-radius: 600px 40%;
-    transform: translateX(-70%);
-    opacity: 0.7;
-  }
-}
-
 /* Brand palette override for details page */
 .edital-detail-page {
   --curve-start: #DFF0D1; /* lighter tint of #84D067 */
@@ -147,51 +135,49 @@ body.page-detail { background-color: #f0f2f5; }
 
 /* THEME for detail page (scoped) */
 .page-detail body { background-color: #f0f2f5; }
-:root { --primary-blue: #19316C; --secondary-blue: #3C78D8; --accent-green: #84D067; --text-dark: #333; --text-light: #fff; --border-light: #eee; }
+:root { --primary-blue: #19316C; --secondary-blue: #3C78D8; --accent-green: #84D067; --text-dark: #333; --text-light: #fff; --border-light: #eee;
+  /* defaults for scroll-driven curve */
+  --curve-scale: 0.5; /* updated by JS (0..1) */
+  --curve-opacity: 0.85; /* updated by JS (0.65..0.95) */
+}
 .page-detail .navbar { background-color: var(--primary-blue); color: var(--text-light); box-shadow: 0 2px 4px rgba(0,0,0,.1); position: sticky; top: 0; z-index: 1000; }
 .page-detail .navbar-left .logo, .page-detail .navbar-left .logo-subtitle { color: var(--text-light); }
 .page-detail .navbar-right a { color: var(--text-light); border-radius: 20px; }
 .page-detail .navbar-right a.active { background-color: var(--secondary-blue); }
 .page-detail .navbar-right a:hover { background-color: rgba(255,255,255,0.1); }
 
-/* Curved green shape on the side of the entire page (viewport) */
-body.page-detail::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0; /* full viewport height */
-  width: 600px; /* curve width */
-  background-color: var(--accent-green);
-  opacity: 0.85;
-  border-top-right-radius: 800px 50%;
-  border-bottom-right-radius: 800px 50%;
-  transform: translateX(-50%);
-  z-index: 0; /* behind content */
-  pointer-events: none;
+/* Curva verde lateral ALTA com efeito parallax */
+.green-curve {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 28%;
+    max-width: 350px;
+    height: 300vh; /* Aumentado para espalhar melhor o crescendo/decrescendo */
+    z-index: 0;
+    pointer-events: none;
+    will-change: transform;
 }
 
-/* Content remains above the curve */
-.page-detail .content-area { position: relative; z-index: 1; }
+.green-curve svg {
+    width: 100%;
+    height: 100%;
+}
 
-/* Update responsive adjustments for the fixed curve */
+
+.content-area {
+    position: relative;
+    z-index: 1;
+}
+
+/* Tablet fine-tuning: slightly wider bulge */
 @media (min-width: 768px) and (max-width: 1023px){
-  body.page-detail::before {
-    width: 600px;
-    border-top-right-radius: 700px 50%;
-    border-bottom-right-radius: 700px 50%;
-    transform: translateX(-60%);
-  }
+  body.page-detail::before { width: clamp(380px, 50vw, 760px); }
 }
+
+/* Mobile: keep presence but not overpower content */
 @media (max-width: 767px){
-  body.page_detail::before {
-    width: 400px;
-    height: 80vh; /* slightly shorter on small screens */
-    border-top-right-radius: 600px 40%;
-    border-bottom-right-radius: 600px 40%;
-    transform: translateX(-70%);
-    opacity: 0.7;
-  }
+  body.page-detail::before { width: clamp(260px, 60vw, 520px); opacity: 0.85; }
 }
 
 /* Remove old container-scoped curve (no longer used) */
@@ -214,4 +200,9 @@ body.page-detail::before {
   .page-detail .analysis-grid-container { gap: 16px; }
   .page-detail .item { padding: 18px; }
   .page-detail .item-header h2 { font-size: 18px; }
+}
+
+/* Respect reduced motion: keep curve stable */
+@media (prefers-reduced-motion: reduce){
+  body.page-detail::before { will-change: auto; }
 }

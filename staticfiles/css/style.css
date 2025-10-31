@@ -110,10 +110,99 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial
 /* Smooth anchor offset for fixed header */
 .edital-section { scroll-margin-top: 80px; }
 
-/* Scope curve to detail page */
-.edital-detail-page { position: relative; }
+/* Remove obsolete curve rules scoped to .edital-detail-page */
+/* .edital-detail-page { position: relative; }
 .edital-detail-page .side-curve { position: absolute; inset: 0 auto 0 0; width: 240px; pointer-events: none; z-index: 0; }
 .edital-detail-page .side-curve svg { width: 100%; height: 100%; display: block; }
 .edital-detail-page .edital-detail, .edital-detail-page .analise-hero, .edital-detail-page .edital-sections { position: relative; z-index: 1; }
 @media (min-width: 992px) { .edital-detail-page { padding-left: 260px; } }
-@media (max-width: 991px) { .edital-detail-page .side-curve { display: none; } }
+@media (max-width: 991px) { .edital-detail-page .side-curve { display: none; } } */
+
+/* Correct detail page background selector */
+/* .page-detail body { background-color: #f0f2f5; } */
+body.page-detail { background-color: #f0f2f5; }
+
+/* Brand palette override for details page */
+.edital-detail-page {
+  --curve-start: #DFF0D1; /* lighter tint of #84D067 */
+  --curve-mid:   #84D067; /* provided brand green */
+  --curve-end:   #5E9B3C; /* darker shade of #84D067 */
+}
+
+/* Align hero to palette */
+.analise-hero { border-left-color: var(--curve-mid); }
+.analise-hero h2 { color: var(--curve-end); }
+
+/* THEME for detail page (scoped) */
+.page-detail body { background-color: #f0f2f5; }
+:root { --primary-blue: #19316C; --secondary-blue: #3C78D8; --accent-green: #84D067; --text-dark: #333; --text-light: #fff; --border-light: #eee;
+  /* defaults for scroll-driven curve */
+  --curve-scale: 0.5; /* updated by JS (0..1) */
+  --curve-opacity: 0.85; /* updated by JS (0.65..0.95) */
+}
+.page-detail .navbar { background-color: var(--primary-blue); color: var(--text-light); box-shadow: 0 2px 4px rgba(0,0,0,.1); position: sticky; top: 0; z-index: 1000; }
+.page-detail .navbar-left .logo, .page-detail .navbar-left .logo-subtitle { color: var(--text-light); }
+.page-detail .navbar-right a { color: var(--text-light); border-radius: 20px; }
+.page-detail .navbar-right a.active { background-color: var(--secondary-blue); }
+.page-detail .navbar-right a:hover { background-color: rgba(255,255,255,0.1); }
+
+/* Curva verde lateral ALTA com efeito parallax */
+.green-curve {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 28%;
+    max-width: 350px;
+    height: 300vh; /* Aumentado para espalhar melhor o crescendo/decrescendo */
+    z-index: 0;
+    pointer-events: none;
+    will-change: transform;
+}
+
+.green-curve svg {
+    width: 100%;
+    height: 100%;
+}
+
+
+.content-area {
+    position: relative;
+    z-index: 1;
+}
+
+/* Tablet fine-tuning: slightly wider bulge */
+@media (min-width: 768px) and (max-width: 1023px){
+  body.page-detail::before { width: clamp(380px, 50vw, 760px); }
+}
+
+/* Mobile: keep presence but not overpower content */
+@media (max-width: 767px){
+  body.page-detail::before { width: clamp(260px, 60vw, 520px); opacity: 0.85; }
+}
+
+/* Remove old container-scoped curve (no longer used) */
+/* .page-detail .container::before { ... } */
+
+/* Responsive tweaks */
+@media (min-width: 768px) and (max-width: 1023px){
+  .page-detail .main-title { font-size: 36px; }
+  .page-detail .content-area { padding: 30px; }
+  .page-detail .analysis-grid-container { gap: 20px; }
+  .page-detail .item { padding: 22px; }
+  .page-detail .item-header h2 { font-size: 19px; }
+}
+@media (max-width: 767px){
+  .page-detail .navbar { padding: 15px 20px; }
+  .page-detail .navbar-right ul { flex-direction: column; align-items: flex-start; }
+  .page-detail .navbar-right li { margin: 8px 0 0 0; }
+  .page-detail .main-title { font-size: 30px; text-align: left; margin-bottom: 18px; }
+  .page-detail .content-area { padding: 20px; }
+  .page-detail .analysis-grid-container { gap: 16px; }
+  .page-detail .item { padding: 18px; }
+  .page-detail .item-header h2 { font-size: 18px; }
+}
+
+/* Respect reduced motion: keep curve stable */
+@media (prefers-reduced-motion: reduce){
+  body.page-detail::before { will-change: auto; }
+}
