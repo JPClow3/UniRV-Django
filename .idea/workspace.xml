@@ -4,24 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e9ee6810-acfc-4b5b-807c-e2feb4811799" name="Changes" comment="ablabalba">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UniRV_Django/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/UniRV_Django/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.1fa2d04b302d.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.1fa2d04b302d.css.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.ca0cdabf3c94.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.ca0cdabf3c94.css.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/staticfiles/css/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.css.gz" beforeDir="false" afterPath="$PROJECT_DIR$/staticfiles/css/style.css.gz" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.eed49b9e9435.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/css/style.eed49b9e9435.css.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/js/main.1017d7f74ea6.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/staticfiles/js/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/staticfiles/staticfiles.json" beforeDir="false" afterPath="$PROJECT_DIR$/staticfiles/staticfiles.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
-    </list>
+    <list default="true" id="e9ee6810-acfc-4b5b-807c-e2feb4811799" name="Changes" comment="Add parallax effect for green curve on detail page and update styles" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -40,12 +23,12 @@
     &quot;assignee&quot;: &quot;JPClow3&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/JPClow3/UniRV-Django.git",
-    "accountId": "84bf0493-df79-48db-86d1-4563ed8e8aff"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/JPClow3/UniRV-Django.git&quot;,
+    &quot;accountId&quot;: &quot;84bf0493-df79-48db-86d1-4563ed8e8aff&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>
@@ -131,8 +114,18 @@
       <workItem from="1761729399612" duration="117000" />
       <workItem from="1761729531030" duration="5584000" />
       <workItem from="1761764853979" duration="8132000" />
-      <workItem from="1761938340983" duration="7874000" />
+      <workItem from="1761938340983" duration="8294000" />
+      <workItem from="1762046558879" duration="4000" />
     </task>
+    <task id="LOCAL-00001" summary="Add parallax effect for green curve on detail page and update styles">
+      <option name="closed" value="true" />
+      <created>1761946656816</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1761946656816</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -140,6 +133,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ablabalba" />
-    <option name="LAST_COMMIT_MESSAGE" value="ablabalba" />
+    <MESSAGE value="Add parallax effect for green curve on detail page and update styles" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add parallax effect for green curve on detail page and update styles" />
   </component>
 </project>
