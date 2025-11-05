@@ -314,7 +314,6 @@ body {
     color: #6c757d;
     font-weight: 600;
 }
-
 /* Brand logo wrapper and image */
 .brand-logo {
     display: inline-flex;
@@ -529,7 +528,6 @@ body.page-detail {
 .page-detail body {
     background-color: #f0f2f5;
 }
-
 :root {
     /* Colors */
     --primary-blue: #19316C;

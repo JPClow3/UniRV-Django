@@ -1,4 +1,6 @@
-console.log('AgroHub static JS loaded');
+// ========================================
+// AgroHub - Main JavaScript
+// ========================================
 
 // ========================================
 // MOBILE MENU TOGGLE
@@ -273,10 +275,6 @@ function showToast(message, type = 'success') {
   window.addEventListener('resize', updateCurvePosition);
 })();
 
-console.log('✓ Mobile menu initialized');
-console.log('✓ Form loading states initialized');
-console.log('✓ Form validation initialized');
-console.log('✓ Accessibility features initialized');
 
 // ========================================
 // BACK TO TOP BUTTON

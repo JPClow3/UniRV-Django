@@ -1,6 +1,7 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
+
 from .models import Edital
 
 
@@ -8,8 +9,8 @@ class EditaisCrudTest(TestCase):
     def setUp(self):
         # Create a test user for authenticated operations
         self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123'
+            username='admin',
+            password='admin'
         )
         self.payload = {
             "titulo": "Edital Teste",
@@ -28,7 +29,7 @@ class EditaisCrudTest(TestCase):
     def test_create_edital(self):
         """Test creating an edital (requires authentication)"""
         # Login first
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='admin', password='admin')
         
         resp = self.client.post(reverse("edital_create"), data=self.payload, follow=True)
         self.assertEqual(resp.status_code, 200)
@@ -40,7 +41,7 @@ class EditaisCrudTest(TestCase):
     def test_update_edital(self):
         """Test updating an edital (requires authentication)"""
         # Login first
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='admin', password='admin')
         
         # Create edital using model directly
         edital = Edital.objects.create(**self.payload)
@@ -57,7 +58,7 @@ class EditaisCrudTest(TestCase):
     def test_delete_edital(self):
         """Test deleting an edital (requires authentication)"""
         # Login first
-        self.client.login(username='testuser', password='testpass123')
+        self.client.login(username='admin', password='admin')
         
         # Create edital using model directly
         edital = Edital.objects.create(**self.payload)
