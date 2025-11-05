@@ -1,6 +1,6 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import User
 
 
 class Edital(models.Model):
@@ -51,6 +51,26 @@ class Edital(models.Model):
         ordering = ['-data_atualizacao']
         verbose_name = 'Edital'
         verbose_name_plural = 'Editais'
+        indexes = [
+            models.Index(fields=['-data_atualizacao'], name='idx_data_atualizacao'),
+            models.Index(fields=['status'], name='idx_status'),
+            models.Index(fields=['entidade_principal'], name='idx_entidade'),
+            models.Index(fields=['numero_edital'], name='idx_numero'),
+        ]
+
+    def get_summary(self):
+        """Return a short summary for list views"""
+        if self.objetivo:
+            return self.objetivo[:200] + '...' if len(self.objetivo) > 200 else self.objetivo
+        return ''
+
+    def is_open(self):
+        """Check if edital is currently open"""
+        return self.status == 'aberto'
+
+    def is_closed(self):
+        """Check if edital is closed"""
+        return self.status == 'fechado'
 
     def __str__(self):
         return self.titulo

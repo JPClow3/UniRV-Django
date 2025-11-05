@@ -56,38 +56,115 @@ console.log('AgroHub static JS loaded');
       navMenu.classList.remove('menu-open');
     }
   });
+
+    // Close menu when navigating (clicking on links)
+    document.querySelectorAll('.navbar-right a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            if (window.innerWidth <= 767) {
+                menuToggle.setAttribute('aria-expanded', 'false');
+                navMenu.classList.remove('menu-open');
+            }
+        });
+    });
 })();
 
 // ========================================
 // FORM LOADING STATES
 // ========================================
 (function() {
-  const forms = document.querySelectorAll('form#edital-form');
+    const forms = document.querySelectorAll('form#edital-form');
 
-  forms.forEach(function(form) {
-    form.addEventListener('submit', function(event) {
-      const submitBtn = form.querySelector('#submit-btn');
+    forms.forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            const submitBtn = form.querySelector('#submit-btn');
 
-      if (submitBtn && !submitBtn.classList.contains('loading')) {
-        // Add loading state
-        submitBtn.classList.add('loading');
-        submitBtn.disabled = true;
-
-        // If form validation fails, remove loading state after a moment
-        setTimeout(function() {
-          // Check if form is still on page (not redirected)
-          if (document.contains(form)) {
-            const hasErrors = form.querySelector('.has-error, .field-error, .alert-error');
-            if (hasErrors) {
-              submitBtn.classList.remove('loading');
-              submitBtn.disabled = false;
+            // Check form validity first
+            if (!form.checkValidity()) {
+                return; // Let browser handle validation
             }
-          }
-        }, 500);
-      }
+
+            if (submitBtn && !submitBtn.classList.contains('loading')) {
+                // Add loading state
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+            }
+        });
     });
-  });
 })();
+
+// ========================================
+// FAVORITE TOGGLE FUNCTIONALITY
+// ========================================
+(function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        const favoriteButtons = document.querySelectorAll('.favorite-btn');
+
+        favoriteButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const editalId = this.dataset.editalId;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                // Show loading state
+                this.disabled = true;
+                const icon = this.querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'fas fa-spinner fa-spin';
+
+                fetch(`/edital/${editalId}/toggle-favorite/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.classList.toggle('favorited');
+                            icon.className = originalClass;
+
+                            const text = this.querySelector('.favorite-text');
+                            if (text) {
+                                text.textContent = data.is_favorited ? 'Favoritado' : 'Favoritar';
+                            }
+
+                            this.setAttribute('aria-label',
+                                data.is_favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+                            );
+
+                            // Show toast message
+                            showToast(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        icon.className = originalClass;
+                        showToast('Erro ao favoritar. Tente novamente.', 'error');
+                    })
+                    .finally(() => {
+                        this.disabled = false;
+                    });
+            });
+        });
+    });
+})();
+
+// Toast notification helper
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 
 // ========================================
 // FORM VALIDATION FEEDBACK
@@ -175,16 +252,22 @@ console.log('AgroHub static JS loaded');
   // Atualiza na inicialização
   updateCurvePosition();
 
-  // Atualiza conforme scrolla (com throttle leve via requestAnimationFrame)
+    // Atualiza conforme scrolla (com throttle via requestAnimationFrame + debouncing)
   let ticking = false;
+    let scrollTimeout;
+
   window.addEventListener('scroll', function() {
-    if (!ticking) {
-      window.requestAnimationFrame(function() {
-        updateCurvePosition();
-        ticking = false;
-      });
-      ticking = true;
-    }
+      // Debounce: wait 10ms before processing
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function () {
+          if (!ticking) {
+              window.requestAnimationFrame(function () {
+                  updateCurvePosition();
+                  ticking = false;
+              });
+              ticking = true;
+          }
+      }, 10);
   }, { passive: true });
 
   window.addEventListener('resize', updateCurvePosition);

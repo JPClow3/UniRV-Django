@@ -1,16 +1,17 @@
-from django.shortcuts import render, get_object_or_404, redirect
+import csv
+
+import bleach
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.utils.safestring import mark_safe
-from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-import bleach
-import csv
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.safestring import mark_safe
 
-from .models import Edital, EditalFavorite
 from .forms import EditalForm
+from .models import Edital, EditalFavorite
 
 # Allowed tags and attributes for HTML sanitization
 ALLOWED_TAGS = [
@@ -97,7 +98,14 @@ def index(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
 
-    editais = Edital.objects.all()
+    # Optimize queries with select_related for foreign keys
+    editais = Edital.objects.select_related(
+        'created_by', 'updated_by'
+    ).only(
+        'id', 'numero_edital', 'titulo', 'url', 'entidade_principal',
+        'status', 'data_criacao', 'data_atualizacao', 'objetivo',
+        'created_by', 'updated_by'
+    )
 
     # Apply full-text search across all fields
     if search_query:
@@ -122,6 +130,15 @@ def index(request):
 
 
 def edital_detail(request, pk):
+    """Página de detalhes do edital"""
+    # Optimize query with select_related and prefetch_related
+    edital = get_object_or_404(
+        Edital.objects.select_related('created_by', 'updated_by')
+        .prefetch_related('valores', 'cronogramas'),
+        pk=pk
+    )
+    valores = edital.valores.all()
+    cronogramas = edital.cronogramas.all()
     """Página de detalhes do edital"""
     edital = get_object_or_404(Edital, pk=pk)
     valores = edital.valores.all()
@@ -249,6 +266,7 @@ def my_favorites(request):
     return render(request, 'editais/favorites.html', context)
 
 
+@login_required
 def export_editais_csv(request):
     """Export editais to CSV file"""
     # Get filtered editais (same filters as index page)

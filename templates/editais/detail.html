@@ -9,8 +9,22 @@
 {% block og_description %}{{ edital.objetivo|truncatewords:25|striptags }}{% endblock %}
 
 {% block content %}
+    {% if user.is_authenticated %}
+        {% csrf_token %}
+    {% endif %}
+
 <div class="page-header">
-    <h1>{{ edital.titulo }}</h1>
+    <div class="page-header-top">
+        <h1>{{ edital.titulo }}</h1>
+        {% if user.is_authenticated %}
+            <button class="favorite-btn {% if is_favorited %}favorited{% endif %}"
+                    data-edital-id="{{ edital.pk }}"
+                    aria-label="{% if is_favorited %}Remover dos favoritos{% else %}Adicionar aos favoritos{% endif %}">
+                <i class="fas fa-star" aria-hidden="true"></i>
+                <span class="favorite-text">{% if is_favorited %}Favoritado{% else %}Favoritar{% endif %}</span>
+            </button>
+        {% endif %}
+    </div>
     <div class="page-meta">
         {% if edital.numero_edital %}
         <span class="page-meta-item">
@@ -94,6 +108,23 @@
   <div class="prose">{{ edital.detalhes_unirv_safe }}</div>
 </div>
 {% endif %}
+
+    {% if edital.created_by or edital.updated_by %}
+        <div class="activity-info">
+            {% if edital.created_by %}
+                <span class="created-by">
+        <i class="fas fa-user-plus" aria-hidden="true"></i>
+        Criado por <strong>{{ edital.created_by.username }}</strong> em {{ edital.data_criacao|date:"d/m/Y H:i" }}
+    </span>
+            {% endif %}
+            {% if edital.updated_by and edital.updated_by != edital.created_by %}
+                <span class="updated-by">
+        <i class="fas fa-user-edit" aria-hidden="true"></i>
+        Última atualização por <strong>{{ edital.updated_by.username }}</strong>
+    </span>
+            {% endif %}
+        </div>
+    {% endif %}
 
 <p class="disclaimer">
     <i class="fas fa-info-circle" aria-hidden="true"></i>

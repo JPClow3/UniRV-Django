@@ -9,13 +9,14 @@
     <meta name="description" content="{% block meta_description %}AgroHub UniRV - Portal de editais de fomento, oportunidades de negócio e programas de apoio para o agronegócio{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}editais, fomento, agronegócio, UniRV, oportunidades, pesquisa, inovação{% endblock %}">
     <meta name="author" content="UniRV - Universidade de Rio Verde">
+    <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="{% block og_title %}{% block title_og %}AgroHub - UNIRV{% endblock %}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Portal de editais de fomento e oportunidades para o agronegócio{% endblock %}">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
     <meta property="og:site_name" content="AgroHub UniRV">
-
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
