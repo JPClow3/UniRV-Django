@@ -49,9 +49,19 @@
         <article class="edital-card" role="listitem">
             <div class="card-header">
                 <span class="status-badge status-{{ edital.status }}" aria-label="Status do edital">{{ edital.get_status_display }}</span>
-                {% if edital.numero_edital %}
-                    <span class="edital-number">{{ edital.numero_edital }}</span>
-                {% endif %}
+                <div class="card-header-right">
+                    {% if edital.numero_edital %}
+                        <span class="edital-number">{{ edital.numero_edital }}</span>
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        <button class="favorite-btn-card {% if edital.id in favorited_ids %}favorited{% endif %}"
+                                data-edital-id="{{ edital.id }}"
+                                aria-label="Favoritar {{ edital.titulo }}"
+                                title="{% if edital.id in favorited_ids %}Remover dos favoritos{% else %}Adicionar aos favoritos{% endif %}">
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                        </button>
+                    {% endif %}
+                </div>
             </div>
 
             <h3 class="edital-title">

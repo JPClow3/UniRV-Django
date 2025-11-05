@@ -10,9 +10,33 @@
     <form method="post" class="styled-form" id="edital-form">
         {% csrf_token %}
 
-        {% if form.non_field_errors %}
-            <div class="alert alert-error" role="alert">
-                {{ form.non_field_errors }}
+        {% if form.errors %}
+            <div class="error-summary" role="alert" aria-labelledby="error-summary-title">
+                <h2 class="error-summary-title" id="error-summary-title">
+                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    <span>Há {{ form.errors|length }} erro{{ form.errors|length|pluralize }} no formulário</span>
+                </h2>
+                <p style="margin-bottom: 12px; font-size: 14px;">Por favor, corrija os seguintes campos:</p>
+                <ul class="error-summary-list">
+                    {% for field in form %}
+                        {% if field.errors %}
+                            <li>
+                                <a href="#{{ field.id_for_label }}" class="error-link">
+                                    <strong>{{ field.label }}:</strong> {{ field.errors.0|striptags }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <li>
+                                <span class="error-link">
+                                    <strong>Erro geral:</strong> {{ error|striptags }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
             </div>
         {% endif %}
 

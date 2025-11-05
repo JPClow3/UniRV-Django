@@ -120,11 +120,20 @@ def index(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Get user's favorited edital IDs for quick lookup
+    favorited_ids = []
+    if request.user.is_authenticated:
+        favorited_ids = list(
+            EditalFavorite.objects.filter(user=request.user)
+            .values_list('edital_id', flat=True)
+        )
+
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
         'status_filter': status_filter,
         'status_choices': Edital.STATUS_CHOICES,
+        'favorited_ids': favorited_ids,
     }
     return render(request, 'editais/index.html', context)
 

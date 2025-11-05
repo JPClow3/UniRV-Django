@@ -3,6 +3,216 @@
 // ========================================
 
 // ========================================
+// AJAX FILTERS FOR INDEX PAGE
+// ========================================
+(function () {
+    const searchForm = document.querySelector('.search-form');
+    const editaisGrid = document.querySelector('.editais-grid');
+    const paginationContainer = document.querySelector('.pagination-container');
+
+    if (!searchForm || !editaisGrid) return;
+
+    // Intercept form submission
+    searchForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        // Get form data
+        const formData = new FormData(searchForm);
+        const params = new URLSearchParams(formData);
+
+        // Build URL with parameters
+        const url = `${window.location.pathname}?${params.toString()}`;
+
+        // Show loading state
+        editaisGrid.style.opacity = '0.5';
+        editaisGrid.style.pointerEvents = 'none';
+
+        // Fetch filtered results
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.text())
+            .then(html => {
+                // Parse the response
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // Extract the new grid content
+                const newGrid = doc.querySelector('.editais-grid');
+                const newPagination = doc.querySelector('.pagination-container');
+
+                if (newGrid) {
+                    editaisGrid.innerHTML = newGrid.innerHTML;
+                    editaisGrid.style.opacity = '1';
+                    editaisGrid.style.pointerEvents = 'auto';
+
+                    // Re-initialize favorite buttons for new content
+                    if (window.setupFavoriteButtons) {
+                        window.setupFavoriteButtons();
+                    }
+                }
+
+                if (newPagination && paginationContainer) {
+                    paginationContainer.innerHTML = newPagination.innerHTML;
+                    setupPaginationAjax();
+                }
+
+                // Update URL in browser (allow sharing filtered results)
+                history.pushState({search: params.toString()}, '', url);
+
+                // Scroll to top of results
+                editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
+            })
+            .catch(error => {
+                console.error('Error fetching results:', error);
+                editaisGrid.style.opacity = '1';
+                editaisGrid.style.pointerEvents = 'auto';
+                showToast('Erro ao filtrar editais. Tente novamente.', 'error');
+            });
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function (event) {
+        if (event.state && event.state.search) {
+            // Reload the page with the stored search params
+            window.location.search = event.state.search;
+        }
+    });
+
+    // Setup AJAX pagination
+    function setupPaginationAjax() {
+        const paginationLinks = document.querySelectorAll('.pagination .page-link');
+
+        paginationLinks.forEach(link => {
+            link.addEventListener('click', function (event) {
+                event.preventDefault();
+                const url = this.href;
+
+                editaisGrid.style.opacity = '0.5';
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        const newGrid = doc.querySelector('.editais-grid');
+                        const newPagination = doc.querySelector('.pagination-container');
+
+                        if (newGrid) {
+                            editaisGrid.innerHTML = newGrid.innerHTML;
+                            editaisGrid.style.opacity = '1';
+
+                            // Re-initialize favorite buttons
+                            if (window.setupFavoriteButtons) {
+                                window.setupFavoriteButtons();
+                            }
+                        }
+
+                        if (newPagination && paginationContainer) {
+                            paginationContainer.innerHTML = newPagination.innerHTML;
+                            setupPaginationAjax();
+                        }
+
+                        history.pushState({}, '', url);
+                        editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        editaisGrid.style.opacity = '1';
+                    });
+            });
+        });
+    }
+
+    // Initial setup for pagination
+    setupPaginationAjax();
+})();
+
+// ========================================
+// FAVORITE TOGGLE FUNCTIONALITY (Detail + Cards)
+// ========================================
+(function () {
+    // Setup favorite buttons (works for both detail page and cards)
+    window.setupFavoriteButtons = function () {
+        const favoriteButtons = document.querySelectorAll('.favorite-btn, .favorite-btn-card');
+
+        favoriteButtons.forEach(function (btn) {
+            // Remove old listener by cloning
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+
+            newBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const editalId = this.dataset.editalId;
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                if (!csrfToken) {
+                    window.location.href = '/admin/login/?next=' + window.location.pathname;
+                    return;
+                }
+
+                // Show loading state
+                this.disabled = true;
+                const icon = this.querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'fas fa-spinner fa-spin';
+
+                fetch(`/edital/${editalId}/toggle-favorite/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            this.classList.toggle('favorited');
+                            icon.className = originalClass;
+
+                            const text = this.querySelector('.favorite-text');
+                            if (text) {
+                                text.textContent = data.is_favorited ? 'Favoritado' : 'Favoritar';
+                            }
+
+                            const currentLabel = data.is_favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
+                            this.setAttribute('aria-label', currentLabel);
+                            this.setAttribute('title', currentLabel);
+
+                            // Show toast message
+                            showToast(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        icon.className = originalClass;
+                        showToast('Erro ao favoritar. Tente novamente.', 'error');
+                    })
+                    .finally(() => {
+                        this.disabled = false;
+                    });
+            });
+        });
+    };
+
+    // Initial setup
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.setupFavoriteButtons);
+    } else {
+        window.setupFavoriteButtons();
+    }
+})();
+
+// ========================================
 // MOBILE MENU TOGGLE
 // ========================================
 (function() {
@@ -68,6 +278,140 @@
             }
         });
     });
+})();
+
+// ========================================
+// FORM AUTOSAVE & UNSAVED CHANGES WARNING
+// ========================================
+(function () {
+    const editalForm = document.querySelector('form#edital-form');
+    if (!editalForm) return;
+
+    const AUTOSAVE_KEY = 'edital_form_autosave';
+    const AUTOSAVE_INTERVAL = 10000; // 10 seconds
+    let formChanged = false;
+    let autosaveInterval;
+
+    // Get all form fields
+    const formFields = editalForm.querySelectorAll('input, textarea, select');
+
+    // Check for saved data on page load
+    window.addEventListener('DOMContentLoaded', function () {
+        const savedData = localStorage.getItem(AUTOSAVE_KEY);
+
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                const savedDate = new Date(data.timestamp);
+                const now = new Date();
+                const hoursSince = (now - savedDate) / (1000 * 60 * 60);
+
+                // Only restore if saved within last 24 hours
+                if (hoursSince < 24) {
+                    if (confirm(`Encontramos um rascunho salvo em ${savedDate.toLocaleString()}. Deseja restaurá-lo?`)) {
+                        restoreFormData(data.fields);
+                        showToast('Rascunho restaurado com sucesso!');
+                    } else {
+                        localStorage.removeItem(AUTOSAVE_KEY);
+                    }
+                }
+            } catch (e) {
+                console.error('Error restoring autosave:', e);
+                localStorage.removeItem(AUTOSAVE_KEY);
+            }
+        }
+    });
+
+    // Track form changes
+    formFields.forEach(function (field) {
+        field.addEventListener('input', function () {
+            formChanged = true;
+        });
+
+        field.addEventListener('change', function () {
+            formChanged = true;
+        });
+    });
+
+    // Autosave function
+    function autosaveForm() {
+        if (!formChanged) return;
+
+        const formData = {};
+        formFields.forEach(function (field) {
+            if (field.type !== 'password' && field.name) {
+                formData[field.name] = field.value;
+            }
+        });
+
+        const saveData = {
+            fields: formData,
+            timestamp: new Date().toISOString()
+        };
+
+        try {
+            localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
+            // Show subtle indicator
+            showAutosaveIndicator();
+        } catch (e) {
+            console.error('Autosave failed:', e);
+        }
+    }
+
+    // Restore form data
+    function restoreFormData(data) {
+        Object.keys(data).forEach(function (name) {
+            const field = editalForm.querySelector(`[name="${name}"]`);
+            if (field) {
+                field.value = data[name];
+            }
+        });
+    }
+
+    // Show autosave indicator
+    function showAutosaveIndicator() {
+        let indicator = document.querySelector('.autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'autosave-indicator';
+            indicator.innerHTML = '<i class="fas fa-check-circle"></i> Rascunho salvo';
+            document.body.appendChild(indicator);
+        }
+
+        indicator.classList.add('visible');
+        setTimeout(function () {
+            indicator.classList.remove('visible');
+        }, 2000);
+    }
+
+    // Start autosave interval
+    autosaveInterval = setInterval(autosaveForm, AUTOSAVE_INTERVAL);
+
+    // Warn before leaving if form has changes
+    window.addEventListener('beforeunload', function (e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = 'Você tem alterações não salvas. Tem certeza que deseja sair?';
+            return e.returnValue;
+        }
+    });
+
+    // Clear autosave on successful submit
+    editalForm.addEventListener('submit', function () {
+        formChanged = false;
+        clearInterval(autosaveInterval);
+        localStorage.removeItem(AUTOSAVE_KEY);
+    });
+
+    // Manual save button (optional - add to template if desired)
+    const manualSaveBtn = document.getElementById('manual-save-draft');
+    if (manualSaveBtn) {
+        manualSaveBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            autosaveForm();
+            showToast('Rascunho salvo manualmente!');
+        });
+    }
 })();
 
 // ========================================
@@ -167,6 +511,40 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// ========================================
+// ERROR SUMMARY NAVIGATION (Accessibility)
+// ========================================
+(function () {
+    const errorLinks = document.querySelectorAll('.error-summary-list a');
+
+    errorLinks.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetField = document.getElementById(targetId);
+
+            if (targetField) {
+                // Scroll to field
+                targetField.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+                // Focus the field
+                setTimeout(function () {
+                    targetField.focus();
+
+                    // Add visual highlight
+                    const formGroup = targetField.closest('.form-group');
+                    if (formGroup) {
+                        formGroup.style.animation = 'highlight-flash 1s';
+                        setTimeout(() => {
+                            formGroup.style.animation = '';
+                        }, 1000);
+                    }
+                }, 300);
+            }
+        });
+    });
+})();
 
 // ========================================
 // FORM VALIDATION FEEDBACK
@@ -331,14 +709,19 @@ function showToast(message, type = 'success') {
 })();
 
 function showConfirmDialog(options) {
+    // Store the element that triggered the dialog
+    const triggerElement = document.activeElement;
+
   // Create overlay
   const overlay = document.createElement('div');
   overlay.className = 'confirm-dialog-overlay';
+    overlay.setAttribute('role', 'alertdialog');
+    overlay.setAttribute('aria-modal', 'true');
 
   // Create dialog
   const dialog = document.createElement('div');
   dialog.className = 'confirm-dialog';
-  dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('role', 'document');
   dialog.setAttribute('aria-labelledby', 'dialog-title');
   dialog.setAttribute('aria-describedby', 'dialog-desc');
 
@@ -358,11 +741,39 @@ function showConfirmDialog(options) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
 
+    // Get all focusable elements in dialog
+    const focusableElements = dialog.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
   // Show dialog
   setTimeout(() => overlay.classList.add('active'), 10);
 
   // Focus first button for accessibility
-  dialog.querySelector('#dialog-cancel').focus();
+    firstFocusable.focus();
+
+    // Focus trap implementation
+    function trapFocus(e) {
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                // Shift + Tab
+                if (document.activeElement === firstFocusable) {
+                    lastFocusable.focus();
+                    e.preventDefault();
+                }
+            } else {
+                // Tab
+                if (document.activeElement === lastFocusable) {
+                    firstFocusable.focus();
+                    e.preventDefault();
+                }
+            }
+        }
+    }
+
+    dialog.addEventListener('keydown', trapFocus);
 
   // Handle cancel
   dialog.querySelector('#dialog-cancel').addEventListener('click', function() {
@@ -384,19 +795,27 @@ function showConfirmDialog(options) {
     }
   });
 
-  // Close on escape key
+    // Handle escape key
   function handleEscape(e) {
     if (e.key === 'Escape') {
       closeDialog();
     }
   }
+
   document.addEventListener('keydown', handleEscape);
 
+    // Close dialog function
   function closeDialog() {
     overlay.classList.remove('active');
     setTimeout(() => {
       overlay.remove();
       document.removeEventListener('keydown', handleEscape);
+        dialog.removeEventListener('keydown', trapFocus);
+
+        // Return focus to trigger element
+        if (triggerElement && typeof triggerElement.focus === 'function') {
+            triggerElement.focus();
+        }
     }, 300);
   }
 }

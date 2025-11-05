@@ -41,6 +41,12 @@
 
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 
+.card-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
 .status-aberto { background-color: #d4edda; color: #155724; }
 .status-fechado { background-color: #f8d7da; color: #721c24; }
@@ -1057,6 +1063,71 @@ a[target="_blank"]:hover::after {
         justify-content: center;
         border-radius: 50%;
     }
+
+    /* Favorite button for cards (compact version) */
+    .favorite-btn-card {
+        background: none;
+        border: 2px solid #ddd;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #666;
+        font-size: 16px;
+    }
+
+    .favorite-btn-card:hover {
+        border-color: #ffc107;
+        color: #ffc107;
+        transform: scale(1.1);
+    }
+
+    .favorite-btn-card.favorited {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        border-color: #ffc107;
+        color: white;
+    }
+
+    .favorite-btn-card:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* ========================================
+       AUTOSAVE INDICATOR
+       ======================================== */
+    .autosave-indicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #28a745;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 9999;
+        transition: transform 0.3s ease;
+        pointer-events: none;
+    }
+
+    .autosave-indicator.visible {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .autosave-indicator i {
+        font-size: 16px;
+    }
+
+    /* ========================================
+       TOAST NOTIFICATIONS
+       ======================================== */
+
 }
 
 /* ========================================
