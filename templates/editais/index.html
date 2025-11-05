@@ -1,98 +1,150 @@
 {% extends 'base.html' %}
 
-{% block title %}Editais de Fomento - AgroHub{% endblock %}
+{% block title %}Editais de Fomento - AgroHub UniRV{% endblock %}
+
+{% block meta_description %}Explore editais de fomento abertos para o agronegócio. Encontre oportunidades de financiamento, pesquisa e inovação para seu projeto.{% endblock %}
+
+{% block meta_keywords %}editais fomento, agronegócio, financiamento rural, pesquisa agrícola, inovação, UniRV{% endblock %}
 
 {% block content %}
 <div class="editais-header">
     <h1 class="main-title">Editais de Fomento</h1>
 
     <div class="filters-container">
-        <form method="GET" class="search-form">
+        <form method="GET" class="search-form" role="search" aria-label="Buscar editais">
             <div class="search-group">
                 <input type="text" name="search" value="{{ search_query }}"
                        placeholder="Buscar por título, entidade ou número do edital..."
-                       class="search-input">
+                       class="search-input"
+                       aria-label="Campo de busca">
 
-                <select name="status" class="status-filter">
+                <select name="status" class="status-filter" aria-label="Filtrar por status">
                     <option value="">Todos os Status</option>
                     {% for value, display in status_choices %}
                         <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
                     {% endfor %}
                 </select>
 
-                <button type="submit" class="search-btn">
-                    <i class="fas fa-search"></i>
+                <button type="submit" class="search-btn" aria-label="Buscar editais">
+                    <i class="fas fa-search" aria-hidden="true"></i>
                 </button>
             </div>
         </form>
 
-        <a href="{% url 'edital_create' %}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Cadastrar Edital
-        </a>
+        <div class="header-actions">
+            <a href="{% url 'export_editais_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+               class="btn btn-secondary"
+               title="Exportar editais para CSV">
+                <i class="fas fa-download" aria-hidden="true"></i> Exportar CSV
+            </a>
+            <a href="{% url 'edital_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar Edital
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="editais-grid">
+<div class="editais-grid" role="list" aria-label="Lista de editais">
     {% for edital in page_obj %}
-        <div class="edital-card">
+        <article class="edital-card" role="listitem">
             <div class="card-header">
-                <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+                <span class="status-badge status-{{ edital.status }}" aria-label="Status do edital">{{ edital.get_status_display }}</span>
                 {% if edital.numero_edital %}
                     <span class="edital-number">{{ edital.numero_edital }}</span>
                 {% endif %}
             </div>
 
             <h3 class="edital-title">
-                <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatechars:80 }}</a>
+                <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatewords:12 }}</a>
             </h3>
 
             {% if edital.entidade_principal %}
-                <p class="edital-entity"><i class="fas fa-building"></i> {{ edital.entidade_principal }}</p>
+                <p class="edital-entity">
+                    <i class="fas fa-building" aria-hidden="true"></i>
+                    <span>{{ edital.entidade_principal }}</span>
+                </p>
             {% endif %}
 
             {% if edital.objetivo %}
-                <p class="edital-objective">{{ edital.objetivo|truncatechars:120 }}</p>
+                <p class="edital-objective">{{ edital.objetivo|truncatewords:20 }}</p>
             {% endif %}
 
             <div class="card-footer">
                 <small class="update-date">
-                    <i class="fas fa-calendar-alt"></i>
-                    Atualizado em {{ edital.data_atualizacao|date:"d/m/Y" }}
+                    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                    <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}">
+                        Atualizado em {{ edital.data_atualizacao|date:"d/m/Y" }}
+                    </time>
                 </small>
 
                 <div class="card-actions">
-                    <a href="{{ edital.get_absolute_url }}" class="btn btn-sm btn-outline">Ver Detalhes</a>
-                    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+                    <a href="{{ edital.get_absolute_url }}" class="btn btn-sm btn-outline" aria-label="Ver detalhes de {{ edital.titulo }}">
+                        Ver Detalhes
+                    </a>
+                    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-sm btn-secondary" aria-label="Editar {{ edital.titulo }}">
+                        Editar
+                    </a>
                 </div>
             </div>
-        </div>
+        </article>
     {% empty %}
-        <div class="no-results">
-            <i class="fas fa-search"></i>
+        <div class="empty-state" role="status">
+            <div class="empty-state-icon">
+                <i class="fas fa-search" aria-hidden="true"></i>
+            </div>
             <h3>Nenhum edital encontrado</h3>
-            <p>Tente ajustar os filtros ou <a href="{% url 'edital_create' %}">cadastre um novo edital</a>.</p>
+            {% if search_query or status_filter %}
+                <p>Não encontramos editais que correspondam aos seus filtros. Tente ajustar sua busca ou remover os filtros aplicados.</p>
+                <div class="empty-state-actions">
+                    <a href="{% url 'editais_index' %}" class="btn btn-outline">
+                        <i class="fas fa-redo" aria-hidden="true"></i> Limpar Filtros
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'edital_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar Novo Edital
+                    </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>Ainda não há editais cadastrados no sistema. Seja o primeiro a adicionar um edital de fomento!</p>
+                <div class="empty-state-actions">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'edital_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar Primeiro Edital
+                    </a>
+                    {% else %}
+                    <a href="{% url 'admin:login' %}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Fazer Login para Cadastrar
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
     {% endfor %}
 </div>
 
 {% if page_obj.has_other_pages %}
-    <div class="pagination-container">
+    <nav class="pagination-container" aria-label="Navegação de páginas">
         <div class="pagination">
             {% if page_obj.has_previous %}
-                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">&laquo; Primeira</a>
-                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">Anterior</a>
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                   class="page-link" aria-label="Ir para primeira página">&laquo; Primeira</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                   class="page-link" aria-label="Ir para página anterior">Anterior</a>
             {% endif %}
 
-            <span class="page-info">
+            <span class="page-info" aria-current="page">
                 Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">Próxima</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="page-link">Última &raquo;</a>
+                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                   class="page-link" aria-label="Ir para próxima página">Próxima</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
+                   class="page-link" aria-label="Ir para última página">Última &raquo;</a>
             {% endif %}
         </div>
-    </div>
+    </nav>
 {% endif %}
 {% endblock %}
 

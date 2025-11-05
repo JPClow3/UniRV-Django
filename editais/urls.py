@@ -9,4 +9,9 @@ urlpatterns = [
     path('cadastrar/', views.edital_create, name='edital_create'),
     path('edital/<int:pk>/editar/', views.edital_update, name='edital_update'),
     path('edital/<int:pk>/excluir/', views.edital_delete, name='edital_delete'),
+
+    # New features
+    path('edital/<int:pk>/toggle-favorite/', views.toggle_favorite, name='toggle_favorite'),
+    path('favoritos/', views.my_favorites, name='my_favorites'),
+    path('export/csv/', views.export_editais_csv, name='export_editais_csv'),
 ]

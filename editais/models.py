@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 
 class Edital(models.Model):
@@ -17,6 +18,24 @@ class Edital(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
 
+    # User tracking for activity log
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_editais',
+        verbose_name='Criado por'
+    )
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='updated_editais',
+        verbose_name='Atualizado por'
+    )
+
     # Conteúdo
     analise = models.TextField(blank=True)  # Nova seção: Análise do Edital
     objetivo = models.TextField(blank=True)
@@ -30,6 +49,8 @@ class Edital(models.Model):
 
     class Meta:
         ordering = ['-data_atualizacao']
+        verbose_name = 'Edital'
+        verbose_name_plural = 'Editais'
 
     def __str__(self):
         return self.titulo
@@ -56,6 +77,25 @@ class Cronograma(models.Model):
 
     class Meta:
         ordering = ['data_inicio']
+        verbose_name = 'Cronograma'
+        verbose_name_plural = 'Cronogramas'
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.descricao}'
+
+
+class EditalFavorite(models.Model):
+    """User favorites/bookmarks for editais"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorited_editais')
+    edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'edital')
+        ordering = ['-created_at']
+        verbose_name = 'Favorito'
+        verbose_name_plural = 'Favoritos'
+
+    def __str__(self):
+        return f'{self.user.username} - {self.edital.titulo}'
+

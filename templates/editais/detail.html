@@ -1,10 +1,46 @@
 {% extends 'base.html' %}
-{% block title %}{{ edital.titulo }}{% endblock %}
+
+{% block title %}{{ edital.titulo }} - AgroHub UniRV{% endblock %}
+
+{% block meta_description %}{{ edital.objetivo|truncatewords:30|striptags }} - Edital de fomento {% if edital.entidade_principal %}pela {{ edital.entidade_principal }}{% endif %}. Status: {{ edital.get_status_display }}.{% endblock %}
+
+{% block og_title %}{{ edital.titulo }}{% endblock %}
+
+{% block og_description %}{{ edital.objetivo|truncatewords:25|striptags }}{% endblock %}
+
 {% block content %}
-<h1 class="main-title">{{ edital.titulo }}</h1>
-{% if edital.analise_safe %}
-  <p>{{ edital.analise_safe }}</p>
-{% endif %}
+<div class="page-header">
+    <h1>{{ edital.titulo }}</h1>
+    <div class="page-meta">
+        {% if edital.numero_edital %}
+        <span class="page-meta-item">
+            <i class="fas fa-file-alt" aria-hidden="true"></i>
+            <strong>Nº:</strong> {{ edital.numero_edital }}
+        </span>
+        {% endif %}
+        {% if edital.entidade_principal %}
+        <span class="page-meta-item">
+            <i class="fas fa-building" aria-hidden="true"></i>
+            <strong>Entidade:</strong> {{ edital.entidade_principal }}
+        </span>
+        {% endif %}
+        <span class="page-meta-item">
+            <i class="fas fa-tag" aria-hidden="true"></i>
+            <strong>Status:</strong> <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+        </span>
+        {% if edital.created_by %}
+        <span class="page-meta-item">
+            <i class="fas fa-user" aria-hidden="true"></i>
+            <strong>Criado por:</strong> {{ edital.created_by.username }}
+        </span>
+        {% endif %}
+        <span class="page-meta-item">
+            <i class="fas fa-calendar" aria-hidden="true"></i>
+            <strong>Atualizado:</strong> <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}">{{ edital.data_atualizacao|date:"d/m/Y" }}</time>
+        </span>
+    </div>
+</div>
+
 
 {% if edital.objetivo_safe %}
 <div class="edital-section" id="objetivo">
@@ -59,11 +95,23 @@
 </div>
 {% endif %}
 
-<p class="disclaimer">Consulte o edital oficial para detalhes. Acesse: <a href="{{ edital.url }}" target="_blank" rel="noopener">link do edital</a>.</p>
+<p class="disclaimer">
+    <i class="fas fa-info-circle" aria-hidden="true"></i>
+    Consulte o edital oficial para detalhes completos.
+    <a href="{{ edital.url }}" target="_blank" rel="noopener noreferrer">Acessar edital oficial</a>
+</p>
 
 <div class="detail-actions">
-  <a href="{{ edital.url }}" target="_blank" rel="noopener" class="btn btn-outline">Acessar link do edital</a>
-  <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">Editar</a>
-  <a href="{% url 'editais_index' %}" class="btn">Voltar</a>
+  <a href="{{ edital.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+      <i class="fas fa-external-link-alt" aria-hidden="true"></i> Acessar Edital
+  </a>
+  {% if user.is_authenticated %}
+  <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">
+      <i class="fas fa-edit" aria-hidden="true"></i> Editar
+  </a>
+  {% endif %}
+  <a href="{% url 'editais_index' %}" class="btn btn-outline">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+  </a>
 </div>
 {% endblock %}

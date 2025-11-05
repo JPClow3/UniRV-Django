@@ -1,12 +1,81 @@
 {% extends 'base.html' %}
 {% block title %}Cadastrar Edital - AgroHub{% endblock %}
 {% block content %}
-<h1>Cadastrar Edital</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-primary">Salvar</button>
-  <a href="{% url 'editais_index' %}" class="btn btn-secondary">Cancelar</a>
-</form>
+<div class="form-page">
+    <div class="form-header">
+        <h1>Cadastrar Edital</h1>
+        <p class="form-subtitle">Preencha as informações do edital de fomento</p>
+    </div>
+
+    <form method="post" class="styled-form" id="edital-form">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-error" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-section">
+            <h2 class="section-title">Informações Básicas</h2>
+
+            {% for field in form %}
+                {% if field.name in 'numero_edital,titulo,url,entidade_principal,status' %}
+                    <div class="form-group {% if field.errors %}has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="required-mark" aria-label="Campo obrigatório">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-help">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="field-error" role="alert">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="form-section">
+            <h2 class="section-title">Conteúdo Detalhado</h2>
+
+            {% for field in form %}
+                {% if field.name not in 'numero_edital,titulo,url,entidade_principal,status' %}
+                    <div class="form-group {% if field.errors %}has-error{% endif %}">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="required-mark" aria-label="Campo obrigatório">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <small class="form-help">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div class="field-error" role="alert">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+                <span class="btn-text"><i class="fas fa-save"></i> Salvar</span>
+                <span class="btn-loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Salvando...
+                </span>
+            </button>
+            <a href="{% url 'editais_index' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}
 

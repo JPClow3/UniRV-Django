@@ -21,12 +21,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&vj6cn@stt91@a!0l1*+y0*n+kps3nd!h(g(rwd3j34d3hqjqq'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if not DEBUG else []
+# Security: explicit ALLOWED_HOSTS
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+else:
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition
@@ -137,6 +141,18 @@ STORAGES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Login URL for @login_required decorator
 LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/'
+
+# Application-specific settings
+EDITAIS_PER_PAGE = 12  # Number of editais to display per page
+EDITAL_SEARCH_FIELDS = [
+    'titulo', 'entidade_principal', 'numero_edital',
+    'analise', 'objetivo', 'etapas', 'recursos',
+    'itens_financiaveis', 'criterios_elegibilidade',
+    'criterios_avaliacao', 'itens_essenciais_observacoes',
+    'detalhes_unirv'
+]
+

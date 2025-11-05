@@ -4,31 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AgroHub - UNIRV{% endblock %}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}AgroHub UniRV - Portal de editais de fomento, oportunidades de negócio e programas de apoio para o agronegócio{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}editais, fomento, agronegócio, UniRV, oportunidades, pesquisa, inovação{% endblock %}">
+    <meta name="author" content="UniRV - Universidade de Rio Verde">
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="{% block og_title %}{% block title_og %}AgroHub - UNIRV{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Portal de editais de fomento e oportunidades para o agronegócio{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AgroHub UniRV">
+
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="{% if request.resolver_match.url_name == 'edital_detail' %}page-detail{% endif %}">
+
+<!-- Skip to main content link for accessibility (only on list pages) -->
+{% if request.resolver_match.url_name != 'edital_detail' %}
+<a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+{% endif %}
+
 <header class="navbar">
     <div class="navbar-left">
-        <span class="logo">agrohub</span>
-        <span class="logo-subtitle">UniRV</span>
+        <a href="{% url 'editais_index' %}" class="brand-logo" aria-label="Agrohub UniRV">
+            <img src="{% static 'img/Logo.svg' %}" alt="Agrohub UniRV logo">
+        </a>
     </div>
-    <nav class="navbar-right">
+
+    <button class="mobile-menu-toggle" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="navbar-menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+
+    <nav class="navbar-right" id="navbar-menu">
         <ul>
             <li><a href="{% url 'editais_index' %}" class="{% if request.resolver_match.url_name == 'editais_index' %}active{% endif %}">EDITAIS DE FOMENTO</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'my_favorites' %}" class="{% if request.resolver_match.url_name == 'my_favorites' %}active{% endif %}">
+                    <i class="fas fa-star" aria-hidden="true"></i> FAVORITOS
+                </a></li>
+                <li><a href="{% url 'export_editais_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="export-link">
+                    <i class="fas fa-download" aria-hidden="true"></i> EXPORTAR CSV
+                </a></li>
+            {% endif %}
             <li><a href="#">OPORTUNIDADES DE NEGÓCIO</a></li>
             <li><a href="#">FEIRAS, EVENTOS E CURSOS</a></li>
             <li><a href="#">ESTUDOS E PESQUISAS</a></li>
             <li><a href="#">PROGRAMAS DE APOIO</a></li>
-            <li><a href="#" class="icon-link"><i class="fas fa-seedling"></i></a></li>
+            <li><a href="#" class="icon-link" aria-label="Mais opções"><i class="fas fa-seedling" aria-hidden="true"></i></a></li>
         </ul>
     </nav>
 </header>
 
 {% if request.resolver_match.url_name == 'edital_detail' %}
 <!-- Curva verde lateral -->
-<div class="green-curve">
+<div class="green-curve" aria-hidden="true">
     <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path d="M 0,0
                  C 15,15 22,30 28,50
@@ -41,9 +75,9 @@
 {% endif %}
 
 <div class="container">
-    <main class="content-area">
+    <main class="content-area" id="main-content">
         {% if messages %}
-            <div class="messages">
+            <div class="messages" role="alert" aria-live="polite">
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }}">{{ message }}</div>
                 {% endfor %}
