@@ -3,18 +3,51 @@
 // ========================================
 
 // ========================================
-// AJAX FILTERS FOR INDEX PAGE
+// AJAX FILTERS FOR INDEX PAGE WITH DEBOUNCING
 // ========================================
 (function () {
     const searchForm = document.querySelector('.search-form');
     const editaisGrid = document.querySelector('.editais-grid');
     const paginationContainer = document.querySelector('.pagination-container');
+    const searchInput = document.querySelector('.search-input, .search-input-enhanced');
 
     if (!searchForm || !editaisGrid) return;
 
-    // Intercept form submission
-    searchForm.addEventListener('submit', function (event) {
-        event.preventDefault();
+    let searchTimeout;
+    const SEARCH_DELAY = 500; // ms - debounce delay
+    let isLoading = false;
+    
+    // Expose searchTimeout to window for keyboard shortcuts
+    window.searchTimeout = searchTimeout;
+
+    // Function to show skeleton loading
+    function showSkeletonLoading() {
+        if (isLoading) return;
+        isLoading = true;
+
+        editaisGrid.classList.add('loading');
+        const skeletonCount = 6; // Show 6 skeleton cards
+        let skeletonHTML = '';
+
+        for (let i = 0; i < skeletonCount; i++) {
+            skeletonHTML += `
+                <article class="skeleton-card" role="listitem" aria-hidden="true">
+                    <div class="skeleton skeleton-badge"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                    <div class="skeleton skeleton-button"></div>
+                </article>
+            `;
+        }
+
+        editaisGrid.innerHTML = skeletonHTML;
+    }
+
+    // Function to perform search (exposed globally for keyboard shortcuts)
+    window.performSearch = function() {
+        if (isLoading) return;
 
         // Get form data
         const formData = new FormData(searchForm);
@@ -23,9 +56,8 @@
         // Build URL with parameters
         const url = `${window.location.pathname}?${params.toString()}`;
 
-        // Show loading state
-        editaisGrid.style.opacity = '0.5';
-        editaisGrid.style.pointerEvents = 'none';
+        // Show skeleton loading
+        showSkeletonLoading();
 
         // Fetch filtered results
         fetch(url, {
@@ -42,16 +74,25 @@
                 // Extract the new grid content
                 const newGrid = doc.querySelector('.editais-grid');
                 const newPagination = doc.querySelector('.pagination-container');
+                const newResultsCount = doc.querySelector('.search-results-count');
+
+                // Update results count if exists
+                const resultsCountElement = document.querySelector('.search-results-count');
+                if (newResultsCount && resultsCountElement) {
+                    resultsCountElement.innerHTML = newResultsCount.innerHTML;
+                }
 
                 if (newGrid) {
+                    editaisGrid.classList.remove('loading');
                     editaisGrid.innerHTML = newGrid.innerHTML;
-                    editaisGrid.style.opacity = '1';
-                    editaisGrid.style.pointerEvents = 'auto';
+                    isLoading = false;
 
-                    // Re-initialize favorite buttons for new content
-                    if (window.setupFavoriteButtons) {
-                        window.setupFavoriteButtons();
-                    }
+                    // Add fade-in animation
+                    editaisGrid.classList.add('fade-in');
+                    setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
+
+                    // Announce to screen readers
+                    announceToScreenReader(`Resultados atualizados. ${newGrid.children.length} editais encontrados.`);
                 }
 
                 if (newPagination && paginationContainer) {
@@ -62,16 +103,124 @@
                 // Update URL in browser (allow sharing filtered results)
                 history.pushState({search: params.toString()}, '', url);
 
-                // Scroll to top of results
+                // Smooth scroll to top of results
                 editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
             })
             .catch(error => {
                 console.error('Error fetching results:', error);
-                editaisGrid.style.opacity = '1';
-                editaisGrid.style.pointerEvents = 'auto';
+                editaisGrid.classList.remove('loading');
+                isLoading = false;
                 showToast('Erro ao filtrar editais. Tente novamente.', 'error');
             });
+    };
+
+    // Function to toggle clear button and keyboard hint (exposed for use in event handlers)
+    function toggleSearchUI(inputElement, value) {
+        if (!inputElement) return;
+        const wrapper = inputElement.closest('.search-input-wrapper');
+        if (!wrapper) return;
+
+        const clearButton = wrapper.querySelector('.search-clear');
+        const keyboardHint = wrapper.querySelector('.keyboard-hint');
+
+        if (value && value.length > 0) {
+            // Show clear button, hide hint
+            if (!clearButton) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = 'search-clear';
+                clearBtn.setAttribute('aria-label', 'Limpar busca');
+                clearBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
+                inputElement.parentNode.insertBefore(clearBtn, inputElement.nextSibling);
+            } else {
+                clearButton.style.display = 'flex';
+            }
+            if (keyboardHint) {
+                keyboardHint.style.display = 'none';
+            }
+        } else {
+            // Hide clear button, show hint
+            if (clearButton) {
+                clearButton.style.display = 'none';
+            }
+            if (keyboardHint) {
+                keyboardHint.style.display = 'flex';
+            }
+        }
+    }
+
+    // Debounced search on input
+    if (searchInput) {
+        // Initial state
+        toggleSearchUI(searchInput, searchInput.value);
+
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            window.searchTimeout = null;
+            
+            // Toggle UI elements
+            toggleSearchUI(this, this.value);
+            
+            // Visual feedback during typing
+            const wrapper = this.closest('.search-input-wrapper');
+            if (wrapper) {
+                wrapper.classList.add('searching');
+            }
+
+            searchTimeout = setTimeout(() => {
+                // Auto-submit after user stops typing (only if 3+ chars or empty)
+                if (this.value.length >= 3 || this.value.length === 0) {
+                    window.performSearch();
+                }
+                if (wrapper) {
+                    wrapper.classList.remove('searching');
+                }
+                window.searchTimeout = null;
+            }, SEARCH_DELAY);
+            window.searchTimeout = searchTimeout;
+        });
+    }
+
+    // Clear button functionality - use event delegation for dynamic content
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.search-clear')) {
+            e.preventDefault();
+            const clearBtn = e.target.closest('.search-clear');
+            const input = clearBtn.previousElementSibling;
+            if (input && input.tagName === 'INPUT') {
+                input.value = '';
+                input.focus();
+                
+                // Toggle UI to show hint again
+                toggleSearchUI(input, '');
+                
+                // Clear any pending timeout
+                if (window.searchTimeout) {
+                    clearTimeout(window.searchTimeout);
+                    window.searchTimeout = null;
+                }
+                
+                if (window.performSearch) {
+                    window.performSearch();
+                } else {
+                    const form = input.closest('form');
+                    if (form) {
+                        form.dispatchEvent(new Event('submit', { cancelable: true }));
+                    }
+                }
+            }
+        }
     });
+
+    // Intercept form submission (manual submit)
+    if (searchForm) {
+        searchForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            clearTimeout(searchTimeout);
+            window.searchTimeout = null;
+            window.performSearch();
+        });
+    }
 
     // Handle browser back/forward buttons
     window.addEventListener('popstate', function (event) {
@@ -90,7 +239,8 @@
                 event.preventDefault();
                 const url = this.href;
 
-                editaisGrid.style.opacity = '0.5';
+                // Show skeleton loading
+                showSkeletonLoading();
 
                 fetch(url, {
                     headers: {
@@ -106,13 +256,16 @@
                         const newPagination = doc.querySelector('.pagination-container');
 
                         if (newGrid) {
+                            editaisGrid.classList.remove('loading');
                             editaisGrid.innerHTML = newGrid.innerHTML;
-                            editaisGrid.style.opacity = '1';
+                            isLoading = false;
 
-                            // Re-initialize favorite buttons
-                            if (window.setupFavoriteButtons) {
-                                window.setupFavoriteButtons();
-                            }
+                            // Add fade-in animation
+                            editaisGrid.classList.add('fade-in');
+                            setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
+
+                            // Announce to screen readers
+                            announceToScreenReader(`Página atualizada. ${newGrid.children.length} editais exibidos.`);
                         }
 
                         if (newPagination && paginationContainer) {
@@ -121,11 +274,15 @@
                         }
 
                         history.pushState({}, '', url);
+                        
+                        // Smooth scroll to top of results
                         editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        editaisGrid.style.opacity = '1';
+                        editaisGrid.classList.remove('loading');
+                        isLoading = false;
+                        showToast('Erro ao carregar página. Tente novamente.', 'error');
                     });
             });
         });
@@ -133,84 +290,20 @@
 
     // Initial setup for pagination
     setupPaginationAjax();
-})();
 
-// ========================================
-// FAVORITE TOGGLE FUNCTIONALITY (Detail + Cards)
-// ========================================
-(function () {
-    // Setup favorite buttons (works for both detail page and cards)
-    window.setupFavoriteButtons = function () {
-        const favoriteButtons = document.querySelectorAll('.favorite-btn, .favorite-btn-card');
+    // Announce to screen readers helper
+    function announceToScreenReader(message) {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.className = 'sr-only';
+        announcement.textContent = message;
+        document.body.appendChild(announcement);
 
-        favoriteButtons.forEach(function (btn) {
-            // Remove old listener by cloning
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-
-            newBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const editalId = this.dataset.editalId;
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                if (!csrfToken) {
-                    window.location.href = '/admin/login/?next=' + window.location.pathname;
-                    return;
-                }
-
-                // Show loading state
-                this.disabled = true;
-                const icon = this.querySelector('i');
-                const originalClass = icon.className;
-                icon.className = 'fas fa-spinner fa-spin';
-
-                fetch(`/edital/${editalId}/toggle-favorite/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.classList.toggle('favorited');
-                            icon.className = originalClass;
-
-                            const text = this.querySelector('.favorite-text');
-                            if (text) {
-                                text.textContent = data.is_favorited ? 'Favoritado' : 'Favoritar';
-                            }
-
-                            const currentLabel = data.is_favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
-                            this.setAttribute('aria-label', currentLabel);
-                            this.setAttribute('title', currentLabel);
-
-                            // Show toast message
-                            showToast(data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        icon.className = originalClass;
-                        showToast('Erro ao favoritar. Tente novamente.', 'error');
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                    });
-            });
-        });
-    };
-
-    // Initial setup
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', window.setupFavoriteButtons);
-    } else {
-        window.setupFavoriteButtons();
+        setTimeout(() => announcement.remove(), 1000);
     }
 })();
+
 
 // ========================================
 // MOBILE MENU TOGGLE
@@ -438,65 +531,58 @@
     });
 })();
 
+
 // ========================================
-// FAVORITE TOGGLE FUNCTIONALITY
+// REMOVE ALL FAVORITE BUTTONS (Complete removal)
 // ========================================
-(function () {
-    document.addEventListener('DOMContentLoaded', function () {
-        const favoriteButtons = document.querySelectorAll('.favorite-btn');
-
-        favoriteButtons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const editalId = this.dataset.editalId;
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                // Show loading state
-                this.disabled = true;
-                const icon = this.querySelector('i');
-                const originalClass = icon.className;
-                icon.className = 'fas fa-spinner fa-spin';
-
-                fetch(`/edital/${editalId}/toggle-favorite/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
+(function() {
+    function removeFavoriteButtons() {
+        // Remove all favorite buttons from the page
+        const favoriteButtons = document.querySelectorAll('.favorite-btn, .favorite-btn-card');
+        favoriteButtons.forEach(btn => btn.remove());
+        
+        // Also remove any favorite-related elements
+        const favoriteTexts = document.querySelectorAll('.favorite-text');
+        favoriteTexts.forEach(text => text.remove());
+    }
+    
+    // Remove on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', removeFavoriteButtons);
+    } else {
+        removeFavoriteButtons();
+    }
+    
+    // Also remove after AJAX updates (in case of dynamic content)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.nodeType === 1) { // Element node
+                    const favoriteButtons = node.querySelectorAll ? node.querySelectorAll('.favorite-btn, .favorite-btn-card') : [];
+                    favoriteButtons.forEach(btn => btn.remove());
+                    
+                    // Also check if the node itself is a favorite button
+                    if (node.classList && (node.classList.contains('favorite-btn') || node.classList.contains('favorite-btn-card'))) {
+                        node.remove();
                     }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.classList.toggle('favorited');
-                            icon.className = originalClass;
-
-                            const text = this.querySelector('.favorite-text');
-                            if (text) {
-                                text.textContent = data.is_favorited ? 'Favoritado' : 'Favoritar';
-                            }
-
-                            this.setAttribute('aria-label',
-                                data.is_favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
-                            );
-
-                            // Show toast message
-                            showToast(data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        icon.className = originalClass;
-                        showToast('Erro ao favoritar. Tente novamente.', 'error');
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                    });
+                }
             });
         });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
     });
 })();
 
 // Toast notification helper
 function showToast(message, type = 'success') {
+    // Don't show toast messages related to favorites
+    if (message.toLowerCase().includes('favorit') || message.toLowerCase().includes('favorite')) {
+        return;
+    }
+    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
@@ -820,6 +906,98 @@ function showConfirmDialog(options) {
   }
 }
 
+// ========================================
+// KEYBOARD SHORTCUTS (Ctrl+K for search, Escape to clear)
+// ========================================
+(function() {
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + K to focus search input
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const searchInput = document.querySelector('.search-input, .search-input-enhanced');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+                
+                // Show hint briefly
+                const hint = document.querySelector('.keyboard-hint');
+                if (hint) {
+                    hint.style.opacity = '1';
+                    setTimeout(() => {
+                        hint.style.opacity = '0.5';
+                    }, 2000);
+                }
+            }
+        }
+
+        // Escape to clear search when focused
+        if (e.key === 'Escape') {
+            const searchInput = document.querySelector('.search-input:focus, .search-input-enhanced:focus');
+            if (searchInput && document.activeElement === searchInput) {
+                searchInput.value = '';
+                const searchForm = searchInput.closest('form');
+                if (searchForm) {
+                    // Clear any pending search timeout
+                    if (window.searchTimeout) {
+                        clearTimeout(window.searchTimeout);
+                        window.searchTimeout = null;
+                    }
+                    
+                    // Trigger search with empty value
+                    if (window.performSearch) {
+                        window.performSearch();
+                    } else {
+                        searchForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                    }
+                }
+                searchInput.blur();
+            }
+        }
+    });
+})();
+
+// ========================================
+// SMOOTH SCROLL FOR ALL ANCHOR LINKS
+// ========================================
+(function() {
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#' || href === '#!') return;
+            
+            const target = document.querySelector(href);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Smooth scroll for pagination and internal links
+    document.querySelectorAll('a[href*="#"]').forEach(link => {
+        if (link.hash) {
+            link.addEventListener('click', function(e) {
+                const target = document.querySelector(this.hash);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        }
+    });
+})();
+
 console.log('✓ Back to top button initialized');
 console.log('✓ Confirmation dialogs initialized');
+console.log('✓ Keyboard shortcuts initialized (Ctrl+K for search)');
+console.log('✓ Smooth scroll initialized');
+console.log('✓ Loading skeletons initialized');
+console.log('✓ Debounced search initialized');
 

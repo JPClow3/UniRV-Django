@@ -16,14 +16,6 @@
 <div class="page-header">
     <div class="page-header-top">
         <h1>{{ edital.titulo }}</h1>
-        {% if user.is_authenticated %}
-            <button class="favorite-btn {% if is_favorited %}favorited{% endif %}"
-                    data-edital-id="{{ edital.pk }}"
-                    aria-label="{% if is_favorited %}Remover dos favoritos{% else %}Adicionar aos favoritos{% endif %}">
-                <i class="fas fa-star" aria-hidden="true"></i>
-                <span class="favorite-text">{% if is_favorited %}Favoritado{% else %}Favoritar{% endif %}</span>
-            </button>
-        {% endif %}
     </div>
     <div class="page-meta">
         {% if edital.numero_edital %}
@@ -129,7 +121,6 @@
 <p class="disclaimer">
     <i class="fas fa-info-circle" aria-hidden="true"></i>
     Consulte o edital oficial para detalhes completos.
-    <a href="{{ edital.url }}" target="_blank" rel="noopener noreferrer">Acessar edital oficial</a>
 </p>
 
 <div class="detail-actions">

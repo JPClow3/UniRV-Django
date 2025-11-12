@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Edital, EditalValor, Cronograma, EditalFavorite
+from .models import Edital, EditalValor, Cronograma
 
 
 class EditalValorInline(admin.TabularInline):
@@ -65,9 +65,3 @@ class CronogramaAdmin(admin.ModelAdmin):
     list_filter = ('data_inicio', 'data_fim', 'data_publicacao')
 
 
-@admin.register(EditalFavorite)
-class EditalFavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'edital', 'created_at')
-    list_filter = ('user', 'created_at')
-    search_fields = ('user__username', 'edital__titulo')
-    readonly_fields = ('created_at',)

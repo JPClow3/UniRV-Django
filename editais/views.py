@@ -6,12 +6,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.safestring import mark_safe
 
 from .forms import EditalForm
-from .models import Edital, EditalFavorite
+from .models import Edital
 
 # Allowed tags and attributes for HTML sanitization
 ALLOWED_TAGS = [
@@ -101,10 +101,11 @@ def index(request):
     # Optimize queries with select_related for foreign keys
     editais = Edital.objects.select_related(
         'created_by', 'updated_by'
+    ).prefetch_related(
+        'cronogramas'
     ).only(
         'id', 'numero_edital', 'titulo', 'url', 'entidade_principal',
-        'status', 'data_criacao', 'data_atualizacao', 'objetivo',
-        'created_by', 'updated_by'
+        'status', 'start_date', 'objetivo', 'created_by', 'updated_by'
     )
 
     # Apply full-text search across all fields
@@ -120,57 +121,56 @@ def index(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Get user's favorited edital IDs for quick lookup
-    favorited_ids = []
-    if request.user.is_authenticated:
-        favorited_ids = list(
-            EditalFavorite.objects.filter(user=request.user)
-            .values_list('edital_id', flat=True)
-        )
-
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
         'status_filter': status_filter,
         'status_choices': Edital.STATUS_CHOICES,
-        'favorited_ids': favorited_ids,
+        'total_count': page_obj.paginator.count,  # Total count for results counter
     }
     return render(request, 'editais/index.html', context)
 
 
-def edital_detail(request, pk):
-    """Página de detalhes do edital"""
+def edital_detail(request, slug=None, pk=None):
+    """Página de detalhes do edital - suporta slug ou PK"""
     # Optimize query with select_related and prefetch_related
-    edital = get_object_or_404(
-        Edital.objects.select_related('created_by', 'updated_by')
-        .prefetch_related('valores', 'cronogramas'),
-        pk=pk
-    )
-    valores = edital.valores.all()
-    cronogramas = edital.cronogramas.all()
-    """Página de detalhes do edital"""
-    edital = get_object_or_404(Edital, pk=pk)
+    if slug:
+        edital = get_object_or_404(
+            Edital.objects.select_related('created_by', 'updated_by')
+            .prefetch_related('valores', 'cronogramas'),
+            slug=slug
+        )
+    elif pk:
+        edital = get_object_or_404(
+            Edital.objects.select_related('created_by', 'updated_by')
+            .prefetch_related('valores', 'cronogramas'),
+            pk=pk
+        )
+    else:
+        from django.http import Http404
+        raise Http404("Edital não encontrado")
+    
     valores = edital.valores.all()
     cronogramas = edital.cronogramas.all()
 
     # Mark sanitized HTML as safe for rendering using helper function
     mark_edital_fields_safe(edital)
 
-    # Check if user has favorited this edital
-    is_favorited = False
-    if request.user.is_authenticated:
-        is_favorited = EditalFavorite.objects.filter(
-            user=request.user,
-            edital=edital
-        ).exists()
-
     context = {
         'edital': edital,
         'valores': valores,
         'cronogramas': cronogramas,
-        'is_favorited': is_favorited,
     }
     return render(request, 'editais/detail.html', context)
+
+
+def edital_detail_redirect(request, pk):
+    """Redirect PK-based URLs to slug-based URLs (301 permanent redirect)"""
+    edital = get_object_or_404(Edital, pk=pk)
+    if edital.slug:
+        return redirect('edital_detail_slug', slug=edital.slug, permanent=True)
+    # Fallback: if no slug, use detail view with PK
+    return edital_detail(request, pk=pk)
 
 
 @login_required
@@ -227,52 +227,6 @@ def edital_delete(request, pk):
         return redirect('editais_index')
 
     return render(request, 'editais/delete.html', {'edital': edital})
-
-
-@login_required
-def toggle_favorite(request, pk):
-    """Toggle favorite status for an edital (AJAX endpoint)"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    edital = get_object_or_404(Edital, pk=pk)
-    favorite, created = EditalFavorite.objects.get_or_create(
-        user=request.user,
-        edital=edital
-    )
-
-    if not created:
-        # Already favorited, so remove it
-        favorite.delete()
-        is_favorited = False
-        message = 'Removido dos favoritos'
-    else:
-        # Just created, so it's now favorited
-        is_favorited = True
-        message = 'Adicionado aos favoritos'
-
-    return JsonResponse({
-        'success': True,
-        'is_favorited': is_favorited,
-        'message': message
-    })
-
-
-@login_required
-def my_favorites(request):
-    """List user's favorited editais"""
-    favorites = EditalFavorite.objects.filter(user=request.user).select_related('edital')
-
-    per_page = getattr(settings, 'EDITAIS_PER_PAGE', 12)
-    paginator = Paginator(favorites, per_page)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'page_obj': page_obj,
-        'is_favorites_page': True,
-    }
-    return render(request, 'editais/favorites.html', context)
 
 
 @login_required
