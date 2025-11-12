@@ -8,40 +8,100 @@
 
 {% block content %}
 <div class="editais-header">
-    <h1 class="main-title">Editais de Fomento</h1>
-
-    <div class="filters-container">
-        <form method="GET" class="search-form" role="search" aria-label="Buscar editais">
-            <div class="search-group">
-                <input type="text" name="search" value="{{ search_query }}"
-                       placeholder="Buscar por título, entidade ou número do edital..."
-                       class="search-input"
-                       aria-label="Campo de busca">
-
-                <select name="status" class="status-filter" aria-label="Filtrar por status">
-                    <option value="">Todos os Status</option>
-                    {% for value, display in status_choices %}
-                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
-                    {% endfor %}
-                </select>
-
-                <button type="submit" class="search-btn" aria-label="Buscar editais">
-                    <i class="fas fa-search" aria-hidden="true"></i>
-                </button>
+    <div class="search-section">
+        <div class="search-header">
+            <div class="title-group">
+                <h1 class="main-title">Editais de Fomento</h1>
+                <p class="search-subtitle">
+                    Encontramos <strong>{{ total_count }}</strong> 
+                    edita{{ total_count|pluralize:"l,is" }}
+                </p>
             </div>
-        </form>
 
-        <div class="header-actions">
-            <a href="{% url 'export_editais_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-               class="btn btn-secondary"
-               title="Exportar editais para CSV">
-                <i class="fas fa-download" aria-hidden="true"></i> Exportar CSV
-            </a>
-            <a href="{% url 'edital_create' %}" class="btn btn-primary">
-                <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar Edital
+            <div class="header-actions">
+                <a href="{% url 'export_editais_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                   class="btn-icon"
+                   title="Exportar editais para CSV"
+                   aria-label="Exportar editais para CSV">
+                    <i class="fas fa-download" aria-hidden="true"></i>
+                    <span class="sr-only">Exportar editais para CSV</span>
+                </a>
+                <a href="{% url 'edital_create' %}" 
+                   class="btn-icon btn-icon-primary"
+                   title="Cadastrar edital"
+                   aria-label="Cadastrar edital">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    <span class="sr-only">Cadastrar edital</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="filters-container">
+            <form method="GET" class="search-form" role="search" aria-label="Buscar editais">
+                <div class="search-input-row">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon" aria-hidden="true"></i>
+                        <input type="text" 
+                            name="search" 
+                            value="{{ search_query }}"
+                            placeholder="Buscar por título, entidade ou número do edital..." 
+                            class="search-input"
+                            aria-label="Campo de busca"
+                            autocomplete="off">
+                        {% if search_query %}
+                            <button type="button" class="search-clear" aria-label="Limpar busca">
+                                <i class="fas fa-times" aria-hidden="true"></i>
+                            </button>
+                        {% else %}
+                            <div class="keyboard-hint" aria-hidden="true">
+                                <kbd>Ctrl</kbd> + <kbd>K</kbd>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="search-submit" aria-label="Buscar editais">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <div class="filter-row">
+                    <label class="sr-only" for="status-filter">Filtrar por status</label>
+                    <select id="status-filter" name="status" class="status-filter" aria-label="Filtrar por status">
+                        <option value="">Todos os Status</option>
+                        {% for value, display in status_choices %}
+                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+
+        </div>
+
+        <!-- Active filters display -->
+    {% if search_query or status_filter %}
+        <div class="active-filters">
+            <span class="active-filters-label">Filtros ativos:</span>
+            {% if search_query %}
+                <span class="filter-tag">
+                    Busca: "{{ search_query }}"
+                    <a href="?{% if status_filter %}status={{ status_filter }}{% endif %}" class="filter-remove" aria-label="Remover filtro de busca">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </a>
+                </span>
+            {% endif %}
+            {% if status_filter %}
+                <span class="filter-tag">
+                    Status: {{ status_filter|title }}
+                    <a href="?{% if search_query %}search={{ search_query }}{% endif %}" class="filter-remove" aria-label="Remover filtro de status">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </a>
+                </span>
+            {% endif %}
+            <a href="{% url 'editais_index' %}" class="filter-clear-all">
+                <i class="fas fa-redo" aria-hidden="true"></i>
+                Limpar todos
             </a>
         </div>
-    </div>
+    {% endif %}
 </div>
 
 <div class="editais-grid" role="list" aria-label="Lista de editais">
@@ -49,19 +109,9 @@
         <article class="edital-card" role="listitem">
             <div class="card-header">
                 <span class="status-badge status-{{ edital.status }}" aria-label="Status do edital">{{ edital.get_status_display }}</span>
-                <div class="card-header-right">
-                    {% if edital.numero_edital %}
-                        <span class="edital-number">{{ edital.numero_edital }}</span>
-                    {% endif %}
-                    {% if user.is_authenticated %}
-                        <button class="favorite-btn-card {% if edital.id in favorited_ids %}favorited{% endif %}"
-                                data-edital-id="{{ edital.id }}"
-                                aria-label="Favoritar {{ edital.titulo }}"
-                                title="{% if edital.id in favorited_ids %}Remover dos favoritos{% else %}Adicionar aos favoritos{% endif %}">
-                            <i class="fas fa-star" aria-hidden="true"></i>
-                        </button>
-                    {% endif %}
-                </div>
+                {% if edital.numero_edital %}
+                    <span class="edital-number">{{ edital.numero_edital }}</span>
+                {% endif %}
             </div>
 
             <h3 class="edital-title">
@@ -75,25 +125,31 @@
                 </p>
             {% endif %}
 
-            {% if edital.objetivo %}
-                <p class="edital-objective">{{ edital.objetivo|truncatewords:20 }}</p>
-            {% endif %}
+            <p class="edital-objective">
+                {{ edital.objetivo|default_if_none:''|truncatewords:25|default:"Sem descrição disponível." }}
+            </p>
 
             <div class="card-footer">
-                <small class="update-date">
+                <small class="start-date">
                     <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-                    <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}">
-                        Atualizado em {{ edital.data_atualizacao|date:"d/m/Y" }}
+                    <time datetime="{{ edital.start_date|date:'Y-m-d' }}">
+                        {% if edital.start_date %}
+                            Abertura: {{ edital.start_date|date:"d/m/Y" }}
+                        {% else %}
+                            Data não informada
+                        {% endif %}
                     </time>
                 </small>
 
                 <div class="card-actions">
-                    <a href="{{ edital.get_absolute_url }}" class="btn btn-sm btn-outline" aria-label="Ver detalhes de {{ edital.titulo }}">
+                    <a href="{{ edital.get_absolute_url }}" class="btn btn-ghost" aria-label="Ver detalhes de {{ edital.titulo }}">
                         Ver Detalhes
                     </a>
-                    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-sm btn-secondary" aria-label="Editar {{ edital.titulo }}">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-ghost-secondary" aria-label="Editar {{ edital.titulo }}">
                         Editar
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </article>
