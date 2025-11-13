@@ -1,0 +1,16 @@
+{% comment %}
+Breadcrumb navigation component
+Usage: {% include 'editais/breadcrumb.html' %}
+{% endcomment %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol class="breadcrumb-list">
+        <li class="breadcrumb-item">
+            <a href="{% url 'editais_index' %}">
+                <i class="fas fa-home" aria-hidden="true"></i>
+                <span>Editais</span>
+            </a>
+        </li>
+        {% block breadcrumb_items %}{% endblock %}
+    </ol>
+</nav>
+

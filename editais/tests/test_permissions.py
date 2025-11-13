@@ -109,27 +109,54 @@ class EditalPermissionsTest(TestCase):
             # Staff pode ver draft (mesmo que não tenha permissão específica de edição)
             self.assertEqual(resp.status_code, 200)
     
-    def test_editor_can_create_edital(self):
-        """Testa que editor pode criar editais."""
-        self.client.login(username='editor', password='editor123')
+    def test_non_staff_cannot_create_edital(self):
+        """Testa que usuário autenticado sem is_staff não pode criar editais (T034)."""
+        # Usuário autenticado mas não staff
+        self.client.login(username='visitor', password='visitor123')
+        resp = self.client.get(reverse('edital_create'))
+        # Deve retornar 403 (forbidden)
+        self.assertEqual(resp.status_code, 403)
+    
+    def test_non_staff_cannot_update_edital(self):
+        """Testa que usuário autenticado sem is_staff não pode editar editais (T040)."""
+        self.client.login(username='visitor', password='visitor123')
+        resp = self.client.get(reverse('edital_update', args=[self.edital.pk]))
+        # Deve retornar 403 (forbidden)
+        self.assertEqual(resp.status_code, 403)
+    
+    def test_non_staff_cannot_delete_edital(self):
+        """Testa que usuário autenticado sem is_staff não pode deletar editais (T041)."""
+        self.client.login(username='visitor', password='visitor123')
+        # Tentar deletar via POST
+        resp = self.client.post(reverse('edital_delete', args=[self.edital.pk]))
+        # Deve retornar 403 (forbidden)
+        self.assertEqual(resp.status_code, 403)
+    
+    def test_staff_can_create_edital(self):
+        """Testa que usuário is_staff pode criar editais (T034)."""
+        self.client.login(username='staff', password='staff123')
         resp = self.client.get(reverse('edital_create'))
         self.assertEqual(resp.status_code, 200)
     
-    def test_editor_can_update_edital(self):
-        """Testa que editor pode editar editais."""
-        self.client.login(username='editor', password='editor123')
+    def test_staff_can_update_edital(self):
+        """Testa que usuário is_staff pode editar editais (T040)."""
+        self.client.login(username='staff', password='staff123')
         resp = self.client.get(reverse('edital_update', args=[self.edital.pk]))
         self.assertEqual(resp.status_code, 200)
     
-    def test_editor_cannot_delete_edital(self):
-        """Testa que editor não pode deletar editais (sem permissão delete)."""
-        self.client.login(username='editor', password='editor123')
-        # Tentar deletar via POST
-        resp = self.client.post(reverse('edital_delete', args=[self.edital.pk]))
-        # Deve retornar 403 (forbidden) ou redirecionar
-        # Como a view usa @login_required mas não verifica permissão específica,
-        # pode retornar 200 com erro ou 403
-        self.assertIn(resp.status_code, [200, 302, 403])
+    def test_staff_can_delete_edital(self):
+        """Testa que usuário is_staff pode deletar editais (T041)."""
+        self.client.login(username='staff', password='staff123')
+        # Criar edital para deletar
+        edital_to_delete = Edital.objects.create(
+            titulo="Edital para Deletar",
+            url="https://example.com/delete"
+        )
+        resp = self.client.post(reverse('edital_delete', args=[edital_to_delete.pk]))
+        # Deve redirecionar após deletar
+        self.assertEqual(resp.status_code, 302)
+        # Verificar que foi deletado
+        self.assertFalse(Edital.objects.filter(pk=edital_to_delete.pk).exists())
     
     def test_admin_can_create_edital(self):
         """Testa que admin pode criar editais."""

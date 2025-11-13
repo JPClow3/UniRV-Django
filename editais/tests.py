@@ -11,10 +11,11 @@ from .models import Edital
 
 class EditaisCrudTest(TestCase):
     def setUp(self):
-        # Create a test user for authenticated operations
+        # Create a test user for authenticated operations (must be staff)
         self.user = User.objects.create_user(
             username='admin',
-            password='admin'
+            password='admin',
+            is_staff=True
         )
         self.payload = {
             "titulo": "Edital Teste",

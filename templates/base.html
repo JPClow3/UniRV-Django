@@ -46,16 +46,11 @@
     <nav class="navbar-right" id="navbar-menu">
         <ul>
             <li><a href="{% url 'editais_index' %}" class="{% if request.resolver_match.url_name == 'editais_index' %}active{% endif %}">EDITAIS DE FOMENTO</a></li>
-            {% if user.is_authenticated %}
-                <li><a href="{% url 'export_editais_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="export-link">
-                    <i class="fas fa-download" aria-hidden="true"></i> EXPORTAR CSV
-                </a></li>
-            {% endif %}
-            <li><a href="#">OPORTUNIDADES DE NEGÓCIO</a></li>
-            <li><a href="#">FEIRAS, EVENTOS E CURSOS</a></li>
-            <li><a href="#">ESTUDOS E PESQUISAS</a></li>
-            <li><a href="#">PROGRAMAS DE APOIO</a></li>
-            <li><a href="#" class="icon-link" aria-label="Mais opções"><i class="fas fa-seedling" aria-hidden="true"></i></a></li>
+            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="OPORTUNIDADES DE NEGÓCIO (Em breve)">OPORTUNIDADES DE NEGÓCIO</a></li>
+            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="FEIRAS, EVENTOS E CURSOS (Em breve)">FEIRAS, EVENTOS E CURSOS</a></li>
+            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="ESTUDOS E PESQUISAS (Em breve)">ESTUDOS E PESQUISAS</a></li>
+            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="PROGRAMAS DE APOIO (Em breve)">PROGRAMAS DE APOIO</a></li>
+            <li><a href="#" onclick="return false;" class="icon-link coming-soon" title="Em breve" aria-label="Mais opções (Em breve)"><i class="fas fa-seedling" aria-hidden="true"></i></a></li>
         </ul>
     </nav>
 </header>
@@ -75,6 +70,7 @@
 {% endif %}
 
 <div class="container">
+    {% block breadcrumb %}{% endblock %}
     <main class="content-area" id="main-content">
         {% if messages %}
             <div class="messages" role="alert" aria-live="polite" style="display: none;">
@@ -83,26 +79,50 @@
                 {% endfor %}
             </div>
             <script>
-                // Convert Django messages to toast notifications
+                // Convert Django messages to toast notifications (T046 - Complete integration)
                 (function() {
-                    const messages = document.querySelectorAll('.messages .alert');
-                    messages.forEach(function(messageEl) {
-                        const messageText = messageEl.textContent.trim();
-                        const messageTag = messageEl.getAttribute('data-message-tag') || 'info';
-                        // Map Django message tags to toast types
-                        let toastType = 'success';
-                        if (messageTag === 'error' || messageTag === 'danger') {
-                            toastType = 'error';
-                        } else if (messageTag === 'warning') {
-                            toastType = 'warning';
-                        } else if (messageTag === 'info') {
-                            toastType = 'info';
+                    // Wait for showToast function to be available
+                    function processMessages() {
+                        const messages = document.querySelectorAll('.messages .alert');
+                        if (messages.length === 0) return;
+                        
+                        // If showToast is not available yet, wait a bit
+                        if (typeof showToast !== 'function') {
+                            setTimeout(processMessages, 100);
+                            return;
                         }
-                        // Show toast if function exists
-                        if (typeof showToast === 'function') {
+                        
+                        messages.forEach(function(messageEl) {
+                            const messageText = messageEl.textContent.trim();
+                            const messageTag = messageEl.getAttribute('data-message-tag') || 'info';
+                            
+                            // Map Django message tags to toast types
+                            // Django default tags: debug, info, success, warning, error
+                            let toastType = 'success';
+                            if (messageTag === 'error' || messageTag === 'danger') {
+                                toastType = 'error';
+                            } else if (messageTag === 'warning') {
+                                toastType = 'warning';
+                            } else if (messageTag === 'info' || messageTag === 'debug') {
+                                toastType = 'info';
+                            } else if (messageTag === 'success') {
+                                toastType = 'success';
+                            }
+                            
+                            // Show toast notification
                             showToast(messageText, toastType);
-                        }
-                    });
+                            
+                            // Mark message as processed to avoid duplicates
+                            messageEl.setAttribute('data-processed', 'true');
+                        });
+                    }
+                    
+                    // Process messages when DOM is ready
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', processMessages);
+                    } else {
+                        processMessages();
+                    }
                 })();
             </script>
         {% endif %}

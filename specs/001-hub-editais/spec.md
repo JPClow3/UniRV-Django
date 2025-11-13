@@ -23,7 +23,7 @@ Como visitante, quero ver a lista de editais com busca para encontrar editais re
 1. **Given** que existem editais publicados no sistema, **When** um visitante acessa a página inicial `/editais/`, **Then** ele vê uma lista paginada de editais com título, organização, datas e status
 2. **Given** que existem editais no sistema, **When** um visitante digita um termo de busca no campo de busca, **Then** a lista é filtrada para mostrar apenas editais que correspondem ao termo (título, organização, palavras-chave)
 3. **Given** que existem editais com diferentes status, **When** um visitante seleciona um filtro de status (aberto/fechado), **Then** apenas editais com aquele status são exibidos
-4. **Given** que existem mais de 20 editais, **When** um visitante acessa a lista, **Then** a paginação é exibida e ele pode navegar entre páginas
+4. **Given** que existem mais de 12 editais, **When** um visitante acessa a lista, **Then** a paginação é exibida e ele pode navegar entre páginas
 
 ---
 
@@ -90,6 +90,7 @@ Como administrador, quero filtrar e paginar a lista de editais na interface admi
 1. **Given** que existem muitos editais no sistema, **When** um administrador acessa a lista administrativa, **Then** a lista é paginada e ele pode navegar entre páginas
 2. **Given** que existem editais com diferentes status, **When** um administrador filtra por status na interface administrativa, **Then** apenas editais com aquele status são exibidos
 3. **Given** que um administrador está na lista administrativa, **When** ele busca por título ou organização, **Then** a lista é filtrada dinamicamente
+4. **Given** que um usuário `is_staff` está na lista administrativa, **When** ele aciona a exportação CSV, **Then** o sistema gera um arquivo CSV com os editais filtrados contendo número, título, entidade, status, URL, datas de criação/atualização e responsáveis
 
 ---
 
@@ -118,8 +119,8 @@ Como administrador, quero filtrar e paginar a lista de editais na interface admi
 - **FR-008**: System MUST validar que slugs de editais são únicos no banco de dados (gerados automaticamente, não editáveis)
 - **FR-009**: System MUST manter campo 'url' no modelo Edital para links externos (upload de anexos REMOVIDO do MVP)
 - **FR-010**: System MUST exibir editais com status 'aberto', 'em_andamento' e 'fechado' para visitantes não-autenticados (não exibir 'draft')
-- **FR-011**: System MUST permitir que administradores e usuários com permissão CRUD vejam editais em status 'draft' (rascunho)
-- **FR-012**: System MUST implementar paginação numérica com 5 páginas visíveis e permitir alterar itens por página (20, 50, 100)
+- **FR-011**: System MUST permitir que usuários `is_staff` visualizem editais em status 'draft' (rascunho)
+- **FR-012**: System MUST implementar paginação numérica com 5 páginas visíveis exibindo **12 itens por página**
 - **FR-013**: System MUST validar datas de início e fim, garantindo que data de fim seja posterior à data de início (usar start_date/end_date do Edital)
 - **FR-014**: System MUST armazenar informação de quem criou/atualizou cada edital (created_by, updated_by)
 - **FR-015**: System MUST sanitizar conteúdo HTML em campos de texto para prevenir XSS attacks
@@ -130,11 +131,12 @@ Como administrador, quero filtrar e paginar a lista de editais na interface admi
 - **FR-020**: System MUST implementar busca case-insensitive em título, objetivo, análise, número do edital e entidade principal, modo "contém", após submit do formulário
 - **FR-021**: System MUST combinar filtros com operador AND, aplicar filtro de data a start_date e end_date, exibir todos os editais por padrão com opção "somente abertos", e persistir filtros na URL (query parameters)
 - **FR-022**: System MUST migrar URLs de PK para slug, redirecionar URLs antigas (301) para novas URLs baseadas em slug, e gerar slugs automaticamente para todos os editais existentes
-- **FR-023**: System MUST implementar sistema de permissões com múltiplos níveis (staff, editor, admin), onde usuários autenticados podem visualizar rascunhos conforme nível de permissão
+- **FR-023**: System MUST restringir operações de criação, edição, exclusão e exportação de editais a usuários `is_staff`, garantindo que usuários autenticados não-staff tenham apenas acesso de visualização
 - **FR-024**: System MUST atualizar status automaticamente conforme data (se end_date < hoje e status='aberto', atualizar para 'fechado'), adicionar status 'programado' para editais futuros, exibir aviso de "prazo próximo" para editais com prazo nos últimos 7 dias, e mostrar editais encerrados na lista pública
 - **FR-025**: System MUST otimizar queries com select_related e prefetch_related, e habilitar cache para listagens públicas (TTL: 5 minutos)
 - **FR-026**: System MUST usar Django Admin com mesmo layout visual do site, incluir preview antes de publicar, e suportar rascunhos automáticos (fase futura)
 - **FR-027**: System MUST exibir mensagens amigáveis em português, mensagens de sucesso após operações CRUD, exibir erros no canto inferior direito (toast notifications), confirmar antes de deletar, e mensagens temporárias (desaparecem após 5 segundos)
+- **FR-028**: System MUST oferecer exportação CSV de editais para usuários `is_staff`, respeitando filtros de busca/status, incluindo campos Número, Título, Entidade, Status, URL, Datas de criação/atualização e usuários responsáveis, utilizando encoding UTF-8 com BOM
 
 ### Key Entities *(include if feature involves data)*
 
@@ -142,7 +144,7 @@ Como administrador, quero filtrar e paginar a lista de editais na interface admi
 
 - **Cronograma**: Representa etapas e cronogramas distintos de um edital. Atributos principais: data_inicio, data_fim, data_publicacao, descricao. Relacionamentos: pertence a um Edital (ForeignKey com CASCADE).
 
-- **User** (Django built-in): Representa usuários do sistema. Sistema de permissões com múltiplos níveis (staff, editor, admin). Usuários com permissão CRUD podem ver/edit/criar/deletar editais. Visitantes não-autenticados só podem visualizar editais publicados (status: aberto, em_andamento, fechado).
+- **User** (Django built-in): Representa usuários do sistema. Usuários `is_staff` podem criar, editar, excluir e exportar editais; usuários autenticados não-staff e visitantes têm acesso apenas à visualização de listagens e detalhes. Permissões adicionais (grupos, níveis editor/admin) podem ser avaliadas futuramente.
 
 ## Success Criteria *(mandatory)*
 
@@ -282,11 +284,13 @@ class EditalValor(models.Model):
 ### Endpoints / URLs
 
 **URLs Públicas:**
+
 - `GET /editais/` — Listagem pública (query params: `q`, `status`, `page`, `data_inicio`, `data_fim`, `somente_abertos`)
 - `GET /editais/<slug>/` — Detalhe público (usar slug) - **NOVO**
 - `GET /editais/<pk>/` — Detalhe público (usar PK) - **EXISTENTE** (redirecionar 301 para slug durante migração)
 
 **URLs Administrativas:**
+
 - `GET /admin/editais/` — Listagem administrativa (Django Admin ou custom)
 - `POST /admin/editais/create/` — Criar edital (staff only)
 - `GET /admin/editais/<slug>/edit/` — Formulário de edição (staff only) - **NOVO** (usar slug)
@@ -300,7 +304,7 @@ class EditalValor(models.Model):
 
 ### Templates (UX)
 
-- `editais/list.html` — Search bar, filtros (status, datas, "somente abertos"), cards com resumo (título, organização, datas, status, aviso "prazo próximo"), paginação numérica (5 páginas visíveis), opção para alterar itens por página
+- `editais/list.html` — Search bar, filtros (status, datas, "somente abertos"), cards com resumo (título, organização, datas, status, aviso "prazo próximo"), paginação numérica (5 páginas visíveis)
 - `editais/detail.html` — Header com título e status, metadados, objetivo formatado, critérios de elegibilidade, cronogramas, link externo (url), aviso "prazo próximo" se aplicável
 - `admin/editais/create.html` — Formulário para criar edital com validação (Django Admin customizado)
 - `admin/editais/update.html` — Formulário para editar edital existente (Django Admin customizado)
@@ -310,7 +314,7 @@ class EditalValor(models.Model):
 
 - SECRET_KEY em variável de ambiente (.env)
 - CSRF habilitado para todas as operações de escrita
-- Permissões: CRUD apenas para usuários com permissão (sistema de permissões com múltiplos níveis: staff, editor, admin)
+- Permissões: Operações de criação, edição, exclusão e exportação restritas a usuários `is_staff` (permissões avançadas podem ser avaliadas em fases futuras)
 - Sanitização de HTML em campos de texto (usar bleach)
 - Validação de slugs: gerados automaticamente com slugify (previne caracteres perigosos)
 - Proteção contra SQL injection (usar Django ORM exclusivamente - icontains para busca)
@@ -318,7 +322,7 @@ class EditalValor(models.Model):
 
 ### Performance Requirements
 
-- Paginação: 20 itens por página (padrão), opção para alterar (20, 50, 100)
+- Paginação: 12 itens por página (padrão); opções adicionais podem ser avaliadas futuramente
 - Indexação de campos de busca: titulo, start_date, end_date, status, slug, entidade_principal
 - Otimização de queries: usar select_related para created_by/updated_by, prefetch_related para cronogramas
 - Minimizar database queries por página (usar Django Debug Toolbar em development)
@@ -376,6 +380,7 @@ class EditalValor(models.Model):
 ### Estado Atual vs. Especificação
 
 **Modelos Existentes:**
+
 - `Edital` com campos: `numero_edital`, `titulo`, `url`, `entidade_principal`, `status` ('aberto', 'fechado', 'em_andamento'), campos de conteúdo detalhados (`analise`, `objetivo`, `etapas`, etc.)
 - `Cronograma` (separado, relacionado a Edital) com `data_inicio`, `data_fim`, `data_publicacao`
 - `EditalValor` para valores financeiros
@@ -383,6 +388,7 @@ class EditalValor(models.Model):
 - URLs usam PK (`/editais/<pk>/`) ao invés de slug
 
 **Alterações Necessárias:**
+
 1. Adicionar campo `slug` ao modelo Edital (único, gerado automaticamente a partir do título, não editável)
 2. Adicionar campos `start_date` e `end_date` diretamente ao Edital (manter relação com Cronograma para cronogramas detalhados)
 3. Atualizar status choices para incluir 'draft' (rascunho) e 'programado' (editais futuros)
@@ -451,6 +457,7 @@ class EditalValor(models.Model):
 Ver documento **`clarifications.md`** para detalhes completos de todas as decisões tomadas.
 
 **Resumo das principais decisões:**
+
 1. ✅ **Status**: draft (rascunho), aberto, em_andamento, fechado, programado (novo)
 2. ✅ **Datas**: Manter Cronograma + adicionar start_date/end_date ao Edital
 3. ✅ **Campos**: Usar apenas campos em português (remover description, requirements)
@@ -468,4 +475,3 @@ Ver documento **`clarifications.md`** para detalhes completos de todas as decis�
 15. ✅ **Mensagens**: Toast notifications, mensagens amigáveis, confirmação antes de deletar
 
 **Status**: Pronto para implementação. Todas as decisões foram documentadas.
-

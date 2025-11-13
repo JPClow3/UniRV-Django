@@ -12,6 +12,7 @@ import logging
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.db.models import Q
+from django.core.cache import cache
 from editais.models import Edital
 
 logger = logging.getLogger(__name__)
@@ -147,6 +148,20 @@ class Command(BaseCommand):
             )
             for error in errors:
                 self.stdout.write(self.style.ERROR(f"  - {error}"))
+
+        # Invalidate cache if any editais were updated
+        if updated_count > 0 and not dry_run:
+            try:
+                # Import cache clearing function from views
+                from editais.views import _clear_index_cache
+                _clear_index_cache()
+                if verbose:
+                    self.stdout.write(self.style.SUCCESS("  Cache invalidado com sucesso."))
+            except Exception as e:
+                error_msg = f"Erro ao invalidar cache: {str(e)}"
+                logger.warning(error_msg)
+                if verbose:
+                    self.stdout.write(self.style.WARNING(f"  AVISO: {error_msg}"))
 
         # Logging
         logger.info(

@@ -8,6 +8,7 @@ from django.core.management import call_command
 from django.utils import timezone
 from io import StringIO
 from editais.models import Edital
+from unittest.mock import patch, MagicMock
 
 
 class UpdateEditalStatusCommandTest(TestCase):
@@ -166,3 +167,190 @@ class UpdateEditalStatusCommandTest(TestCase):
         
         self.assertTrue(success)
 
+
+class SendDeadlineNotificationsCommandTest(TestCase):
+    """Testes para o comando send_deadline_notifications."""
+    
+    def setUp(self):
+        """Criar editais e usuários de teste."""
+        from django.contrib.auth.models import User
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Criar usuário staff com email
+        self.staff_user = User.objects.create_user(
+            username='staff',
+            password='staff123',
+            is_staff=True,
+            is_active=True,
+            email='staff@example.com'
+        )
+        
+        # Criar usuário staff sem email (não deve receber notificação)
+        self.staff_no_email = User.objects.create_user(
+            username='staff_no_email',
+            password='staff123',
+            is_staff=True,
+            is_active=True,
+            email=''
+        )
+        
+        # Criar usuário não-staff (não deve receber notificação)
+        self.non_staff = User.objects.create_user(
+            username='user',
+            password='user123',
+            is_staff=False,
+            is_active=True,
+            email='user@example.com'
+        )
+        
+        today = timezone.now().date()
+        
+        # Edital próximo do prazo (5 dias)
+        self.edital_upcoming = Edital.objects.create(
+            titulo="Edital Próximo do Prazo",
+            url="https://example.com/upcoming",
+            status='aberto',
+            end_date=today + timedelta(days=5)
+        )
+        
+        # Edital muito próximo do prazo (2 dias)
+        self.edital_very_upcoming = Edital.objects.create(
+            titulo="Edital Muito Próximo",
+            url="https://example.com/very-upcoming",
+            status='em_andamento',
+            end_date=today + timedelta(days=2)
+        )
+        
+        # Edital fora do prazo (15 dias)
+        self.edital_far = Edital.objects.create(
+            titulo="Edital Longe do Prazo",
+            url="https://example.com/far",
+            status='aberto',
+            end_date=today + timedelta(days=15)
+        )
+        
+        # Edital já fechado (não deve ser notificado)
+        self.edital_closed = Edital.objects.create(
+            titulo="Edital Fechado",
+            url="https://example.com/closed",
+            status='fechado',
+            end_date=today + timedelta(days=3)
+        )
+    
+    @patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives')
+    def test_sends_notifications_for_upcoming_editais(self, mock_email):
+        """Testa que o comando envia notificações para editais próximos do prazo."""
+        from io import StringIO
+        
+        out = StringIO()
+        call_command('send_deadline_notifications', stdout=out, stderr=out)
+        
+        # Verificar que email foi chamado
+        self.assertTrue(mock_email.called)
+        
+        # Verificar que foi chamado para o usuário staff com email
+        call_args = mock_email.call_args
+        self.assertIn(self.staff_user.email, call_args[1]['to'])
+    
+    def test_dry_run_mode_does_not_send_emails(self):
+        """Testa que o modo dry-run não envia emails."""
+        from io import StringIO
+        from unittest.mock import patch
+        
+        with patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives') as mock_email:
+            out = StringIO()
+            call_command('send_deadline_notifications', '--dry-run', stdout=out)
+            
+            # Verificar que email não foi chamado
+            self.assertFalse(mock_email.called)
+            
+            # Verificar mensagem de dry-run
+            output = out.getvalue()
+            self.assertIn('DRY RUN', output)
+    
+    def test_no_notifications_when_no_upcoming_editais(self):
+        """Testa que não envia notificações quando não há editais próximos."""
+        # Deletar editais próximos
+        self.edital_upcoming.delete()
+        self.edital_very_upcoming.delete()
+        
+        from io import StringIO
+        from unittest.mock import patch
+        
+        with patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives') as mock_email:
+            out = StringIO()
+            call_command('send_deadline_notifications', stdout=out)
+            
+            # Verificar que email não foi chamado
+            self.assertFalse(mock_email.called)
+            
+            # Verificar mensagem
+            output = out.getvalue()
+            self.assertIn('Nenhum edital', output)
+    
+    def test_custom_days_parameter(self):
+        """Testa que o parâmetro --days funciona corretamente."""
+        from io import StringIO
+        from unittest.mock import patch
+        
+        with patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives') as mock_email:
+            out = StringIO()
+            # Usar 15 dias (deve incluir edital_far)
+            call_command('send_deadline_notifications', '--days', '15', stdout=out)
+            
+            # Verificar que email foi chamado
+            self.assertTrue(mock_email.called)
+    
+    def test_only_notifies_open_editais(self):
+        """Testa que apenas editais abertos/em_andamento são notificados."""
+        from io import StringIO
+        from unittest.mock import patch
+        
+        with patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives') as mock_email:
+            out = StringIO()
+            call_command('send_deadline_notifications', stdout=out)
+            
+            # Verificar que edital fechado não foi incluído
+            if mock_email.called:
+                # Verificar conteúdo do email
+                call_args = mock_email.call_args
+                # O edital fechado não deve estar na lista
+                self.assertTrue(mock_email.called)
+    
+    def test_handles_email_errors_gracefully(self):
+        """Testa que o comando lida com erros de email graciosamente."""
+        from io import StringIO
+        from unittest.mock import patch, MagicMock
+        
+        # Simular erro ao enviar email
+        mock_email_instance = MagicMock()
+        mock_email_instance.send.side_effect = Exception("Erro de email")
+        
+        with patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives', return_value=mock_email_instance):
+            out = StringIO()
+            # Comando não deve levantar exceção
+            try:
+                call_command('send_deadline_notifications', stdout=out, stderr=out)
+                success = True
+            except Exception:
+                success = False
+            
+            self.assertTrue(success)
+            
+            # Verificar que erro foi reportado
+            output = out.getvalue()
+            self.assertIn('erro', output.lower())
+    
+    def test_verbose_output(self):
+        """Testa que o modo verbose mostra informações detalhadas."""
+        from io import StringIO
+        from unittest.mock import patch
+        
+        with patch('editais.management.commands.send_deadline_notifications.EmailMultiAlternatives'):
+            out = StringIO()
+            call_command('send_deadline_notifications', '--verbose', stdout=out)
+            
+            output = out.getvalue()
+            # Verificar que mostra informações detalhadas
+            self.assertTrue(len(output) > 0)

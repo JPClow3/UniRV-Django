@@ -145,8 +145,14 @@ def index(request):
         'created_by', 'updated_by'
     ).only(
         'id', 'numero_edital', 'titulo', 'url', 'entidade_principal',
-        'status', 'start_date', 'end_date', 'objetivo', 'created_by', 'updated_by'
+        'status', 'start_date', 'end_date', 'objetivo', 
+        'data_criacao', 'data_atualizacao', 'slug',
+        'created_by', 'updated_by'
     )
+
+    # Hide draft editais from non-authenticated users (FR-010)
+    if not request.user.is_authenticated or not request.user.is_staff:
+        editais = editais.exclude(status='draft')
 
     # Apply full-text search across all fields
     if search_query:
@@ -209,13 +215,13 @@ def edital_detail(request, slug=None, pk=None):
     if slug:
         edital = get_object_or_404(
             Edital.objects.select_related('created_by', 'updated_by')
-            .prefetch_related('valores', 'cronogramas'),
+            .prefetch_related('valores', 'cronogramas', 'history'),
             slug=slug
         )
     elif pk:
         edital = get_object_or_404(
             Edital.objects.select_related('created_by', 'updated_by')
-            .prefetch_related('valores', 'cronogramas'),
+            .prefetch_related('valores', 'cronogramas', 'history'),
             pk=pk
         )
     else:
@@ -247,7 +253,12 @@ def edital_detail_redirect(request, pk):
 
 @login_required
 def edital_create(request):
-    """Página para cadastrar novo edital - Requer autenticação"""
+    """Página para cadastrar novo edital - Requer autenticação e is_staff"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {
+            'message': 'Apenas usuários staff podem criar editais.'
+        }, status=403)
+    
     if request.method == 'POST':
         form = EditalForm(request.POST)
         if form.is_valid():
@@ -258,6 +269,17 @@ def edital_create(request):
             # Sanitize all text fields using helper function
             sanitize_edital_fields(edital)
             edital.save()
+            
+            # Create history entry
+            from .models import EditalHistory
+            EditalHistory.objects.create(
+                edital=edital,
+                edital_titulo=edital.titulo,
+                user=request.user,
+                action='create',
+                changes_summary={'titulo': edital.titulo}
+            )
+            
             # Invalidate cache for index pages (clear all index cache keys)
             _clear_index_cache()
             messages.success(request, 'Edital cadastrado com sucesso!')
@@ -270,18 +292,50 @@ def edital_create(request):
 
 @login_required
 def edital_update(request, pk):
-    """Página para editar edital - Requer autenticação"""
+    """Página para editar edital - Requer autenticação e is_staff"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {
+            'message': 'Apenas usuários staff podem editar editais.'
+        }, status=403)
+    
     edital = get_object_or_404(Edital, pk=pk)
 
     if request.method == 'POST':
         form = EditalForm(request.POST, instance=edital)
         if form.is_valid():
+            # IMPORTANT: Capture original values BEFORE save(commit=False)
+            # After save(commit=False), form.instance will have new values
+            from .models import EditalHistory
+            original_edital = Edital.objects.get(pk=edital.pk)  # Fresh DB query
+            
+            # Track changes by comparing original DB values with new form values
+            changes = {}
+            for field in form.changed_data:
+                if field not in ['data_atualizacao', 'updated_by']:
+                    # Get original value from database (before form.save)
+                    old_value = str(getattr(original_edital, field, ''))
+                    # Get new value from form cleaned_data
+                    new_value = str(form.cleaned_data.get(field, ''))
+                    if old_value != new_value:
+                        changes[field] = {'old': old_value[:200], 'new': new_value[:200]}
+            
+            # Now save the form (this updates form.instance with new values)
             edital = form.save(commit=False)
-            # Track who updated this edital
             edital.updated_by = request.user
             # Sanitize all text fields using helper function
             sanitize_edital_fields(edital)
             edital.save()
+            
+            # Create history entry
+            if changes:
+                EditalHistory.objects.create(
+                    edital=edital,
+                    edital_titulo=edital.titulo,
+                    user=request.user,
+                    action='update',
+                    changes_summary=changes
+                )
+            
             # Invalidate cache for index pages (clear all index cache keys)
             _clear_index_cache()
             messages.success(request, 'Edital atualizado com sucesso!')
@@ -294,10 +348,25 @@ def edital_update(request, pk):
 
 @login_required
 def edital_delete(request, pk):
-    """Deletar edital - Requer autenticação"""
+    """Deletar edital - Requer autenticação e is_staff"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {
+            'message': 'Apenas usuários staff podem deletar editais.'
+        }, status=403)
+    
     edital = get_object_or_404(Edital, pk=pk)
 
     if request.method == 'POST':
+        # Create history entry before deletion (preserve title)
+        from .models import EditalHistory
+        EditalHistory.objects.create(
+            edital=edital,
+            edital_titulo=edital.titulo,  # Preserve title before deletion
+            user=request.user,
+            action='delete',
+            changes_summary={'titulo': edital.titulo}
+        )
+        
         edital.delete()
         # Invalidate cache for index pages (clear all index cache keys)
         _clear_index_cache()
@@ -309,12 +378,18 @@ def edital_delete(request, pk):
 
 @login_required
 def export_editais_csv(request):
-    """Export editais to CSV file"""
+    """Export editais to CSV file - Requer autenticação e is_staff"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {
+            'message': 'Apenas usuários staff podem exportar editais.'
+        }, status=403)
+    
     # Get filtered editais (same filters as index page)
+    # Optimize query with select_related for foreign keys
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
 
-    editais = Edital.objects.all()
+    editais = Edital.objects.select_related('created_by', 'updated_by').all()
 
     if search_query:
         editais = editais.filter(build_search_query(search_query))
@@ -357,4 +432,61 @@ def export_editais_csv(request):
         ])
 
     return response
+
+
+@login_required
+def admin_dashboard(request):
+    """Dashboard administrativo com estatísticas e gráficos"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {
+            'message': 'Apenas usuários staff podem acessar o dashboard.'
+        }, status=403)
+    
+    from django.db.models import Count, Q
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Estatísticas gerais
+    total_editais = Edital.objects.count()
+    editais_por_status = Edital.objects.values('status').annotate(count=Count('id')).order_by('status')
+    
+    # Editais recentes (últimos 7 dias)
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    editais_recentes = Edital.objects.filter(
+        data_criacao__gte=seven_days_ago
+    ).select_related('created_by').order_by('-data_criacao')[:10]
+    
+    # Editais próximos do prazo (7 dias)
+    today = timezone.now().date()
+    deadline_date = today + timedelta(days=7)
+    editais_proximos_prazo = Edital.objects.filter(
+        end_date__gte=today,
+        end_date__lte=deadline_date,
+        status__in=['aberto', 'em_andamento']
+    ).order_by('end_date')[:10]
+    
+    # Atividades recentes (criados e atualizados)
+    atividades_recentes = Edital.objects.filter(
+        Q(data_criacao__gte=seven_days_ago) | Q(data_atualizacao__gte=seven_days_ago)
+    ).select_related('created_by', 'updated_by').order_by('-data_atualizacao')[:15]
+    
+    # Estatísticas por entidade
+    top_entidades = Edital.objects.exclude(
+        entidade_principal__isnull=True
+    ).exclude(
+        entidade_principal=''
+    ).values('entidade_principal').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    context = {
+        'total_editais': total_editais,
+        'editais_por_status': editais_por_status,
+        'editais_recentes': editais_recentes,
+        'editais_proximos_prazo': editais_proximos_prazo,
+        'atividades_recentes': atividades_recentes,
+        'top_entidades': top_entidades,
+    }
+    
+    return render(request, 'editais/dashboard.html', context)
 

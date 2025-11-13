@@ -10,7 +10,7 @@ Criar o módulo Editais como parte do site AgroHub UniRV — um hub de editais d
 **Abordagem Técnica**: 
 - Django 5.2.7+ com modelos existentes (Edital, Cronograma, EditalValor)
 - Adicionar campos `slug`, `start_date`, `end_date` ao modelo Edital
-- Implementar sistema de permissões com múltiplos níveis (staff, editor, admin)
+- Restringir operações administrativas (CRUD/exportação) a usuários `is_staff`
 - URLs baseadas em slug com redirecionamento 301 de URLs antigas (PK)
 - Busca e filtros na interface pública
 - Django Admin customizado para interface administrativa
@@ -42,8 +42,8 @@ Criar o módulo Editais como parte do site AgroHub UniRV — um hub de editais d
 **Scale/Scope**: 
 - Módulo inicial para gerenciamento de editais
 - Suporte a múltiplos usuários (administradores, editores, visitantes)
-- Paginação: 20 itens por página (padrão), opção para alterar (20, 50, 100)
-- Sistema de permissões com múltiplos níveis
+- Paginação: 12 itens por página (padrão)
+- Operações administrativas (CRUD/exportação) restritas a usuários `is_staff`
 
 ## Constitution Check
 
@@ -204,6 +204,7 @@ UniRV-Django/
 **Output**: [data-model.md](./data-model.md) (to be created), [quickstart.md](./quickstart.md) (to be created)
 
 **Tasks**:
+- [x] Definir escopo de permissões (operações administrativas restritas a usuários `is_staff`)
 - [x] Definir modelo de dados atualizado (Edital com slug, start_date, end_date)
 - [x] Definir status choices: draft, aberto, em_andamento, fechado, programado
 - [x] Definir sistema de permissões (staff, editor, admin)
@@ -302,22 +303,26 @@ UniRV-Django/
 1. Implementar views públicas
    - View de listagem com busca e filtros
    - View de detalhe (suportar slug e PK)
-   - Paginação numérica (5 páginas visíveis)
-   - Opção para alterar itens por página (20, 50, 100)
+   - Paginação numérica (5 páginas visíveis) exibindo 12 itens por página
    - Cache de listagens públicas (TTL: 5 minutos)
 
 2. Implementar views administrativas
    - Usar Django Admin padrão
    - Customizar Django Admin (visual, preview, etc.)
-   - Implementar sistema de permissões (staff, editor, admin)
+   - Restringir operações de criação/edição/exclusão/exportação a usuários `is_staff`
 
 3. Implementar formulários
    - Formulário para criar/editar edital (Django Admin ou custom)
    - Validação de dados (datas, slug, etc.)
    - Sanitização de HTML (bleach)
 
+4. Implementar endpoint de exportação CSV
+   - View protegida por `@login_required` + verificação `is_staff`
+   - Exportar dados filtrados (busca/status) com campos Número, Título, Entidade, Status, URL, datas e responsáveis
+   - Responder em CSV UTF-8 com BOM para compatibilidade com Excel
+
 **Dependencies**: 2.3 (URL Migration)  
-**Estimated Time**: 8-10 hours
+**Estimated Time**: 9-11 hours
 
 #### 2.5: Templates
 
@@ -327,8 +332,8 @@ UniRV-Django/
    - Filtros (status, datas, "somente abertos")
    - Cards com resumo (título, organização, datas, status)
    - Aviso "prazo próximo" para editais com prazo nos últimos 7 dias
-   - Paginação numérica (5 páginas visíveis)
-   - Opção para alterar itens por página
+   - Paginação numérica (5 páginas visíveis) para 12 itens por página
+   - Botão de exportação CSV visível somente para usuários `is_staff`
 
 2. Criar template de detalhe (`editais/detail.html`)
    - Header com título e status
@@ -350,17 +355,17 @@ UniRV-Django/
 #### 2.6: Permissions System
 
 **Tasks**:
-1. Implementar sistema de permissões
-   - Níveis: staff (básico), editor (pode criar/editar), admin (pode deletar)
-   - Usar Django Groups ou campo customizado no User model
-   - Rascunhos visíveis apenas para usuários com permissão CRUD
+1. Restringir operações administrativas (CRUD/exportação) a usuários `is_staff`
+   - Garantir `@login_required` + `request.user.is_staff` nas views de criação/edição/exclusão/exportação
+   - Exibir mensagens apropriadas para usuários sem permissão
+   - Ajustar templates/botões para aparecer apenas para `is_staff`
 
-2. Configurar permissões no Django Admin
-   - Adicionar permissões customizadas (add_edital, change_edital, delete_edital)
-   - Configurar grupos de usuários (staff, editor, admin)
+2. Atualizar Django Admin
+   - Confirmar que somente `is_staff` tem acesso às ações CRUD
+   - Revisar permissões padrão (add/change/delete) conforme necessário
 
 **Dependencies**: 2.4 (Views & Forms)  
-**Estimated Time**: 3-4 hours
+**Estimated Time**: 1-2 hours
 
 #### 2.7: Search & Filters
 
@@ -542,9 +547,9 @@ UniRV-Django/
   - 2.1: Database Migrations (4-6 hours)
   - 2.2: Model Updates (3-4 hours)
   - 2.3: URL Migration (2-3 hours)
-  - 2.4: Views & Forms (8-10 hours)
+  - 2.4: Views & Forms (9-11 hours)
   - 2.5: Templates (6-8 hours)
-  - 2.6: Permissions System (3-4 hours)
+  - 2.6: Permissions System (1-2 hours)
   - 2.7: Search & Filters (4-5 hours)
   - 2.8: Management Command (2-3 hours)
   - 2.9: Cache Implementation (2-3 hours)
@@ -570,8 +575,8 @@ UniRV-Django/
 
 ### Business Success Criteria
 - [ ] Visitantes conseguem buscar e visualizar editais
-- [ ] Administradores conseguem criar/editar/deletar editais
-- [ ] Sistema de permissões funcionando (staff, editor, admin)
+- [ ] Usuários `is_staff` conseguem criar/editar/deletar/exportar editais
+- [ ] Sistema de permissões básico (restrições `is_staff`) funcionando
 - [ ] Status atualizados automaticamente baseado em datas
 - [ ] Performance adequada (listagem carrega em < 2 segundos)
 - [ ] Todos os campos e mensagens em português brasileiro
@@ -591,8 +596,4 @@ UniRV-Django/
 1. ✅ **Specification**: Completed
 2. ✅ **Clarifications**: All resolved
 3. ✅ **Plan**: This document
-4. ⏳ **Tasks**: Create detailed task list (`tasks.md`)
-5. ⏳ **Implementation**: Start Phase 2 implementation
-6. ⏳ **Testing**: Phase 3 testing and QA
-7. ⏳ **Deployment**: Phase 4 deployment
-
+4. ⏳ **Tasks**: Create detailed task list (`

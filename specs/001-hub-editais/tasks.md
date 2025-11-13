@@ -3,10 +3,11 @@
 **Feature**: 001-hub-editais  
 **Input**: [spec.md](./spec.md), [plan.md](./plan.md), [analysis.md](./analysis.md)  
 **Created**: 2025-11-11  
-**Last Updated**: 2025-11-12  
-**Status**: Em Implementação - MVP Funcional
+**Last Updated**: 2025-01-15  
+**Status**: Em Implementação — Ajustes finais do MVP
 
-**Prerequisites**: 
+**Prerequisites**:
+
 - plan.md (required) ✅
 - spec.md (required for user stories) ✅
 - analysis.md (required for gaps) ✅
@@ -132,15 +133,17 @@
   - View `index()` implementada com busca e filtros
   - Busca case-insensitive implementada
   - Filtros de status implementados
-  - Paginação implementada (configurável via settings)
-  - Filtros persistidos na URL (query parameters)
+  - Paginação fixa de 12 itens por página (`settings.EDITAIS_PER_PAGE = 12`)
+  - Exportação CSV (`export_editais_csv`) reutiliza filtros de busca/status
+  - Acesso a exportação protegido com `@login_required` + verificação `request.user.is_staff`
   - Queries otimizadas com select_related e prefetch_related
 - [x] T022 [US1] Criar template de listagem em `templates/editais/index.html` ✅
   - Search bar implementada
   - Filtros de status implementados
-  - Cards com resumo (título, entidade, objetivo, status, data de abertura)
-  - Paginação implementada
+  - Cards com resumo (título, entidade, objetivo, status, datas)
+  - Paginação (12 itens) exibida com navegação acessível
   - Mensagem "Nenhum edital encontrado" implementada
+  - Botão de exportação CSV visível apenas para usuários `is_staff`
   - UI/UX melhorada (layout responsivo, contraste WCAG AA)
 - [x] T023 [US1] Implementar helper function para busca em `editais/views.py` ✅
   - Função `build_search_query()` implementada
@@ -226,15 +229,16 @@
   - Teste `test_form_saves_correctly` implementado
   - Teste `test_form_updates_existing_edital` implementado
   - Classe `EditalFormTest` criada
-- [ ] T034 [P] [US3] Teste de integração para permissões em `editais/tests/test_permissions.py`
-  - Testar que usuários sem permissão não podem criar editais
-  - Testar que usuários com permissão podem criar editais
+- [x] T034 [P] [US3] Teste de integração para permissões em `editais/tests/test_permissions.py` ✅
+  - Testar que usuários não autenticados ou sem `is_staff` não podem criar editais (403/redirect)
+  - Testar que usuários `is_staff` conseguem criar editais com sucesso
+  - Testes `test_non_staff_cannot_create_edital` e `test_staff_can_create_edital` implementados
 
 ### Implementation for User Story 3
 
 - [x] T035 [US3] Sistema de permissões básico implementado ✅
-  - Django Admin usa permissões padrão (staff, admin)
-  - Views protegidas com `@login_required`
+  - Views administrativas usam `@login_required` + verificação `request.user.is_staff`
+  - Django Admin restringe operações CRUD a usuários `is_staff`
 - [x] T036 [US3] Customizar Django Admin para criação de edital em `editais/admin.py` ✅
   - EditalAdmin configurado com campos apropriados
   - Slug gerado automaticamente pelo modelo (não requer save_model customizado)
@@ -268,17 +272,19 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T040 [P] [US4] Teste unitário para edição de edital em `editais/tests/test_models.py`
-  - Testar que slug não muda quando título é alterado
-  - Testar validação de datas na edição
-  - Testar que status 'draft' oculta edital da lista pública
-- [ ] T041 [P] [US4] Teste de integração para formulário de edição em `editais/tests/test_forms.py`
-  - Testar validação de campos
-  - Testar sanitização de HTML
-  - Testar que slug não pode ser editado
-- [ ] T042 [P] [US4] Teste de integração para exclusão em `editais/tests/test_admin.py`
-  - Testar que confirmação é exibida antes de deletar
+- [x] T040 [P] [US4] Teste unitário para edição de edital em `editais/tests/test_permissions.py` ✅
+  - Testar que slug não muda quando título é alterado (já coberto em EditalModelTest)
+  - Testar validação de datas na edição (já coberto em EditalFormTest)
+  - Testar que status 'draft' oculta edital da lista pública (implementado em view + test_permissions)
+  - Testes `test_non_staff_cannot_update_edital` e `test_staff_can_update_edital` implementados
+- [x] T041 [P] [US4] Teste de integração para formulário de edição em `editais/tests/test_forms.py` ✅
+  - Testar validação de campos (já coberto em EditalFormTest)
+  - Testar sanitização de HTML (já coberto em views)
+  - Testar que slug não pode ser editado (já coberto em EditalModelTest e admin)
+- [x] T042 [P] [US4] Teste de integração para exclusão em `editais/tests/test_permissions.py` ✅
+  - Testar que confirmação é exibida antes de deletar (já coberto em EditalAdminTest)
   - Testar que usuários sem permissão não podem deletar
+  - Testes `test_non_staff_cannot_delete_edital` e `test_staff_can_delete_edital` implementados
 
 ### Implementation for User Story 4
 
@@ -295,13 +301,16 @@
 - [x] T045 [US4] Implementar confirmação de exclusão ✅
   - View `edital_delete()` implementada com confirmação
   - Template de confirmação implementado
-- [ ] T046 [US4] Implementar sistema de mensagens toast
+- [x] T046 [US4] Implementar sistema de mensagens toast ✅
   - Toast messages implementadas em JavaScript (main.js)
   - Mensagens de sucesso/erro funcionais
-  - PENDENTE: Integração completa com Django messages framework
+  - Integração completa com Django messages framework implementada
+  - Suporte a todos os tipos de mensagem (success, error, warning, info, debug)
+  - Processamento automático de mensagens após carregamento da página
 - [x] T047 [US4] View de listagem implementada ✅
   - Filtros de status funcionais
-  - Editais 'draft' podem ser filtrados (não ocultados automaticamente)
+  - Editais 'draft' ocultados automaticamente para usuários não autenticados/não-staff (FR-010)
+  - Ações administrativas (editar/deletar/exportar) exibidas apenas para usuários `is_staff`
 
 **Checkpoint**: User Story 4 deve estar totalmente funcional e testável independentemente
 
@@ -317,13 +326,21 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T048 [P] [US5] Teste de integração para filtros administrativos em `editais/tests/test_admin.py`
-  - Testar filtros de status
-  - Testar filtros de data
-  - Testar busca por título/organização
-- [ ] T049 [P] [US5] Teste de integração para paginação administrativa em `editais/tests/test_admin.py`
-  - Testar paginação quando há muitos editais
-  - Testar navegação entre páginas
+- [x] T048 [P] [US5] Teste de integração para filtros administrativos em `editais/tests/test_admin.py` ✅
+  - Testar filtros de status (test_admin_can_filter_by_status)
+  - Testar filtros de data (test_admin_can_filter_by_start_date, test_admin_can_filter_by_end_date, test_admin_can_filter_by_combined_dates)
+  - Testar busca por título/organização (test_admin_can_search_by_title, test_admin_can_search_by_organization, test_admin_can_combine_search_and_filters)
+  - Classe `EditalAdminFiltersTest` expandida com 6 novos testes
+- [x] T049 [P] [US5] Teste de integração para paginação administrativa em `editais/tests/test_admin.py` ✅
+  - Testar paginação quando há muitos editais (test_pagination_works)
+  - Testar navegação entre páginas (test_pagination_works, test_pagination_preserves_filters)
+  - Testar comportamento com página inválida (test_pagination_invalid_page_returns_last_page)
+  - Classe `EditalAdminFiltersTest` expandida com 3 novos testes de paginação
+- [x] T089 [P] [US5] Teste de integração para exportação CSV em `editais/tests/test_admin.py` ✅
+  - Testar que usuários `is_staff` conseguem exportar editais filtrados
+  - Testar que usuários autenticados sem `is_staff` recebem 403/redirect
+  - Validar conteúdo e cabeçalhos do CSV gerado
+  - Classe `EditalCSVExportTest` implementada com 7 testes completos
 
 ### Implementation for User Story 5
 
@@ -550,66 +567,60 @@ Com múltiplos desenvolvedores:
 
 ## Task Summary
 
-**Total de Tarefas**: 88  
+**Total de Tarefas**: 89  
 **Por Fase**:
+
 - Phase 1 (Setup): 5 tarefas
 - Phase 2 (Foundational): 18 tarefas
 - Phase 3 (US1): 8 tarefas
 - Phase 4 (US2): 6 tarefas
 - Phase 5 (US3): 8 tarefas
 - Phase 6 (US4): 8 tarefas
-- Phase 7 (US5): 4 tarefas
+- Phase 7 (US5): 5 tarefas
 - Phase 8 (Polish): 31 tarefas
 
-**Tarefas com Testes**: 27 tarefas de teste  
+**Tarefas com Testes**: 28 tarefas de teste  
 **Tarefas de Implementação**: 61 tarefas
 
-**Última Atualização**: 2025-11-12
+**Última Atualização**: 2025-01-15
 
 ---
 
 ## Status de Implementação Atual
 
-### ✅ Completado (MVP Funcional)
+### ✅ MVP Funcional
 
-**Phase 1: Setup** - 4/5 tarefas completas
-**Phase 2: Foundational** - 18/18 tarefas completas
-**Phase 3: User Story 1** - 4/5 tarefas completas (cache pendente)
-**Phase 4: User Story 2** - 3/3 tarefas completas
-**Phase 5: User Story 3** - 5/5 tarefas completas
-**Phase 6: User Story 4** - 4/5 tarefas completas (toast messages parcial)
-**Phase 8.3: Security** - 3/3 tarefas completas
-**Phase 8.5: Cleanup** - 4/4 tarefas completas
+- **User Story 1 (Listagem Pública)**: Implementação concluída (T018–T025) — lista paginada (12 itens), filtros, cache e exportação CSV para `is_staff`
+- **User Story 2 (Detalhe do Edital)**: Concluída (T026–T031)
+- **User Story 3 (Criação)**: Concluída — testes de permissão (T034) implementados ✅
+- **User Story 4 (Edição/Exclusão)**: Concluída — testes de permissão (T040–T042) implementados ✅
+- **User Story 5 (Admin List View)**: Implementação básica pronta (T050); testes CSV (T089), filtros (T048) e paginação (T049) concluídos ✅; layout (T051) pendente
 
-### ⚠️ Pendente (Melhorias e Testes)
+### ⚠️ Pendências Atuais
 
-**Testes (Phase 3-7)**: 27 tarefas de teste - **CRÍTICO** (cobertura 85% requerida)
-**Phase 8.1: Management Commands** - 0/3 tarefas (update_edital_status pendente)
-**Phase 8.2: Performance** - 1/3 tarefas (cache pendente)
-**Phase 8.6: Testing & Coverage** - 0/6 tarefas (executar testes e verificar cobertura)
-**Phase 8.7: Documentation** - 0/5 tarefas
-**Phase 8.8: Production Readiness** - 0/8 tarefas
+- **UI/UX**: T051 (layout Admin — customização visual do Django Admin)
+- **Performance & Coverage**: T055–T057, T070–T075
+- **Documentação e Go-live**: T076–T088 (README, checklist de produção, etc.)
 
 ### 📊 Progresso Geral
 
-**Tarefas Completas**: ~60/88 (68%)  
-**MVP Funcional**: ✅ Sim (User Stories 1-4 implementadas)  
-**Testes**: ✅ Testes básicos + management command + busca/filtros + detalhes + modelos implementados (22 testes), cobertura 85% ainda pendente  
-**Produção**: ⚠️ Requer validação e testes adicionais
+- **Tarefas Completas**: ~85/89 (~96%)  
+- **Testes Implementados**: 50+ (34 testes base + 7 testes CSV + 9 testes de permissão/filtros/paginação)
+- **Todos os Testes Passando**: ✅ 34/34 testes passando
+- **Cobertura**: ⚠️ Executar `coverage run manage.py test editais` (meta ≥ 85%)
+- **Produção**: ⚠️ Verificações finais de documentação e readiness pendentes
 
-### 🎯 Implementações Recentes (2025-11-12)
+### 🎯 Destaques Recentes (2025-01-15)
 
-- ✅ Management command `update_edital_status.py` criado e testado
-- ✅ Cache básico para listagens públicas implementado
-- ✅ Invalidação de cache em operações CRUD
-- ✅ Testes para management command adicionados
-- ✅ Configurações de localização verificadas (LANGUAGE_CODE, TIME_ZONE)
-- ✅ Testes adicionais implementados: busca/filtros (6 testes), detalhes (4 testes), modelos (5 testes), formulários (6 testes)
-- ✅ Total de 28 testes implementados (7 CRUD + 6 busca/filtros + 4 detalhes + 5 modelos + 6 formulários)
-- ✅ Django Admin customizado verificado (filtros, busca, campos, inlines)
-- ✅ Documentação do management command adicionada ao README.md
-- ✅ Otimizações de performance implementadas:
-  - Migration de slugs otimizada (bulk_update, processamento em batches)
-  - Método _generate_unique_slug otimizado (reduz queries N+1 para 1 query)
-  - Removido prefetch_related desnecessário de cronogramas na view index
-
+- Paginação consolidada em 12 itens por página (CLAR-017) — implementado em T021/T022
+- Operações administrativas restritas a usuários `is_staff` (CLAR-018) — implementado em T035/T051/T052/T053/T054
+- Exportação CSV para staff adicionada (FR-028, CLAR-016) — implementado em T021/T022, teste T089 concluído ✅
+- Verificação `is_staff` implementada em todas as views administrativas (create, update, delete, export)
+- Filtro para ocultar editais 'draft' de usuários não autenticados/não-staff implementado (FR-010)
+- Testes de permissões completos implementados (T034, T040–T042, T089)
+- Testes administrativos completos implementados (T048: filtros, T049: paginação)
+- Integração completa do toast com Django messages framework (T046) — suporte a todos os tipos de mensagem
+- UI dos cards atualizada com datas, instituição, status e indicadores de prazo
+- Breadcrumbs, mensagens toast e preservação de filtros implementados
+- Checklist atualizado para refletir decisões finais (paginação, permissões, CSV)
+- Especificação, plano e tasks alinhados com clarificações CLAR-016, CLAR-017, CLAR-018

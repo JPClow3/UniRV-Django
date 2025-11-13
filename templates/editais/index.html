@@ -3,6 +3,15 @@
 
 {% block title %}Editais de Fomento - AgroHub UniRV{% endblock %}
 
+{% block breadcrumb %}
+{% include 'editais/breadcrumb.html' %}
+{% block breadcrumb_items %}
+<li class="breadcrumb-item" aria-current="page">
+    <span>Lista de Editais</span>
+</li>
+{% endblock %}
+{% endblock %}
+
 {% block meta_description %}Explore editais de fomento abertos para o agronegócio. Encontre oportunidades de financiamento, pesquisa e inovação para seu projeto.{% endblock %}
 
 {% block meta_keywords %}editais fomento, agronegócio, financiamento rural, pesquisa agrícola, inovação, UniRV{% endblock %}
@@ -20,20 +29,15 @@
             </div>
 
             <div class="header-actions">
-                <a href="{% url 'export_editais_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
-                   class="btn-icon"
-                   title="Exportar editais para CSV"
-                   aria-label="Exportar editais para CSV">
-                    <i class="fas fa-download" aria-hidden="true"></i>
-                    <span class="sr-only">Exportar editais para CSV</span>
-                </a>
-                <a href="{% url 'edital_create' %}" 
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}" 
                    class="btn-icon btn-icon-primary"
-                   title="Cadastrar edital"
-                   aria-label="Cadastrar edital">
-                    <i class="fas fa-plus" aria-hidden="true"></i>
-                    <span class="sr-only">Cadastrar edital</span>
+                   title="Acessar dashboard administrativo"
+                   aria-label="Acessar dashboard administrativo">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    <span class="sr-only">Dashboard</span>
                 </a>
+                {% endif %}
             </div>
         </div>
 
@@ -176,12 +180,21 @@
                 <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatewords:12 }}</a>
             </h2>
 
-            {% if edital.entidade_principal %}
-                <p class="edital-entity">
-                    <i class="fas fa-building" aria-hidden="true"></i>
-                    <span>{{ edital.entidade_principal }}</span>
-                </p>
-            {% endif %}
+            <div class="card-meta">
+                {% if edital.entidade_principal %}
+                    <div class="card-meta-item">
+                        <i class="fas fa-building" aria-hidden="true"></i>
+                        <span class="meta-label">Instituição:</span>
+                        <span class="meta-value">{{ edital.entidade_principal }}</span>
+                    </div>
+                {% endif %}
+                
+                <div class="card-meta-item">
+                    <i class="fas fa-tag" aria-hidden="true"></i>
+                    <span class="meta-label">Status:</span>
+                    <span class="meta-value status-text status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+                </div>
+            </div>
 
             <p class="edital-objective">
                 {{ edital.objetivo|default_if_none:''|truncatewords:25|default:"Sem descrição disponível." }}
@@ -190,25 +203,46 @@
             <div class="card-footer">
                 <div class="card-dates">
                     {% if edital.start_date %}
-                    <small class="start-date">
+                    <div class="date-item">
                         <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-                        <time datetime="{{ edital.start_date|date:'Y-m-d' }}">
-                            Abertura: {{ edital.start_date|date:"d/m/Y" }}
+                        <span class="date-label">Abertura:</span>
+                        <time datetime="{{ edital.start_date|date:'Y-m-d' }}" class="date-value">
+                            {{ edital.start_date|date:"d/m/Y" }}
                         </time>
-                    </small>
+                    </div>
+                    {% elif edital.data_criacao %}
+                    <div class="date-item">
+                        <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                        <span class="date-label">Criado em:</span>
+                        <time datetime="{{ edital.data_criacao|date:'Y-m-d' }}" class="date-value">
+                            {{ edital.data_criacao|date:"d/m/Y" }}
+                        </time>
+                    </div>
                     {% endif %}
+                    
                     {% if edital.end_date %}
-                    <small class="end-date {% if edital.end_date|is_deadline_soon %}deadline-soon{% endif %}">
+                    <div class="date-item {% if edital.end_date|is_deadline_soon %}deadline-soon{% endif %}">
                         <i class="fas fa-calendar-times" aria-hidden="true"></i>
-                        <time datetime="{{ edital.end_date|date:'Y-m-d' }}">
-                            Encerra: {{ edital.end_date|date:"d/m/Y" }}
+                        <span class="date-label">Encerra:</span>
+                        <time datetime="{{ edital.end_date|date:'Y-m-d' }}" class="date-value">
+                            {{ edital.end_date|date:"d/m/Y" }}
                         </time>
                         {% if edital.end_date|is_deadline_soon %}
                             <span class="deadline-warning" aria-label="Prazo próximo">
                                 <i class="fas fa-clock" aria-hidden="true"></i> Prazo próximo
                             </span>
                         {% endif %}
-                    </small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if edital.data_atualizacao %}
+                    <div class="date-item update-date">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                        <span class="date-label">Atualizado:</span>
+                        <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}" class="date-value">
+                            {{ edital.data_atualizacao|date:"d/m/Y" }}
+                        </time>
+                    </div>
                     {% endif %}
                 </div>
 
@@ -216,7 +250,7 @@
                     <a href="{{ edital.get_absolute_url }}" class="btn btn-ghost" aria-label="Ver detalhes de {{ edital.titulo }}">
                         Ver Detalhes
                     </a>
-                    {% if user.is_authenticated %}
+                    {% if user.is_authenticated and user.is_staff %}
                     <a href="{% url 'edital_update' edital.pk %}" class="btn btn-ghost-secondary" aria-label="Editar {{ edital.titulo }}">
                         Editar
                     </a>
@@ -236,18 +270,22 @@
                     <a href="{% url 'editais_index' %}" class="btn btn-outline">
                         <i class="fas fa-redo" aria-hidden="true"></i> Limpar Filtros
                     </a>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'edital_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar Novo Edital
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i> Acessar Dashboard
                     </a>
                     {% endif %}
                 </div>
             {% else %}
                 <p>Ainda não há editais cadastrados no sistema. Seja o primeiro a adicionar um edital de fomento!</p>
                 <div class="empty-state-actions">
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'edital_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus" aria-hidden="true"></i> Cadastrar Primeiro Edital
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i> Acessar Dashboard
+                    </a>
+                    {% elif user.is_authenticated %}
+                    <a href="{% url 'admin:login' %}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Fazer Login para Cadastrar
                     </a>
                     {% else %}
                     <a href="{% url 'admin:login' %}" class="btn btn-primary">
@@ -268,7 +306,8 @@
                 <a href="?{% preserve_filters request page=page_obj.previous_page_number %}" class="page-link" aria-label="Ir para página anterior">Anterior</a>
             {% endif %}
 
-            <span class="page-info" aria-current="page">
+            <!-- A11Y-004: Indicador de página atual com aria-current -->
+            <span class="page-info" aria-current="page" aria-label="Página atual, página {{ page_obj.number }}">
                 Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
             </span>
 

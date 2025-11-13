@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load editais_filters %}
+
+{% block title %}Dashboard Administrativo - AgroHub UniRV{% endblock %}
+
+{% block breadcrumb %}
+{% include 'editais/breadcrumb.html' %}
+{% block breadcrumb_items %}
+<li class="breadcrumb-item" aria-current="page">
+    <span>Dashboard</span>
+</li>
+{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="dashboard-header">
+        <h1>Dashboard Administrativo</h1>
+        <p class="dashboard-subtitle">Visão geral do sistema de editais</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-total">
+                <i class="fas fa-file-alt" aria-hidden="true"></i>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ total_editais }}</h3>
+                <p class="stat-label">Total de Editais</p>
+            </div>
+        </div>
+
+        {% for status_data in editais_por_status %}
+        <div class="stat-card">
+            <div class="stat-icon stat-{{ status_data.status }}">
+                <i class="fas fa-tag" aria-hidden="true"></i>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-value">{{ status_data.count }}</h3>
+                <p class="stat-label">{{ status_data.status|title }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="dashboard-section">
+        <h2>Editais Recentes (Últimos 7 dias)</h2>
+        {% if editais_recentes %}
+        <div class="editais-list">
+            {% for edital in editais_recentes %}
+            <div class="edital-item-small">
+                <a href="{{ edital.get_absolute_url }}" class="edital-link-small">
+                    {{ edital.titulo|truncatewords:10 }}
+                </a>
+                <div class="edital-meta-small">
+                    <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+                    <span class="edital-date">Criado em {{ edital.data_criacao|date:"d/m/Y" }}</span>
+                    {% if edital.created_by %}
+                    <span class="edital-author">por {{ edital.created_by.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-message">Nenhum edital criado nos últimos 7 dias.</p>
+        {% endif %}
+    </div>
+
+    <!-- Editais Próximos do Prazo -->
+    <div class="dashboard-section">
+        <h2>Editais Próximos do Prazo (7 dias)</h2>
+        {% if editais_proximos_prazo %}
+        <div class="editais-list">
+            {% for edital in editais_proximos_prazo %}
+            <div class="edital-item-small deadline-warning-item">
+                <a href="{{ edital.get_absolute_url }}" class="edital-link-small">
+                    {{ edital.titulo|truncatewords:10 }}
+                </a>
+                <div class="edital-meta-small">
+                    <span class="deadline-badge">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        Prazo: {{ edital.end_date|date:"d/m/Y" }}
+                    </span>
+                    <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-message">Nenhum edital próximo do prazo.</p>
+        {% endif %}
+    </div>
+
+    <!-- Top Entidades -->
+    {% if top_entidades %}
+    <div class="dashboard-section">
+        <h2>Top 10 Entidades</h2>
+        <div class="entidades-list">
+            {% for entidade in top_entidades %}
+            <div class="entidade-item">
+                <span class="entidade-name">{{ entidade.entidade_principal }}</span>
+                <span class="entidade-count">{{ entidade.count }} edital(is)</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="dashboard-actions">
+        <a href="{% url 'edital_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus" aria-hidden="true"></i> Criar Novo Edital
+        </a>
+        <a href="{% url 'editais_index' %}" class="btn btn-secondary">
+            <i class="fas fa-list" aria-hidden="true"></i> Ver Todos os Editais
+        </a>
+        <a href="{% url 'export_editais_csv' %}" class="btn btn-outline">
+            <i class="fas fa-download" aria-hidden="true"></i> Exportar CSV
+        </a>
+    </div>
+</div>
+{% endblock %}
+

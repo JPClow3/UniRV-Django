@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editais Próximos do Prazo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #19316C;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        .edital-item {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #84D067;
+            border-radius: 4px;
+        }
+        .edital-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #19316C;
+            margin-bottom: 10px;
+        }
+        .edital-meta {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .edital-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Editais Próximos do Prazo</h1>
+    </div>
+    <div class="content">
+        <p>Olá,</p>
+        <p>Este é um lembrete automático sobre editais de fomento que estão próximos do prazo de encerramento.</p>
+        
+        <p><strong>{{ editais|length }} edital(is) com prazo nos próximos {{ days_ahead }} dias:</strong></p>
+        
+        {% for edital in editais %}
+        <div class="edital-item">
+            <div class="edital-title">{{ edital.titulo }}</div>
+            <div class="edital-meta">
+                <strong>Prazo:</strong> {{ edital.end_date|date:"d/m/Y" }}<br>
+                <strong>Status:</strong> {{ edital.get_status_display }}<br>
+                {% if edital.entidade_principal %}
+                <strong>Entidade:</strong> {{ edital.entidade_principal }}
+                {% endif %}
+            </div>
+            <a href="{{ site_url }}{{ edital.get_absolute_url }}" class="edital-link">Ver Detalhes</a>
+        </div>
+        {% endfor %}
+        
+        <p style="margin-top: 20px;">
+            <a href="{{ site_url }}" style="color: #0d6efd;">Acesse o sistema para mais detalhes</a>
+        </p>
+    </div>
+    <div class="footer">
+        <p>AgroHub UniRV - Sistema de Editais de Fomento</p>
+        <p>Este é um email automático, por favor não responda.</p>
+    </div>
+</body>
+</html>
+

@@ -88,8 +88,8 @@
 - [ ] CHK039: View de listagem implementada com filtros de status (FR-003)
 - [ ] CHK040: View de listagem implementada com filtros de data (FR-021)
 - [ ] CHK041: View de listagem implementada com opção "somente abertos" (FR-021)
-- [ ] CHK042: View de listagem implementada com paginação numérica (5 páginas visíveis) (FR-012)
-- [ ] CHK043: View de listagem implementada com opção para alterar itens por página (20, 50, 100) (FR-012)
+- [ ] CHK042: View de listagem implementada com paginação numérica (5 páginas visíveis) exibindo 12 itens por página (FR-012)
+- [ ] CHK043: View de listagem garante `settings.EDITAIS_PER_PAGE = 12`
 - [ ] CHK044: View de listagem implementada com cache (TTL: 5 minutos) (FR-025)
 - [ ] CHK045: View de listagem filtra editais por status (não exibe 'draft' para não-autenticados) (FR-010)
 - [ ] CHK046: View de detalhe implementada com suporte a slug e PK
@@ -98,14 +98,21 @@
 - [ ] CHK049: View de detalhe exibe cronogramas relacionados
 - [ ] CHK050: View de detalhe exibe valores relacionados (EditalValor)
 
+### Exportação CSV
+
+- [ ] CHK050A: View `export_editais_csv` restrita a usuários `is_staff` (FR-028)
+- [ ] CHK050B: Exportação aplica filtros de busca/status equivalentes à listagem
+- [ ] CHK050C: CSV inclui colunas Número, Título, Entidade, Status, URL, Datas, Criado/Atualizado Por
+- [ ] CHK050D: CSV gerado com encoding UTF-8 e BOM (compatível com Excel)
+
 ### Views Administrativas
 
-- [ ] CHK051: Sistema de permissões implementado (staff, editor, admin) (FR-023)
-- [ ] CHK052: View de criação implementada com verificação de permissões (FR-005)
-- [ ] CHK053: View de edição implementada com verificação de permissões (FR-006)
-- [ ] CHK054: View de exclusão implementada com verificação de permissões (FR-007)
+- [ ] CHK051: Sistema de permissões básico implementado (operações administrativas restritas a usuários `is_staff`) (FR-023)
+- [ ] CHK052: View de criação implementada com verificação `request.user.is_staff` (FR-005)
+- [ ] CHK053: View de edição implementada com verificação `request.user.is_staff` (FR-006)
+- [ ] CHK054: View de exclusão implementada com verificação `request.user.is_staff` (FR-007)
 - [ ] CHK055: View de exclusão implementada com confirmação modal (FR-007, FR-027)
-- [ ] CHK056: Usuários com permissão CRUD podem ver editais em status 'draft' (FR-011)
+- [ ] CHK056: Usuários `is_staff` podem ver editais em status 'draft' (FR-011)
 
 ### Busca e Filtros
 
@@ -139,8 +146,8 @@
 - [ ] CHK074: Opção "somente abertos" implementada no template
 - [ ] CHK075: Cards com resumo implementados (título, organização, datas, status)
 - [ ] CHK076: Aviso "prazo próximo" implementado para editais com prazo nos últimos 7 dias (FR-024)
-- [ ] CHK077: Paginação numérica implementada (5 páginas visíveis)
-- [ ] CHK078: Opção para alterar itens por página implementada (20, 50, 100)
+- [ ] CHK077: Paginação numérica implementada (5 páginas visíveis, 12 itens por página)
+- [ ] CHK078: Botão de exportação CSV exibido apenas para usuários `is_staff`
 - [ ] CHK079: Mensagem "Nenhum edital encontrado" exibida quando não há resultados
 
 ### Template de Detalhe
@@ -168,13 +175,11 @@
 
 ### Sistema de Permissões
 
-- [ ] CHK093: Grupos Django criados (staff, editor, admin)
-- [ ] CHK094: Permissões definidas (add_edital, change_edital, delete_edital)
-- [ ] CHK095: Permissões atribuídas a grupos
-- [ ] CHK096: Decorators ou mixins criados para verificar permissões
-- [ ] CHK097: Views administrativas protegidas com verificações de permissão
-- [ ] CHK098: Visitantes não-autenticados não podem acessar editais 'draft' (FR-010)
-- [ ] CHK099: Usuários com permissão CRUD podem ver editais 'draft' (FR-011)
+- [ ] CHK093: Grupos Django criados (opcional para versões futuras)
+- [ ] CHK094: Permissões padrão (add/change/delete) conferidas a usuários `is_staff`
+- [ ] CHK095: Views administrativas protegidas com verificação `request.user.is_staff`
+- [ ] CHK096: Visitantes não-autenticados não podem acessar editais 'draft' (FR-010)
+- [ ] CHK097: Usuários `is_staff` podem ver editais 'draft' (FR-011)
 
 ### Segurança
 
@@ -392,4 +397,3 @@
 ---
 
 **Nota**: Este checklist deve ser atualizado à medida que a implementação progride. Marque os itens como concluídos usando `[x]` e adicione comentários quando necessário para documentar decisões ou problemas encontrados.
-

@@ -1,6 +1,6 @@
 import re
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, IntegrityError
 from django.urls import reverse
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
@@ -137,6 +137,10 @@ class Edital(models.Model):
         if not self.slug:
             self.slug = self._generate_unique_slug()
         
+        # Ensure slug is never None after save (DB-001 fix)
+        if not self.slug:
+            raise ValidationError('Slug não pode ser None. Título inválido para geração de slug.')
+        
         # Auto-update status based on dates
         today = timezone.now().date()
         
@@ -146,7 +150,28 @@ class Edital(models.Model):
             elif self.start_date > today and self.status != 'draft':
                 self.status = 'programado'
         
-        super().save(*args, **kwargs)
+        # Handle race condition for slug uniqueness (retry if IntegrityError)
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                super().save(*args, **kwargs)
+                # Ensure slug is set after save (double-check)
+                if not self.slug:
+                    self.slug = self._generate_unique_slug()
+                    super().save(*args, **kwargs)
+                break
+            except ValidationError:
+                # Re-raise validation errors
+                raise
+            except IntegrityError as e:
+                # Check if it's an IntegrityError related to slug uniqueness
+                if 'slug' in str(e).lower() or 'unique' in str(e).lower():
+                    if attempt < max_retries - 1:
+                        # Regenerate slug and retry
+                        self.slug = self._generate_unique_slug()
+                        continue
+                # Re-raise other exceptions
+                raise
 
     def get_summary(self):
         """Return a short summary for list views"""
@@ -173,9 +198,28 @@ class Edital(models.Model):
 
 
 class EditalValor(models.Model):
+    MOEDA_CHOICES = [
+        ('BRL', 'Real Brasileiro (R$)'),
+        ('USD', 'Dólar Americano (US$)'),
+        ('EUR', 'Euro (€)'),
+    ]
+    
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='valores')
     valor_total = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    moeda = models.CharField(max_length=10, default='BRL')
+    moeda = models.CharField(
+        max_length=10,
+        choices=MOEDA_CHOICES,
+        default='BRL',
+        help_text='Moeda do valor total'
+    )
+
+    class Meta:
+        verbose_name = 'Valor do Edital'
+        verbose_name_plural = 'Valores dos Editais'
+        # Índice composto para queries que filtram por edital e moeda
+        indexes = [
+            models.Index(fields=['edital', 'moeda'], name='idx_edital_moeda'),
+        ]
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.valor_total} {self.moeda}'
@@ -192,7 +236,62 @@ class Cronograma(models.Model):
         ordering = ['data_inicio']
         verbose_name = 'Cronograma'
         verbose_name_plural = 'Cronogramas'
+        # Índices para melhorar queries de cronogramas
+        indexes = [
+            models.Index(fields=['edital', 'data_inicio'], name='idx_cronograma_edital_data'),
+            models.Index(fields=['data_inicio'], name='idx_cronograma_data_inicio'),
+        ]
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.descricao}'
+
+
+class EditalHistory(models.Model):
+    """Histórico de alterações em editais para auditoria"""
+    edital = models.ForeignKey(
+        Edital,
+        on_delete=models.SET_NULL,  # Preserve history even if edital is deleted
+        null=True,
+        blank=True,
+        related_name='history'
+    )
+    edital_titulo = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text='Título do edital (preservado quando edital é deletado)'
+    )
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='edital_changes'
+    )
+    action = models.CharField(
+        max_length=20,
+        choices=[
+            ('create', 'Criado'),
+            ('update', 'Atualizado'),
+            ('delete', 'Excluído'),
+        ]
+    )
+    field_name = models.CharField(max_length=100, blank=True, null=True)
+    old_value = models.TextField(blank=True, null=True)
+    new_value = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    changes_summary = models.JSONField(default=dict, blank=True)  # Resumo das mudanças
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Histórico de Edital'
+        verbose_name_plural = 'Históricos de Editais'
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['edital', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        titulo = self.edital.titulo if self.edital else (self.edital_titulo or 'Edital Deletado')
+        return f'{titulo} - {self.get_action_display()} - {self.timestamp.strftime("%d/%m/%Y %H:%M")}'
 

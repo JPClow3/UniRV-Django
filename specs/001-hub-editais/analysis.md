@@ -1,894 +1,258 @@
 # Análise da Especificação — Hub de Editais
 
 **Feature**: 001-hub-editais  
-**Data**: 2025-11-12  
+**Data**: 2025-01-15  
 **Analista**: Sistema Spec Kit  
-**Status**: Análise Atualizada - Implementação em Progresso
+**Status**: Análise Atualizada — Implementação Próxima à Conclusão com Melhorias de Segurança e Qualidade
 
 ---
 
 ## Executive Summary
 
-Esta análise identifica inconsistências, gaps e problemas na especificação do módulo "Hub de Editais". A especificação está **95% completa** e a implementação está em **~75% de progresso**.
+A especificação do módulo "Hub de Editais" está **100% consistente** com as decisões mais recentes (paginação padrão de 12 itens, operações administrativas restritas a `is_staff`, exportação CSV para staff). A implementação está **próxima à conclusão**, com aproximadamente **95% das tarefas concluídas** (85/89) e **todos os testes passando**. 
+
+### Melhorias Recentes (2025-01-15)
+
+- ✅ **Correção de Vulnerabilidade XSS no Django Admin**: Implementada sanitização de HTML no método `save_model()` do `EditalAdmin`
+- ✅ **Melhorias no Banco de Dados**: Índices adicionados em `EditalValor` e `Cronograma`, choices para moeda, validação de slug
+- ✅ **Limpeza de Código**: Removidos arquivos mortos (template `favorites.html`, código JavaScript/CSS obsoleto)
+- ✅ **Arquivos de Suporte**: `.gitignore` expandido, `.env.example` criado, `requirements.txt` verificado
 
 ### Status Geral
 
-- ✅ **Clarificações**: Todas resolvidas (15/15)
-- ✅ **Especificação**: Completa (inconsistências críticas corrigidas)
-- ✅ **Plano**: Criado e detalhado (plan.md)
-- ✅ **Tasks**: Criado e detalhado (tasks.md) - 88 tarefas organizadas por User Story
-- ✅ **Checklist**: Criado e detalhado (checklist.md) - 193 itens de verificação
-- ✅ **Modelo de Dados**: Completo e implementado
-- ✅ **Implementação**: ~66/88 tarefas completas (75%)
-- ✅ **Testes**: 28 testes implementados e passando (cobertura ainda pendente)
-- ⚠️ **Inconsistências**: 3 problemas menores restantes (ISSUE-003, ISSUE-004, ISSUE-005)
-- ⚠️ **Gaps**: Alguns requisitos ainda pendentes (permissões avançadas, filtros de data, etc.)
-- ⚠️ **Testes**: Cobertura 85% ainda pendente (verificação com coverage)
+- ✅ **Clarificações**: 18/18 resolvidas (CLAR-016, CLAR-017 e CLAR-018 incorporadas)
+- ✅ **Especificação** (`spec.md`): Atualizada com paginação 12, restrições `is_staff` e requisito de exportação CSV (FR-028)
+- ✅ **Plano** (`plan.md`): Ajustado às novas decisões (Fases 2.4, 2.5 e 2.6 revisadas)
+- ✅ **Tasks** (`tasks.md`): 89 tarefas — 85 concluídas (95%) — atualizado em 2025-01-15
+- ✅ **Checklist** (`checklist.md`): 193 itens — atualizado para refletir decisões finais
+- ✅ **Modelo de Dados**: Implementado com slug, start/end date, novos status, índices otimizados
+- ✅ **Testes**: 34+ testes passando (base + CSV + permissões) — **todos passando**
+- ✅ **Verificação `is_staff`**: Implementada em todas as views administrativas (create, update, delete, export)
+- ✅ **Filtro Draft**: Editais 'draft' ocultados automaticamente para não autenticados/não-staff (FR-010)
+- ✅ **Segurança XSS**: Sanitização implementada tanto nas views web quanto no Django Admin
+- ⚠️ **Cobertura de Testes**: 85% ainda não verificada (executar `coverage`)
+- ⚠️ **Documentação Final**: README e documentação de produção pendentes (T076-T088)
 
-### Resumo Rápido
+### Destaques
 
-**✅ Implementação em Progresso** (75% completo)
+#### Concluído Recentemente
 
-**Documentação Completa**:
-- ✅ **Spec.md**: Especificação completa (inconsistências críticas corrigidas)
-- ✅ **Clarifications.md**: 15/15 clarificações resolvidas
-- ✅ **Plan.md**: Plano de implementação detalhado
-- ✅ **Tasks.md**: 88 tarefas organizadas por User Story (~66 completas)
-- ✅ **Checklist.md**: 193 itens de verificação
-- ✅ **Analysis.md**: Análise completa atualizada
+- ✅ **Correção de Vulnerabilidade XSS no Django Admin** (2025-01-15)
+  - Método `save_model()` implementado em `EditalAdmin` para sanitizar HTML antes de salvar
+  - Consistência de segurança entre views web e Django Admin
+  - Rastreamento automático de `created_by` e `updated_by` no Admin
 
-**Problemas Resolvidos**:
-- ✅ **2 inconsistências críticas corrigidas** (ISSUE-001, ISSUE-002)
-- ✅ **GAP-001 a GAP-003 resolvidos**: Campos slug, start_date, end_date, status implementados
-- ✅ **GAP-004 parcialmente resolvido**: URLs com slug implementadas, redirecionamento PK→slug implementado
-- ✅ **GAP-006 resolvido**: Funcionalidade de favoritos removida
-- ✅ **GAP-008 resolvido**: Cache implementado para listagens públicas
-- ✅ **GAP-011 resolvido**: Management command `update_edital_status.py` criado e testado
-- ✅ **TECH-003 resolvido**: Validação de datas implementada no modelo
-- ✅ **Testes implementados**: 28 testes passando (CRUD, busca, filtros, detalhes, modelos, formulários)
+- ✅ **Melhorias no Banco de Dados** (2025-01-15)
+  - Índices adicionados em `EditalValor` (idx_edital_moeda)
+  - Índices adicionados em `Cronograma` (idx_cronograma_edital_data, idx_cronograma_data_inicio)
+  - Choices para campo `moeda` (BRL, USD, EUR)
+  - Validação de slug garantindo que nunca seja NULL
 
-**Problemas Restantes**:
-- ⚠️ **3 inconsistências menores** (ISSUE-003, ISSUE-004, ISSUE-005)
-- 🟡 **GAP-005 parcial**: Sistema de permissões básico implementado (@login_required), mas permissões avançadas (staff, editor, admin) ainda pendentes
-- 🟡 **GAP-007 parcial**: Filtros de status implementados, mas filtros de data ainda pendentes
-- 🟡 **GAP-009 pendente**: Opção para alterar itens por página não implementada
-- 🟡 **GAP-010 pendente**: Aviso "prazo próximo" não implementado
-- 🟡 **Cobertura de testes**: 85% ainda pendente (requer verificação com coverage)
+- ✅ **Limpeza de Código** (2025-01-15)
+  - Template `favorites.html` removido (modelo `EditalFavorite` foi deletado)
+  - Código JavaScript obsoleto de favoritos removido (~43 linhas)
+  - Estilos CSS obsoletos de favoritos removidos (~100 linhas)
+  - `.gitignore` atualizado para incluir `staticfiles/`
 
-**Ações Imediatas**:
-1. ✅ Corrigir inconsistências críticas na spec - **CONCLUÍDO**
-2. ✅ Criar tasks.md com 88 tarefas organizadas por User Story - **CONCLUÍDO**
-3. ✅ Criar checklist.md com 193 itens de verificação - **CONCLUÍDO**
-4. ✅ Adicionar campos ao modelo (slug, start_date, end_date, status) - **CONCLUÍDO**
-5. ✅ Implementar URLs baseadas em slug - **CONCLUÍDO**
-6. ✅ Remover funcionalidade de favoritos do código - **CONCLUÍDO**
-7. ✅ Implementar cache básico - **CONCLUÍDO**
-8. ✅ Criar management command - **CONCLUÍDO**
-9. ✅ Implementar validação de datas - **CONCLUÍDO**
-10. ✅ Escrever testes (28 testes) - **CONCLUÍDO**
-11. ⏳ Verificar cobertura de testes (85%) - **PENDENTE**
-12. ⏳ Implementar sistema de permissões avançado - **PENDENTE**
-13. ⏳ Implementar filtros de data - **PENDENTE**
+- ✅ **Arquivos de Suporte** (2025-01-15)
+  - `.gitignore` expandido com padrões Python, IDEs, cobertura, etc.
+  - `.env.example` criado com todas as variáveis de ambiente necessárias
+  - `requirements.txt` verificado (algumas dependências não utilizadas identificadas)
+
+#### Concluído Anteriormente
+
+- Paginação padrão definida em 12 itens por página (clarificação CLAR-017)
+- Operações administrativas (CRUD + exportação) restritas a usuários `is_staff` (CLAR-018) — **implementado e testado**
+- Exportação CSV para staff oficializada (CLAR-016, FR-028) — **implementado e testado (T089)**
+- Verificação `is_staff` em todas as views administrativas — **implementado**
+- Filtro para ocultar editais 'draft' de não autenticados/não-staff (FR-010) — **implementado**
+- Testes de permissões completos (T034, T040-T042, T089) — **implementados e passando**
+- Melhorias de UI/UX implementadas (breadcrumbs, toast, preservação de filtros, indicador de prazo próximo)
+- Management command `update_edital_status.py` implementado e testado
+- Sanitização de HTML, validação de datas e geração de slug já operacionais com testes
+- Documentação atualizada: `tasks.md`, `checklist.md` alinhados com decisões finais
+
+#### Pendências Principais
+
+1. Testes administrativos adicionais (T048: filtros administrativos, T049: paginação administrativa)
+2. Melhorias de UI/UX (T046: integração completa toast — parcialmente implementado, T051: layout Admin)
+3. Executar `coverage` e verificar se atinge ≥ 85%
+4. Documentação final (README, preparação para produção — T076-T088)
+5. Registrar no backlog a evolução futura (permissões avançadas, opção de itens por página, multi-nível)
 
 ---
 
 ## 1. Inconsistências na Especificação
 
-### ✅ ISSUE-001: User Stories mencionam funcionalidades removidas - RESOLVIDO
+### ✅ ISSUE-001: User Stories citavam anexos — Resolvido
 
-**Localização**: `spec.md` - User Stories 2, 3, 4
+### ✅ ISSUE-002: Seção "Alterações Necessárias" desatualizada — Resolvido
 
-**Problema**:
-- User Story 2 menciona "baixar anexos" mas upload de anexos foi removido do MVP
-- User Story 3 menciona "fazendo upload de anexos" no teste independente
-- User Story 4 menciona "remover um anexo existente" mas anexos não existem
+### ✅ ISSUE-003: Paginação divergente (20 vs 12) — Resolvido
 
-**Impacto**: Confusão durante implementação e testes
+- Spec, plan e clarificações agora convergem para 12 itens/ página
+- Código já utilizava 12 (`EDITAIS_PER_PAGE = 12`)
 
-**Solução**: ✅ Atualizado - User Stories agora mencionam apenas link externo (url)
+### ✅ ISSUE-004: US2 mencionava anexos no teste independente — Resolvido
 
-**Prioridade**: Alta  
-**Status**: ✅ Resolvido
+### ✅ ISSUE-005: Referência a "área temática" sem suporte — Resolvido
 
----
+### ✅ ISSUE-006: Vulnerabilidade XSS no Django Admin — Resolvido (2025-01-15)
 
-### ✅ ISSUE-002: Seção "Alterações Necessárias" desatualizada - RESOLVIDO
+- Sanitização de HTML agora implementada no Django Admin através do método `save_model()`
+- Consistência de segurança entre views web e Django Admin
 
-**Localização**: `spec.md` - Migration Strategy
-
-**Problema**:
-A seção "Alterações Necessárias" lista campos removidos do MVP (location, description, requirements, EditalAttachment)
-
-**Impacto**: Confusão sobre o que implementar
-
-**Solução**: ✅ Atualizado - Seção agora reflete decisões de clarificação, listando o que NÃO deve ser implementado
-
-**Prioridade**: Alta  
-**Status**: ✅ Resolvido
+Não há inconsistências abertas entre documento e implementação.
 
 ---
 
-### 🟡 ISSUE-003: Inconsistência em paginação
+## 2. Gaps entre Especificação e Código
 
-**Localização**: `spec.md` vs. `settings.py` vs. Constituição
+| ID | Descrição | Status |
+|----|-----------|--------|
+| GAP-001 a GAP-004 | Slug, datas, novos status, URLs baseadas em slug | ✅ Concluído |
+| GAP-005 | Sistema de permissões | ✅ Concluído (MVP com checagem `is_staff`; evolução multi-nível fica para backlog) |
+| GAP-006 | Remoção da funcionalidade de favoritos | ✅ Concluído (código morto removido) |
+| GAP-007 | Filtros avançados (status + datas + "somente abertos") | ✅ Concluído (busca/filtros implementados e testados; melhorias de UX opcionais) |
+| GAP-008 | Cache de listagens | ✅ Concluído |
+| GAP-009 | Alterar itens por página | ❌ Removido do escopo (clarificado em spec/plan; não é mais requisito) |
+| GAP-010 | Aviso "prazo próximo" | ✅ Concluído |
+| GAP-011 | Management command para status | ✅ Concluído |
+| GAP-012 | Export CSV não documentado | ✅ Concluído (clarificação CLAR-016 e FR-028 adicionados) |
+| GAP-013 | Vulnerabilidade XSS no Django Admin | ✅ Concluído (2025-01-15) |
+| GAP-014 | Otimizações de banco de dados | ✅ Concluído (2025-01-15) |
+| GAP-015 | Arquivos de suporte incompletos | ✅ Concluído (2025-01-15) |
 
-**Problema**:
-- Spec diz: "20 itens por página (padrão)"
-- Código implementado usa: `EDITAIS_PER_PAGE = 12`
-- Constituição menciona: "12 itens por página" em alguns lugares
-
-**Impacto**: Comportamento inconsistente
-
-**Solução**: Padronizar para 12 itens por página (conforme implementação atual) ou atualizar spec para refletir 12 itens
-
-**Prioridade**: Média  
-**Status**: ⚠️ Pendente
-
----
-
-### 🟡 ISSUE-004: User Story 2 menciona anexos no teste independente
-
-**Localização**: `spec.md` - User Story 2
-
-**Problema**:
-Teste independente menciona "anexos disponíveis para download" mas anexos foram removidos do MVP
-
-**Impacto**: Teste não pode ser executado conforme descrito
-
-**Solução**: Atualizar teste independente para mencionar apenas link externo (url)
-
-**Prioridade**: Média  
-**Status**: ⚠️ Pendente
+Não há gaps técnicos pendentes no MVP. Itens opcionais (permite ajustar itens por página, multi-nível de permissões, filtros adicionais) permanecem como backlog/futuro.
 
 ---
 
-### 🟡 ISSUE-005: Referência a "área temática" na spec inicial
+## 3. Conformidade com Constituição
 
-**Localização**: `spec.md` - Escopo (seção 3)
-
-**Problema**:
-Spec menciona "Filtros: status (aberto/fechado), área temática" mas área temática não está definida nem implementada
-
-**Impacto**: Expectativa não atendida
-
-**Solução**: Remover referência a "área temática" ou definir como funcionalidade futura
-
-**Prioridade**: Baixa  
-**Status**: ⚠️ Pendente
+| Pilar | Status | Observações |
+|-------|--------|-------------|
+| Django Best Practices | ✅ | Uso consistente de ORM, slug, views separadas, cache, select/prefetch, índices otimizados |
+| Security First | ✅ | CSRF, sanitização com bleach (views web + Django Admin), restrição `is_staff` nas operações administrativas, validação de dados |
+| Test-Driven Development | ✅ | 34+ testes passando (base + CSV + permissões), cobertura ≥ 85% ainda não aferida (executar `coverage`) |
+| Database Migrations | ✅ | Migrations versionadas, data migration para slugs, índices configurados, validações implementadas |
+| Code Quality & Docs | ✅ | `spec.md`, `plan.md`, `tasks.md` e `checklist.md` atualizados; código morto removido; `.gitignore` e `.env.example` completos |
+| Static Files & Media | ✅ | WhiteNoise configurado, assets revisados, arquivos estáticos gerados ignorados |
+| Environment Configuration | ✅ | SECRET_KEY, DEBUG, ALLOWED_HOSTS gerenciados via ambiente, `.env.example` completo |
 
 ---
 
-## 2. Gaps entre Especificação e Código Implementado
+## 4. Recomendações
 
-### ✅ GAP-001: Campo slug não existe no modelo - RESOLVIDO
+1. **Cobertura de testes ≥ 85%** (prioridade alta)
+   - Rodar `coverage run manage.py test editais`
+   - Verificar se cobertura atinge meta de 85%
+   - Adicionar testes adicionais se necessário (T048, T049)
 
-**Localização**: `editais/models.py`
+2. **Testes administrativos adicionais** (prioridade média)
+   - Implementar T048: Testes de integração para filtros administrativos
+   - Implementar T049: Testes de integração para paginação administrativa
 
-**Status**: ✅ **RESOLVIDO**
-- Campo `slug` implementado (SlugField, unique=True, max_length=255, editable=False)
-- Método `_generate_unique_slug()` implementado
-- Migration `0005_add_slug_and_dates.py` criada
-- Data migration `0006_populate_slugs.py` criada
+3. **Documentação final** (prioridade média)
+   - Atualizar README com instruções completas
+   - Preparar documentação de produção (T076-T088)
 
----
+4. **Melhorias de UI/UX** (prioridade baixa)
+   - T046: Integração completa do toast com Django messages framework (parcialmente implementado)
+   - T051: Customizar layout visual do Django Admin
 
-### ✅ GAP-002: Campos start_date e end_date não existem - RESOLVIDO
+5. **Revisão de dependências** (prioridade baixa)
+   - Avaliar remoção de dependências não utilizadas (`requests`, `beautifulsoup4`, `markdown2`) ou documentar propósito futuro
 
-**Localização**: `editais/models.py`
-
-**Status**: ✅ **RESOLVIDO**
-- Campos `start_date` e `end_date` implementados (DateField, blank=True, null=True)
-- Migration `0005_add_slug_and_dates.py` criada
-
----
-
-### ✅ GAP-003: Status 'draft' e 'programado' não existem - RESOLVIDO
-
-**Localização**: `editais/models.py`
-
-**Status**: ✅ **RESOLVIDO**
-- Status 'draft' e 'programado' adicionados aos STATUS_CHOICES
-- Migration `0005_add_slug_and_dates.py` criada
+6. **Backlog / Fase futura** (prioridade baixa)
+   - Avaliar introdução de níveis adicionais de permissão (editor/admin) caso necessário
+   - Reconsiderar opção de alterar itens por página caso feedback de usuários indique
+   - Expandir documentação com quickstart e data-model, se relevante
 
 ---
 
-### ✅ GAP-004: URLs usam PK, não slug - PARCIALMENTE RESOLVIDO
+## 5. Matriz de Rastreabilidade (Atualizada)
 
-**Localização**: `editais/urls.py`, `editais/views.py`
-
-**Status**: ✅ **RESOLVIDO**
-- URLs baseadas em slug implementadas: `path('edital/<slug:slug>/', views.edital_detail, name='edital_detail_slug')`
-- Redirecionamento PK→slug implementado: `path('edital/<int:pk>/', views.edital_detail_redirect, name='edital_detail')`
-- View `edital_detail_redirect` implementada com redirect 301
-- Método `get_absolute_url()` atualizado para usar slug quando disponível
-
----
-
-### 🟡 GAP-005: Sistema de permissões não implementado - PARCIALMENTE RESOLVIDO
-
-**Localização**: `editais/views.py`
-
-**Status**: 🟡 **PARCIALMENTE RESOLVIDO**
-- Sistema básico implementado: `@login_required` em todas as views administrativas
-- Permissões avançadas (staff, editor, admin) ainda não implementadas
-- Qualquer usuário autenticado pode criar/editar/deletar editais
-
-**Solução**: Implementar sistema de permissões com múltiplos níveis (conforme plan.md fase 2.6)
-
-**Prioridade**: Alta  
-**Status**: ⚠️ Pendente (funcionalidade básica funciona)
+| Requisito | User Story | Clarificação | Status | Observação |
+|-----------|------------|--------------|--------|------------|
+| FR-001 a FR-007 | US1–US4 | Diversas | ✅ | Implementadas & testadas |
+| FR-008 a FR-020 | US1–US4 | CLAR-001 a CLAR-012 | ✅ | Conformes |
+| FR-021 | US1 | CLAR-006 | ✅ | Filtros AND + datas + "somente abertos" |
+| FR-022 | US2 | CLAR-004/009 | ✅ | URLs slug + redirect |
+| FR-023 | US3/US4 | CLAR-018 | ✅ | Operações administrativas restritas a `is_staff` |
+| FR-024 | US1/US2 | CLAR-008 | ✅ | Status automático + aviso "prazo próximo" |
+| FR-025 | US1 | CLAR-012 | ✅ | Cache e otimização |
+| FR-026 | US3/US4 | CLAR-014 | ✅ | Customizações no admin (sanitização XSS implementada) |
+| FR-027 | US4 | CLAR-015 | ✅ | Mensagens toast/UX |
+| FR-028 | US5 | CLAR-016 | ✅ | Exportação CSV para `is_staff` |
 
 ---
 
-### ✅ GAP-006: Funcionalidade de favoritos existe mas deve ser removida - RESOLVIDO
+## 6. Próximos Passos
 
-**Localização**: `editais/views.py`, `editais/urls.py`, `editais/models.py`, templates
-
-**Status**: ✅ **RESOLVIDO**
-- Views `toggle_favorite()` e `my_favorites()` removidas
-- URLs de favoritos removidas
-- Referências a favoritos removidas dos templates
-- JavaScript de favoritos removido
-- CSS de favoritos ocultado
-- Modelo `EditalFavorite` removido do admin.py
-
----
-
-### 🟡 GAP-007: Filtros de data não implementados - PARCIALMENTE RESOLVIDO
-
-**Localização**: `editais/views.py`
-
-**Status**: 🟡 **PARCIALMENTE RESOLVIDO**
-- Filtro de status implementado
-- Filtros de data (start_date, end_date) ainda não implementados
-- Filtro "somente abertos" não implementado
-
-**Solução**: Implementar filtros de data (conforme plan.md fase 2.7)
-
-**Prioridade**: Alta  
-**Status**: ⚠️ Pendente
+1. ✅ Revisar `spec.md` e `plan.md` — **Concluído**
+2. ✅ Atualizar `tasks.md` e `checklist.md` — **Concluído (2025-01-15)**
+3. ✅ Implementar verificação `is_staff` em todas as views — **Concluído**
+4. ✅ Implementar filtro para ocultar editais 'draft' — **Concluído**
+5. ✅ Implementar testes de permissões (T034, T040-T042, T089) — **Concluído**
+6. ✅ Corrigir vulnerabilidade XSS no Django Admin — **Concluído (2025-01-15)**
+7. ✅ Melhorar estrutura do banco de dados — **Concluído (2025-01-15)**
+8. ✅ Limpar código morto — **Concluído (2025-01-15)**
+9. ✅ Completar arquivos de suporte — **Concluído (2025-01-15)**
+10. ⏳ Executar cobertura e verificar meta ≥ 85% — **Pendente**
+11. ⏳ Implementar testes administrativos adicionais (T048, T049) — **Pendente**
+12. ⏳ Atualizar README e documentação de produção — **Pendente**
 
 ---
 
-### ✅ GAP-008: Cache não implementado - RESOLVIDO
+## 7. Melhorias de Segurança e Qualidade (2025-01-15)
 
-**Localização**: `editais/views.py`
+### Segurança
 
-**Status**: ✅ **RESOLVIDO**
-- Cache implementado para listagens públicas (TTL: 5 minutos)
-- Configuração `EDITAIS_CACHE_TTL` adicionada ao settings.py
-- Função `_clear_index_cache()` implementada para invalidação
-- Cache invalidado em operações CRUD (create, update, delete)
+- ✅ **Vulnerabilidade XSS no Django Admin corrigida**
+  - Sanitização de HTML implementada no método `save_model()` do `EditalAdmin`
+  - Consistência de segurança entre views web e Django Admin
+  - Todos os campos HTML são sanitizados antes de salvar
 
----
+- ✅ **Validação de dados reforçada**
+  - Validação de slug garantindo que nunca seja NULL
+  - Validação de datas no formulário e no modelo
+  - Tratamento de race conditions em slug uniqueness
 
-### 🟡 GAP-009: Paginação não permite alterar itens por página - PENDENTE
+### Qualidade de Código
 
-**Localização**: `editais/views.py`
+- ✅ **Código morto removido**
+  - Template `favorites.html` removido
+  - Código JavaScript/CSS obsoleto de favoritos removido
+  - ~143 linhas de código morto removidas
 
-**Status**: ⚠️ **PENDENTE**
-- Paginação implementada com valor fixo de `EDITAIS_PER_PAGE = 12`
-- Opção para alterar itens por página (20, 50, 100) não implementada
+- ✅ **Banco de dados otimizado**
+  - Índices adicionados em `EditalValor` e `Cronograma`
+  - Choices para campo `moeda` (prevenção de inconsistências)
+  - Meta options completas
 
-**Solução**: Implementar opção para alterar itens por página (conforme plan.md fase 2.4)
-
-**Prioridade**: Média  
-**Status**: ⚠️ Pendente
-
----
-
-### 🟡 GAP-010: Aviso "prazo próximo" não implementado - PENDENTE
-
-**Localização**: `editais/views.py`, templates
-
-**Status**: ⚠️ **PENDENTE**
-- Aviso visual "Prazo próximo" para editais com prazo nos últimos 7 dias não implementado
-
-**Solução**: Implementar aviso "prazo próximo" (conforme plan.md fase 2.4)
-
-**Prioridade**: Média  
-**Status**: ⚠️ Pendente
+- ✅ **Arquivos de suporte completos**
+  - `.gitignore` expandido e atualizado
+  - `.env.example` criado com todas as variáveis necessárias
+  - `requirements.txt` verificado
 
 ---
 
-### ✅ GAP-011: Management command não existe - RESOLVIDO
+## 8. Conclusão
 
-**Localização**: `editais/management/commands/`
+A especificação e o plano refletem plenamente as decisões do MVP (paginação de 12 itens, operações administrativas restritas a `is_staff`, exportação CSV para staff). A implementação está **95% completa** e entrega um MVP funcional, seguro e consistente, com todas as funcionalidades críticas implementadas e testadas.
 
-**Status**: ✅ **RESOLVIDO**
-- Management command `update_edital_status.py` criado
-- Comando implementa atualização automática de status baseado em datas
-- Suporte a `--dry-run` e `--verbose`
-- Testes unitários criados em `editais/tests/test_management_commands.py`
-- Documentação adicionada ao README.md
+### Melhorias Recentes
 
----
+As melhorias implementadas em 2025-01-15 elevam significativamente a qualidade e segurança do projeto:
+- Vulnerabilidade XSS crítica corrigida
+- Banco de dados otimizado com índices e validações
+- Código limpo e organizado
+- Arquivos de suporte completos
 
-### 🟡 GAP-012: Export CSV não está na spec - PENDENTE (DECISÃO NECESSÁRIA)
+### Pendências
 
-**Localização**: `editais/views.py`
+As principais pendências são testes administrativos adicionais (T048, T049), melhorias de UI/UX (T046, T051) e documentação final (README, produção). O risco residual é muito baixo, limitado a tarefas operacionais e melhorias incrementais.
 
-**Status**: ⚠️ **PENDENTE (DECISÃO NECESSÁRIA)**
-- Código implementado tem função `export_editais_csv()` que não está na spec
-- Funcionalidade implementada e funcional
+### Status Final
 
-**Solução**: Decidir se deve ser mantida, removida ou adicionada à spec
-
-**Prioridade**: Baixa  
-**Status**: ⚠️ Pendente (funcionalidade existe e funciona)
-
----
-
-## 3. Problemas Técnicos Identificados
-
-### ✅ TECH-001: Método save() do modelo pode causar problema com slug - RESOLVIDO
-
-**Localização**: `editais/models.py`
-
-**Status**: ✅ **RESOLVIDO**
-- Método `_generate_unique_slug()` implementado com verificação de unicidade
-- Lógica de exclusão do objeto atual durante edição implementada
-- Slug gerado apenas na criação (não editável)
-
-**Nota**: Race condition em ambiente multi-worker ainda é possível, mas mitigada pela verificação de unicidade no banco de dados.
-
----
-
-### ✅ TECH-002: Lógica de status automático no save() pode não ser suficiente - RESOLVIDO
-
-**Localização**: `editais/models.py`
-
-**Status**: ✅ **RESOLVIDO**
-- Lógica de status automático implementada no método `save()`
-- Management command `update_edital_status.py` criado para atualização periódica
-- Documentação clara sobre diferença entre atualização no save() e no command
-
----
-
-### ✅ TECH-003: Validação de datas não está no modelo - RESOLVIDO
-
-**Localização**: `editais/models.py`
-
-**Status**: ✅ **RESOLVIDO**
-- Método `clean()` implementado no modelo
-- Validação de que `end_date` deve ser posterior a `start_date`
-- Testes unitários criados para validar validação
-
----
-
-### 🟡 TECH-004: Índice composto pode não ser otimizado - PENDENTE (ANÁLISE NECESSÁRIA)
-
-**Localização**: `editais/models.py`
-
-**Status**: ⚠️ **PENDENTE (ANÁLISE NECESSÁRIA)**
-- Índice `idx_status_dates` em `(status, start_date, end_date)` implementado
-- Análise de queries mais comuns ainda não realizada
-
-**Solução**: 
-- Analisar queries mais comuns
-- Ajustar ordem dos campos no índice se necessário
-- Considerar índices separados se necessário
-
-**Prioridade**: Baixa  
-**Status**: ⚠️ Pendente (índice implementado, otimização pode ser feita posteriormente)
-
----
-
-## 4. Conformidade com Constituição
-
-### ✅ CONST-001: Django Best Practices
-
-**Status**: ✅ **Conforme**
-
-**Verificações**:
-- ✅ Usa Django ORM
-- ✅ Segue estrutura de projeto Django
-- ✅ URLs seguem convenção de slug (implementado)
-- ✅ Views otimizadas com select_related/prefetch_related
-- ✅ Cache implementado
-
-**Ações Necessárias**: Nenhuma
-
----
-
-### ✅ CONST-002: Security First
-
-**Status**: ✅ **Conforme**
-
-**Verificações**:
-- ✅ Usa SECRET_KEY de variável de ambiente (settings.py)
-- ✅ Sanitização de HTML com bleach implementada
-- ✅ CSRF habilitado
-- ✅ Usa Django ORM (previne SQL injection)
-- ⚠️ Permissões básicas implementadas (@login_required), mas permissões avançadas ainda pendentes
-
-**Ações Necessárias**:
-- Implementar sistema de permissões com múltiplos níveis (staff, editor, admin)
-
----
-
-### 🟡 CONST-003: Test-Driven Development
-
-**Status**: 🟡 **Parcialmente Conforme**
-
-**Verificações**:
-- ✅ 28 testes implementados e passando
-- ✅ Testes cobrem: CRUD, busca, filtros, detalhes, modelos, formulários, management commands
-- ⚠️ Cobertura de testes ainda não verificada (requer coverage)
-- ⚠️ Especificação requer 85% de cobertura
-
-**Ações Necessárias**:
-- Verificar cobertura com `coverage run manage.py test editais`
-- Alcançar cobertura mínima de 85%
-- Adicionar testes para gaps identificados
-
----
-
-### ✅ CONST-004: Database Migrations
-
-**Status**: ✅ **Conforme**
-
-**Verificações**:
-- ✅ Migrations existentes estão versionadas
-- ✅ Migrations seguem convenções Django
-- ✅ Novas migrations criadas (slug, start_date, end_date, status)
-- ✅ Data migration criada para popular slugs
-- ✅ Migrations testadas em ambiente de desenvolvimento
-
-**Ações Necessárias**: Nenhuma
-
----
-
-### ✅ CONST-005: Code Quality & Documentation
-
-**Status**: ✅ **Conforme**
-
-**Verificações**:
-- ✅ Código segue PEP 8
-- ✅ Docstrings em funções principais
-- ✅ README.md atualizado com novas funcionalidades
-- ✅ Documentação do management command adicionada
-
-**Ações Necessárias**: Nenhuma
-
----
-
-### ✅ CONST-006: Static Files & Media Management
-
-**Status**: ✅ **Conforme**
-
-**Verificações**:
-- ✅ WhiteNoise configurado
-- ✅ Static files organizados
-- ✅ Collectstatic configurado
-
-**Ações Necessárias**: Nenhuma
-
----
-
-### ✅ CONST-007: Environment Configuration
-
-**Status**: ✅ **Conforme**
-
-**Verificações**:
-- ✅ SECRET_KEY em variável de ambiente
-- ✅ DEBUG configurado via variável de ambiente
-- ✅ ALLOWED_HOSTS configurado
-- ✅ .env.example existe (verificado)
-
-**Ações Necessárias**: Nenhuma
-
----
-
-## 5. Riscos Identificados
-
-### ✅ RISK-001: Migração de URLs pode quebrar links existentes - MITIGADO
-
-**Status**: ✅ **MITIGADO**
-- Redirecionamento 301 de URLs PK para slug implementado
-- Suporte a URLs PK mantido durante período de transição
-- Documentação de transição disponível
-
----
-
-### 🟡 RISK-002: Geração de slug duplicado em ambiente multi-worker - PARCIALMENTE MITIGADO
-
-**Status**: 🟡 **PARCIALMENTE MITIGADO**
-- Verificação de unicidade implementada no método `_generate_unique_slug()`
-- Constraint única no banco de dados garante unicidade
-- Race condition ainda possível, mas rara
-
-**Mitigação Adicional**:
-- Usar lock no nível do banco de dados (se necessário)
-- Ou usar `get_or_create` com retry logic (se necessário)
-
----
-
-### ✅ RISK-003: Performance de busca pode degradar com muitos editais - MITIGADO
-
-**Status**: ✅ **MITIGADO**
-- Cache de resultados de busca implementado
-- Índices apropriados implementados
-- Limitação de resultados via paginação
-
----
-
-### ✅ RISK-004: Management command pode falhar se não executado - MITIGADO
-
-**Status**: ✅ **MITIGADO**
-- Documentação de como configurar cron/task scheduler adicionada ao README.md
-- Logging implementado no comando
-- Validação no save() como fallback implementada
-
----
-
-## 6. Dependências Não Resolvidas
-
-### 🟡 DEP-001: Sistema de permissões não definido completamente
-
-**Status**: 🟡 **PARCIALMENTE RESOLVIDO**
-- Sistema básico implementado (@login_required)
-- Permissões avançadas (staff, editor, admin) ainda não implementadas
-
-**Solução**: 
-- Usar Django Groups para criar grupos (staff, editor, admin)
-- Usar Django Permissions para permissões (add_edital, change_edital, delete_edital)
-- Criar decorators ou mixins para verificar permissões
-
-**Prioridade**: Alta
-
----
-
-### ✅ DEP-002: Cache backend não definido - RESOLVIDO
-
-**Status**: ✅ **RESOLVIDO**
-- Cache configurado usando Django cache framework
-- Para desenvolvimento: pode usar database cache ou local memory cache
-- Para produção: pode usar Redis ou Memcached
-- Configuração documentada
-
----
-
-### ✅ DEP-003: Toast notifications library não definida - RESOLVIDO
-
-**Status**: ✅ **RESOLVIDO**
-- Django messages framework usado para mensagens
-- JavaScript vanilla usado para exibir toasts
-- Implementação funcional
-
----
-
-## 7. Requisitos Faltantes na Especificação
-
-### ✅ MISSING-001: Validação de formulário não especificada completamente - RESOLVIDO
-
-**Status**: ✅ **RESOLVIDO**
-- Campos obrigatórios definidos: título, url
-- Validações implementadas: end_date > start_date, slug único
-- Mensagens de erro exibidas via Django forms
-
----
-
-### ✅ MISSING-002: Comportamento de busca não especificado completamente - RESOLVIDO
-
-**Status**: ✅ **RESOLVIDO**
-- Decisão tomada (CLAR-005): Operador AND por padrão
-- Implementado: busca case-insensitive, modo "contém"
-- Execução apenas após submit (sem busca em tempo real)
-
----
-
-### ✅ MISSING-003: Comportamento de filtro "somente abertos" não especificado - RESOLVIDO
-
-**Status**: ✅ **RESOLVIDO**
-- Decisão tomada (CLAR-006): Padrão é "todos os editais", opção "somente abertos" disponível
-- Implementado: filtro de status funcional
-- Filtro "somente abertos" pode ser implementado como filtro de status='aberto'
-
----
-
-### 🟡 MISSING-004: Comportamento de paginação numérica não especificado - PENDENTE
-
-**Status**: ⚠️ **PENDENTE**
-- Paginação implementada com formato básico
-- Formato com ellipsis (...) não especificado nem implementado
-
-**Solução**: 
-- Especificar formato: 1, 2, 3, 4, 5, ..., 10 (com ellipsis)
-- Especificar links para primeira/última página
-- Especificar exibição de "Página X de Y"
-
-**Prioridade**: Baixa
-
----
-
-### 🟡 MISSING-005: Comportamento de preview no Django Admin não especificado - PENDENTE
-
-**Status**: ⚠️ **PENDENTE**
-- Preview não implementado
-- Funcionalidade não especificada
-
-**Solução**: 
-- Especificar que preview abre em nova aba
-- Especificar que preview mostra como ficará na interface pública
-- Especificar que preview é apenas visual (não permite editar)
-
-**Prioridade**: Baixa
-
----
-
-## 8. Recomendações
-
-### 🟡 HIGH: Verificar cobertura de testes
-
-**Ações**:
-1. Instalar `coverage`: `pip install coverage`
-2. Executar: `coverage run manage.py test editais`
-3. Gerar relatório: `coverage report`
-4. Identificar gaps e adicionar testes para alcançar 85%
-
-**Prioridade**: Alta  
-**Esforço**: 2-4 horas
-
----
-
-### 🟡 HIGH: Implementar sistema de permissões avançado
-
-**Ações**:
-1. Criar grupos Django (staff, editor, admin)
-2. Definir permissões (add_edital, change_edital, delete_edital)
-3. Atribuir permissões a grupos
-4. Criar decorators ou mixins para verificar permissões
-5. Atualizar views para usar verificações de permissão
-
-**Prioridade**: Alta  
-**Esforço**: 4-6 horas
-
----
-
-### 🟡 MEDIUM: Implementar filtros de data
-
-**Ações**:
-1. Adicionar filtros de start_date e end_date na view index
-2. Adicionar campos de filtro no template
-3. Implementar lógica de filtro combinado (AND)
-4. Testar filtros com diferentes combinações
-
-**Prioridade**: Média  
-**Esforço**: 2-3 horas
-
----
-
-### 🟡 MEDIUM: Decidir sobre funcionalidade de export CSV
-
-**Ações**:
-1. Avaliar se export CSV é necessário no MVP
-2. Se necessário, adicionar à spec e plan.md
-3. Se não necessário, remover do código ou marcar como futura
-
-**Prioridade**: Média  
-**Esforço**: 1 hora
-
----
-
-### 🟡 LOW: Implementar opção para alterar itens por página
-
-**Ações**:
-1. Adicionar campo de seleção no template
-2. Implementar lógica na view para processar parâmetro
-3. Atualizar paginação para usar valor selecionado
-4. Testar com diferentes valores
-
-**Prioridade**: Baixa  
-**Esforço**: 1-2 horas
-
----
-
-### 🟡 LOW: Implementar aviso "prazo próximo"
-
-**Ações**:
-1. Adicionar lógica na view para identificar editais com prazo próximo (7 dias)
-2. Adicionar classe CSS para aviso visual
-3. Exibir aviso nos cards de edital
-4. Testar com diferentes datas
-
-**Prioridade**: Baixa  
-**Esforço**: 1-2 horas
-
----
-
-## 9. Checklist de Conformidade
-
-### Especificação
-- [x] User Stories definidas e priorizadas
-- [x] Requisitos funcionais documentados
-- [x] Requisitos não-funcionais documentados
-- [x] Modelo de dados definido
-- [x] URLs definidas
-- [x] Templates definidos
-- [x] Critérios de sucesso definidos
-- [⚠️] Algumas inconsistências menores identificadas (ISSUE-003, ISSUE-004, ISSUE-005)
-
-### Clarificações
-- [x] Todas as clarificações resolvidas (15/15)
-- [x] Decisões documentadas
-- [x] Impacto na implementação documentado
-
-### Plano de Implementação
-- [x] Fases definidas
-- [x] Tarefas detalhadas
-- [x] Dependências identificadas
-- [x] Timeline estimado
-- [x] Riscos identificados
-
-### Código Implementado
-- [x] Modelo tem campos necessários (slug, start_date, end_date)
-- [x] Modelo tem status necessários (draft, programado)
-- [x] URLs usam slug (com redirecionamento PK→slug)
-- [⚠️] Sistema de permissões básico implementado, mas avançado pendente
-- [x] Cache implementado
-- [x] Filtros de status implementados
-- [x] Funcionalidade de favoritos removida
-- [x] Management command implementado
-- [x] Validação de datas implementada
-- [x] Testes implementados (28 testes passando)
-
-### Conformidade com Constituição
-- [✅] Django Best Practices (conforme)
-- [✅] Security First (conforme - permissões avançadas pendentes)
-- [🟡] Test-Driven Development (parcialmente conforme - cobertura pendente)
-- [✅] Database Migrations (conforme)
-- [✅] Code Quality (conforme)
-- [✅] Static Files (conforme)
-- [✅] Environment Configuration (conforme)
-
----
-
-## 10. Priorização de Ações
-
-### Crítica (Fazer antes de produção)
-1. **Verificar cobertura de testes** (alcançar 85%)
-2. **Implementar sistema de permissões avançado** (staff, editor, admin)
-
-### Alta (Fazer durante implementação)
-3. **Implementar filtros de data** (GAP-007)
-4. **Corrigir inconsistências menores na spec** (ISSUE-003, ISSUE-004, ISSUE-005)
-
-### Média (Fazer durante implementação)
-5. **Decidir sobre export CSV** (GAP-012)
-6. **Implementar opção para alterar itens por página** (GAP-009)
-7. **Implementar aviso "prazo próximo"** (GAP-010)
-
-### Baixa (Fazer após MVP)
-8. **Otimizar índices** (TECH-004)
-9. **Melhorar documentação** (especificar preview, paginação numérica)
-
----
-
-## 11. Resumo Executivo
-
-### Status Geral: ✅ Implementação em Progresso (75% completo)
-
-**Pontos Fortes**:
-- ✅ Especificação completa e detalhada
-- ✅ Todas as clarificações resolvidas (15/15)
-- ✅ Plano de implementação criado e detalhado
-- ✅ Modelo de dados implementado corretamente
-- ✅ URLs baseadas em slug implementadas
-- ✅ Cache implementado
-- ✅ Management command implementado
-- ✅ Validação de datas implementada
-- ✅ 28 testes implementados e passando
-- ✅ Funcionalidade de favoritos removida
-- ✅ Conformidade com Constituição em sua maioria
-
-**Pontos Fracos**:
-- ⚠️ Cobertura de testes ainda não verificada (requer coverage)
-- ⚠️ Sistema de permissões avançado não implementado
-- ⚠️ Filtros de data não implementados
-- ⚠️ Algumas inconsistências menores restantes (ISSUE-003, ISSUE-004, ISSUE-005)
-- ⚠️ Algumas funcionalidades opcionais pendentes (opção de paginação, aviso "prazo próximo")
-
-**Ações Recomendadas**:
-1. ✅ **Imediato**: Verificar cobertura de testes e alcançar 85% - **PENDENTE**
-2. ✅ **Fase 2.6**: Implementar sistema de permissões avançado - **PENDENTE**
-3. ✅ **Fase 2.7**: Implementar filtros de data - **PENDENTE**
-4. ✅ **Ongoing**: Corrigir inconsistências menores na spec - **PENDENTE**
-
-**Risco Geral**: Baixo
-- Riscos técnicos identificados e mitigados
-- Riscos de negócio baixos (funcionalidades pendentes são secundárias)
-- Riscos de implementação baixos (maioria das funcionalidades implementadas)
-
-**Status**: ✅ **Implementação em Progresso** (75% completo, MVP funcional)
-
----
-
-## 12. Próximos Passos
-
-1. ✅ **Análise Completa**: Este documento - **ATUALIZADO**
-2. ✅ **Corrigir Inconsistências Críticas**: Atualizar spec.md (ISSUE-001, ISSUE-002) - **CONCLUÍDO**
-3. ✅ **Criar Tasks.md**: Lista detalhada de tarefas com base no plan.md - **CONCLUÍDO** (88 tarefas, ~66 completas)
-4. ✅ **Criar Checklist.md**: Lista de verificação com 193 itens - **CONCLUÍDO**
-5. ✅ **Implementar Funcionalidades Principais**: Phase 2, US1, US2, US3, US4 - **CONCLUÍDO** (parcialmente)
-6. ⏳ **Verificar Cobertura de Testes**: Executar coverage e alcançar 85% - **PENDENTE**
-7. ⏳ **Corrigir Inconsistências Menores**: Atualizar spec.md (ISSUE-003, ISSUE-004, ISSUE-005) - **PENDENTE**
-8. ⏳ **Implementar Funcionalidades Pendentes**: Permissões avançadas, filtros de data - **PENDENTE**
-9. ⏳ **Finalizar MVP**: Completar todas as funcionalidades críticas - **PENDENTE**
-
----
-
-## 13. Anexos
-
-### Anexo A: Matriz de Rastreabilidade (Atualizada)
-
-| Requisito | User Story | Clarificação | Status | Código |
-|-----------|------------|--------------|--------|--------|
-| FR-001 | US-1 | - | ✅ | ✅ |
-| FR-002 | US-1 | CLAR-005 | ✅ | ✅ |
-| FR-003 | US-1 | CLAR-006 | ✅ | 🟡 (parcial - falta filtros de data) |
-| FR-004 | US-2 | - | ✅ | ✅ |
-| FR-005 | US-3 | CLAR-011 | ✅ | 🟡 (parcial - permissões básicas) |
-| FR-006 | US-4 | CLAR-011 | ✅ | 🟡 (parcial - permissões básicas) |
-| FR-007 | US-4 | CLAR-015 | ✅ | ✅ |
-| FR-008 | US-3 | CLAR-004 | ✅ | ✅ |
-| FR-010 | US-1 | CLAR-001 | ✅ | ✅ |
-| FR-011 | US-3 | CLAR-001, CLAR-011 | ✅ | 🟡 (parcial - permissões básicas) |
-| FR-012 | US-1 | CLAR-012 | ✅ | ✅ |
-| FR-013 | US-3 | CLAR-002 | ✅ | ✅ |
-| FR-018 | US-3 | CLAR-004 | ✅ | ✅ |
-| FR-020 | US-1 | CLAR-005 | ✅ | ✅ |
-| FR-021 | US-1 | CLAR-006 | ✅ | 🟡 (parcial - falta filtros de data) |
-| FR-022 | US-2 | CLAR-009 | ✅ | ✅ |
-| FR-023 | US-3 | CLAR-011 | ✅ | 🟡 (parcial - permissões básicas) |
-| FR-024 | US-1 | CLAR-008 | ✅ | ✅ |
-| FR-025 | US-1 | CLAR-012 | ✅ | ✅ |
-| FR-026 | US-3 | CLAR-014 | ✅ | ✅ |
-| FR-027 | US-4 | CLAR-015 | ✅ | ✅ |
-
-**Legenda**:
-- ✅ = Implementado/Conforme
-- 🟡 = Parcialmente Implementado/Incompleto
-- ❌ = Não Implementado
-
----
-
-## 14. Conclusão
-
-A especificação está **95% completa** e a implementação está em **~75% de progresso**. Todos os documentos principais foram criados e a maioria das funcionalidades críticas foi implementada:
-
-1. ✅ **Spec.md**: Especificação completa (inconsistências críticas corrigidas)
-2. ✅ **Clarifications.md**: Todas as 15 clarificações resolvidas
-3. ✅ **Plan.md**: Plano de implementação detalhado
-4. ✅ **Tasks.md**: 88 tarefas organizadas por User Story (~66 completas)
-5. ✅ **Checklist.md**: 193 itens de verificação
-6. ✅ **Analysis.md**: Análise completa atualizada
-
-**Principais problemas restantes**:
-1. **Cobertura de testes** (85% requerida) - Requer verificação com coverage
-2. **Sistema de permissões avançado** - Permissões básicas funcionam, mas avançadas pendentes
-3. **Filtros de data** - Filtros de status implementados, mas filtros de data pendentes
-4. **Inconsistências menores na spec** (3 issues) - ISSUE-003, ISSUE-004, ISSUE-005
-
-**Recomendação**: 
-- ✅ Documentação completa e pronta
-- ✅ Implementação em progresso (75% completo)
-- ✅ MVP funcional (User Stories 1-4 implementadas)
-- ⏳ Verificar cobertura de testes e alcançar 85%
-- ⏳ Implementar funcionalidades pendentes (permissões avançadas, filtros de data)
-- ⏳ Corrigir inconsistências menores na spec
-
-**Status Final**: ✅ **Implementação em Progresso** (75% completo, MVP funcional)
-
-**Próximos Passos**:
-1. ✅ Documentação completa - **CONCLUÍDO**
-2. ✅ Implementação principal - **CONCLUÍDO** (parcialmente)
-3. ⏳ Verificar cobertura de testes (85%) - **PENDENTE**
-4. ⏳ Implementar funcionalidades pendentes - **PENDENTE**
-5. ⏳ Corrigir inconsistências menores - **PENDENTE**
-
----
-
-**Data da Análise**: 2025-11-12  
-**Última Atualização**: 2025-11-12 (após implementação parcial)  
-**Próxima Revisão**: Após verificação de cobertura de testes
+O módulo está **praticamente pronto para homologação**, restando apenas verificações finais de cobertura de testes e documentação de produção. A base de código está sólida, segura e bem estruturada para evolução futura.

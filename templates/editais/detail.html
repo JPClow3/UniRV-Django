@@ -1,6 +1,16 @@
 {% extends 'base.html' %}
+{% load editais_filters %}
 
 {% block title %}{{ edital.titulo }} - AgroHub UniRV{% endblock %}
+
+{% block breadcrumb %}
+{% include 'editais/breadcrumb.html' %}
+{% block breadcrumb_items %}
+<li class="breadcrumb-item" aria-current="page">
+    <span>{{ edital.titulo|truncatewords:8 }}</span>
+</li>
+{% endblock %}
+{% endblock %}
 
 {% block meta_description %}{{ edital.objetivo|truncatewords:30|striptags }} - Edital de fomento {% if edital.entidade_principal %}pela {{ edital.entidade_principal }}{% endif %}. Status: {{ edital.get_status_display }}.{% endblock %}
 
@@ -34,6 +44,23 @@
             <i class="fas fa-tag" aria-hidden="true"></i>
             <strong>Status:</strong> <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
         </span>
+        {% if edital.start_date %}
+        <span class="page-meta-item">
+            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+            <strong>Abertura:</strong> <time datetime="{{ edital.start_date|date:'Y-m-d' }}">{{ edital.start_date|date:"d/m/Y" }}</time>
+        </span>
+        {% endif %}
+        {% if edital.end_date %}
+        <span class="page-meta-item {% if edital.end_date|is_deadline_soon %}deadline-soon-meta{% endif %}">
+            <i class="fas fa-calendar-times" aria-hidden="true"></i>
+            <strong>Encerramento:</strong> <time datetime="{{ edital.end_date|date:'Y-m-d' }}">{{ edital.end_date|date:"d/m/Y" }}</time>
+            {% if edital.end_date|is_deadline_soon %}
+                <span class="deadline-warning" aria-label="Prazo próximo">
+                    <i class="fas fa-clock" aria-hidden="true"></i> Prazo próximo
+                </span>
+            {% endif %}
+        </span>
+        {% endif %}
         {% if edital.created_by %}
         <span class="page-meta-item">
             <i class="fas fa-user" aria-hidden="true"></i>
@@ -123,11 +150,45 @@
     Consulte o edital oficial para detalhes completos.
 </p>
 
+<div class="share-section">
+    <h3>Compartilhar</h3>
+    <div class="share-buttons">
+        {% with share_url=request.build_absolute_uri share_text=edital.titulo|urlencode %}
+        <a href="https://wa.me/?text={{ share_text }}%20{{ share_url|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="share-btn share-whatsapp"
+           aria-label="Compartilhar no WhatsApp">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp
+        </a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="share-btn share-linkedin"
+           aria-label="Compartilhar no LinkedIn">
+            <i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn
+        </a>
+        <a href="https://twitter.com/intent/tweet?text={{ share_text|urlencode }}&url={{ share_url|urlencode }}" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="share-btn share-twitter"
+           aria-label="Compartilhar no Twitter">
+            <i class="fab fa-twitter" aria-hidden="true"></i> Twitter
+        </a>
+        <button onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri }}'); showToast('Link copiado!', 'success');" 
+                class="share-btn share-copy"
+                aria-label="Copiar link">
+            <i class="fas fa-copy" aria-hidden="true"></i> Copiar Link
+        </button>
+        {% endwith %}
+    </div>
+</div>
+
 <div class="detail-actions">
   <a href="{{ edital.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
       <i class="fas fa-external-link-alt" aria-hidden="true"></i> Acessar Edital
   </a>
-  {% if user.is_authenticated %}
+  {% if user.is_authenticated and user.is_staff %}
   <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">
       <i class="fas fa-edit" aria-hidden="true"></i> Editar
   </a>
@@ -136,4 +197,39 @@
       <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
   </a>
 </div>
+
+{% if user.is_authenticated and user.is_staff %}
+{% with history_entries=edital.history.all %}
+{% if history_entries %}
+<div class="history-section">
+    <h3>Histórico de Alterações</h3>
+    <div class="history-list">
+        {% for entry in history_entries|slice:":10" %}
+        <div class="history-item">
+            <div class="history-header">
+                <span class="history-action history-{{ entry.action }}">{{ entry.get_action_display }}</span>
+                <span class="history-user">por {{ entry.user.username|default:"Sistema" }}</span>
+                <time class="history-time" datetime="{{ entry.timestamp|date:'Y-m-d H:i' }}">
+                    {{ entry.timestamp|date:"d/m/Y H:i" }}
+                </time>
+            </div>
+            {% if entry.changes_summary %}
+            <div class="history-changes">
+                {% for field, values in entry.changes_summary.items %}
+                <div class="history-change-item">
+                    <strong>{{ field|title }}:</strong>
+                    <span class="old-value">{{ values.old|truncatewords:10 }}</span>
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <span class="new-value">{{ values.new|truncatewords:10 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+{% endif %}
 {% endblock %}

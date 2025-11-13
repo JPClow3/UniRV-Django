@@ -1,5 +1,19 @@
 {% extends 'base.html' %}
+{% load editais_filters %}
+
 {% block title %}Excluir Edital - AgroHub{% endblock %}
+
+{% block breadcrumb %}
+{% include 'editais/breadcrumb.html' %}
+{% block breadcrumb_items %}
+<li class="breadcrumb-item">
+    <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatewords:5 }}</a>
+</li>
+<li class="breadcrumb-item" aria-current="page">
+    <span>Excluir</span>
+</li>
+{% endblock %}
+{% endblock %}
 {% block content %}
 <div class="form-page">
     <div class="form-header">

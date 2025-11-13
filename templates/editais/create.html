@@ -1,14 +1,37 @@
 {% extends 'base.html' %}
+{% load editais_filters %}
+
 {% block title %}Cadastrar Edital - AgroHub{% endblock %}
+
+{% block breadcrumb %}
+{% include 'editais/breadcrumb.html' %}
+{% block breadcrumb_items %}
+<li class="breadcrumb-item" aria-current="page">
+    <span>Cadastrar Edital</span>
+</li>
+{% endblock %}
+{% endblock %}
 {% block content %}
 <div class="form-page">
-    <div class="form-header">
-        <h1>Cadastrar Edital</h1>
-        <p class="form-subtitle">Preencha as informações do edital de fomento</p>
+    <div class="form-header-modern">
+        <div class="form-header-content">
+            <div class="form-header-icon">
+                <i class="fas fa-file-alt" aria-hidden="true"></i>
+            </div>
+            <div class="form-header-text">
+                <h1 class="form-main-title">Cadastrar Edital</h1>
+                <p class="form-subtitle-modern">Preencha as informações do edital de fomento</p>
+            </div>
+        </div>
     </div>
 
-    <form method="post" class="styled-form" id="edital-form">
+    <form method="post" class="styled-form-modern" id="edital-form">
         {% csrf_token %}
+
+        <div class="form-help-text">
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
+            Campos marcados com <span class="required-mark">*</span> são obrigatórios
+        </div>
 
         {% if form.errors %}
             <div class="error-summary" role="alert" aria-labelledby="error-summary-title">
@@ -40,11 +63,15 @@
             </div>
         {% endif %}
 
-        <div class="form-section">
-            <h2 class="section-title">Informações Básicas</h2>
+        <!-- A11Y-003: Agrupar campos relacionados com fieldset/legend -->
+        <fieldset class="form-section-modern">
+            <legend class="section-title-modern">
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                Informações Básicas
+            </legend>
 
             {% for field in form %}
-                {% if field.name in 'numero_edital,titulo,url,entidade_principal,status' %}
+                {% if field.name in 'numero_edital,titulo,url,entidade_principal,status,start_date,end_date' %}
                     <div class="form-group {% if field.errors %}has-error{% endif %}">
                         <label for="{{ field.id_for_label }}" class="form-label">
                             {{ field.label }}
@@ -62,13 +89,16 @@
                     </div>
                 {% endif %}
             {% endfor %}
-        </div>
+        </fieldset>
 
-        <div class="form-section">
-            <h2 class="section-title">Conteúdo Detalhado</h2>
+        <fieldset class="form-section-modern">
+            <legend class="section-title-modern">
+                <i class="fas fa-align-left" aria-hidden="true"></i>
+                Conteúdo Detalhado
+            </legend>
 
             {% for field in form %}
-                {% if field.name not in 'numero_edital,titulo,url,entidade_principal,status' %}
+                {% if field.name not in 'numero_edital,titulo,url,entidade_principal,status,start_date,end_date' %}
                     <div class="form-group {% if field.errors %}has-error{% endif %}">
                         <label for="{{ field.id_for_label }}" class="form-label">
                             {{ field.label }}
@@ -86,17 +116,17 @@
                     </div>
                 {% endif %}
             {% endfor %}
-        </div>
+        </fieldset>
 
-        <div class="form-actions">
+        <div class="form-actions-modern">
             <button type="submit" class="btn btn-primary" id="submit-btn">
-                <span class="btn-text"><i class="fas fa-save"></i> Salvar</span>
+                <span class="btn-text"><i class="fas fa-save"></i> Salvar Edital</span>
                 <span class="btn-loading" style="display: none;">
                     <i class="fas fa-spinner fa-spin"></i> Salvando...
                 </span>
             </button>
             <a href="{% url 'editais_index' %}" class="btn btn-secondary">
-                <i class="fas fa-times"></i> Cancelar
+                <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
     </form>

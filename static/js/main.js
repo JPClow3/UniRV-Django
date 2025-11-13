@@ -13,7 +13,7 @@
 
     if (!searchForm || !editaisGrid) return;
 
-    let searchTimeout;
+    let searchTimeout = null; // Initialize as null
     const SEARCH_DELAY = 500; // ms - debounce delay
     let isLoading = false;
     
@@ -27,10 +27,10 @@
 
         editaisGrid.classList.add('loading');
         const skeletonCount = 6; // Show 6 skeleton cards
-        let skeletonHTML = '';
+        const skeletonCards = [];
 
         for (let i = 0; i < skeletonCount; i++) {
-            skeletonHTML += `
+            skeletonCards.push(`
                 <article class="skeleton-card" role="listitem" aria-hidden="true">
                     <div class="skeleton skeleton-badge"></div>
                     <div class="skeleton skeleton-title"></div>
@@ -39,10 +39,10 @@
                     <div class="skeleton skeleton-text" style="width: 60%;"></div>
                     <div class="skeleton skeleton-button"></div>
                 </article>
-            `;
+            `);
         }
 
-        editaisGrid.innerHTML = skeletonHTML;
+        editaisGrid.innerHTML = skeletonCards.join('');
     }
 
     // Function to perform search (exposed globally for keyboard shortcuts)
@@ -526,68 +526,76 @@
                 // Add loading state
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
+                
+                // Show loading text, hide normal text
+                const btnText = submitBtn.querySelector('.btn-text');
+                const btnLoading = submitBtn.querySelector('.btn-loading');
+                if (btnText) btnText.style.display = 'none';
+                if (btnLoading) btnLoading.style.display = 'inline-block';
             }
         });
     });
 })();
 
-
 // ========================================
-// REMOVE ALL FAVORITE BUTTONS (Complete removal)
+// DATE VALIDATION (Frontend)
 // ========================================
 (function() {
-    function removeFavoriteButtons() {
-        // Remove all favorite buttons from the page
-        const favoriteButtons = document.querySelectorAll('.favorite-btn, .favorite-btn-card');
-        favoriteButtons.forEach(btn => btn.remove());
-        
-        // Also remove any favorite-related elements
-        const favoriteTexts = document.querySelectorAll('.favorite-text');
-        favoriteTexts.forEach(text => text.remove());
+    const startDateInput = document.getElementById('id_start_date');
+    const endDateInput = document.getElementById('id_end_date');
+
+    if (!startDateInput || !endDateInput) return;
+
+    function validateDates() {
+        if (startDateInput.value && endDateInput.value) {
+            const start = new Date(startDateInput.value);
+            const end = new Date(endDateInput.value);
+            
+            if (end < start) {
+                endDateInput.setCustomValidity('A data de encerramento deve ser posterior à data de abertura.');
+                endDateInput.classList.add('has-date-error');
+                return false;
+            } else {
+                endDateInput.setCustomValidity('');
+                endDateInput.classList.remove('has-date-error');
+            }
+        } else {
+            endDateInput.setCustomValidity('');
+            endDateInput.classList.remove('has-date-error');
+        }
+        return true;
     }
+
+    // Validate on change
+    startDateInput.addEventListener('change', validateDates);
+    endDateInput.addEventListener('change', validateDates);
     
-    // Remove on page load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', removeFavoriteButtons);
-    } else {
-        removeFavoriteButtons();
-    }
+    // Validate on input (for real-time feedback)
+    startDateInput.addEventListener('input', validateDates);
+    endDateInput.addEventListener('input', validateDates);
     
-    // Also remove after AJAX updates (in case of dynamic content)
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
-                if (node.nodeType === 1) { // Element node
-                    const favoriteButtons = node.querySelectorAll ? node.querySelectorAll('.favorite-btn, .favorite-btn-card') : [];
-                    favoriteButtons.forEach(btn => btn.remove());
-                    
-                    // Also check if the node itself is a favorite button
-                    if (node.classList && (node.classList.contains('favorite-btn') || node.classList.contains('favorite-btn-card'))) {
-                        node.remove();
-                    }
-                }
-            });
+    // Validate on form submit
+    const form = startDateInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateDates()) {
+                e.preventDefault();
+                endDateInput.focus();
+                showToast('A data de encerramento deve ser posterior à data de abertura.', 'error');
+            }
         });
-    });
-    
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
+    }
 })();
+
 
 // Toast notification helper
 function showToast(message, type = 'success') {
-    // Don't show toast messages related to favorites
-    if (message.toLowerCase().includes('favorit') || message.toLowerCase().includes('favorite')) {
-        return;
-    }
-    
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
-    toast.setAttribute('role', 'status');
-    toast.setAttribute('aria-live', 'polite');
+    // A11Y-002: Usar role="alert" para notificações importantes
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
 
     document.body.appendChild(toast);
 
@@ -994,10 +1002,155 @@ function showConfirmDialog(options) {
     });
 })();
 
-console.log('✓ Back to top button initialized');
-console.log('✓ Confirmation dialogs initialized');
-console.log('✓ Keyboard shortcuts initialized (Ctrl+K for search)');
-console.log('✓ Smooth scroll initialized');
-console.log('✓ Loading skeletons initialized');
-console.log('✓ Debounced search initialized');
+// Development logging (remove in production or use proper logging)
+if (typeof DEBUG !== 'undefined' && DEBUG) {
+    console.log('✓ Back to top button initialized');
+    console.log('✓ Confirmation dialogs initialized');
+    console.log('✓ Keyboard shortcuts initialized (Ctrl+K for search)');
+    console.log('✓ Smooth scroll initialized');
+    console.log('✓ Loading skeletons initialized');
+    console.log('✓ Debounced search initialized');
+}
+
+// ========================================
+// LOADING STATE FOR CSV EXPORT (UI-004)
+// ========================================
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportLinks = document.querySelectorAll('a[href*="export_editais_csv"], .export-link');
+        
+        exportLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Adicionar estado de loading
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Exportando...';
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.7';
+                
+                // Restaurar após 5 segundos (caso o download não inicie)
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.style.pointerEvents = '';
+                    this.style.opacity = '';
+                }, 5000);
+            });
+        });
+    });
+})();
+
+// ========================================
+// MODAL FOCUS TRAP (A11Y-005)
+// ========================================
+(function() {
+    // Function to trap focus inside modal
+    function trapFocus(modal) {
+        const focusableElements = modal.querySelectorAll(
+            'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        
+        if (focusableElements.length === 0) return;
+        
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        
+        // Focus first element when modal opens
+        setTimeout(() => firstElement.focus(), 100);
+        
+        // Trap focus on Tab key
+        function handleTabKey(e) {
+            if (e.key !== 'Tab') return;
+            
+            if (e.shiftKey) {
+                // Shift + Tab
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                }
+            } else {
+                // Tab
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        }
+        
+        // Close on Escape key
+        function handleEscapeKey(e) {
+            if (e.key === 'Escape') {
+                closeModal(modal);
+            }
+        }
+        
+        modal.addEventListener('keydown', handleTabKey);
+        modal.addEventListener('keydown', handleEscapeKey);
+        
+        // Store handlers for cleanup
+        modal._focusHandlers = { handleTabKey, handleEscapeKey };
+    }
+    
+    // Function to release focus trap
+    function releaseFocus(modal) {
+        if (modal._focusHandlers) {
+            modal.removeEventListener('keydown', modal._focusHandlers.handleTabKey);
+            modal.removeEventListener('keydown', modal._focusHandlers.handleEscapeKey);
+            delete modal._focusHandlers;
+        }
+    }
+    
+    // Function to open modal
+    function openModal(modal) {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        trapFocus(modal);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+    
+    // Function to close modal
+    function closeModal(modal) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        releaseFocus(modal);
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+    
+    // Initialize modals
+    document.addEventListener('DOMContentLoaded', function() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.setAttribute('aria-hidden', 'true');
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            
+            // Close on backdrop click
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal(modal);
+                }
+            });
+            
+            // Close buttons
+            const closeButtons = modal.querySelectorAll('[data-modal-close]');
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', () => closeModal(modal));
+            });
+        });
+        
+        // Open modal triggers
+        document.querySelectorAll('[data-modal-open]').forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const modalId = this.getAttribute('data-modal-open');
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    openModal(modal);
+                }
+            });
+        });
+    });
+    
+    // Expose functions globally
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+})();
 
