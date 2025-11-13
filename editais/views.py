@@ -228,6 +228,12 @@ def edital_detail(request, slug=None, pk=None):
         from django.http import Http404
         raise Http404("Edital não encontrado")
     
+    # FR-010: Hide draft editais from non-authenticated or non-staff users
+    if edital.status == 'draft':
+        if not request.user.is_authenticated or not request.user.is_staff:
+            from django.http import Http404
+            raise Http404("Edital não encontrado")
+    
     valores = edital.valores.all()
     cronogramas = edital.cronogramas.all()
 
@@ -283,7 +289,7 @@ def edital_create(request):
             # Invalidate cache for index pages (clear all index cache keys)
             _clear_index_cache()
             messages.success(request, 'Edital cadastrado com sucesso!')
-            return redirect('edital_detail', pk=edital.pk)
+            return redirect(edital.get_absolute_url())
     else:
         form = EditalForm()
 
@@ -339,7 +345,7 @@ def edital_update(request, pk):
             # Invalidate cache for index pages (clear all index cache keys)
             _clear_index_cache()
             messages.success(request, 'Edital atualizado com sucesso!')
-            return redirect('edital_detail', pk=edital.pk)
+            return redirect(edital.get_absolute_url())
     else:
         form = EditalForm(instance=edital)
 

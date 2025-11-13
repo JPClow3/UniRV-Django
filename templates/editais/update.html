@@ -128,7 +128,7 @@
                     <i class="fas fa-spinner fa-spin"></i> Salvando...
                 </span>
             </button>
-            <a href="{% url 'edital_detail' edital.pk %}" class="btn btn-secondary">
+            <a href="{{ edital.get_absolute_url }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Voltar
             </a>
         </div>
