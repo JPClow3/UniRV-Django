@@ -145,7 +145,7 @@ class Edital(models.Model):
         today = timezone.now().date()
         
         if self.start_date and self.end_date:
-            if self.end_date < today and self.status == 'aberto':
+            if self.end_date <= today and self.status == 'aberto':
                 self.status = 'fechado'
             elif self.start_date > today and self.status != 'draft':
                 self.status = 'programado'

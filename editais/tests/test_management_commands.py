@@ -666,8 +666,12 @@ class SendDeadlineNotificationsCommandTest(TestCase):
         self.assertTrue(mock_email.called)
         
         # Verificar que foi chamado para o usuário staff com email
+        # EmailMultiAlternatives é chamado com argumentos posicionais:
+        # EmailMultiAlternatives(subject, text_content, from_email, [recipient])
+        # call_args[0] contém os argumentos posicionais, call_args[0][3] é a lista de destinatários
         call_args = mock_email.call_args
-        self.assertIn(self.staff_user.email, call_args[1]['to'])
+        recipients = call_args[0][3]  # 4º argumento posicional é a lista de destinatários
+        self.assertIn(self.staff_user.email, recipients)
     
     def test_dry_run_mode_does_not_send_emails(self):
         """Testa que o modo dry-run não envia emails."""

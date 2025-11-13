@@ -41,9 +41,9 @@ class Command(BaseCommand):
         updated_count = 0
         errors = []
 
-        # Atualizar editais que devem ser fechados (end_date < hoje e status='aberto')
+        # Atualizar editais que devem ser fechados (end_date <= hoje e status='aberto')
         editais_to_close = Edital.objects.filter(
-            end_date__lt=today,
+            end_date__lte=today,
             status='aberto'
         )
         
