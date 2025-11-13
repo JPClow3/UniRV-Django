@@ -1,12 +1,46 @@
 {% extends 'base.html' %}
 {% block title %}Excluir Edital - AgroHub{% endblock %}
 {% block content %}
-<h1>Confirmar Exclusão</h1>
-<p>Tem certeza que deseja excluir o edital "{{ edital.titulo }}"?</p>
-<form method="post">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-secondary">Confirmar</button>
-  <a href="{% url 'edital_detail' edital.pk %}" class="btn btn-outline">Cancelar</a>
-</form>
+<div class="form-page">
+    <div class="form-header">
+        <h1>Confirmar Exclusão</h1>
+        <p class="form-subtitle">Esta ação não pode ser desfeita</p>
+    </div>
+    
+    <div class="delete-warning" role="alert">
+        <div class="delete-warning-icon">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+        </div>
+        <div class="delete-warning-content">
+            <h2>Tem certeza que deseja excluir este edital?</h2>
+            <p class="delete-warning-title">
+                <strong>"{{ edital.titulo }}"</strong>
+            </p>
+            <p class="warning-text">
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                Todos os dados relacionados serão permanentemente removidos, incluindo:
+            </p>
+            <ul class="warning-list">
+                <li>Cronogramas associados</li>
+                <li>Valores financeiros registrados</li>
+                <li>Histórico de alterações</li>
+            </ul>
+        </div>
+    </div>
+    
+    <form method="post" class="delete-form">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger" id="delete-confirm-btn">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+                <span>Confirmar Exclusão</span>
+            </button>
+            <a href="{% url 'edital_detail' edital.pk %}" class="btn btn-secondary">
+                <i class="fas fa-times" aria-hidden="true"></i>
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
 {% endblock %}
 

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load editais_filters %}
 
 {% block title %}Editais de Fomento - AgroHub UniRV{% endblock %}
 
@@ -64,26 +65,59 @@
                 </div>
 
                 <div class="filter-row">
-                    <label class="sr-only" for="status-filter">Filtrar por status</label>
-                    <select id="status-filter" name="status" class="status-filter" aria-label="Filtrar por status">
-                        <option value="">Todos os Status</option>
-                        {% for value, display in status_choices %}
-                            <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
-                        {% endfor %}
-                    </select>
+                    <div class="filter-group">
+                        <label class="sr-only" for="status-filter">Filtrar por status</label>
+                        <select id="status-filter" name="status" class="status-filter" aria-label="Filtrar por status">
+                            <option value="">Todos os Status</option>
+                            {% for value, display in status_choices %}
+                                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="start_date-filter" class="filter-label">Data de Abertura:</label>
+                        <input type="date" 
+                               id="start_date-filter" 
+                               name="start_date" 
+                               value="{{ start_date_filter }}"
+                               class="date-filter"
+                               aria-label="Filtrar por data de abertura">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="end_date-filter" class="filter-label">Data de Encerramento:</label>
+                        <input type="date" 
+                               id="end_date-filter" 
+                               name="end_date" 
+                               value="{{ end_date_filter }}"
+                               class="date-filter"
+                               aria-label="Filtrar por data de encerramento">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="checkbox-filter">
+                            <input type="checkbox" 
+                                   name="only_open" 
+                                   value="1"
+                                   {% if only_open %}checked{% endif %}
+                                   aria-label="Mostrar somente editais abertos">
+                            <span>Somente Abertos</span>
+                        </label>
+                    </div>
                 </div>
             </form>
 
         </div>
 
         <!-- Active filters display -->
-    {% if search_query or status_filter %}
+    {% if search_query or status_filter or start_date_filter or end_date_filter or only_open %}
         <div class="active-filters">
             <span class="active-filters-label">Filtros ativos:</span>
             {% if search_query %}
                 <span class="filter-tag">
                     Busca: "{{ search_query }}"
-                    <a href="?{% if status_filter %}status={{ status_filter }}{% endif %}" class="filter-remove" aria-label="Remover filtro de busca">
+                    <a href="?{% preserve_filters request search='' %}" class="filter-remove" aria-label="Remover filtro de busca">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </a>
                 </span>
@@ -91,7 +125,31 @@
             {% if status_filter %}
                 <span class="filter-tag">
                     Status: {{ status_filter|title }}
-                    <a href="?{% if search_query %}search={{ search_query }}{% endif %}" class="filter-remove" aria-label="Remover filtro de status">
+                    <a href="?{% preserve_filters request status='' %}" class="filter-remove" aria-label="Remover filtro de status">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </a>
+                </span>
+            {% endif %}
+            {% if start_date_filter %}
+                <span class="filter-tag">
+                    Abertura: {{ start_date_filter }}
+                    <a href="?{% preserve_filters request start_date='' %}" class="filter-remove" aria-label="Remover filtro de data de abertura">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </a>
+                </span>
+            {% endif %}
+            {% if end_date_filter %}
+                <span class="filter-tag">
+                    Encerramento: {{ end_date_filter }}
+                    <a href="?{% preserve_filters request end_date='' %}" class="filter-remove" aria-label="Remover filtro de data de encerramento">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </a>
+                </span>
+            {% endif %}
+            {% if only_open %}
+                <span class="filter-tag">
+                    Somente Abertos
+                    <a href="?{% preserve_filters request only_open='' %}" class="filter-remove" aria-label="Remover filtro somente abertos">
                         <i class="fas fa-times" aria-hidden="true"></i>
                     </a>
                 </span>
@@ -104,9 +162,9 @@
     {% endif %}
 </div>
 
-<div class="editais-grid" role="list" aria-label="Lista de editais">
+<div class="editais-grid" aria-label="Lista de editais">
     {% for edital in page_obj %}
-        <article class="edital-card" role="listitem">
+        <article class="edital-card">
             <div class="card-header">
                 <span class="status-badge status-{{ edital.status }}" aria-label="Status do edital">{{ edital.get_status_display }}</span>
                 {% if edital.numero_edital %}
@@ -114,9 +172,9 @@
                 {% endif %}
             </div>
 
-            <h3 class="edital-title">
+            <h2 class="edital-title">
                 <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatewords:12 }}</a>
-            </h3>
+            </h2>
 
             {% if edital.entidade_principal %}
                 <p class="edital-entity">
@@ -130,16 +188,29 @@
             </p>
 
             <div class="card-footer">
-                <small class="start-date">
-                    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-                    <time datetime="{{ edital.start_date|date:'Y-m-d' }}">
-                        {% if edital.start_date %}
+                <div class="card-dates">
+                    {% if edital.start_date %}
+                    <small class="start-date">
+                        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                        <time datetime="{{ edital.start_date|date:'Y-m-d' }}">
                             Abertura: {{ edital.start_date|date:"d/m/Y" }}
-                        {% else %}
-                            Data não informada
+                        </time>
+                    </small>
+                    {% endif %}
+                    {% if edital.end_date %}
+                    <small class="end-date {% if edital.end_date|is_deadline_soon %}deadline-soon{% endif %}">
+                        <i class="fas fa-calendar-times" aria-hidden="true"></i>
+                        <time datetime="{{ edital.end_date|date:'Y-m-d' }}">
+                            Encerra: {{ edital.end_date|date:"d/m/Y" }}
+                        </time>
+                        {% if edital.end_date|is_deadline_soon %}
+                            <span class="deadline-warning" aria-label="Prazo próximo">
+                                <i class="fas fa-clock" aria-hidden="true"></i> Prazo próximo
+                            </span>
                         {% endif %}
-                    </time>
-                </small>
+                    </small>
+                    {% endif %}
+                </div>
 
                 <div class="card-actions">
                     <a href="{{ edital.get_absolute_url }}" class="btn btn-ghost" aria-label="Ver detalhes de {{ edital.titulo }}">
@@ -193,10 +264,8 @@
     <nav class="pagination-container" aria-label="Navegação de páginas">
         <div class="pagination">
             {% if page_obj.has_previous %}
-                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
-                   class="page-link" aria-label="Ir para primeira página">&laquo; Primeira</a>
-                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
-                   class="page-link" aria-label="Ir para página anterior">Anterior</a>
+                <a href="?{% preserve_filters request page=1 %}" class="page-link" aria-label="Ir para primeira página">&laquo; Primeira</a>
+                <a href="?{% preserve_filters request page=page_obj.previous_page_number %}" class="page-link" aria-label="Ir para página anterior">Anterior</a>
             {% endif %}
 
             <span class="page-info" aria-current="page">
@@ -204,10 +273,8 @@
             </span>
 
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
-                   class="page-link" aria-label="Ir para próxima página">Próxima</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}"
-                   class="page-link" aria-label="Ir para última página">Última &raquo;</a>
+                <a href="?{% preserve_filters request page=page_obj.next_page_number %}" class="page-link" aria-label="Ir para próxima página">Próxima</a>
+                <a href="?{% preserve_filters request page=page_obj.paginator.num_pages %}" class="page-link" aria-label="Ir para última página">Última &raquo;</a>
             {% endif %}
         </div>
     </nav>

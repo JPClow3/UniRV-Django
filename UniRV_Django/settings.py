@@ -137,6 +137,11 @@ STORAGES = {
     },
 }
 
+# Static files caching headers (for production)
+if not DEBUG:
+    # Cache static files for 1 year (handled by WhiteNoise)
+    WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -148,6 +153,7 @@ LOGIN_REDIRECT_URL = '/'
 
 # Application-specific settings
 EDITAIS_PER_PAGE = 12  # Number of editais to display per page
+EDITAIS_CACHE_TTL = 300  # Cache TTL for index pages (5 minutes in seconds)
 EDITAL_SEARCH_FIELDS = [
     'titulo', 'entidade_principal', 'numero_edital',
     'analise', 'objetivo', 'etapas', 'recursos',

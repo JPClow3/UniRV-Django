@@ -51,6 +51,31 @@ python manage.py migrate
 ### 6. (Opcional) Popular o banco com dados de exemplo
 ```bash
 python manage.py seed_editais
+
+### 7. (Opcional) Atualizar status dos editais automaticamente
+
+O sistema inclui um management command para atualizar automaticamente o status dos editais baseado nas datas:
+
+```bash
+python manage.py update_edital_status
+```
+
+**Opções:**
+- `--dry-run`: Executa sem fazer alterações (apenas mostra o que seria alterado)
+- `--verbose`: Mostra informações detalhadas sobre cada edital atualizado
+
+**Configuração para execução automática (cron/task scheduler):**
+
+Para executar diariamente, adicione ao crontab (Linux) ou Task Scheduler (Windows):
+
+```bash
+# Linux (crontab -e)
+0 0 * * * cd /path/to/UniRV-Django && /path/to/venv/bin/python manage.py update_edital_status
+
+# Windows Task Scheduler
+# Criar tarefa agendada para executar diariamente:
+# python manage.py update_edital_status
+```
 ```
 
 ### 7. Crie um superusuário
@@ -58,7 +83,7 @@ python manage.py seed_editais
 python manage.py createsuperuser
 ```
 
-### 8. Inicie o servidor
+### 9. Inicie o servidor
 ```bash
 python manage.py runserver
 ```
@@ -112,7 +137,23 @@ Antes de fazer deploy em produção, certifique-se de:
 
 Execute os testes:
 ```bash
-python manage.py test
+python manage.py test editais
+```
+
+**Cobertura de Testes:**
+- 28 testes implementados cobrindo:
+  - CRUD de editais (7 testes)
+  - Busca e filtros (6 testes)
+  - Detalhes e redirecionamento (4 testes)
+  - Modelos (slug, validação, status) (5 testes)
+  - Formulários (6 testes)
+  - Management commands (testes em `editais/tests/test_management_commands.py`)
+
+**Verificar cobertura (requer `coverage`):**
+```bash
+pip install coverage
+coverage run manage.py test editais
+coverage report
 ```
 
 ## 📁 Estrutura do Projeto

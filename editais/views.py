@@ -4,6 +4,7 @@ import bleach
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse
@@ -93,42 +94,113 @@ def build_search_query(search_query):
     return q_objects
 
 
+def _clear_index_cache():
+    """
+    Helper function to clear all index page cache keys.
+    Uses a cache versioning pattern: increment a version number that's part of all cache keys.
+    This invalidates all cached pages regardless of page number.
+    """
+    # Get current cache version (defaults to 0 if not set)
+    version_key = 'editais_index_cache_version'
+    current_version = cache.get(version_key, 0)
+    
+    # Increment version to invalidate all existing cached pages
+    new_version = current_version + 1
+    cache.set(version_key, new_version, timeout=None)  # Never expire the version key
+    
+    # Also clear the old version key pattern for pages 1-10 as a fallback
+    # (in case any old cache entries exist without versioning)
+    for page_num in range(1, 11):
+        old_cache_key = f'editais_index_page_{page_num}'
+        cache.delete(old_cache_key)
+
+
 def index(request):
     """Landing page com todos os editais"""
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
+    start_date_filter = request.GET.get('start_date', '')
+    end_date_filter = request.GET.get('end_date', '')
+    only_open = request.GET.get('only_open', '') == '1'  # Checkbox "somente abertos"
+    page_number = request.GET.get('page', '1')
+
+    # Build cache key based on query parameters
+    # Only cache if no search or filter is applied (most common case)
+    cache_key = None
+    has_filters = search_query or status_filter or start_date_filter or end_date_filter or only_open
+    use_cache = not has_filters and not request.user.is_authenticated
+    cache_ttl = getattr(settings, 'EDITAIS_CACHE_TTL', 300)  # 5 minutes default
+
+    if use_cache:
+        # Get current cache version to ensure we get the latest cached data
+        version_key = 'editais_index_cache_version'
+        cache_version = cache.get(version_key, 0)
+        cache_key = f'editais_index_page_{page_number}_v{cache_version}'
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            return cached_result
 
     # Optimize queries with select_related for foreign keys
     editais = Edital.objects.select_related(
         'created_by', 'updated_by'
-    ).prefetch_related(
-        'cronogramas'
     ).only(
         'id', 'numero_edital', 'titulo', 'url', 'entidade_principal',
-        'status', 'start_date', 'objetivo', 'created_by', 'updated_by'
+        'status', 'start_date', 'end_date', 'objetivo', 'created_by', 'updated_by'
     )
 
     # Apply full-text search across all fields
     if search_query:
         editais = editais.filter(build_search_query(search_query))
 
+    # Apply status filter
     if status_filter:
         editais = editais.filter(status=status_filter)
+    elif only_open:
+        # Filter "somente abertos" - show only editais with status='aberto'
+        editais = editais.filter(status='aberto')
+
+    # Apply date filters
+    if start_date_filter:
+        try:
+            from datetime import datetime
+            start_date = datetime.strptime(start_date_filter, '%Y-%m-%d').date()
+            editais = editais.filter(start_date__gte=start_date)
+        except (ValueError, TypeError):
+            # Invalid date format, ignore filter
+            pass
+
+    if end_date_filter:
+        try:
+            from datetime import datetime
+            end_date = datetime.strptime(end_date_filter, '%Y-%m-%d').date()
+            editais = editais.filter(end_date__lte=end_date)
+        except (ValueError, TypeError):
+            # Invalid date format, ignore filter
+            pass
 
     # Use pagination constant from settings
     per_page = getattr(settings, 'EDITAIS_PER_PAGE', 12)
     paginator = Paginator(editais, per_page)
-    page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
         'status_filter': status_filter,
+        'start_date_filter': start_date_filter,
+        'end_date_filter': end_date_filter,
+        'only_open': only_open,
         'status_choices': Edital.STATUS_CHOICES,
         'total_count': page_obj.paginator.count,  # Total count for results counter
     }
-    return render(request, 'editais/index.html', context)
+    
+    response = render(request, 'editais/index.html', context)
+    
+    # Cache the response if applicable
+    if use_cache and cache_key:
+        cache.set(cache_key, response, cache_ttl)
+    
+    return response
 
 
 def edital_detail(request, slug=None, pk=None):
@@ -186,6 +258,8 @@ def edital_create(request):
             # Sanitize all text fields using helper function
             sanitize_edital_fields(edital)
             edital.save()
+            # Invalidate cache for index pages (clear all index cache keys)
+            _clear_index_cache()
             messages.success(request, 'Edital cadastrado com sucesso!')
             return redirect('edital_detail', pk=edital.pk)
     else:
@@ -208,6 +282,8 @@ def edital_update(request, pk):
             # Sanitize all text fields using helper function
             sanitize_edital_fields(edital)
             edital.save()
+            # Invalidate cache for index pages (clear all index cache keys)
+            _clear_index_cache()
             messages.success(request, 'Edital atualizado com sucesso!')
             return redirect('edital_detail', pk=edital.pk)
     else:
@@ -223,6 +299,8 @@ def edital_delete(request, pk):
 
     if request.method == 'POST':
         edital.delete()
+        # Invalidate cache for index pages (clear all index cache keys)
+        _clear_index_cache()
         messages.success(request, 'Edital excluído com sucesso!')
         return redirect('editais_index')
 

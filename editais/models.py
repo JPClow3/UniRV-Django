@@ -1,3 +1,4 @@
+import re
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
@@ -70,20 +71,53 @@ class Edital(models.Model):
         ]
 
     def _generate_unique_slug(self):
-        """Generate a unique slug from the title"""
+        """Generate a unique slug from the title - optimized to reduce database queries"""
         base_slug = slugify(self.titulo)
-        slug = base_slug
-        queryset = Edital.objects.all()
         
-        # Exclude current object if editing
+        # Handle edge case: if slugify returns empty string (e.g., title is only special chars)
+        # Use a fallback slug based on PK or timestamp
+        if not base_slug:
+            if self.pk:
+                base_slug = f"edital-{self.pk}"
+            else:
+                # For new objects, use timestamp as fallback
+                import time
+                base_slug = f"edital-{int(time.time())}"
+        
+        # Fetch slugs that match the exact base_slug or follow the pattern base_slug-N
+        # This is more precise than startswith and avoids false matches
+        # Strategy: Get exact match and slugs starting with base_slug-, then filter in Python
+        # This works across all database backends (SQLite, PostgreSQL, MySQL)
+        queryset = Edital.objects.filter(
+            models.Q(slug=base_slug) | models.Q(slug__startswith=f"{base_slug}-")
+        )
         if self.pk:
             queryset = queryset.exclude(pk=self.pk)
         
-        # Check for uniqueness and append number if needed
+        # Filter in Python to ensure we only get slugs matching base_slug or base_slug-N pattern
+        # This avoids false matches like "editable" when base_slug is "edit"
+        all_slugs = queryset.values_list('slug', flat=True)
+        existing_slugs = set()
+        pattern = re.compile(rf'^{re.escape(base_slug)}(-\d+)?$')
+        for slug in all_slugs:
+            if pattern.match(slug):
+                existing_slugs.add(slug)
+        
+        # Find next available slug in memory (no additional queries)
+        slug = base_slug
         counter = 1
-        while queryset.filter(slug=slug).exists():
+        max_attempts = 10000  # Safety limit to prevent infinite loops
+        attempts = 0
+        
+        while slug in existing_slugs and attempts < max_attempts:
             slug = f"{base_slug}-{counter}"
             counter += 1
+            attempts += 1
+        
+        # If we hit the limit, append timestamp to ensure uniqueness
+        if attempts >= max_attempts:
+            import time
+            slug = f"{base_slug}-{int(time.time())}"
         
         return slug
 

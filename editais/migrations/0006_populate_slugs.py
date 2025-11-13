@@ -5,21 +5,53 @@ from django.utils.text import slugify
 
 
 def populate_slugs(apps, schema_editor):
-    """Populate slugs for existing Edital instances"""
+    """Populate slugs for existing Edital instances - optimized for performance"""
     Edital = apps.get_model('editais', 'Edital')
     
-    for edital in Edital.objects.filter(slug__isnull=True):
+    # Process in batches to reduce memory usage
+    batch_size = 100
+    editais_to_update = []
+    
+    # Pre-fetch all existing slugs once to avoid repeated queries
+    all_existing_slugs = set(Edital.objects.exclude(slug__isnull=True).values_list('slug', flat=True))
+    
+    for edital in Edital.objects.filter(slug__isnull=True).iterator(chunk_size=batch_size):
         base_slug = slugify(edital.titulo)
+        
+        # Handle edge case: if slugify returns empty string (e.g., title is only special chars)
+        # Use a fallback slug based on PK (similar to model's _generate_unique_slug method)
+        if not base_slug:
+            # Use PK-based fallback since we're in a migration and PKs are guaranteed to exist
+            base_slug = f"edital-{edital.pk}"
+        
+        # Find next available slug in memory (no database queries in loop)
         slug = base_slug
         counter = 1
+        max_attempts = 10000  # Safety limit to prevent infinite loops
+        attempts = 0
         
-        # Ensure uniqueness
-        while Edital.objects.filter(slug=slug).exclude(pk=edital.pk).exists():
+        while slug in all_existing_slugs and attempts < max_attempts:
             slug = f"{base_slug}-{counter}"
             counter += 1
+            attempts += 1
         
+        # If we hit the limit, append PK to ensure uniqueness
+        if attempts >= max_attempts:
+            slug = f"{base_slug}-{edital.pk}"
+        
+        # Add new slug to set to avoid conflicts within the same batch
+        all_existing_slugs.add(slug)
         edital.slug = slug
-        edital.save(update_fields=['slug'])
+        editais_to_update.append(edital)
+        
+        # Bulk update in batches to reduce database hits
+        if len(editais_to_update) >= batch_size:
+            Edital.objects.bulk_update(editais_to_update, ['slug'], batch_size=batch_size)
+            editais_to_update = []
+    
+    # Update remaining items
+    if editais_to_update:
+        Edital.objects.bulk_update(editais_to_update, ['slug'], batch_size=batch_size)
 
 
 def reverse_populate_slugs(apps, schema_editor):
