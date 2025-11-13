@@ -237,6 +237,9 @@ def edital_detail(request, slug=None, pk=None):
     valores = edital.valores.all()
     cronogramas = edital.cronogramas.all()
 
+    # IMPORTANT: Sanitize HTML fields before marking as safe to prevent XSS
+    # This ensures any unsanitized HTML in the database is cleaned before rendering
+    sanitize_edital_fields(edital)
     # Mark sanitized HTML as safe for rendering using helper function
     mark_edital_fields_safe(edital)
 
@@ -320,7 +323,13 @@ def edital_update(request, pk):
             # IMPORTANT: Capture original values BEFORE save(commit=False)
             # After save(commit=False), form.instance will have new values
             from .models import EditalHistory
-            original_edital = Edital.objects.get(pk=edital.pk)  # Fresh DB query
+            # Refresh from DB to get original values (handle edge case where object might be deleted)
+            try:
+                original_edital = Edital.objects.get(pk=edital.pk)  # Fresh DB query
+            except Edital.DoesNotExist:
+                # Edge case: object was deleted between get_object_or_404 and here
+                messages.error(request, 'O edital não foi encontrado.')
+                return redirect('editais_index')
             
             # Track changes by comparing original DB values with new form values
             changes = {}
@@ -404,6 +413,9 @@ def export_editais_csv(request):
     status_filter = request.GET.get('status', '')
 
     editais = Edital.objects.select_related('created_by', 'updated_by').all()
+    
+    # Note: Staff users can export draft editais (intentional for admin purposes)
+    # Non-staff users are already blocked by the is_staff check above
 
     if search_query:
         editais = editais.filter(build_search_query(search_query))
@@ -431,8 +443,8 @@ def export_editais_csv(request):
         'Atualizado Por'
     ])
 
-    # Write data
-    for edital in editais:
+    # Write data - use iterator() for better memory efficiency with large datasets
+    for edital in editais.iterator(chunk_size=1000):
         writer.writerow([
             edital.numero_edital or '',
             edital.titulo,

@@ -194,7 +194,10 @@ class Edital(models.Model):
         """Return URL using slug if available, otherwise use PK"""
         if self.slug:
             return reverse('edital_detail_slug', kwargs={'slug': self.slug})
-        return reverse('edital_detail', kwargs={'pk': self.pk})
+        if self.pk:
+            return reverse('edital_detail', kwargs={'pk': self.pk})
+        # If object is not saved yet, return empty string
+        return ''
 
 
 class EditalValor(models.Model):

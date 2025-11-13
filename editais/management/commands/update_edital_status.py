@@ -132,19 +132,19 @@ class Command(BaseCommand):
             if updated_count > 0:
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"\n✓ {updated_count} edital(is) atualizado(s) com sucesso."
+                        f"\n[OK] {updated_count} edital(is) atualizado(s) com sucesso."
                     )
                 )
             else:
                 self.stdout.write(
                     self.style.SUCCESS(
-                        "\n✓ Nenhum edital precisou ser atualizado."
+                        "\n[OK] Nenhum edital precisou ser atualizado."
                     )
                 )
 
         if errors:
             self.stdout.write(
-                self.style.ERROR(f"\n⚠ {len(errors)} erro(s) encontrado(s):")
+                self.style.ERROR(f"\n[ERRO] {len(errors)} erro(s) encontrado(s):")
             )
             for error in errors:
                 self.stdout.write(self.style.ERROR(f"  - {error}"))
