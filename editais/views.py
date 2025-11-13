@@ -251,6 +251,14 @@ def edital_detail(request, slug=None, pk=None):
 def edital_detail_redirect(request, pk):
     """Redirect PK-based URLs to slug-based URLs (301 permanent redirect)"""
     edital = get_object_or_404(Edital, pk=pk)
+    
+    # FR-010: Hide draft editais from non-authenticated or non-staff users
+    # Check before redirecting to prevent information leakage via redirect URL
+    if edital.status == 'draft':
+        if not request.user.is_authenticated or not request.user.is_staff:
+            from django.http import Http404
+            raise Http404("Edital não encontrado")
+    
     if edital.slug:
         return redirect('edital_detail_slug', slug=edital.slug, permanent=True)
     # Fallback: if no slug, use detail view with PK
