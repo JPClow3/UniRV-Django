@@ -1589,11 +1589,16 @@ textarea:focus {
         border-bottom: 1px solid #eee;
     }
 
+    .navbar-right li:last-child {
+        border-bottom: none;
+    }
+
     .navbar-right a {
         color: #27348b;
         padding: 12px 16px;
         display: block;
         width: 100%;
+        border-radius: 4px;
     }
 
     .navbar-action-btn {
@@ -1607,16 +1612,6 @@ textarea:focus {
     .navbar-action-btn:hover {
         background-color: #e5e7eb;
         transform: none;
-    }
-
-    .navbar-right li:last-child {
-        border-bottom: none;
-    }
-
-    .navbar-right a {
-        display: block;
-        padding: 12px 16px;
-        border-radius: 4px;
     }
 
     /* Detail page mobile menu */
