@@ -1,5 +1,4 @@
 // ========================================
-// AgroHub - Main JavaScript
 // ========================================
 
 // ========================================
@@ -13,10 +12,10 @@
 
     if (!searchForm || !editaisGrid) return;
 
-    let searchTimeout = null; // Initialize as null
-    const SEARCH_DELAY = 500; // ms - debounce delay
+    let searchTimeout = null;
+    const SEARCH_DELAY = 500;
     let isLoading = false;
-    
+
     // Expose searchTimeout to window for keyboard shortcuts
     window.searchTimeout = searchTimeout;
 
@@ -26,7 +25,7 @@
         isLoading = true;
 
         editaisGrid.classList.add('loading');
-        const skeletonCount = 6; // Show 6 skeleton cards
+        const skeletonCount = 6;
         const skeletonCards = [];
 
         for (let i = 0; i < skeletonCount; i++) {
@@ -53,13 +52,11 @@
         const formData = new FormData(searchForm);
         const params = new URLSearchParams(formData);
 
-        // Build URL with parameters
         const url = `${window.location.pathname}?${params.toString()}`;
 
         // Show skeleton loading
         showSkeletonLoading();
 
-        // Fetch filtered results
         fetch(url, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -67,16 +64,13 @@
         })
             .then(response => response.text())
             .then(html => {
-                // Parse the response
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
 
-                // Extract the new grid content
                 const newGrid = doc.querySelector('.editais-grid');
                 const newPagination = doc.querySelector('.pagination-container');
                 const newResultsCount = doc.querySelector('.search-results-count');
 
-                // Update results count if exists
                 const resultsCountElement = document.querySelector('.search-results-count');
                 if (newResultsCount && resultsCountElement) {
                     resultsCountElement.innerHTML = newResultsCount.innerHTML;
@@ -87,7 +81,6 @@
                     editaisGrid.innerHTML = newGrid.innerHTML;
                     isLoading = false;
 
-                    // Add fade-in animation
                     editaisGrid.classList.add('fade-in');
                     setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
 
@@ -124,7 +117,6 @@
         const keyboardHint = wrapper.querySelector('.keyboard-hint');
 
         if (value && value.length > 0) {
-            // Show clear button, hide hint
             if (!clearButton) {
                 const clearBtn = document.createElement('button');
                 clearBtn.type = 'button';
@@ -139,7 +131,6 @@
                 keyboardHint.style.display = 'none';
             }
         } else {
-            // Hide clear button, show hint
             if (clearButton) {
                 clearButton.style.display = 'none';
             }
@@ -149,26 +140,21 @@
         }
     }
 
-    // Debounced search on input
     if (searchInput) {
-        // Initial state
         toggleSearchUI(searchInput, searchInput.value);
 
         searchInput.addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
             window.searchTimeout = null;
-            
-            // Toggle UI elements
+
             toggleSearchUI(this, this.value);
-            
-            // Visual feedback during typing
+
             const wrapper = this.closest('.search-input-wrapper');
             if (wrapper) {
                 wrapper.classList.add('searching');
             }
 
             searchTimeout = setTimeout(() => {
-                // Auto-submit after user stops typing (only if 3+ chars or empty)
                 if (this.value.length >= 3 || this.value.length === 0) {
                     window.performSearch();
                 }
@@ -190,16 +176,14 @@
             if (input && input.tagName === 'INPUT') {
                 input.value = '';
                 input.focus();
-                
-                // Toggle UI to show hint again
+
                 toggleSearchUI(input, '');
-                
-                // Clear any pending timeout
+
                 if (window.searchTimeout) {
                     clearTimeout(window.searchTimeout);
                     window.searchTimeout = null;
                 }
-                
+
                 if (window.performSearch) {
                     window.performSearch();
                 } else {
@@ -222,7 +206,6 @@
         });
     }
 
-    // Handle browser back/forward buttons
     window.addEventListener('popstate', function (event) {
         if (event.state && event.state.search) {
             // Reload the page with the stored search params
@@ -260,7 +243,6 @@
                             editaisGrid.innerHTML = newGrid.innerHTML;
                             isLoading = false;
 
-                            // Add fade-in animation
                             editaisGrid.classList.add('fade-in');
                             setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
 
@@ -274,7 +256,7 @@
                         }
 
                         history.pushState({}, '', url);
-                        
+
                         // Smooth scroll to top of results
                         editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
                     })
@@ -304,7 +286,6 @@
     }
 })();
 
-
 // ========================================
 // MOBILE MENU TOGGLE
 // ========================================
@@ -317,15 +298,12 @@
   menuToggle.addEventListener('click', function() {
     const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
 
-    // Toggle aria-expanded
     menuToggle.setAttribute('aria-expanded', !isExpanded);
 
-    // Toggle menu open class
     navMenu.classList.toggle('menu-open');
 
     // Accessibility: trap focus inside menu when open
     if (!isExpanded) {
-      // Menu is opening - focus first link
       const firstLink = navMenu.querySelector('a');
       if (firstLink) {
         setTimeout(() => firstLink.focus(), 100);
@@ -333,7 +311,6 @@
     }
   });
 
-  // Close menu when clicking outside
   document.addEventListener('click', function(event) {
     const isClickInsideMenu = navMenu.contains(event.target);
     const isClickOnToggle = menuToggle.contains(event.target);
@@ -345,7 +322,6 @@
     }
   });
 
-  // Close menu on escape key
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
       menuToggle.setAttribute('aria-expanded', 'false');
@@ -381,14 +357,13 @@
     if (!editalForm) return;
 
     const AUTOSAVE_KEY = 'edital_form_autosave';
-    const AUTOSAVE_INTERVAL = 10000; // 10 seconds
+    const AUTOSAVE_INTERVAL = 10000;
     let formChanged = false;
     let autosaveInterval;
 
     // Get all form fields
     const formFields = editalForm.querySelectorAll('input, textarea, select');
 
-    // Check for saved data on page load
     window.addEventListener('DOMContentLoaded', function () {
         const savedData = localStorage.getItem(AUTOSAVE_KEY);
 
@@ -399,7 +374,6 @@
                 const now = new Date();
                 const hoursSince = (now - savedDate) / (1000 * 60 * 60);
 
-                // Only restore if saved within last 24 hours
                 if (hoursSince < 24) {
                     if (confirm(`Encontramos um rascunho salvo em ${savedDate.toLocaleString()}. Deseja restaurá-lo?`)) {
                         restoreFormData(data.fields);
@@ -426,7 +400,6 @@
         });
     });
 
-    // Autosave function
     function autosaveForm() {
         if (!formChanged) return;
 
@@ -444,7 +417,6 @@
 
         try {
             localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
-            // Show subtle indicator
             showAutosaveIndicator();
         } catch (e) {
             console.error('Autosave failed:', e);
@@ -461,7 +433,6 @@
         });
     }
 
-    // Show autosave indicator
     function showAutosaveIndicator() {
         let indicator = document.querySelector('.autosave-indicator');
         if (!indicator) {
@@ -496,7 +467,6 @@
         localStorage.removeItem(AUTOSAVE_KEY);
     });
 
-    // Manual save button (optional - add to template if desired)
     const manualSaveBtn = document.getElementById('manual-save-draft');
     if (manualSaveBtn) {
         manualSaveBtn.addEventListener('click', function (e) {
@@ -526,7 +496,7 @@
                 // Add loading state
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
-                
+
                 // Show loading text, hide normal text
                 const btnText = submitBtn.querySelector('.btn-text');
                 const btnLoading = submitBtn.querySelector('.btn-loading');
@@ -550,7 +520,7 @@
         if (startDateInput.value && endDateInput.value) {
             const start = new Date(startDateInput.value);
             const end = new Date(endDateInput.value);
-            
+
             if (end < start) {
                 endDateInput.setCustomValidity('A data de encerramento deve ser posterior à data de abertura.');
                 endDateInput.classList.add('has-date-error');
@@ -569,11 +539,11 @@
     // Validate on change
     startDateInput.addEventListener('change', validateDates);
     endDateInput.addEventListener('change', validateDates);
-    
+
     // Validate on input (for real-time feedback)
     startDateInput.addEventListener('input', validateDates);
     endDateInput.addEventListener('input', validateDates);
-    
+
     // Validate on form submit
     const form = startDateInput.closest('form');
     if (form) {
@@ -586,7 +556,6 @@
         });
     }
 })();
-
 
 // Toast notification helper
 function showToast(message, type = 'success') {
@@ -626,7 +595,6 @@ function showToast(message, type = 'success') {
                 setTimeout(function () {
                     targetField.focus();
 
-                    // Add visual highlight
                     const formGroup = targetField.closest('.form-group');
                     if (formGroup) {
                         formGroup.style.animation = 'highlight-flash 1s';
@@ -644,7 +612,6 @@ function showToast(message, type = 'success') {
 // FORM VALIDATION FEEDBACK
 // ========================================
 (function() {
-  // Add real-time validation feedback for required fields
   const requiredInputs = document.querySelectorAll('input[required], textarea[required], select[required]');
 
   requiredInputs.forEach(function(input) {
@@ -655,7 +622,6 @@ function showToast(message, type = 'success') {
       if (input.value.trim() === '') {
         formGroup.classList.add('has-error');
 
-        // Add error message if not already present
         if (!formGroup.querySelector('.field-error')) {
           const errorDiv = document.createElement('div');
           errorDiv.className = 'field-error';
@@ -716,14 +682,12 @@ function showToast(message, type = 'success') {
     const scrolled = window.pageYOffset || document.documentElement.scrollTop;
 
     // A curva se move MAIS DEVAGAR que o scroll (fator 0.22 para movimento ultra suave)
-    // Isso cria o efeito de você "passar" pela curva enquanto scrolla
     const parallaxFactor = 0.22;
     const translateY = -(scrolled * parallaxFactor);
 
     curve.style.transform = `translateY(${translateY}px)`;
   }
 
-  // Atualiza na inicialização
   updateCurvePosition();
 
     // Atualiza conforme scrolla (com throttle via requestAnimationFrame + debouncing)
@@ -731,7 +695,6 @@ function showToast(message, type = 'success') {
     let scrollTimeout;
 
   window.addEventListener('scroll', function() {
-      // Debounce: wait 10ms before processing
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(function () {
           if (!ticking) {
@@ -746,7 +709,6 @@ function showToast(message, type = 'success') {
 
   window.addEventListener('resize', updateCurvePosition);
 })();
-
 
 // ========================================
 // BACK TO TOP BUTTON
@@ -803,16 +765,13 @@ function showToast(message, type = 'success') {
 })();
 
 function showConfirmDialog(options) {
-    // Store the element that triggered the dialog
     const triggerElement = document.activeElement;
 
-  // Create overlay
   const overlay = document.createElement('div');
   overlay.className = 'confirm-dialog-overlay';
     overlay.setAttribute('role', 'alertdialog');
     overlay.setAttribute('aria-modal', 'true');
 
-  // Create dialog
   const dialog = document.createElement('div');
   dialog.className = 'confirm-dialog';
     dialog.setAttribute('role', 'document');
@@ -835,30 +794,25 @@ function showConfirmDialog(options) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
 
-    // Get all focusable elements in dialog
     const focusableElements = dialog.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];
 
-  // Show dialog
   setTimeout(() => overlay.classList.add('active'), 10);
 
   // Focus first button for accessibility
     firstFocusable.focus();
 
-    // Focus trap implementation
     function trapFocus(e) {
         if (e.key === 'Tab') {
             if (e.shiftKey) {
-                // Shift + Tab
                 if (document.activeElement === firstFocusable) {
                     lastFocusable.focus();
                     e.preventDefault();
                 }
             } else {
-                // Tab
                 if (document.activeElement === lastFocusable) {
                     firstFocusable.focus();
                     e.preventDefault();
@@ -869,7 +823,6 @@ function showConfirmDialog(options) {
 
     dialog.addEventListener('keydown', trapFocus);
 
-  // Handle cancel
   dialog.querySelector('#dialog-cancel').addEventListener('click', function() {
     closeDialog();
   });
@@ -882,14 +835,12 @@ function showConfirmDialog(options) {
     closeDialog();
   });
 
-  // Close on overlay click
   overlay.addEventListener('click', function(e) {
     if (e.target === overlay) {
       closeDialog();
     }
   });
 
-    // Handle escape key
   function handleEscape(e) {
     if (e.key === 'Escape') {
       closeDialog();
@@ -898,7 +849,6 @@ function showConfirmDialog(options) {
 
   document.addEventListener('keydown', handleEscape);
 
-    // Close dialog function
   function closeDialog() {
     overlay.classList.remove('active');
     setTimeout(() => {
@@ -906,7 +856,6 @@ function showConfirmDialog(options) {
       document.removeEventListener('keydown', handleEscape);
         dialog.removeEventListener('keydown', trapFocus);
 
-        // Return focus to trigger element
         if (triggerElement && typeof triggerElement.focus === 'function') {
             triggerElement.focus();
         }
@@ -919,15 +868,13 @@ function showConfirmDialog(options) {
 // ========================================
 (function() {
     document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + K to focus search input
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
             e.preventDefault();
             const searchInput = document.querySelector('.search-input, .search-input-enhanced');
             if (searchInput) {
                 searchInput.focus();
                 searchInput.select();
-                
-                // Show hint briefly
+
                 const hint = document.querySelector('.keyboard-hint');
                 if (hint) {
                     hint.style.opacity = '1';
@@ -938,20 +885,17 @@ function showConfirmDialog(options) {
             }
         }
 
-        // Escape to clear search when focused
         if (e.key === 'Escape') {
             const searchInput = document.querySelector('.search-input:focus, .search-input-enhanced:focus');
             if (searchInput && document.activeElement === searchInput) {
                 searchInput.value = '';
                 const searchForm = searchInput.closest('form');
                 if (searchForm) {
-                    // Clear any pending search timeout
                     if (window.searchTimeout) {
                         clearTimeout(window.searchTimeout);
                         window.searchTimeout = null;
                     }
-                    
-                    // Trigger search with empty value
+
                     if (window.performSearch) {
                         window.performSearch();
                     } else {
@@ -973,7 +917,7 @@ function showConfirmDialog(options) {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
             if (href === '#' || href === '#!') return;
-            
+
             const target = document.querySelector(href);
             if (target) {
                 e.preventDefault();
@@ -1018,7 +962,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
 (function() {
     document.addEventListener('DOMContentLoaded', function() {
         const exportLinks = document.querySelectorAll('a[href*="export_editais_csv"], .export-link');
-        
+
         exportLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 // Adicionar estado de loading
@@ -1026,7 +970,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
                 this.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Exportando...';
                 this.style.pointerEvents = 'none';
                 this.style.opacity = '0.7';
-                
+
                 // Restaurar após 5 segundos (caso o download não inicie)
                 setTimeout(() => {
                     this.innerHTML = originalHTML;
@@ -1047,49 +991,43 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
         const focusableElements = modal.querySelectorAll(
             'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
         );
-        
+
         if (focusableElements.length === 0) return;
-        
+
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
-        
+
         // Focus first element when modal opens
         setTimeout(() => firstElement.focus(), 100);
-        
-        // Trap focus on Tab key
+
         function handleTabKey(e) {
             if (e.key !== 'Tab') return;
-            
+
             if (e.shiftKey) {
-                // Shift + Tab
                 if (document.activeElement === firstElement) {
                     e.preventDefault();
                     lastElement.focus();
                 }
             } else {
-                // Tab
                 if (document.activeElement === lastElement) {
                     e.preventDefault();
                     firstElement.focus();
                 }
             }
         }
-        
-        // Close on Escape key
+
         function handleEscapeKey(e) {
             if (e.key === 'Escape') {
                 closeModal(modal);
             }
         }
-        
+
         modal.addEventListener('keydown', handleTabKey);
         modal.addEventListener('keydown', handleEscapeKey);
-        
-        // Store handlers for cleanup
+
         modal._focusHandlers = { handleTabKey, handleEscapeKey };
     }
-    
-    // Function to release focus trap
+
     function releaseFocus(modal) {
         if (modal._focusHandlers) {
             modal.removeEventListener('keydown', modal._focusHandlers.handleTabKey);
@@ -1097,7 +1035,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
             delete modal._focusHandlers;
         }
     }
-    
+
     // Function to open modal
     function openModal(modal) {
         modal.classList.add('active');
@@ -1105,7 +1043,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
         trapFocus(modal);
         document.body.style.overflow = 'hidden'; // Prevent background scrolling
     }
-    
+
     // Function to close modal
     function closeModal(modal) {
         modal.classList.remove('active');
@@ -1113,7 +1051,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
         releaseFocus(modal);
         document.body.style.overflow = ''; // Restore scrolling
     }
-    
+
     // Initialize modals
     document.addEventListener('DOMContentLoaded', function() {
         const modals = document.querySelectorAll('.modal');
@@ -1121,21 +1059,19 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
             modal.setAttribute('aria-hidden', 'true');
             modal.setAttribute('role', 'dialog');
             modal.setAttribute('aria-modal', 'true');
-            
-            // Close on backdrop click
+
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     closeModal(modal);
                 }
             });
-            
-            // Close buttons
+
             const closeButtons = modal.querySelectorAll('[data-modal-close]');
             closeButtons.forEach(btn => {
                 btn.addEventListener('click', () => closeModal(modal));
             });
         });
-        
+
         // Open modal triggers
         document.querySelectorAll('[data-modal-open]').forEach(trigger => {
             trigger.addEventListener('click', function(e) {
@@ -1148,9 +1084,8 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
             });
         });
     });
-    
+
     // Expose functions globally
     window.openModal = openModal;
     window.closeModal = closeModal;
 })();
-

@@ -30,6 +30,13 @@
 
             <div class="header-actions">
                 {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'edital_create' %}" 
+                   class="btn btn-primary"
+                   title="Criar novo edital"
+                   aria-label="Criar novo edital">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    Criar Edital
+                </a>
                 <a href="{% url 'admin_dashboard' %}" 
                    class="btn-icon btn-icon-primary"
                    title="Acessar dashboard administrativo"
@@ -194,6 +201,21 @@
                     <span class="meta-label">Status:</span>
                     <span class="meta-value status-text status-{{ edital.status }}">{{ edital.get_status_display }}</span>
                 </div>
+                
+                {% if edital.valores.exists %}
+                    {% with primeiro_valor=edital.valores.first %}
+                        {% if primeiro_valor.valor_total %}
+                            <div class="card-meta-item">
+                                <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                                <span class="meta-label">Valor:</span>
+                                <span class="meta-value">
+                                    {% if primeiro_valor.moeda == 'BRL' %}R${% elif primeiro_valor.moeda == 'USD' %}US${% elif primeiro_valor.moeda == 'EUR' %}€{% endif %}
+                                    {{ primeiro_valor.valor_total|floatformat:2 }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
             </div>
 
             <p class="edital-objective">

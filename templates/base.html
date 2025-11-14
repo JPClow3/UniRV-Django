@@ -18,6 +18,9 @@
     <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
     <meta property="og:site_name" content="AgroHub UniRV">
     {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;500i;800&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -46,28 +49,31 @@
     <nav class="navbar-right" id="navbar-menu">
         <ul>
             <li><a href="{% url 'editais_index' %}" class="{% if request.resolver_match.url_name == 'editais_index' %}active{% endif %}">EDITAIS DE FOMENTO</a></li>
-            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="OPORTUNIDADES DE NEGÓCIO (Em breve)">OPORTUNIDADES DE NEGÓCIO</a></li>
-            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="FEIRAS, EVENTOS E CURSOS (Em breve)">FEIRAS, EVENTOS E CURSOS</a></li>
-            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="ESTUDOS E PESQUISAS (Em breve)">ESTUDOS E PESQUISAS</a></li>
-            <li><a href="#" onclick="return false;" class="coming-soon" title="Em breve" aria-label="PROGRAMAS DE APOIO (Em breve)">PROGRAMAS DE APOIO</a></li>
-            <li><a href="#" onclick="return false;" class="icon-link coming-soon" title="Em breve" aria-label="Mais opções (Em breve)"><i class="fas fa-seedling" aria-hidden="true"></i></a></li>
+            <li>
+                <a href="{% url 'edital_create' %}" 
+                   class="navbar-action-btn"
+                   title="Criar novo edital"
+                   aria-label="Criar novo edital">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    <span>Criar Edital</span>
+                </a>
+            </li>
+            {% if user.is_authenticated and user.is_staff %}
+            <li>
+                <a href="{% url 'admin_dashboard' %}" 
+                   class="navbar-action-btn"
+                   title="Dashboard administrativo"
+                   aria-label="Dashboard administrativo">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            {% endif %}
         </ul>
     </nav>
 </header>
 
-{% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}
-<!-- Curva verde lateral -->
-<div class="green-curve" aria-hidden="true">
-    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M 0,0
-                 C 15,15 22,30 28,50
-                 C 22,70 15,85 0,100
-                 L 0,0 Z"
-              fill="#84D067"
-              opacity="0.85" />
-    </svg>
-</div>
-{% endif %}
+{% comment %}Curva verde removida para seguir padrão minimalista UniRV{% endcomment %}
 
 <div class="container">
     {% block breadcrumb %}{% endblock %}

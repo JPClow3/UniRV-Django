@@ -35,8 +35,15 @@ def sanitize_html(text):
     """Sanitize HTML content to prevent XSS attacks."""
     if not text:
         return text
-    cleaned = bleach.clean(text, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
-    return cleaned
+    # Ensure text is a string
+    if not isinstance(text, str):
+        text = str(text)
+    try:
+        cleaned = bleach.clean(text, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
+        return cleaned
+    except Exception:
+        # If sanitization fails, return empty string to prevent XSS
+        return ''
 
 
 def sanitize_edital_fields(edital):
@@ -110,6 +117,7 @@ def _clear_index_cache():
     
     # Also clear the old version key pattern for pages 1-10 as a fallback
     # (in case any old cache entries exist without versioning)
+    # Note: This is a fallback mechanism. The versioning system above should handle most cases.
     for page_num in range(1, 11):
         old_cache_key = f'editais_index_page_{page_num}'
         cache.delete(old_cache_key)
@@ -140,10 +148,10 @@ def index(request):
         if cached_result:
             return cached_result
 
-    # Optimize queries with select_related for foreign keys
+    # Optimize queries with select_related and prefetch_related
     editais = Edital.objects.select_related(
         'created_by', 'updated_by'
-    ).only(
+    ).prefetch_related('valores').only(
         'id', 'numero_edital', 'titulo', 'url', 'entidade_principal',
         'status', 'start_date', 'end_date', 'objetivo', 
         'data_criacao', 'data_atualizacao', 'slug',

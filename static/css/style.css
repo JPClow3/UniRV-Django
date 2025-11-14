@@ -8,11 +8,11 @@
 
 .search-section {
     background: white;
-    border-radius: 20px;
-    padding: 40px;
-    margin-bottom: 40px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+    padding: 48px;
+    margin-bottom: 48px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #dadada;
 }
 
 .search-header {
@@ -34,8 +34,9 @@
 
 .main-title {
     font-size: 32px;
-    font-weight: 700;
-    color: #19316C;
+    font-weight: 800; /* Montserrat ExtraBold */
+    font-family: 'Montserrat', sans-serif;
+    color: #27348b;
     line-height: 1.2;
     margin: 0;
     letter-spacing: -0.5px;
@@ -50,7 +51,7 @@
 }
 
 .search-subtitle strong {
-    color: #19316C;
+    color: #27348b;
     font-weight: 600;
 }
 
@@ -76,11 +77,11 @@
     gap: 10px;
     padding: 20px;
     background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-    border: 2px solid #0d6efd;
+    border: 2px solid #27348b;
     border-radius: 12px;
     margin-top: 16px;
     flex-wrap: wrap;
-    box-shadow: 0 4px 6px rgba(13, 110, 253, 0.1);
+    box-shadow: 0 4px 6px rgba(39, 52, 139, 0.1);
 }
 
 .active-filters-label {
@@ -94,13 +95,13 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: linear-gradient(135deg, #0d6efd 0%, #19316C 100%);
-    border: 2px solid #0d6efd;
+    background: linear-gradient(135deg, #27348b 0%, #0067b1 100%);
+    border: 2px solid #27348b;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
     color: white;
-    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+    box-shadow: 0 2px 4px rgba(39, 52, 139, 0.2);
     transition: all 0.2s;
 }
 
@@ -172,9 +173,9 @@
 
 .search-input:focus {
     outline: none;
-    border-color: var(--accent-green, #84D067);
+    border-color: var(--accent-green, #76b82a);
     background: white;
-    box-shadow: 0 0 0 4px rgba(132, 208, 103, 0.1);
+    box-shadow: 0 0 0 4px rgba(118, 184, 42, 0.1);
 }
 
 .search-clear {
@@ -244,8 +245,8 @@
 
 .date-filter:focus {
     outline: none;
-    border-color: var(--accent-green, #84D067);
-    box-shadow: 0 0 0 3px rgba(132, 208, 103, 0.25);
+    border-color: var(--accent-green, #76b82a);
+    box-shadow: 0 0 0 3px rgba(118, 184, 42, 0.25);
 }
 
 .checkbox-filter {
@@ -263,7 +264,7 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: var(--accent-green, #84D067);
+    accent-color: var(--accent-green, #76b82a);
 }
 
 .checkbox-filter span {
@@ -283,8 +284,8 @@
 
 .status-filter:focus {
     outline: none;
-    border-color: var(--accent-green, #84D067);
-    box-shadow: 0 0 0 3px rgba(132, 208, 103, 0.25);
+    border-color: var(--accent-green, #76b82a);
+    box-shadow: 0 0 0 3px rgba(118, 184, 42, 0.25);
 }
 
 .search-input-row {
@@ -294,7 +295,7 @@
 }
 
 .search-submit {
-    background-color: var(--primary-blue, #19316C);
+    background-color: var(--primary-blue, #27348b);
     color: white;
     border: none;
     min-width: 48px;
@@ -306,14 +307,14 @@
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease;
-    box-shadow: 0 4px 12px rgba(25, 49, 108, 0.2);
+    box-shadow: 0 4px 12px rgba(39, 52, 139, 0.2);
     flex-shrink: 0;
 }
 
 .search-submit:hover {
-    background-color: var(--secondary-blue, #3C78D8);
+    background-color: var(--secondary-blue, #0067b1);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(25, 49, 108, 0.3);
+    box-shadow: 0 6px 16px rgba(39, 52, 139, 0.3);
 }
 
 .search-submit:active {
@@ -373,14 +374,14 @@
     }
 }
 
-.btn { padding: 10px 18px; border-radius: 8px; text-decoration: none; transition: all 0.3s; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.btn { padding: 10px 18px; border-radius: 8px; text-decoration: none; transition: all 0.4s ease-in-out; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
 .btn-primary { 
-    background-color: #1e7e34; /* Darker green for better contrast (WCAG AA) */
+    background-color: #27348b; /* Azul institucional UniRV - cor sólida */
     color: white; 
     font-weight: 600;
 }
 .btn-primary:hover { 
-    background-color: #155724; /* Even darker on hover */
+    background-color: #1e2a6b; /* Tom mais escuro no hover */
 }
 
 .btn-icon {
@@ -406,14 +407,14 @@
 }
 
 .btn-icon-primary {
-    background: #28a745;
+    background: #27348b; /* Azul institucional UniRV */
     color: white;
-    border-color: #28a745;
+    border-color: #27348b;
 }
 
 .btn-icon-primary:hover {
-    background: #218838;
-    border-color: #218838;
+    background: #1e2a6b; /* Tom mais escuro no hover */
+    border-color: #1e2a6b;
     color: white;
 }
 
@@ -475,8 +476,8 @@
 .editais-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); 
-    gap: 28px; 
-    margin: 40px 0; 
+    gap: 32px; 
+    margin: 48px 0; 
 }
 
 @media (min-width: 1200px) {
@@ -495,20 +496,21 @@
 
 .edital-card { 
     background: white; 
-    border-radius: 12px; 
-    padding: 28px; 
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); 
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 4px; 
+    padding: 32px; 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+    transition: all 0.5s ease-in-out;
+    border: 1px solid #dadada;
     display: flex;
     flex-direction: column;
     height: 100%;
+    margin-bottom: 0;
 }
 
 .edital-card:hover { 
     transform: translateY(-4px); 
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-    border-color: rgba(132, 208, 103, 0.3);
+    border-color: rgba(118, 184, 42, 0.3);
 }
 
 .card-header { 
@@ -578,7 +580,7 @@
 }
 
 .edital-title a { 
-    color: #19316C; 
+    color: #27348b; 
     text-decoration: none; 
     font-size: 20px; 
     font-weight: 600; 
@@ -588,7 +590,7 @@
 }
 
 .edital-title a:hover { 
-    color: #84D067; 
+    color: #76b82a; 
 }
 
 .edital-entity { 
@@ -618,7 +620,7 @@
     padding: 12px;
     background: #f9fafb;
     border-radius: 8px;
-    border-left: 3px solid #84D067;
+    border-left: 3px solid #76b82a;
 }
 
 .card-meta-item {
@@ -896,10 +898,10 @@
 
 .pagination-container { margin: 40px 0; text-align: center; }
 .pagination { display: inline-flex; align-items: center; gap: 10px; }
-.page-link { padding: 8px 16px; background-color: white; border: 1px solid #ddd; color: #0d6efd; text-decoration: none; border-radius: 4px; transition: all 0.3s; }
-.page-link:hover { background-color: #0d6efd; color: white; border-color: #0d6efd; }
-.page-link.current { background-color: #0d6efd; color: white; border-color: #0d6efd; font-weight: 600; cursor: default; }
-.page-link.current:hover { background-color: #0d6efd; color: white; }
+.page-link { padding: 8px 16px; background-color: white; border: 1px solid #ddd; color: #27348b; text-decoration: none; border-radius: 4px; transition: all 0.3s; }
+.page-link:hover { background-color: #27348b; color: white; border-color: #27348b; }
+.page-link.current { background-color: #27348b; color: white; border-color: #27348b; font-weight: 600; cursor: default; }
+.page-link.current:hover { background-color: #27348b; color: white; }
 .page-info { padding: 8px 16px; color: #4a5568; font-size: 14px; }
 
 .messages { margin: 20px 0; }
@@ -908,32 +910,56 @@
 .alert-error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
 
 /* basic layout styles to support header */
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background: #f5f6f8; }
-.navbar { background: white; border-bottom: 1px solid #eee; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
-.navbar-left .logo { font-weight: 800; color: #0d6efd; text-transform: lowercase; }
-.navbar-left .logo-subtitle { margin-left: 8px; color: #6c757d; font-weight: 600; }
+body { font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 500; margin: 0; background: #f5f6f8; }
+.navbar { background: #27348b; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+.navbar-left .logo { font-weight: 800; color: #fff; text-transform: lowercase; }
+.navbar-left .logo-subtitle { margin-left: 8px; color: rgba(255, 255, 255, 0.8); font-weight: 600; }
 /* Brand logo wrapper and image */
-.brand-logo { display: inline-flex; align-items: center; text-decoration: none; }
-.brand-logo img { display: block; height: 36px; width: auto; }
-.navbar-right ul { list-style: none; display: flex; gap: 14px; margin: 0; padding: 0; }
-.navbar-right a { color: #333; text-decoration: none; font-size: 14px; }
-.navbar-right a.active { color: #0d6efd; font-weight: 600; }
+.brand-logo { display: inline-flex; align-items: center; text-decoration: none; margin-right: 24px; }
+.brand-logo img { display: block; height: 40px; width: auto; }
+.navbar-right ul { list-style: none; display: flex; gap: 8px; margin: 0; padding: 0; align-items: center; }
+.navbar-right a { color: #fff; text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 4px; transition: background-color 0.4s ease-in-out; }
+.navbar-right a.active { color: #fff; font-weight: 600; background-color: rgba(255, 255, 255, 0.15); }
+.navbar-right a:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+.navbar-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.navbar-action-btn i {
+    font-size: 12px;
+}
 .container { 
     max-width: 1280px; 
     margin: 0 auto; 
-    padding: 32px 24px; 
+    padding: 48px 32px; 
 }
 
 @media (min-width: 1400px) {
     .container {
         max-width: 1400px;
-        padding: 40px 32px;
+        padding: 64px 48px;
     }
 }
 
 @media (max-width: 768px) {
     .container {
-        padding: 24px 16px;
+        padding: 32px 24px;
     }
 }
 
@@ -942,39 +968,28 @@ body.page-detail {
     position: relative;
 }
 
-/* Page detail layout: container with green curve on left */
+/* Page detail layout: minimalista sem curva */
 body.page-detail .container {
-    padding-left: calc(28% + 64px); /* Space for curve (28%) + padding */
+    padding-left: 64px;
     padding-right: 64px;
-    max-width: none; /* Remove max-width restriction */
-    width: auto; /* Auto width to fill available space */
+    max-width: 1280px;
+    margin: 0 auto;
     box-sizing: border-box;
-    margin-left: 0;
-    margin-right: 0;
 }
 
 @media (min-width: 1400px) {
     body.page-detail .container {
-        padding-left: calc(350px + 96px); /* max-width of curve (350px) + padding */
+        padding-left: 96px;
         padding-right: 96px;
-        width: auto; /* Auto width to fill available space */
-    }
-}
-
-@media (min-width: 1024px) and (max-width: 1399px) {
-    body.page-detail .container {
-        padding-left: calc(28% + 64px);
-        padding-right: 64px;
-        width: auto; /* Auto width to fill available space */
+        max-width: 1400px;
     }
 }
 
 @media (max-width: 1023px) {
     body.page-detail .container {
-        padding-left: 24px; /* Remove curve padding on smaller screens */
+        padding-left: 24px;
         padding-right: 24px;
-        max-width: 1100px;
-        margin: 0 auto;
+        max-width: 100%;
     }
 }
 
@@ -1143,7 +1158,7 @@ body.page-detail .prose {
 /* Detail page polish */
 .edital-detail header { margin-bottom: 18px; }
 .edital-sections { background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,.06); }
-.edital-sections h3 { margin-top: 1.25rem; color: #0d6efd; }
+.edital-sections h3 { margin-top: 1.25rem; color: #27348b; }
 .detail-actions { display: flex; gap: 10px; margin-top: 18px; }
 
 /* Edital sections styling */
@@ -1161,9 +1176,10 @@ body.page-detail .edital-section {
 }
 
 body.page-detail .edital-section h3 {
-    color: var(--primary-blue, #19316C);
+    color: var(--primary-blue, #27348b);
     font-size: 24px;
-    font-weight: 700;
+    font-weight: 800; /* Montserrat ExtraBold */
+    font-family: 'Montserrat', sans-serif;
     margin-bottom: 20px;
     padding-bottom: 12px;
     border-bottom: 2px solid #e5e7eb;
@@ -1189,9 +1205,10 @@ body.page-detail .page-header {
 }
 
 body.page-detail .page-header h1 {
-    color: var(--primary-blue, #19316C);
+    color: var(--primary-blue, #27348b);
     font-size: 32px;
-    font-weight: 700;
+    font-weight: 800; /* Montserrat ExtraBold */
+    font-family: 'Montserrat', sans-serif;
     line-height: 1.3;
     margin-bottom: 16px;
 }
@@ -1214,7 +1231,7 @@ body.page-detail .page-meta-item {
 }
 
 body.page-detail .page-meta-item strong {
-    color: var(--primary-blue, #19316C);
+    color: var(--primary-blue, #27348b);
     font-weight: 600;
 }
 
@@ -1234,7 +1251,7 @@ body.page-detail .disclaimer {
     margin: 24px 0;
     font-size: 14px;
     color: #374151; /* Darker for better contrast (WCAG AA) */
-    border-left: 4px solid var(--accent-green, #84D067);
+    border-left: 4px solid var(--accent-green, #76b82a);
 }
 
 /* Disclaimer link styles removed - no longer needed */
@@ -1257,7 +1274,7 @@ body.page-detail .activity-info {
 /* In-page table of contents and sections */
 .edital-toc { background: #ffffff; border: 1px solid #edf1f5; border-radius: 8px; padding: 12px 16px; margin: 16px 0 20px; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
 .edital-toc ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px 16px; }
-.edital-toc a { color: #0d6efd; text-decoration: none; font-size: 14px; }
+.edital-toc a { color: #27348b; text-decoration: none; font-size: 14px; }
 .edital-toc a:hover { text-decoration: underline; }
 
 .edital-section { margin: 18px 0; }
@@ -1280,9 +1297,9 @@ body.page-detail { background-color: #f0f2f5; }
 
 /* Brand palette override for details page */
 .edital-detail-page {
-  --curve-start: #DFF0D1; /* lighter tint of #84D067 */
-  --curve-mid:   #84D067; /* provided brand green */
-  --curve-end:   #5E9B3C; /* darker shade of #84D067 */
+  --curve-start: #E8F5E0; /* lighter tint of #76b82a */
+  --curve-mid:   #76b82a; /* UniRV brand green */
+  --curve-end:   #5a8f1f; /* darker shade of #76b82a */
 }
 
 /* Align hero to palette */
@@ -1292,10 +1309,11 @@ body.page-detail { background-color: #f0f2f5; }
 /* THEME for detail page (scoped) */
 .page-detail body { background-color: #f0f2f5; }
 :root {
-    /* Colors */
-    --primary-blue: #19316C;
-    --secondary-blue: #3C78D8;
-    --accent-green: #84D067;
+    /* UniRV Official Colors */
+    --primary-blue: #27348b; /* Azul Institucional */
+    --secondary-blue: #0067b1; /* Azul de Apoio */
+    --accent-green: #76b82a; /* Verde Secundário */
+    --support-gray: #dadada; /* Cinza de Apoio */
     --text-dark: #333;
     --text-light: #fff;
     --border-light: #eee;
@@ -1339,29 +1357,13 @@ body.page-detail { background-color: #f0f2f5; }
 }
 .page-detail .navbar { background-color: var(--primary-blue); color: var(--text-light); box-shadow: 0 2px 4px rgba(0,0,0,.1); position: sticky; top: 0; z-index: 1000; }
 .page-detail .navbar-left .logo, .page-detail .navbar-left .logo-subtitle { color: var(--text-light); }
-.page-detail .navbar-right a { color: var(--text-light); border-radius: 20px; }
-.page-detail .navbar-right a.active { background-color: var(--secondary-blue); }
-.page-detail .navbar-right a:hover { background-color: rgba(255,255,255,0.1); }
+.page-detail .navbar-right a { color: var(--text-light); border-radius: 4px; padding: 8px 16px; transition: background-color 0.4s ease-in-out; }
+.page-detail .navbar-right a.active { background-color: rgba(255,255,255,0.15); }
+.page-detail .navbar-right a:hover { background-color: rgba(255,255,255,0.1); color: #fff; }
 
-/* Curva verde lateral ALTA com efeito parallax */
+/* Curva verde lateral ALTA com efeito parallax - REMOVIDA para design minimalista */
 .green-curve {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 28%;
-    max-width: 350px;
-    min-width: 240px;
-    height: 300vh; /* Aumentado para espalhar melhor o crescendo/decrescendo */
-    z-index: 0;
-    pointer-events: none;
-    will-change: transform;
-    display: block;
-}
-
-.green-curve svg {
-    width: 100%;
-    height: 100%;
-    display: block;
+    display: none; /* Removido para seguir padrão minimalista UniRV */
 }
 
 .content-area {
@@ -1382,17 +1384,13 @@ body.page-detail .content-area {
   body.page-detail::before { width: clamp(380px, 50vw, 760px); }
 }
 
-/* Mobile: hide curve on small screens */
+/* Mobile: container adjustments */
 @media (max-width: 1023px){
-  body.page-detail .green-curve {
-    display: none;
-  }
-  
   body.page-detail .container {
     padding-left: 24px;
     padding-right: 24px;
     width: 100%;
-    max-width: 1100px;
+    max-width: 100%;
     margin: 0 auto;
   }
 }
@@ -1433,7 +1431,7 @@ body.page-detail .content-area {
     position: absolute;
     top: -40px;
     left: 0;
-    background: #0d6efd;
+    background: #27348b;
     color: white;
     padding: 8px 16px;
     text-decoration: none;
@@ -1490,7 +1488,7 @@ select:focus-visible,
 textarea:focus-visible,
 .btn:focus-visible,
 .page-link:focus-visible {
-    outline: 3px solid #0d6efd;
+    outline: 3px solid #27348b;
     outline-offset: 2px;
     border-radius: 4px;
 }
@@ -1500,7 +1498,7 @@ button:focus,
 input:focus,
 select:focus,
 textarea:focus {
-    outline: 3px solid #0d6efd;
+    outline: 3px solid #27348b;
     outline-offset: 2px;
 }
 
@@ -1591,6 +1589,26 @@ textarea:focus {
         border-bottom: 1px solid #eee;
     }
 
+    .navbar-right a {
+        color: #27348b;
+        padding: 12px 16px;
+        display: block;
+        width: 100%;
+    }
+
+    .navbar-action-btn {
+        width: 100%;
+        justify-content: flex-start;
+        background-color: #f3f4f6;
+        border-color: #e5e7eb;
+        color: #27348b;
+    }
+
+    .navbar-action-btn:hover {
+        background-color: #e5e7eb;
+        transform: none;
+    }
+
     .navbar-right li:last-child {
         border-bottom: none;
     }
@@ -1640,7 +1658,7 @@ textarea:focus {
 .form-header-icon {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, #19316C 0%, #0d6efd 100%);
+    background: linear-gradient(135deg, #27348b 0%, #0067b1 100%);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -1648,7 +1666,7 @@ textarea:focus {
     color: white;
     font-size: 28px;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(25, 49, 108, 0.2);
+    box-shadow: 0 4px 12px rgba(39, 52, 139, 0.2);
 }
 
 .form-header-text {
@@ -1657,8 +1675,9 @@ textarea:focus {
 
 .form-main-title {
     font-size: 32px;
-    font-weight: 700;
-    color: #19316C;
+    font-weight: 800; /* Montserrat ExtraBold */
+    font-family: 'Montserrat', sans-serif;
+    color: #27348b;
     line-height: 1.2;
     margin: 0 0 8px 0;
     letter-spacing: -0.5px;
@@ -1674,7 +1693,7 @@ textarea:focus {
 
 .form-header {
     margin-bottom: 30px;
-    border-bottom: 2px solid #0d6efd;
+    border-bottom: 2px solid #27348b;
     padding-bottom: 15px;
 }
 
@@ -1733,14 +1752,14 @@ textarea:focus {
 
 .section-title {
     font-size: 20px;
-    color: #0d6efd;
+    color: #27348b;
     margin: 0 0 20px 0;
     font-weight: 600;
 }
 
 .section-title-modern {
     font-size: 20px;
-    color: #19316C;
+    color: #27348b;
     margin: 0 0 24px 0;
     font-weight: 700;
     display: flex;
@@ -1751,7 +1770,7 @@ textarea:focus {
 }
 
 .section-title-modern i {
-    color: #84D067;
+    color: #76b82a;
     font-size: 18px;
 }
 
@@ -1788,9 +1807,9 @@ textarea:focus {
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    border-color: #84D067;
+    border-color: #76b82a;
     background: white;
-    box-shadow: 0 0 0 4px rgba(132, 208, 103, 0.1);
+    box-shadow: 0 0 0 4px rgba(118, 184, 42, 0.1);
     outline: none;
 }
 
@@ -1813,7 +1832,7 @@ textarea:focus {
     gap: 8px;
     padding: 12px 16px;
     background: #f0f7ff;
-    border-left: 3px solid #0d6efd;
+    border-left: 3px solid #27348b;
     border-radius: 6px;
     margin-bottom: 24px;
     font-size: 14px;
@@ -1821,7 +1840,7 @@ textarea:focus {
 }
 
 .form-help-text i {
-    color: #0d6efd;
+    color: #27348b;
     font-size: 16px;
 }
 
@@ -1892,13 +1911,14 @@ input.has-date-error:focus {
 }
 
 .form-actions-modern .btn-primary {
-    background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
-    box-shadow: 0 4px 12px rgba(30, 126, 52, 0.3);
+    background-color: #27348b; /* Azul institucional UniRV - cor sólida */
+    box-shadow: 0 4px 12px rgba(39, 52, 139, 0.3);
 }
 
 .form-actions-modern .btn-primary:hover {
+    background-color: #1e2a6b; /* Tom mais escuro no hover */
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(30, 126, 52, 0.4);
+    box-shadow: 0 6px 16px rgba(39, 52, 139, 0.4);
 }
 
 .form-actions-modern .btn-secondary {
@@ -1948,7 +1968,7 @@ input.has-date-error:focus {
 }
 
 .breadcrumb-item a {
-    color: #19316C;
+    color: #27348b;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -1957,7 +1977,7 @@ input.has-date-error:focus {
 }
 
 .breadcrumb-item a:hover {
-    color: #84D067;
+    color: #76b82a;
     text-decoration: underline;
 }
 
@@ -1971,7 +1991,7 @@ input.has-date-error:focus {
 }
 
 .breadcrumb-item[aria-current="page"] span {
-    color: #19316C;
+    color: #27348b;
     font-weight: 600;
 }
 
@@ -2060,7 +2080,7 @@ input.has-date-error:focus {
 }
 
 .delete-warning-title strong {
-    color: #19316C;
+    color: #27348b;
     font-weight: 600;
 }
 
@@ -2236,7 +2256,7 @@ input.has-date-error:focus {
     width: 50px;
     height: 50px;
     border: 4px solid #e5e7eb;
-    border-top-color: #0d6efd;
+    border-top-color: #27348b;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -2344,7 +2364,7 @@ input.has-date-error:focus {
 
 .activity-info i {
     margin-right: 4px;
-    color: #0d6efd;
+    color: #27348b;
 }
 
 /* Subtitle styling */
@@ -2700,7 +2720,7 @@ a[target="_blank"]:hover::after {
 }
 
 .toast-info {
-    border-left: 4px solid #0d6efd;
+    border-left: 4px solid #27348b;
 }
 
 .toast-info::before {
@@ -2708,7 +2728,7 @@ a[target="_blank"]:hover::after {
     display: inline-block;
     width: 24px;
     height: 24px;
-    background: #0d6efd;
+    background: #27348b;
     color: white;
     border-radius: 50%;
     text-align: center;
@@ -2750,7 +2770,7 @@ a[target="_blank"]:hover::after {
     width: 60px;
     height: 60px;
     border: 5px solid #e5e7eb;
-    border-top-color: #0d6efd;
+    border-top-color: #27348b;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -2928,7 +2948,7 @@ html {
 }
 
 .search-results-count strong {
-    color: #19316C;
+    color: #27348b;
     font-weight: 700;
 }
 
@@ -2985,7 +3005,7 @@ html {
     width: 16px;
     height: 16px;
     border: 2px solid #9ca3af;
-    border-top-color: var(--accent-green, #84D067);
+    border-top-color: var(--accent-green, #76b82a);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
     z-index: 1;
@@ -3351,7 +3371,7 @@ html {
 }
 
 .modal-content:focus {
-    outline: 3px solid #0d6efd;
+    outline: 3px solid #27348b;
     outline-offset: 2px;
 }
 
@@ -3367,8 +3387,9 @@ html {
 
 .dashboard-header h1 {
     font-size: 32px;
-    font-weight: 700;
-    color: #19316C;
+    font-weight: 800; /* Montserrat ExtraBold */
+    font-family: 'Montserrat', sans-serif;
+    color: #27348b;
     margin-bottom: 8px;
 }
 
@@ -3412,7 +3433,7 @@ html {
 }
 
 .stat-icon.stat-total {
-    background: linear-gradient(135deg, #19316C 0%, #0d6efd 100%);
+    background: linear-gradient(135deg, #27348b 0%, #0067b1 100%);
 }
 
 .stat-icon.stat-aberto {
@@ -3481,7 +3502,7 @@ html {
     padding: 16px;
     background: #f9fafb;
     border-radius: 8px;
-    border-left: 4px solid #0d6efd;
+    border-left: 4px solid #27348b;
     transition: all 0.2s;
 }
 
@@ -3497,7 +3518,7 @@ html {
 
 .edital-link-small {
     font-weight: 600;
-    color: #19316C;
+    color: #27348b;
     text-decoration: none;
     font-size: 16px;
     display: block;
@@ -3505,7 +3526,7 @@ html {
 }
 
 .edital-link-small:hover {
-    color: #0d6efd;
+    color: #0067b1;
     text-decoration: underline;
 }
 
@@ -3580,4 +3601,3 @@ html {
     text-align: center;
     padding: 40px;
 }
-

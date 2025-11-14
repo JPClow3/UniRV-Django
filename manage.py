@@ -2,6 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+import shutil
 
 
 def main():
@@ -9,6 +10,22 @@ def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'UniRV_Django.settings')
     try:
         from django.core.management import execute_from_command_line
+        
+        # Interceptar comando collectstatic para limpar antes de coletar
+        if len(sys.argv) > 1 and sys.argv[1] == 'collectstatic':
+            from django.conf import settings
+            
+            # Limpar staticfiles antes de coletar
+            staticfiles_dir = settings.STATIC_ROOT
+            if staticfiles_dir and os.path.exists(staticfiles_dir):
+                print(f"\n[INFO] Limpando diretorio {staticfiles_dir}...")
+                try:
+                    shutil.rmtree(str(staticfiles_dir))
+                    print(f"[OK] Diretorio limpo com sucesso\n")
+                except Exception as e:
+                    print(f"[AVISO] Nao foi possivel limpar {staticfiles_dir}: {e}")
+                    print("        Continuando com collectstatic mesmo assim...\n")
+        
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "

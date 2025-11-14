@@ -1,33 +1,62 @@
 // ========================================
-// AgroHub - Main JavaScript
 // ========================================
 
 // ========================================
-// AJAX FILTERS FOR INDEX PAGE
+// AJAX FILTERS FOR INDEX PAGE WITH DEBOUNCING
 // ========================================
 (function () {
     const searchForm = document.querySelector('.search-form');
     const editaisGrid = document.querySelector('.editais-grid');
     const paginationContainer = document.querySelector('.pagination-container');
+    const searchInput = document.querySelector('.search-input, .search-input-enhanced');
 
     if (!searchForm || !editaisGrid) return;
 
-    // Intercept form submission
-    searchForm.addEventListener('submit', function (event) {
-        event.preventDefault();
+    let searchTimeout = null;
+    const SEARCH_DELAY = 500;
+    let isLoading = false;
+
+    // Expose searchTimeout to window for keyboard shortcuts
+    window.searchTimeout = searchTimeout;
+
+    // Function to show skeleton loading
+    function showSkeletonLoading() {
+        if (isLoading) return;
+        isLoading = true;
+
+        editaisGrid.classList.add('loading');
+        const skeletonCount = 6;
+        const skeletonCards = [];
+
+        for (let i = 0; i < skeletonCount; i++) {
+            skeletonCards.push(`
+                <article class="skeleton-card" role="listitem" aria-hidden="true">
+                    <div class="skeleton skeleton-badge"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                    <div class="skeleton skeleton-button"></div>
+                </article>
+            `);
+        }
+
+        editaisGrid.innerHTML = skeletonCards.join('');
+    }
+
+    // Function to perform search (exposed globally for keyboard shortcuts)
+    window.performSearch = function() {
+        if (isLoading) return;
 
         // Get form data
         const formData = new FormData(searchForm);
         const params = new URLSearchParams(formData);
 
-        // Build URL with parameters
         const url = `${window.location.pathname}?${params.toString()}`;
 
-        // Show loading state
-        editaisGrid.style.opacity = '0.5';
-        editaisGrid.style.pointerEvents = 'none';
+        // Show skeleton loading
+        showSkeletonLoading();
 
-        // Fetch filtered results
         fetch(url, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -35,23 +64,28 @@
         })
             .then(response => response.text())
             .then(html => {
-                // Parse the response
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
 
-                // Extract the new grid content
                 const newGrid = doc.querySelector('.editais-grid');
                 const newPagination = doc.querySelector('.pagination-container');
+                const newResultsCount = doc.querySelector('.search-results-count');
+
+                const resultsCountElement = document.querySelector('.search-results-count');
+                if (newResultsCount && resultsCountElement) {
+                    resultsCountElement.innerHTML = newResultsCount.innerHTML;
+                }
 
                 if (newGrid) {
+                    editaisGrid.classList.remove('loading');
                     editaisGrid.innerHTML = newGrid.innerHTML;
-                    editaisGrid.style.opacity = '1';
-                    editaisGrid.style.pointerEvents = 'auto';
+                    isLoading = false;
 
-                    // Re-initialize favorite buttons for new content
-                    if (window.setupFavoriteButtons) {
-                        window.setupFavoriteButtons();
-                    }
+                    editaisGrid.classList.add('fade-in');
+                    setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
+
+                    // Announce to screen readers
+                    announceToScreenReader(`Resultados atualizados. ${newGrid.children.length} editais encontrados.`);
                 }
 
                 if (newPagination && paginationContainer) {
@@ -62,18 +96,116 @@
                 // Update URL in browser (allow sharing filtered results)
                 history.pushState({search: params.toString()}, '', url);
 
-                // Scroll to top of results
+                // Smooth scroll to top of results
                 editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
             })
             .catch(error => {
                 console.error('Error fetching results:', error);
-                editaisGrid.style.opacity = '1';
-                editaisGrid.style.pointerEvents = 'auto';
+                editaisGrid.classList.remove('loading');
+                isLoading = false;
                 showToast('Erro ao filtrar editais. Tente novamente.', 'error');
             });
+    };
+
+    // Function to toggle clear button and keyboard hint (exposed for use in event handlers)
+    function toggleSearchUI(inputElement, value) {
+        if (!inputElement) return;
+        const wrapper = inputElement.closest('.search-input-wrapper');
+        if (!wrapper) return;
+
+        const clearButton = wrapper.querySelector('.search-clear');
+        const keyboardHint = wrapper.querySelector('.keyboard-hint');
+
+        if (value && value.length > 0) {
+            if (!clearButton) {
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = 'search-clear';
+                clearBtn.setAttribute('aria-label', 'Limpar busca');
+                clearBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
+                inputElement.parentNode.insertBefore(clearBtn, inputElement.nextSibling);
+            } else {
+                clearButton.style.display = 'flex';
+            }
+            if (keyboardHint) {
+                keyboardHint.style.display = 'none';
+            }
+        } else {
+            if (clearButton) {
+                clearButton.style.display = 'none';
+            }
+            if (keyboardHint) {
+                keyboardHint.style.display = 'flex';
+            }
+        }
+    }
+
+    if (searchInput) {
+        toggleSearchUI(searchInput, searchInput.value);
+
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchTimeout);
+            window.searchTimeout = null;
+
+            toggleSearchUI(this, this.value);
+
+            const wrapper = this.closest('.search-input-wrapper');
+            if (wrapper) {
+                wrapper.classList.add('searching');
+            }
+
+            searchTimeout = setTimeout(() => {
+                if (this.value.length >= 3 || this.value.length === 0) {
+                    window.performSearch();
+                }
+                if (wrapper) {
+                    wrapper.classList.remove('searching');
+                }
+                window.searchTimeout = null;
+            }, SEARCH_DELAY);
+            window.searchTimeout = searchTimeout;
+        });
+    }
+
+    // Clear button functionality - use event delegation for dynamic content
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.search-clear')) {
+            e.preventDefault();
+            const clearBtn = e.target.closest('.search-clear');
+            const input = clearBtn.previousElementSibling;
+            if (input && input.tagName === 'INPUT') {
+                input.value = '';
+                input.focus();
+
+                toggleSearchUI(input, '');
+
+                if (window.searchTimeout) {
+                    clearTimeout(window.searchTimeout);
+                    window.searchTimeout = null;
+                }
+
+                if (window.performSearch) {
+                    window.performSearch();
+                } else {
+                    const form = input.closest('form');
+                    if (form) {
+                        form.dispatchEvent(new Event('submit', { cancelable: true }));
+                    }
+                }
+            }
+        }
     });
 
-    // Handle browser back/forward buttons
+    // Intercept form submission (manual submit)
+    if (searchForm) {
+        searchForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            clearTimeout(searchTimeout);
+            window.searchTimeout = null;
+            window.performSearch();
+        });
+    }
+
     window.addEventListener('popstate', function (event) {
         if (event.state && event.state.search) {
             // Reload the page with the stored search params
@@ -90,7 +222,8 @@
                 event.preventDefault();
                 const url = this.href;
 
-                editaisGrid.style.opacity = '0.5';
+                // Show skeleton loading
+                showSkeletonLoading();
 
                 fetch(url, {
                     headers: {
@@ -106,13 +239,15 @@
                         const newPagination = doc.querySelector('.pagination-container');
 
                         if (newGrid) {
+                            editaisGrid.classList.remove('loading');
                             editaisGrid.innerHTML = newGrid.innerHTML;
-                            editaisGrid.style.opacity = '1';
+                            isLoading = false;
 
-                            // Re-initialize favorite buttons
-                            if (window.setupFavoriteButtons) {
-                                window.setupFavoriteButtons();
-                            }
+                            editaisGrid.classList.add('fade-in');
+                            setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
+
+                            // Announce to screen readers
+                            announceToScreenReader(`Página atualizada. ${newGrid.children.length} editais exibidos.`);
                         }
 
                         if (newPagination && paginationContainer) {
@@ -121,11 +256,15 @@
                         }
 
                         history.pushState({}, '', url);
+
+                        // Smooth scroll to top of results
                         editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        editaisGrid.style.opacity = '1';
+                        editaisGrid.classList.remove('loading');
+                        isLoading = false;
+                        showToast('Erro ao carregar página. Tente novamente.', 'error');
                     });
             });
         });
@@ -133,82 +272,17 @@
 
     // Initial setup for pagination
     setupPaginationAjax();
-})();
 
-// ========================================
-// FAVORITE TOGGLE FUNCTIONALITY (Detail + Cards)
-// ========================================
-(function () {
-    // Setup favorite buttons (works for both detail page and cards)
-    window.setupFavoriteButtons = function () {
-        const favoriteButtons = document.querySelectorAll('.favorite-btn, .favorite-btn-card');
+    // Announce to screen readers helper
+    function announceToScreenReader(message) {
+        const announcement = document.createElement('div');
+        announcement.setAttribute('role', 'status');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.className = 'sr-only';
+        announcement.textContent = message;
+        document.body.appendChild(announcement);
 
-        favoriteButtons.forEach(function (btn) {
-            // Remove old listener by cloning
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
-
-            newBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const editalId = this.dataset.editalId;
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                if (!csrfToken) {
-                    window.location.href = '/admin/login/?next=' + window.location.pathname;
-                    return;
-                }
-
-                // Show loading state
-                this.disabled = true;
-                const icon = this.querySelector('i');
-                const originalClass = icon.className;
-                icon.className = 'fas fa-spinner fa-spin';
-
-                fetch(`/edital/${editalId}/toggle-favorite/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.classList.toggle('favorited');
-                            icon.className = originalClass;
-
-                            const text = this.querySelector('.favorite-text');
-                            if (text) {
-                                text.textContent = data.is_favorited ? 'Favoritado' : 'Favoritar';
-                            }
-
-                            const currentLabel = data.is_favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
-                            this.setAttribute('aria-label', currentLabel);
-                            this.setAttribute('title', currentLabel);
-
-                            // Show toast message
-                            showToast(data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        icon.className = originalClass;
-                        showToast('Erro ao favoritar. Tente novamente.', 'error');
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                    });
-            });
-        });
-    };
-
-    // Initial setup
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', window.setupFavoriteButtons);
-    } else {
-        window.setupFavoriteButtons();
+        setTimeout(() => announcement.remove(), 1000);
     }
 })();
 
@@ -224,15 +298,12 @@
   menuToggle.addEventListener('click', function() {
     const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
 
-    // Toggle aria-expanded
     menuToggle.setAttribute('aria-expanded', !isExpanded);
 
-    // Toggle menu open class
     navMenu.classList.toggle('menu-open');
 
     // Accessibility: trap focus inside menu when open
     if (!isExpanded) {
-      // Menu is opening - focus first link
       const firstLink = navMenu.querySelector('a');
       if (firstLink) {
         setTimeout(() => firstLink.focus(), 100);
@@ -240,7 +311,6 @@
     }
   });
 
-  // Close menu when clicking outside
   document.addEventListener('click', function(event) {
     const isClickInsideMenu = navMenu.contains(event.target);
     const isClickOnToggle = menuToggle.contains(event.target);
@@ -252,7 +322,6 @@
     }
   });
 
-  // Close menu on escape key
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
       menuToggle.setAttribute('aria-expanded', 'false');
@@ -288,14 +357,13 @@
     if (!editalForm) return;
 
     const AUTOSAVE_KEY = 'edital_form_autosave';
-    const AUTOSAVE_INTERVAL = 10000; // 10 seconds
+    const AUTOSAVE_INTERVAL = 10000;
     let formChanged = false;
     let autosaveInterval;
 
     // Get all form fields
     const formFields = editalForm.querySelectorAll('input, textarea, select');
 
-    // Check for saved data on page load
     window.addEventListener('DOMContentLoaded', function () {
         const savedData = localStorage.getItem(AUTOSAVE_KEY);
 
@@ -306,7 +374,6 @@
                 const now = new Date();
                 const hoursSince = (now - savedDate) / (1000 * 60 * 60);
 
-                // Only restore if saved within last 24 hours
                 if (hoursSince < 24) {
                     if (confirm(`Encontramos um rascunho salvo em ${savedDate.toLocaleString()}. Deseja restaurá-lo?`)) {
                         restoreFormData(data.fields);
@@ -333,7 +400,6 @@
         });
     });
 
-    // Autosave function
     function autosaveForm() {
         if (!formChanged) return;
 
@@ -351,7 +417,6 @@
 
         try {
             localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
-            // Show subtle indicator
             showAutosaveIndicator();
         } catch (e) {
             console.error('Autosave failed:', e);
@@ -368,7 +433,6 @@
         });
     }
 
-    // Show autosave indicator
     function showAutosaveIndicator() {
         let indicator = document.querySelector('.autosave-indicator');
         if (!indicator) {
@@ -403,7 +467,6 @@
         localStorage.removeItem(AUTOSAVE_KEY);
     });
 
-    // Manual save button (optional - add to template if desired)
     const manualSaveBtn = document.getElementById('manual-save-draft');
     if (manualSaveBtn) {
         manualSaveBtn.addEventListener('click', function (e) {
@@ -433,66 +496,65 @@
                 // Add loading state
                 submitBtn.classList.add('loading');
                 submitBtn.disabled = true;
+
+                // Show loading text, hide normal text
+                const btnText = submitBtn.querySelector('.btn-text');
+                const btnLoading = submitBtn.querySelector('.btn-loading');
+                if (btnText) btnText.style.display = 'none';
+                if (btnLoading) btnLoading.style.display = 'inline-block';
             }
         });
     });
 })();
 
 // ========================================
-// FAVORITE TOGGLE FUNCTIONALITY
+// DATE VALIDATION (Frontend)
 // ========================================
-(function () {
-    document.addEventListener('DOMContentLoaded', function () {
-        const favoriteButtons = document.querySelectorAll('.favorite-btn');
+(function() {
+    const startDateInput = document.getElementById('id_start_date');
+    const endDateInput = document.getElementById('id_end_date');
 
-        favoriteButtons.forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const editalId = this.dataset.editalId;
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    if (!startDateInput || !endDateInput) return;
 
-                // Show loading state
-                this.disabled = true;
-                const icon = this.querySelector('i');
-                const originalClass = icon.className;
-                icon.className = 'fas fa-spinner fa-spin';
+    function validateDates() {
+        if (startDateInput.value && endDateInput.value) {
+            const start = new Date(startDateInput.value);
+            const end = new Date(endDateInput.value);
 
-                fetch(`/edital/${editalId}/toggle-favorite/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            this.classList.toggle('favorited');
-                            icon.className = originalClass;
+            if (end < start) {
+                endDateInput.setCustomValidity('A data de encerramento deve ser posterior à data de abertura.');
+                endDateInput.classList.add('has-date-error');
+                return false;
+            } else {
+                endDateInput.setCustomValidity('');
+                endDateInput.classList.remove('has-date-error');
+            }
+        } else {
+            endDateInput.setCustomValidity('');
+            endDateInput.classList.remove('has-date-error');
+        }
+        return true;
+    }
 
-                            const text = this.querySelector('.favorite-text');
-                            if (text) {
-                                text.textContent = data.is_favorited ? 'Favoritado' : 'Favoritar';
-                            }
+    // Validate on change
+    startDateInput.addEventListener('change', validateDates);
+    endDateInput.addEventListener('change', validateDates);
 
-                            this.setAttribute('aria-label',
-                                data.is_favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
-                            );
+    // Validate on input (for real-time feedback)
+    startDateInput.addEventListener('input', validateDates);
+    endDateInput.addEventListener('input', validateDates);
 
-                            // Show toast message
-                            showToast(data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        icon.className = originalClass;
-                        showToast('Erro ao favoritar. Tente novamente.', 'error');
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                    });
-            });
+    // Validate on form submit
+    const form = startDateInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateDates()) {
+                e.preventDefault();
+                endDateInput.focus();
+                showToast('A data de encerramento deve ser posterior à data de abertura.', 'error');
+            }
         });
-    });
+    }
 })();
 
 // Toast notification helper
@@ -500,8 +562,9 @@ function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
-    toast.setAttribute('role', 'status');
-    toast.setAttribute('aria-live', 'polite');
+    // A11Y-002: Usar role="alert" para notificações importantes
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
 
     document.body.appendChild(toast);
 
@@ -513,10 +576,42 @@ function showToast(message, type = 'success') {
 }
 
 // ========================================
+// ERROR SUMMARY NAVIGATION (Accessibility)
+// ========================================
+(function () {
+    const errorLinks = document.querySelectorAll('.error-summary-list a');
+
+    errorLinks.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetField = document.getElementById(targetId);
+
+            if (targetField) {
+                // Scroll to field
+                targetField.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+                // Focus the field
+                setTimeout(function () {
+                    targetField.focus();
+
+                    const formGroup = targetField.closest('.form-group');
+                    if (formGroup) {
+                        formGroup.style.animation = 'highlight-flash 1s';
+                        setTimeout(() => {
+                            formGroup.style.animation = '';
+                        }, 1000);
+                    }
+                }, 300);
+            }
+        });
+    });
+})();
+
+// ========================================
 // FORM VALIDATION FEEDBACK
 // ========================================
 (function() {
-  // Add real-time validation feedback for required fields
   const requiredInputs = document.querySelectorAll('input[required], textarea[required], select[required]');
 
   requiredInputs.forEach(function(input) {
@@ -527,7 +622,6 @@ function showToast(message, type = 'success') {
       if (input.value.trim() === '') {
         formGroup.classList.add('has-error');
 
-        // Add error message if not already present
         if (!formGroup.querySelector('.field-error')) {
           const errorDiv = document.createElement('div');
           errorDiv.className = 'field-error';
@@ -588,14 +682,12 @@ function showToast(message, type = 'success') {
     const scrolled = window.pageYOffset || document.documentElement.scrollTop;
 
     // A curva se move MAIS DEVAGAR que o scroll (fator 0.22 para movimento ultra suave)
-    // Isso cria o efeito de você "passar" pela curva enquanto scrolla
     const parallaxFactor = 0.22;
     const translateY = -(scrolled * parallaxFactor);
 
     curve.style.transform = `translateY(${translateY}px)`;
   }
 
-  // Atualiza na inicialização
   updateCurvePosition();
 
     // Atualiza conforme scrolla (com throttle via requestAnimationFrame + debouncing)
@@ -603,7 +695,6 @@ function showToast(message, type = 'success') {
     let scrollTimeout;
 
   window.addEventListener('scroll', function() {
-      // Debounce: wait 10ms before processing
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(function () {
           if (!ticking) {
@@ -618,7 +709,6 @@ function showToast(message, type = 'success') {
 
   window.addEventListener('resize', updateCurvePosition);
 })();
-
 
 // ========================================
 // BACK TO TOP BUTTON
@@ -675,14 +765,16 @@ function showToast(message, type = 'success') {
 })();
 
 function showConfirmDialog(options) {
-  // Create overlay
+    const triggerElement = document.activeElement;
+
   const overlay = document.createElement('div');
   overlay.className = 'confirm-dialog-overlay';
+    overlay.setAttribute('role', 'alertdialog');
+    overlay.setAttribute('aria-modal', 'true');
 
-  // Create dialog
   const dialog = document.createElement('div');
   dialog.className = 'confirm-dialog';
-  dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('role', 'document');
   dialog.setAttribute('aria-labelledby', 'dialog-title');
   dialog.setAttribute('aria-describedby', 'dialog-desc');
 
@@ -702,13 +794,35 @@ function showConfirmDialog(options) {
   overlay.appendChild(dialog);
   document.body.appendChild(overlay);
 
-  // Show dialog
+    const focusableElements = dialog.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
   setTimeout(() => overlay.classList.add('active'), 10);
 
   // Focus first button for accessibility
-  dialog.querySelector('#dialog-cancel').focus();
+    firstFocusable.focus();
 
-  // Handle cancel
+    function trapFocus(e) {
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === firstFocusable) {
+                    lastFocusable.focus();
+                    e.preventDefault();
+                }
+            } else {
+                if (document.activeElement === lastFocusable) {
+                    firstFocusable.focus();
+                    e.preventDefault();
+                }
+            }
+        }
+    }
+
+    dialog.addEventListener('keydown', trapFocus);
+
   dialog.querySelector('#dialog-cancel').addEventListener('click', function() {
     closeDialog();
   });
@@ -721,19 +835,18 @@ function showConfirmDialog(options) {
     closeDialog();
   });
 
-  // Close on overlay click
   overlay.addEventListener('click', function(e) {
     if (e.target === overlay) {
       closeDialog();
     }
   });
 
-  // Close on escape key
   function handleEscape(e) {
     if (e.key === 'Escape') {
       closeDialog();
     }
   }
+
   document.addEventListener('keydown', handleEscape);
 
   function closeDialog() {
@@ -741,10 +854,238 @@ function showConfirmDialog(options) {
     setTimeout(() => {
       overlay.remove();
       document.removeEventListener('keydown', handleEscape);
+        dialog.removeEventListener('keydown', trapFocus);
+
+        if (triggerElement && typeof triggerElement.focus === 'function') {
+            triggerElement.focus();
+        }
     }, 300);
   }
 }
 
-console.log('✓ Back to top button initialized');
-console.log('✓ Confirmation dialogs initialized');
+// ========================================
+// KEYBOARD SHORTCUTS (Ctrl+K for search, Escape to clear)
+// ========================================
+(function() {
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const searchInput = document.querySelector('.search-input, .search-input-enhanced');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
 
+                const hint = document.querySelector('.keyboard-hint');
+                if (hint) {
+                    hint.style.opacity = '1';
+                    setTimeout(() => {
+                        hint.style.opacity = '0.5';
+                    }, 2000);
+                }
+            }
+        }
+
+        if (e.key === 'Escape') {
+            const searchInput = document.querySelector('.search-input:focus, .search-input-enhanced:focus');
+            if (searchInput && document.activeElement === searchInput) {
+                searchInput.value = '';
+                const searchForm = searchInput.closest('form');
+                if (searchForm) {
+                    if (window.searchTimeout) {
+                        clearTimeout(window.searchTimeout);
+                        window.searchTimeout = null;
+                    }
+
+                    if (window.performSearch) {
+                        window.performSearch();
+                    } else {
+                        searchForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                    }
+                }
+                searchInput.blur();
+            }
+        }
+    });
+})();
+
+// ========================================
+// SMOOTH SCROLL FOR ALL ANCHOR LINKS
+// ========================================
+(function() {
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#' || href === '#!') return;
+
+            const target = document.querySelector(href);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Smooth scroll for pagination and internal links
+    document.querySelectorAll('a[href*="#"]').forEach(link => {
+        if (link.hash) {
+            link.addEventListener('click', function(e) {
+                const target = document.querySelector(this.hash);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        }
+    });
+})();
+
+// Development logging (remove in production or use proper logging)
+if (typeof DEBUG !== 'undefined' && DEBUG) {
+    console.log('✓ Back to top button initialized');
+    console.log('✓ Confirmation dialogs initialized');
+    console.log('✓ Keyboard shortcuts initialized (Ctrl+K for search)');
+    console.log('✓ Smooth scroll initialized');
+    console.log('✓ Loading skeletons initialized');
+    console.log('✓ Debounced search initialized');
+}
+
+// ========================================
+// LOADING STATE FOR CSV EXPORT (UI-004)
+// ========================================
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportLinks = document.querySelectorAll('a[href*="export_editais_csv"], .export-link');
+
+        exportLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Adicionar estado de loading
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Exportando...';
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.7';
+
+                // Restaurar após 5 segundos (caso o download não inicie)
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.style.pointerEvents = '';
+                    this.style.opacity = '';
+                }, 5000);
+            });
+        });
+    });
+})();
+
+// ========================================
+// MODAL FOCUS TRAP (A11Y-005)
+// ========================================
+(function() {
+    // Function to trap focus inside modal
+    function trapFocus(modal) {
+        const focusableElements = modal.querySelectorAll(
+            'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        // Focus first element when modal opens
+        setTimeout(() => firstElement.focus(), 100);
+
+        function handleTabKey(e) {
+            if (e.key !== 'Tab') return;
+
+            if (e.shiftKey) {
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                }
+            } else {
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        }
+
+        function handleEscapeKey(e) {
+            if (e.key === 'Escape') {
+                closeModal(modal);
+            }
+        }
+
+        modal.addEventListener('keydown', handleTabKey);
+        modal.addEventListener('keydown', handleEscapeKey);
+
+        modal._focusHandlers = { handleTabKey, handleEscapeKey };
+    }
+
+    function releaseFocus(modal) {
+        if (modal._focusHandlers) {
+            modal.removeEventListener('keydown', modal._focusHandlers.handleTabKey);
+            modal.removeEventListener('keydown', modal._focusHandlers.handleEscapeKey);
+            delete modal._focusHandlers;
+        }
+    }
+
+    // Function to open modal
+    function openModal(modal) {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        trapFocus(modal);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    // Function to close modal
+    function closeModal(modal) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        releaseFocus(modal);
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    // Initialize modals
+    document.addEventListener('DOMContentLoaded', function() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.setAttribute('aria-hidden', 'true');
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal(modal);
+                }
+            });
+
+            const closeButtons = modal.querySelectorAll('[data-modal-close]');
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', () => closeModal(modal));
+            });
+        });
+
+        // Open modal triggers
+        document.querySelectorAll('[data-modal-open]').forEach(trigger => {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                const modalId = this.getAttribute('data-modal-open');
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    openModal(modal);
+                }
+            });
+        });
+    });
+
+    // Expose functions globally
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+})();
