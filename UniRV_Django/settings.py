@@ -24,13 +24,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Em desenvolvimento, padrão é True. Em produção, definir DJANGO_DEBUG=False explicitamente
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 # Security: explicit ALLOWED_HOSTS
+# Parsear e validar ALLOWED_HOSTS antes de usar
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
 if DEBUG:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
-    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+    # Em produção, usar variável de ambiente
+    # Em desenvolvimento sem DEBUG, ainda permitir localhost
+    if allowed_hosts_env:
+        # Parsear hosts e filtrar valores vazios
+        parsed_hosts = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
+        # Validar que há pelo menos um host válido
+        if parsed_hosts:
+            ALLOWED_HOSTS = parsed_hosts
+        else:
+            # Se parsing resultou em lista vazia, usar fallback para desenvolvimento
+            ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+    else:
+        # Fallback para desenvolvimento: permitir localhost mesmo sem DEBUG
+        ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 
 # Application definition
@@ -163,7 +179,17 @@ EDITAL_SEARCH_FIELDS = [
 ]
 
 # Security settings for production
-if not DEBUG:
+# Verificar se estamos em produção (DEBUG=False E ALLOWED_HOSTS válido e não-vazio)
+# Alinhar com a validação do ALLOWED_HOSTS para evitar ativar segurança de produção
+# com configuração inválida (ex: ALLOWED_HOSTS=' ' ou ALLOWED_HOSTS=',,,')
+allowed_hosts_env_raw = os.environ.get('ALLOWED_HOSTS', '').strip()
+has_valid_allowed_hosts = (
+    allowed_hosts_env_raw and
+    len([host.strip() for host in allowed_hosts_env_raw.split(',') if host.strip()]) > 0
+)
+is_production = not DEBUG and has_valid_allowed_hosts
+
+if is_production:
     # Session security
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -185,7 +211,10 @@ else:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SECURE_SSL_REDIRECT = False
+    # Desabilitar HSTS completamente em desenvolvimento
     SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 
 # Session security settings (apply to both dev and production)
 SESSION_COOKIE_AGE = 3600  # 1 hour in seconds

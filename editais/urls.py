@@ -19,4 +19,5 @@ urlpatterns = [
     # New features
     path('export/csv/', views.export_editais_csv, name='export_editais_csv'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('health/', views.health_check, name='health_check'),
 ]

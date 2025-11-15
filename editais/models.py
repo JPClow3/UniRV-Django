@@ -8,6 +8,36 @@ from django.utils import timezone
 
 
 class Edital(models.Model):
+    """
+    Modelo que representa um edital de fomento.
+    
+    Um edital é uma oportunidade de financiamento que possui informações
+    sobre título, datas, status, valores, cronograma e conteúdo detalhado.
+    
+    Attributes:
+        numero_edital: Número identificador do edital
+        titulo: Título do edital (obrigatório)
+        slug: URL-friendly version do título (gerado automaticamente)
+        url: URL do edital original
+        entidade_principal: Entidade responsável pelo edital
+        status: Status atual (draft, aberto, fechado, etc.)
+        start_date: Data de abertura
+        end_date: Data de encerramento
+        data_criacao: Data de criação do registro
+        data_atualizacao: Data da última atualização
+        created_by: Usuário que criou o edital
+        updated_by: Usuário que atualizou o edital pela última vez
+        
+    Properties:
+        days_until_deadline: Dias restantes até o prazo
+        is_deadline_imminent: True se prazo está próximo (7 dias)
+        
+    Methods:
+        can_edit(user): Verifica se usuário pode editar
+        get_absolute_url(): Retorna URL do edital
+        is_open(): Verifica se está aberto
+        is_closed(): Verifica se está fechado
+    """
     STATUS_CHOICES = [
         ('draft', 'Rascunho'),
         ('aberto', 'Aberto'),
@@ -147,6 +177,9 @@ class Edital(models.Model):
         if self.start_date and self.end_date:
             if self.end_date <= today and self.status == 'aberto':
                 self.status = 'fechado'
+            elif self.start_date <= today and self.end_date >= today and self.status == 'programado':
+                # Adicionar lógica para mover de programado para aberto
+                self.status = 'aberto'
             elif self.start_date > today and self.status != 'draft':
                 self.status = 'programado'
         
@@ -187,8 +220,51 @@ class Edital(models.Model):
         """Check if edital is closed"""
         return self.status == 'fechado'
 
+    @property
+    def days_until_deadline(self):
+        """
+        Retorna o número de dias até a data de encerramento.
+        
+        Returns:
+            int: Número de dias até o prazo, ou None se não houver data de encerramento
+        """
+        if not self.end_date:
+            return None
+        delta = self.end_date - timezone.now().date()
+        return delta.days
+    
+    @property
+    def is_deadline_imminent(self):
+        """
+        Verifica se o prazo está próximo (dentro de 7 dias).
+        
+        Returns:
+            bool: True se o prazo está dentro de 7 dias, False caso contrário
+        """
+        days = self.days_until_deadline
+        if days is None:
+            return False
+        return 0 <= days <= 7
+    
+    def can_edit(self, user):
+        """
+        Verifica se o usuário pode editar este edital.
+        
+        Args:
+            user: Instância de User do Django
+            
+        Returns:
+            bool: True se o usuário pode editar, False caso contrário
+        """
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_staff or user == self.created_by
+    
     def __str__(self):
         return self.titulo
+    
+    def __repr__(self):
+        return f"<Edital: {self.titulo[:50]} (pk={self.pk}, status={self.status})>"
 
     def get_absolute_url(self):
         """Return URL using slug if available, otherwise use PK"""
@@ -201,6 +277,16 @@ class Edital(models.Model):
 
 
 class EditalValor(models.Model):
+    """
+    Modelo que representa o valor financeiro de um edital.
+    
+    Um edital pode ter múltiplos valores em diferentes moedas.
+    
+    Attributes:
+        edital: Edital relacionado (ForeignKey)
+        valor_total: Valor total do edital
+        moeda: Moeda do valor (BRL, USD, EUR)
+    """
     MOEDA_CHOICES = [
         ('BRL', 'Real Brasileiro (R$)'),
         ('USD', 'Dólar Americano (US$)'),
@@ -226,9 +312,24 @@ class EditalValor(models.Model):
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.valor_total} {self.moeda}'
+    
+    def __repr__(self):
+        return f"<EditalValor: edital_id={self.edital_id}, valor={self.valor_total} {self.moeda}>"
 
 
 class Cronograma(models.Model):
+    """
+    Modelo que representa um item do cronograma de um edital.
+    
+    Um edital pode ter múltiplos itens de cronograma com datas e descrições.
+    
+    Attributes:
+        edital: Edital relacionado (ForeignKey)
+        data_inicio: Data de início do item
+        data_fim: Data de fim do item
+        data_publicacao: Data de publicação
+        descricao: Descrição do item do cronograma
+    """
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='cronogramas')
     data_inicio = models.DateField(blank=True, null=True)
     data_fim = models.DateField(blank=True, null=True)
@@ -247,10 +348,29 @@ class Cronograma(models.Model):
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.descricao}'
+    
+    def __repr__(self):
+        return f"<Cronograma: edital_id={self.edital_id}, descricao={self.descricao[:30]}>"
 
 
 class EditalHistory(models.Model):
-    """Histórico de alterações em editais para auditoria"""
+    """
+    Modelo que representa o histórico de alterações em editais.
+    
+    Mantém um registro de todas as ações (criar, atualizar, deletar)
+    realizadas em editais para fins de auditoria.
+    
+    Attributes:
+        edital: Edital relacionado (pode ser None se deletado)
+        edital_titulo: Título preservado quando edital é deletado
+        user: Usuário que realizou a ação
+        action: Tipo de ação (create, update, delete)
+        field_name: Nome do campo alterado (legado)
+        old_value: Valor antigo (legado)
+        new_value: Valor novo (legado)
+        timestamp: Data e hora da ação
+        changes_summary: Resumo das mudanças em formato JSON
+    """
     edital = models.ForeignKey(
         Edital,
         on_delete=models.SET_NULL,  # Preserve history even if edital is deleted
@@ -297,4 +417,8 @@ class EditalHistory(models.Model):
     def __str__(self):
         titulo = self.edital.titulo if self.edital else (self.edital_titulo or 'Edital Deletado')
         return f'{titulo} - {self.get_action_display()} - {self.timestamp.strftime("%d/%m/%Y %H:%M")}'
+    
+    def __repr__(self):
+        edital_id = self.edital_id if self.edital else None
+        return f"<EditalHistory: edital_id={edital_id}, action={self.action}, timestamp={self.timestamp}>"
 

@@ -1,4 +1,5 @@
 import csv
+import logging
 
 import bleach
 from django.conf import settings
@@ -6,13 +7,23 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 
+from .constants import (
+    CACHE_TTL_INDEX, PAGINATION_DEFAULT, DEADLINE_WARNING_DAYS
+)
+from .decorators import rate_limit
+from .exceptions import EditalNotFoundError, EditalPermissionError
 from .forms import EditalForm
 from .models import Edital
+from .services import EditalService
+
+logger = logging.getLogger(__name__)
 
 # Allowed tags and attributes for HTML sanitization
 ALLOWED_TAGS = [
@@ -32,7 +43,15 @@ ALLOWED_ATTRIBUTES = {
 
 
 def sanitize_html(text):
-    """Sanitize HTML content to prevent XSS attacks."""
+    """
+    Sanitiza conteúdo HTML para prevenir ataques XSS.
+    
+    Args:
+        text: Texto a ser sanitizado
+        
+    Returns:
+        str: Texto sanitizado ou string vazia em caso de erro
+    """
     if not text:
         return text
     # Ensure text is a string
@@ -41,15 +60,21 @@ def sanitize_html(text):
     try:
         cleaned = bleach.clean(text, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
         return cleaned
-    except Exception:
+    except Exception as e:
+        logger.error(f"Erro ao sanitizar HTML: {e}")
         # If sanitization fails, return empty string to prevent XSS
         return ''
 
 
 def sanitize_edital_fields(edital):
     """
-    Sanitize all text fields in an edital instance.
-    Helper function to avoid code duplication.
+    Sanitiza todos os campos de texto de uma instância de edital.
+    
+    Args:
+        edital: Instância do modelo Edital
+        
+    Returns:
+        Edital: Instância sanitizada
     """
     fields = [
         'analise', 'objetivo', 'etapas', 'recursos',
@@ -66,11 +91,16 @@ def sanitize_edital_fields(edital):
 
 def mark_edital_fields_safe(edital):
     """
-    Mark sanitized HTML fields as safe for template rendering.
-    Helper function to avoid code duplication.
+    Marca campos HTML sanitizados como seguros para renderização em templates.
+    
+    Args:
+        edital: Instância do modelo Edital
+        
+    Returns:
+        Edital: Instância com campos marcados como seguros
     """
     fields = [
-        'objetivo', 'etapas', 'recursos',
+        'analise', 'objetivo', 'etapas', 'recursos',
         'itens_financiaveis', 'criterios_elegibilidade',
         'criterios_avaliacao', 'itens_essenciais_observacoes',
         'detalhes_unirv'
@@ -84,8 +114,13 @@ def mark_edital_fields_safe(edital):
 
 def build_search_query(search_query):
     """
-    Build a Q object for full-text search across all edital fields.
-    Uses settings.EDITAL_SEARCH_FIELDS for field list.
+    Constrói um objeto Q para busca de texto completo em todos os campos de edital.
+    
+    Args:
+        search_query: String de busca
+        
+    Returns:
+        Q: Objeto Q do Django para filtragem
     """
     if not search_query:
         return Q()
@@ -137,7 +172,7 @@ def index(request):
     cache_key = None
     has_filters = search_query or status_filter or start_date_filter or end_date_filter or only_open
     use_cache = not has_filters and not request.user.is_authenticated
-    cache_ttl = getattr(settings, 'EDITAIS_CACHE_TTL', 300)  # 5 minutes default
+    cache_ttl = getattr(settings, 'EDITAIS_CACHE_TTL', CACHE_TTL_INDEX)
 
     if use_cache:
         # Get current cache version to ensure we get the latest cached data
@@ -192,8 +227,8 @@ def index(request):
             # Invalid date format, ignore filter
             pass
 
-    # Use pagination constant from settings
-    per_page = getattr(settings, 'EDITAIS_PER_PAGE', 12)
+    # Use pagination constant
+    per_page = getattr(settings, 'EDITAIS_PER_PAGE', PAGINATION_DEFAULT)
     paginator = Paginator(editais, per_page)
     page_obj = paginator.get_page(page_number)
 
@@ -218,49 +253,84 @@ def index(request):
 
 
 def edital_detail(request, slug=None, pk=None):
-    """Página de detalhes do edital - suporta slug ou PK"""
-    # Optimize query with select_related and prefetch_related
-    if slug:
-        edital = get_object_or_404(
-            Edital.objects.select_related('created_by', 'updated_by')
-            .prefetch_related('valores', 'cronogramas', 'history'),
-            slug=slug
-        )
-    elif pk:
-        edital = get_object_or_404(
-            Edital.objects.select_related('created_by', 'updated_by')
-            .prefetch_related('valores', 'cronogramas', 'history'),
-            pk=pk
-        )
-    else:
-        from django.http import Http404
-        raise Http404("Edital não encontrado")
+    """
+    Página de detalhes do edital - suporta slug ou PK.
     
-    # FR-010: Hide draft editais from non-authenticated or non-staff users
-    if edital.status == 'draft':
-        if not request.user.is_authenticated or not request.user.is_staff:
-            from django.http import Http404
+    Args:
+        request: HttpRequest
+        slug: Slug do edital (opcional)
+        pk: Primary key do edital (opcional)
+        
+    Returns:
+        HttpResponse: Página de detalhes do edital
+        
+    Raises:
+        Http404: Se o edital não for encontrado ou não tiver permissão
+    """
+    try:
+        # Optimize query with select_related and prefetch_related
+        if slug:
+            edital = get_object_or_404(
+                Edital.objects.select_related('created_by', 'updated_by')
+                .prefetch_related('valores', 'cronogramas', 'history'),
+                slug=slug
+            )
+        elif pk:
+            edital = get_object_or_404(
+                Edital.objects.select_related('created_by', 'updated_by')
+                .prefetch_related('valores', 'cronogramas', 'history'),
+                pk=pk
+            )
+        else:
             raise Http404("Edital não encontrado")
-    
-    valores = edital.valores.all()
-    cronogramas = edital.cronogramas.all()
+        
+        # FR-010: Hide draft editais from non-authenticated or non-staff users
+        if edital.status == 'draft':
+            if not request.user.is_authenticated or not request.user.is_staff:
+                raise Http404("Edital não encontrado")
+        
+        valores = edital.valores.all()
+        cronogramas = edital.cronogramas.all()
 
-    # IMPORTANT: Sanitize HTML fields before marking as safe to prevent XSS
-    # This ensures any unsanitized HTML in the database is cleaned before rendering
-    sanitize_edital_fields(edital)
-    # Mark sanitized HTML as safe for rendering using helper function
-    mark_edital_fields_safe(edital)
+        # IMPORTANT: Sanitize HTML fields before marking as safe to prevent XSS
+        # This ensures any unsanitized HTML in the database is cleaned before rendering
+        sanitize_edital_fields(edital)
+        # Mark sanitized HTML as safe for rendering using helper function
+        mark_edital_fields_safe(edital)
 
-    context = {
-        'edital': edital,
-        'valores': valores,
-        'cronogramas': cronogramas,
-    }
-    return render(request, 'editais/detail.html', context)
+        context = {
+            'edital': edital,
+            'valores': valores,
+            'cronogramas': cronogramas,
+        }
+        return render(request, 'editais/detail.html', context)
+    except EditalNotFoundError as e:
+        # Converter exceção customizada para Http404
+        logger.warning(f"Edital não encontrado: {e.identifier}")
+        raise Http404("Edital não encontrado")
+    except Edital.DoesNotExist:
+        raise Http404("Edital não encontrado")
+    except Http404:
+        # Re-raise Http404 sem modificação
+        raise
+    except Exception as e:
+        logger.error(f"Erro inesperado em edital_detail: {e}", exc_info=True)
+        raise Http404("Erro ao carregar edital")
 
 
 def edital_detail_redirect(request, pk):
-    """Redirect PK-based URLs to slug-based URLs (301 permanent redirect)"""
+    """
+    Redireciona URLs baseadas em PK para URLs baseadas em slug.
+    
+    Redirecionamento permanente (301) para melhorar SEO e consistência de URLs.
+    
+    Args:
+        request: HttpRequest
+        pk: Primary key do edital
+        
+    Returns:
+        HttpResponse: Redirecionamento permanente para URL com slug
+    """
     edital = get_object_or_404(Edital, pk=pk)
     
     # FR-010: Hide draft editais from non-authenticated or non-staff users
@@ -277,53 +347,105 @@ def edital_detail_redirect(request, pk):
 
 
 @login_required
+@rate_limit(key='ip', rate=5, window=60, method='POST')
 def edital_create(request):
-    """Página para cadastrar novo edital - Requer autenticação e is_staff"""
+    """
+    Página para cadastrar novo edital - Requer autenticação e is_staff.
+    
+    Args:
+        request: HttpRequest
+        
+    Returns:
+        HttpResponse: Formulário de criação ou redirecionamento após sucesso
+        
+    Raises:
+        EditalPermissionError: Se o usuário não tiver permissão
+    """
     if not request.user.is_staff:
         return render(request, '403.html', {
             'message': 'Apenas usuários staff podem criar editais.'
         }, status=403)
     
-    if request.method == 'POST':
-        form = EditalForm(request.POST)
-        if form.is_valid():
-            edital = form.save(commit=False)
-            # Track who created this edital
-            edital.created_by = request.user
-            edital.updated_by = request.user
-            # Sanitize all text fields using helper function
-            sanitize_edital_fields(edital)
-            edital.save()
-            
-            # Create history entry
-            from .models import EditalHistory
-            EditalHistory.objects.create(
-                edital=edital,
-                edital_titulo=edital.titulo,
-                user=request.user,
-                action='create',
-                changes_summary={'titulo': edital.titulo}
-            )
-            
-            # Invalidate cache for index pages (clear all index cache keys)
-            _clear_index_cache()
-            messages.success(request, 'Edital cadastrado com sucesso!')
-            return redirect(edital.get_absolute_url())
-    else:
-        form = EditalForm()
+    logger.info(
+        f"edital_create iniciado - usuário: {request.user.username}, "
+        f"IP: {request.META.get('REMOTE_ADDR')}"
+    )
+    
+    try:
+        if request.method == 'POST':
+            form = EditalForm(request.POST)
+            if form.is_valid():
+                edital = form.save(commit=False)
+                # Track who created this edital
+                edital.created_by = request.user
+                edital.updated_by = request.user
+                # Sanitize all text fields using helper function
+                sanitize_edital_fields(edital)
+                edital.save()
+                
+                # Create history entry
+                from .models import EditalHistory
+                EditalHistory.objects.create(
+                    edital=edital,
+                    edital_titulo=edital.titulo,
+                    user=request.user,
+                    action='create',
+                    changes_summary={'titulo': edital.titulo}
+                )
+                
+                # Invalidate cache for index pages (clear all index cache keys)
+                _clear_index_cache()
+                
+                logger.info(
+                    f"edital criado com sucesso - ID: {edital.pk}, "
+                    f"título: {edital.titulo}, usuário: {request.user.username}"
+                )
+                
+                messages.success(request, 'Edital cadastrado com sucesso!')
+                return redirect(edital.get_absolute_url())
+        else:
+            form = EditalForm()
 
-    return render(request, 'editais/create.html', {'form': form})
+        return render(request, 'editais/create.html', {'form': form})
+    except Exception as e:
+        logger.error(
+            f"Erro ao criar edital - usuário: {request.user.username}, "
+            f"erro: {str(e)}",
+            exc_info=True
+        )
+        messages.error(request, 'Erro ao cadastrar edital. Tente novamente.')
+        form = EditalForm(request.POST if request.method == 'POST' else None)
+        return render(request, 'editais/create.html', {'form': form})
 
 
 @login_required
+@rate_limit(key='ip', rate=5, window=60, method='POST')
 def edital_update(request, pk):
-    """Página para editar edital - Requer autenticação e is_staff"""
+    """
+    Página para editar edital - Requer autenticação e is_staff.
+    
+    Args:
+        request: HttpRequest
+        pk: Primary key do edital
+        
+    Returns:
+        HttpResponse: Formulário de edição ou redirecionamento após sucesso
+        
+    Raises:
+        EditalPermissionError: Se o usuário não tiver permissão
+        EditalNotFoundError: Se o edital não for encontrado
+    """
     if not request.user.is_staff:
         return render(request, '403.html', {
             'message': 'Apenas usuários staff podem editar editais.'
         }, status=403)
     
     edital = get_object_or_404(Edital, pk=pk)
+    
+    logger.info(
+        f"edital_update iniciado - edital_id: {pk}, "
+        f"usuário: {request.user.username}, IP: {request.META.get('REMOTE_ADDR')}"
+    )
 
     if request.method == 'POST':
         form = EditalForm(request.POST, instance=edital)
@@ -369,47 +491,112 @@ def edital_update(request, pk):
             
             # Invalidate cache for index pages (clear all index cache keys)
             _clear_index_cache()
+            
+            logger.info(
+                f"edital atualizado com sucesso - ID: {edital.pk}, "
+                f"título: {edital.titulo}, usuário: {request.user.username}, "
+                f"campos alterados: {list(changes.keys())}"
+            )
+            
             messages.success(request, 'Edital atualizado com sucesso!')
             return redirect(edital.get_absolute_url())
     else:
         form = EditalForm(instance=edital)
 
-    return render(request, 'editais/update.html', {'form': form, 'edital': edital})
+    try:
+        return render(request, 'editais/update.html', {'form': form, 'edital': edital})
+    except Exception as e:
+        logger.error(
+            f"Erro ao renderizar formulário de edição - edital_id: {pk}, "
+            f"erro: {str(e)}",
+            exc_info=True
+        )
+        messages.error(request, 'Erro ao carregar formulário. Tente novamente.')
+        return redirect('editais_index')
 
 
 @login_required
+@rate_limit(key='ip', rate=5, window=60, method='POST')
 def edital_delete(request, pk):
-    """Deletar edital - Requer autenticação e is_staff"""
+    """
+    Deletar edital - Requer autenticação e is_staff.
+    
+    Args:
+        request: HttpRequest
+        pk: Primary key do edital
+        
+    Returns:
+        HttpResponse: Página de confirmação ou redirecionamento após exclusão
+        
+    Raises:
+        EditalPermissionError: Se o usuário não tiver permissão
+        EditalNotFoundError: Se o edital não for encontrado
+    """
     if not request.user.is_staff:
         return render(request, '403.html', {
             'message': 'Apenas usuários staff podem deletar editais.'
         }, status=403)
     
     edital = get_object_or_404(Edital, pk=pk)
+    
+    logger.info(
+        f"edital_delete iniciado - edital_id: {pk}, "
+        f"usuário: {request.user.username}, IP: {request.META.get('REMOTE_ADDR')}"
+    )
 
     if request.method == 'POST':
-        # Create history entry before deletion (preserve title)
-        from .models import EditalHistory
-        EditalHistory.objects.create(
-            edital=edital,
-            edital_titulo=edital.titulo,  # Preserve title before deletion
-            user=request.user,
-            action='delete',
-            changes_summary={'titulo': edital.titulo}
-        )
-        
-        edital.delete()
-        # Invalidate cache for index pages (clear all index cache keys)
-        _clear_index_cache()
-        messages.success(request, 'Edital excluído com sucesso!')
-        return redirect('editais_index')
+        try:
+            # Create history entry before deletion (preserve title)
+            from .models import EditalHistory
+            EditalHistory.objects.create(
+                edital=edital,
+                edital_titulo=edital.titulo,  # Preserve title before deletion
+                user=request.user,
+                action='delete',
+                changes_summary={'titulo': edital.titulo}
+            )
+            
+            titulo_edital = edital.titulo
+            edital.delete()
+            
+            # Invalidate cache for index pages (clear all index cache keys)
+            _clear_index_cache()
+            
+            logger.info(
+                f"edital deletado com sucesso - ID: {pk}, "
+                f"título: {titulo_edital}, usuário: {request.user.username}"
+            )
+            
+            messages.success(request, 'Edital excluído com sucesso!')
+            return redirect('editais_index')
+        except Exception as e:
+            logger.error(
+                f"Erro ao deletar edital - edital_id: {pk}, "
+                f"erro: {str(e)}",
+                exc_info=True
+            )
+            messages.error(request, 'Erro ao excluir edital. Tente novamente.')
+            return redirect('editais_index')
 
     return render(request, 'editais/delete.html', {'edital': edital})
 
 
 @login_required
 def export_editais_csv(request):
-    """Export editais to CSV file - Requer autenticação e is_staff"""
+    """
+    Exporta editais para arquivo CSV.
+    
+    Requer autenticação e permissão de staff.
+    Suporta filtros de busca e status via parâmetros GET.
+    
+    Args:
+        request: HttpRequest com parâmetros opcionais:
+            - search: Termo de busca
+            - status: Filtro por status
+            
+    Returns:
+        HttpResponse: Arquivo CSV para download
+    """
     if not request.user.is_staff:
         return render(request, '403.html', {
             'message': 'Apenas usuários staff podem exportar editais.'
@@ -469,58 +656,107 @@ def export_editais_csv(request):
 
 
 @login_required
+@rate_limit(key='ip', rate=10, window=60, method='GET')
 def admin_dashboard(request):
-    """Dashboard administrativo com estatísticas e gráficos"""
+    """
+    Dashboard administrativo com estatísticas e gráficos.
+    
+    Args:
+        request: HttpRequest
+        
+    Returns:
+        HttpResponse: Página do dashboard
+        
+    Raises:
+        EditalPermissionError: Se o usuário não tiver permissão
+    """
     if not request.user.is_staff:
         return render(request, '403.html', {
             'message': 'Apenas usuários staff podem acessar o dashboard.'
         }, status=403)
     
-    from django.db.models import Count, Q
-    from django.utils import timezone
-    from datetime import timedelta
+    from django.db.models import Count
     
-    # Estatísticas gerais
-    total_editais = Edital.objects.count()
-    editais_por_status = Edital.objects.values('status').annotate(count=Count('id')).order_by('status')
-    
-    # Editais recentes (últimos 7 dias)
-    seven_days_ago = timezone.now() - timedelta(days=7)
-    editais_recentes = Edital.objects.filter(
-        data_criacao__gte=seven_days_ago
-    ).select_related('created_by').order_by('-data_criacao')[:10]
-    
-    # Editais próximos do prazo (7 dias)
-    today = timezone.now().date()
-    deadline_date = today + timedelta(days=7)
-    editais_proximos_prazo = Edital.objects.filter(
-        end_date__gte=today,
-        end_date__lte=deadline_date,
-        status__in=['aberto', 'em_andamento']
-    ).order_by('end_date')[:10]
-    
-    # Atividades recentes (criados e atualizados)
-    atividades_recentes = Edital.objects.filter(
-        Q(data_criacao__gte=seven_days_ago) | Q(data_atualizacao__gte=seven_days_ago)
-    ).select_related('created_by', 'updated_by').order_by('-data_atualizacao')[:15]
-    
-    # Estatísticas por entidade
-    top_entidades = Edital.objects.exclude(
-        entidade_principal__isnull=True
-    ).exclude(
-        entidade_principal=''
-    ).values('entidade_principal').annotate(
-        count=Count('id')
-    ).order_by('-count')[:10]
-    
-    context = {
-        'total_editais': total_editais,
-        'editais_por_status': editais_por_status,
-        'editais_recentes': editais_recentes,
-        'editais_proximos_prazo': editais_proximos_prazo,
-        'atividades_recentes': atividades_recentes,
-        'top_entidades': top_entidades,
-    }
-    
-    return render(request, 'editais/dashboard.html', context)
+    try:
+        # Estatísticas gerais
+        total_editais = Edital.objects.count()
+        editais_por_status = Edital.objects.values('status').annotate(
+            count=Count('id')
+        ).order_by('status')
+        
+        # Usar serviços para obter dados otimizados
+        editais_recentes = EditalService.get_recent_editais(days=7)[:10]
+        
+        # Editais próximos do prazo usando serviço
+        editais_proximos_prazo = EditalService.get_editais_by_deadline(
+            days=DEADLINE_WARNING_DAYS
+        )[:10]
+        
+        # Atividades recentes usando serviço
+        atividades_recentes = EditalService.get_recent_activities(days=7)[:15]
+        
+        # Estatísticas por entidade
+        top_entidades = Edital.objects.exclude(
+            entidade_principal__isnull=True
+        ).exclude(
+            entidade_principal=''
+        ).values('entidade_principal').annotate(
+            count=Count('id')
+        ).order_by('-count')[:10]
+        
+        context = {
+            'total_editais': total_editais,
+            'editais_por_status': editais_por_status,
+            'editais_recentes': editais_recentes,
+            'editais_proximos_prazo': editais_proximos_prazo,
+            'atividades_recentes': atividades_recentes,
+            'top_entidades': top_entidades,
+        }
+        
+        return render(request, 'editais/dashboard.html', context)
+    except Exception as e:
+        logger.error(
+            f"Erro ao carregar dashboard - usuário: {request.user.username}, "
+            f"erro: {str(e)}",
+            exc_info=True
+        )
+        messages.error(request, 'Erro ao carregar dashboard. Tente novamente.')
+        return redirect('editais_index')
 
+
+def health_check(request):
+    """
+    Endpoint de health check para monitoramento.
+    
+    Verifica o status do banco de dados e cache.
+    
+    Args:
+        request: HttpRequest
+        
+    Returns:
+        JsonResponse: Status do sistema
+    """
+    try:
+        # Verificar banco de dados
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
+        # Verificar cache
+        test_key = 'health_check_test'
+        cache.set(test_key, 'ok', 10)
+        cache_status = cache.get(test_key) == 'ok'
+        cache.delete(test_key)
+        
+        return JsonResponse({
+            'status': 'healthy',
+            'database': 'ok',
+            'cache': 'ok' if cache_status else 'error',
+            'timestamp': timezone.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Health check falhou: {e}", exc_info=True)
+        return JsonResponse({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': timezone.now().isoformat()
+        }, status=500)

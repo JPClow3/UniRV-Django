@@ -74,7 +74,11 @@ class EditalPermissionsTest(TestCase):
         self.client.logout()
         # Tentar acessar edital em draft
         if self.edital_draft.slug:
-            resp = self.client.get(reverse('edital_detail_slug', kwargs={'slug': self.edital_draft.slug}))
+            resp = self.client.get(reverse('edital_detail_slug', kwargs={'slug': self.edital_draft.slug}), follow=True)
+            self.assertEqual(resp.status_code, 404)
+        else:
+            # Se não tem slug, tentar por PK
+            resp = self.client.get(reverse('edital_detail', kwargs={'pk': self.edital_draft.pk}), follow=True)
             self.assertEqual(resp.status_code, 404)
     
     def test_visitor_cannot_create_edital(self):
