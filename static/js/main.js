@@ -1402,9 +1402,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
                     })
                     .catch(err => {
                         if (typeof DEBUG !== 'undefined' && DEBUG) {
-                            if (typeof DEBUG !== 'undefined' && DEBUG) {
-                                console.error('Share tracking error:', err);
-                            }
+                            console.error('Share tracking error:', err);
                         }
                     });
                     
