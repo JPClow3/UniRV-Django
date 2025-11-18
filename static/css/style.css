@@ -2295,6 +2295,15 @@ table tbody tr:last-child td {
     display: inline-block;
 }
 
+.site-nav .hidden.md\:flex .nav-cta {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    min-width: fit-content !important;
+    max-width: none !important;
+    display: inline-flex !important;
+    overflow: visible !important;
+}
+
 .nav-link {
     position: relative;
     padding: 0.15rem 0.5rem;
@@ -2316,6 +2325,11 @@ table tbody tr:last-child td {
     justify-content: center;
     border-radius: 999px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-width: fit-content;
+    max-width: none;
+    height: auto;
 }
 
 .nav-cta:hover {
@@ -2736,6 +2750,12 @@ table td {
     .btn, button[class*="bg-gradient"] {
         width: 100%;
         justify-content: center;
+    }
+    
+    /* Don't make nav-cta buttons full width on mobile */
+    .nav-cta {
+        width: auto;
+        min-width: fit-content;
     }
     
     /* Forms */

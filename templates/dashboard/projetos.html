@@ -56,18 +56,19 @@
           name="search"
           placeholder="Buscar projetos..."
           class="pl-10 w-full"
-        value="{{ search_query }}"
+          value="{{ search_query }}"
+          aria-label="Buscar projetos"
         >
       </div>
 
-      <select name="edital" class="w-full sm:w-48">
+      <select name="edital" class="w-full sm:w-48" aria-label="Filtrar por edital">
         <option value="">Todos os editais</option>
       <option value="1" {% if edital_filter == '1' %}selected{% endif %}>Edital 001/2024</option>
       <option value="2" {% if edital_filter == '2' %}selected{% endif %}>Edital 002/2024</option>
       <option value="3" {% if edital_filter == '3' %}selected{% endif %}>Edital 003/2024</option>
       </select>
 
-      <select name="status" class="w-full sm:w-48">
+      <select name="status" class="w-full sm:w-48" aria-label="Filtrar por status">
         <option value="">Todos</option>
       <option value="Pendente" {% if status_filter == 'Pendente' %}selected{% endif %}>Pendente</option>
       <option value="Em Avaliação" {% if status_filter == 'Em Avaliação' %}selected{% endif %}>Em Avaliação</option>
@@ -109,8 +110,8 @@
 
   <!-- Projects Table -->
   <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full">
+    <div class="table-responsive overflow-x-auto">
+      <table class="w-full" role="table" aria-label="Tabela de projetos">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome do Projeto</th>

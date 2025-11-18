@@ -349,7 +349,9 @@
                         editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                        if (typeof DEBUG !== 'undefined' && DEBUG) {
+                            console.error('Error:', error);
+                        }
                         editaisGrid.classList.remove('loading');
                         isLoading = false;
                         showToast('Erro ao carregar página. Tente novamente.', 'error');
@@ -471,7 +473,9 @@
                     }
                 }
             } catch (e) {
-                console.error('Error restoring autosave:', e);
+                if (typeof DEBUG !== 'undefined' && DEBUG) {
+                    console.error('Error restoring autosave:', e);
+                }
                 localStorage.removeItem(AUTOSAVE_KEY);
             }
         }
@@ -507,7 +511,9 @@
             localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
             showAutosaveIndicator();
         } catch (e) {
-            console.error('Autosave failed:', e);
+            if (typeof DEBUG !== 'undefined' && DEBUG) {
+                console.error('Autosave failed:', e);
+            }
         }
     }
 
@@ -1396,7 +1402,9 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
                     })
                     .catch(err => {
                         if (typeof DEBUG !== 'undefined' && DEBUG) {
-                            console.error('Share tracking error:', err);
+                            if (typeof DEBUG !== 'undefined' && DEBUG) {
+                                console.error('Share tracking error:', err);
+                            }
                         }
                     });
                     

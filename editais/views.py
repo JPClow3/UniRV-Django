@@ -11,6 +11,7 @@ from django.db import connection
 from django.db.models import Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.views.decorators.cache import cache_page
@@ -433,7 +434,7 @@ def dashboard_submeter_projeto(request):
     return render(request, 'dashboard/submeter_projeto.html')
 
 
-@cache_page(60 * 5)  # Cache for 5 minutes (overridden by manual cache logic)
+# Note: Manual caching is implemented below, @cache_page decorator removed to avoid conflicts
 def index(request):
     """Landing page com todos os editais"""
     search_query = request.GET.get('search', '')
@@ -456,9 +457,12 @@ def index(request):
         version_key = 'editais_index_cache_version'
         cache_version = cache.get(version_key, 0)
         cache_key = f'editais_index_page_{page_number}_v{cache_version}'
-        cached_result = cache.get(cache_key)
-        if cached_result:
-            return cached_result
+        # Try to get cached content (string, not HttpResponse object)
+        cached_content = cache.get(cache_key)
+        if cached_content:
+            # Create a new HttpResponse for each request from cached content
+            # This prevents issues with shared mutable state in HttpResponse objects
+            return HttpResponse(cached_content)
 
     # Optimize queries with select_related and prefetch_related
     editais = Edital.objects.select_related(
@@ -528,13 +532,18 @@ def index(request):
         'total_count': page_obj.paginator.count,  # Total count for results counter
     }
     
-    response = render(request, 'editais/index.html', context)
+    # Render template to string instead of HttpResponse
+    # This allows us to cache the content safely without caching mutable objects
+    rendered_content = render_to_string('editais/index.html', context, request=request)
     
-    # Cache the response if applicable
+    # Cache the rendered content (string) instead of HttpResponse object
+    # This prevents issues with shared mutable state and ensures each request
+    # gets a fresh HttpResponse object with correct headers and middleware processing
     if use_cache and cache_key:
-        cache.set(cache_key, response, cache_ttl)
+        cache.set(cache_key, rendered_content, cache_ttl)
     
-    return response
+    # Create and return a new HttpResponse for this request
+    return HttpResponse(rendered_content)
 
 
 def edital_detail(request, slug=None, pk=None):
@@ -559,15 +568,28 @@ def edital_detail(request, slug=None, pk=None):
     """
     # Build cache key that includes user authentication status
     # This prevents cache poisoning between authenticated/unauthenticated users
-    user_key = 'staff' if (request.user.is_authenticated and request.user.is_staff) else 'public'
+    # SECURITY: Distinguish three cases to prevent CSRF token leakage:
+    # - staff: authenticated staff users (may have different permissions)
+    # - auth: authenticated non-staff users (have CSRF tokens)
+    # - public: unauthenticated users (no CSRF tokens)
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            user_key = 'staff'
+        else:
+            user_key = 'auth'  # Authenticated non-staff
+    else:
+        user_key = 'public'  # Unauthenticated
+    
     # Use slug if available, otherwise use pk
     identifier = slug if slug else f'pk_{pk}'
     cache_key = f'edital_detail_{identifier}_{user_key}'
     
-    # Try to get cached response
-    cached_response = cache.get(cache_key)
-    if cached_response:
-        return cached_response
+    # Try to get cached content (string, not HttpResponse object)
+    cached_content = cache.get(cache_key)
+    if cached_content:
+        # Create a new HttpResponse for each request from cached content
+        # This prevents issues with shared mutable state in HttpResponse objects
+        return HttpResponse(cached_content)
     
     try:
         # Optimize query with select_related and prefetch_related
@@ -605,13 +627,19 @@ def edital_detail(request, slug=None, pk=None):
             'valores': valores,
             'cronogramas': cronogramas,
         }
-        response = render(request, 'editais/detail.html', context)
         
-        # Cache successful responses only (not 404s)
+        # Render template to string instead of HttpResponse
+        # This allows us to cache the content safely without caching mutable objects
+        rendered_content = render_to_string('editais/detail.html', context, request=request)
+        
+        # Cache the rendered content (string) instead of HttpResponse object
+        # This prevents issues with shared mutable state and ensures each request
+        # gets a fresh HttpResponse object with correct headers and middleware processing
         # Cache for 15 minutes (900 seconds)
-        cache.set(cache_key, response, 60 * 15)
+        cache.set(cache_key, rendered_content, 60 * 15)
         
-        return response
+        # Create and return a new HttpResponse for this request
+        return HttpResponse(rendered_content)
     except EditalNotFoundError as e:
         # Converter exceção customizada para Http404
         logger.warning(f"Edital não encontrado: {e.identifier}")
@@ -763,7 +791,8 @@ def edital_update(request, pk):
             from .models import EditalHistory
             # Refresh from DB to get original values (handle edge case where object might be deleted)
             try:
-                original_edital = Edital.objects.get(pk=edital.pk)  # Fresh DB query
+                # Use select_related to avoid N+1 queries if accessing related fields
+                original_edital = Edital.objects.select_related('created_by', 'updated_by').get(pk=edital.pk)  # Fresh DB query
             except Edital.DoesNotExist:
                 # Edge case: object was deleted between get_object_or_404 and here
                 messages.error(request, 'O edital não foi encontrado.')
