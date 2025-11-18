@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard - YPETEC{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="min-h-screen bg-gray-50">
+  <!-- Top Navigation -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <!-- Logo -->
+        <a href="{% url 'home' %}" class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded flex items-center justify-center shadow-sm">
+            <span class="text-white font-bold text-lg">Y</span>
+          </div>
+          <div>
+            <div class="text-blue-600 text-lg leading-tight tracking-tight font-bold">YPETEC</div>
+            <div class="text-gray-500 text-xs leading-tight">Admin</div>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden lg:flex items-center gap-2">
+          <!-- Voltar para YpeTec -->
+          <a href="{% url 'home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 mr-2">
+            <i class="fas fa-arrow-left w-4 h-4"></i>
+            <span>Site YpeTec</span>
+          </a>
+          <div class="w-px h-6 bg-gray-200 mr-2"></div>
+
+          {% if user.is_staff %}
+            <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_home' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-chart-line w-4 h-4"></i>
+              <span>Dashboard</span>
+            </a>
+            <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_usuarios' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-users w-4 h-4"></i>
+              <span>Usuários</span>
+            </a>
+            <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_editais' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-file-alt w-4 h-4"></i>
+              <span>Editais</span>
+            </a>
+            <a href="{% url 'dashboard_projetos' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_projetos' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-folder-open w-4 h-4"></i>
+              <span>Projetos</span>
+            </a>
+            <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_avaliacoes' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-clipboard-check w-4 h-4"></i>
+              <span>Avaliações</span>
+            </a>
+            <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_relatorios' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+              <i class="fas fa-chart-bar w-4 h-4"></i>
+              <span>Relatórios</span>
+            </a>
+          {% endif %}
+          <a href="{% url 'dashboard_publicacoes' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_publicacoes' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <i class="fas fa-comment w-4 h-4"></i>
+            <span>Minhas Publicações</span>
+          </a>
+        </nav>
+
+        <!-- User Menu -->
+        <div class="relative">
+          <button id="user-menu-toggle" class="flex items-center gap-3 hover:bg-gray-100 rounded-full px-3 py-2 transition-all">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center shadow-sm">
+              {{ user.first_name|first|default:user.username|first|upper }}
+            </div>
+            <div class="hidden md:block text-left">
+              <div class="text-sm text-gray-900">{{ user.get_full_name|default:user.username }}</div>
+              <div class="text-xs text-gray-500">{% if user.is_staff %}Admin{% else %}Usuário{% endif %}</div>
+            </div>
+            <i class="fas fa-chevron-down w-4 h-4 text-gray-500"></i>
+          </button>
+          <div id="user-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-200 py-2 z-50">
+            <div class="px-4 py-3 border-b border-gray-200">
+              <div class="text-sm text-gray-900">{{ user.get_full_name|default:user.username }}</div>
+              <div class="text-xs text-gray-500">{{ user.email }}</div>
+            </div>
+            <div class="lg:hidden">
+              <a href="{% url 'home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <i class="fas fa-arrow-left w-4 h-4"></i>
+                Site YpeTec
+              </a>
+              {% if user.is_staff %}
+                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-chart-line w-4 h-4"></i>
+                  Dashboard
+                </a>
+                <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-users w-4 h-4"></i>
+                  Usuários
+                </a>
+                <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-file-alt w-4 h-4"></i>
+                  Editais
+                </a>
+                <a href="{% url 'dashboard_projetos' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-folder-open w-4 h-4"></i>
+                  Projetos
+                </a>
+                <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-clipboard-check w-4 h-4"></i>
+                  Avaliações
+                </a>
+                <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <i class="fas fa-chart-bar w-4 h-4"></i>
+                  Relatórios
+                </a>
+              {% endif %}
+              <a href="{% url 'dashboard_publicacoes' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <i class="fas fa-comment w-4 h-4"></i>
+                Minhas Publicações
+              </a>
+              <div class="border-t border-gray-200 my-1"></div>
+            </div>
+            <a href="{% url 'admin:logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+              <i class="fas fa-sign-out-alt w-4 h-4"></i>
+              Sair
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const userMenuToggle = document.getElementById('user-menu-toggle');
+    const userMenu = document.getElementById('user-menu');
+    
+    if (userMenuToggle && userMenu) {
+      userMenuToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        userMenu.classList.toggle('hidden');
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!userMenu.contains(e.target) && !userMenuToggle.contains(e.target)) {
+          userMenu.classList.add('hidden');
+        }
+      });
+    }
+  });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Comunidade - YPETEC{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <section class="bg-gradient-to-r from-green-500 to-blue-600 text-white py-20">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h1 class="text-white mb-6 text-4xl md:text-5xl leading-tight">Comunidade YpeTec</h1>
+        <p class="text-lg md:text-xl text-white/90 leading-relaxed">
+          Conecte-se, compartilhe experiências e aprenda com outros empreendedores e inovadores
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-4xl mx-auto">
+      <!-- CTA for logged out users -->
+      {% if not user.is_authenticated %}
+      <div class="bg-gradient-to-r from-green-500 to-blue-600 rounded-3xl shadow-md border-0 p-8 mb-8 text-center">
+        <i class="fas fa-sign-in-alt text-white text-5xl mb-4"></i>
+        <h3 class="text-white mb-3 text-xl">Faça login para interagir</h3>
+        <p class="text-white/90 mb-6 max-w-xl mx-auto">
+          Entre na sua conta para curtir e compartilhar publicações. Crie suas próprias postagens em "Minhas Publicações".
+        </p>
+        <a href="{% url 'login' %}" class="bg-white text-blue-600 hover:bg-gray-100 rounded-full px-8 py-3 inline-flex items-center justify-center font-medium transition-all">
+          <i class="fas fa-sign-in-alt mr-2"></i>
+          Fazer Login
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Category Filter -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 overflow-x-auto pb-2" id="category-filter">
+          <button class="category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md" data-category="Todos">
+            <i class="fas fa-users w-4 h-4"></i>
+            <span class="text-sm font-medium">Todos</span>
+          </button>
+          <button class="category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-white text-gray-600 hover:bg-gray-50 shadow-sm" data-category="Conquista">
+            <i class="fas fa-trophy w-4 h-4"></i>
+            <span class="text-sm font-medium">Conquista</span>
+          </button>
+          <button class="category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-white text-gray-600 hover:bg-gray-50 shadow-sm" data-category="Dica">
+            <i class="fas fa-lightbulb w-4 h-4"></i>
+            <span class="text-sm font-medium">Dica</span>
+          </button>
+          <button class="category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-white text-gray-600 hover:bg-gray-50 shadow-sm" data-category="Pergunta">
+            <i class="fas fa-comment w-4 h-4"></i>
+            <span class="text-sm font-medium">Pergunta</span>
+          </button>
+          <button class="category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-white text-gray-600 hover:bg-gray-50 shadow-sm" data-category="Evento">
+            <i class="fas fa-chart-line w-4 h-4"></i>
+            <span class="text-sm font-medium">Evento</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Posts Feed -->
+      <div class="space-y-6" id="posts-container">
+        <!-- Mock posts - will be replaced with real data -->
+        <div class="post-item bg-white rounded-3xl shadow-md hover:shadow-lg transition-all border-0 p-8" data-category="Conquista">
+          <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start gap-4">
+              <div class="avatar w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                <span class="avatar-fallback bg-transparent text-white font-medium">MS</span>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-medium">Maria Santos</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-sm text-gray-500">Proponente</span>
+                  <span class="text-gray-300">•</span>
+                  <span class="text-sm text-gray-500">2 horas atrás</span>
+                </div>
+              </div>
+            </div>
+            <span class="badge bg-green-100 text-green-700 border-none px-4 py-1.5">Conquista</span>
+          </div>
+          <p class="text-gray-700 leading-relaxed mb-6">
+            Acabamos de ter nosso projeto aprovado no edital de incubação! Muito feliz em compartilhar essa conquista com vocês. Agora é colocar a mão na massa! 🚀
+          </p>
+          <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+            <button class="like-btn flex items-center gap-2 transition-colors text-gray-500 hover:text-red-500 {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="1" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-heart w-5 h-5"></i>
+              <span class="text-sm font-medium like-count">24</span>
+            </button>
+            <button class="share-btn flex items-center gap-2 text-gray-500 hover:text-green-600 transition-colors {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="1" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-share w-5 h-5"></i>
+              <span class="text-sm font-medium share-count">5</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="post-item bg-white rounded-3xl shadow-md hover:shadow-lg transition-all border-0 p-8" data-category="Dica">
+          <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start gap-4">
+              <div class="avatar w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                <span class="avatar-fallback bg-transparent text-white font-medium">JS</span>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-medium">João Silva</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-sm text-gray-500">Gestor</span>
+                  <span class="text-gray-300">•</span>
+                  <span class="text-sm text-gray-500">5 horas atrás</span>
+                </div>
+              </div>
+            </div>
+            <span class="badge bg-cyan-100 text-cyan-700 border-none px-4 py-1.5">Dica</span>
+          </div>
+          <p class="text-gray-700 leading-relaxed mb-6">
+            Dica importante: ao preparar sua proposta, dedique tempo especial à análise de mercado. É um dos critérios mais importantes na avaliação!
+          </p>
+          <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+            <button class="like-btn flex items-center gap-2 transition-colors text-red-500 {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="2" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-heart w-5 h-5 fill-red-500"></i>
+              <span class="text-sm font-medium like-count">42</span>
+            </button>
+            <button class="share-btn flex items-center gap-2 text-gray-500 hover:text-green-600 transition-colors {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="2" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-share w-5 h-5"></i>
+              <span class="text-sm font-medium share-count">8</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="post-item bg-white rounded-3xl shadow-md hover:shadow-lg transition-all border-0 p-8" data-category="Pergunta">
+          <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start gap-4">
+              <div class="avatar w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                <span class="avatar-fallback bg-transparent text-white font-medium">AO</span>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-medium">Ana Oliveira</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-sm text-gray-500">Proponente</span>
+                  <span class="text-gray-300">•</span>
+                  <span class="text-sm text-gray-500">1 dia atrás</span>
+                </div>
+              </div>
+            </div>
+            <span class="badge bg-orange-100 text-orange-700 border-none px-4 py-1.5">Pergunta</span>
+          </div>
+          <p class="text-gray-700 leading-relaxed mb-6">
+            Alguém aqui já participou de mentorias com foco em pitch? Estou me preparando para a apresentação final e gostaria de algumas recomendações.
+          </p>
+          <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+            <button class="like-btn flex items-center gap-2 transition-colors text-gray-500 hover:text-red-500 {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="3" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-heart w-5 h-5"></i>
+              <span class="text-sm font-medium like-count">12</span>
+            </button>
+            <button class="share-btn flex items-center gap-2 text-gray-500 hover:text-green-600 transition-colors {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="3" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-share w-5 h-5"></i>
+              <span class="text-sm font-medium share-count">3</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="post-item bg-white rounded-3xl shadow-md hover:shadow-lg transition-all border-0 p-8" data-category="Evento">
+          <div class="flex items-start justify-between mb-6">
+            <div class="flex items-start gap-4">
+              <div class="avatar w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center">
+                <span class="avatar-fallback bg-transparent text-white font-medium">CE</span>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-medium">Carlos Eduardo</h4>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="text-sm text-gray-500">Avaliador</span>
+                  <span class="text-gray-300">•</span>
+                  <span class="text-sm text-gray-500">2 dias atrás</span>
+                </div>
+              </div>
+            </div>
+            <span class="badge bg-blue-100 text-blue-700 border-none px-4 py-1.5">Evento</span>
+          </div>
+          <p class="text-gray-700 leading-relaxed mb-6">
+            Workshop sobre inovação e sustentabilidade acontece na próxima semana! Não percam, será uma oportunidade incrível de networking e aprendizado.
+          </p>
+          <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+            <button class="like-btn flex items-center gap-2 transition-colors text-red-500 {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="4" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-heart w-5 h-5 fill-red-500"></i>
+              <span class="text-sm font-medium like-count">56</span>
+            </button>
+            <button class="share-btn flex items-center gap-2 text-gray-500 hover:text-green-600 transition-colors {% if not user.is_authenticated %}opacity-50 cursor-not-allowed{% endif %}" data-post-id="4" {% if not user.is_authenticated %}disabled{% endif %}>
+              <i class="fas fa-share w-5 h-5"></i>
+              <span class="text-sm font-medium share-count">15</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Category filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const categoryButtons = document.querySelectorAll('.category-btn');
+  const postItems = document.querySelectorAll('.post-item');
+  
+  categoryButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const selectedCategory = this.getAttribute('data-category');
+      
+      // Update button styles
+      categoryButtons.forEach(b => {
+        const cat = b.getAttribute('data-category');
+        if (cat === selectedCategory) {
+          b.className = 'category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-gradient-to-r ' + 
+            (cat === 'Todos' ? 'from-blue-500 to-blue-600' :
+             cat === 'Conquista' ? 'from-green-500 to-green-600' :
+             cat === 'Dica' ? 'from-cyan-500 to-cyan-600' :
+             cat === 'Pergunta' ? 'from-orange-500 to-orange-600' :
+             'from-blue-600 to-blue-700') + ' text-white shadow-md';
+        } else {
+          b.className = 'category-btn px-5 py-2.5 rounded-full flex items-center gap-2 whitespace-nowrap transition-all bg-white text-gray-600 hover:bg-gray-50 shadow-sm';
+        }
+      });
+      
+      // Filter posts
+      postItems.forEach(post => {
+        const postCategory = post.getAttribute('data-category');
+        if (selectedCategory === 'Todos' || postCategory === selectedCategory) {
+          post.style.display = 'block';
+        } else {
+          post.style.display = 'none';
+        }
+      });
+    });
+  });
+  
+  // Like functionality
+  document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.disabled) return;
+      const isLiked = this.classList.contains('text-red-500');
+      const countEl = this.querySelector('.like-count');
+      const icon = this.querySelector('i');
+      
+      if (isLiked) {
+        this.classList.remove('text-red-500');
+        this.classList.add('text-gray-500');
+        icon.classList.remove('fill-red-500');
+        countEl.textContent = parseInt(countEl.textContent) - 1;
+      } else {
+        this.classList.remove('text-gray-500');
+        this.classList.add('text-red-500');
+        icon.classList.add('fill-red-500');
+        countEl.textContent = parseInt(countEl.textContent) + 1;
+      }
+    });
+  });
+  
+  // Share functionality
+  document.querySelectorAll('.share-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.disabled) return;
+      const countEl = this.querySelector('.share-count');
+      countEl.textContent = parseInt(countEl.textContent) + 1;
+      // Could add actual share functionality here
+    });
+  });
+});
+</script>
+{% endblock %}
+

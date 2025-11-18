@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -60,6 +61,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'editais.apps.EditaisConfig',
 ]
+
+# Add compressor if available (optional dependency)
+try:
+    import compressor
+    INSTALLED_APPS.insert(-1, 'compressor')  # Insert before editais app
+except ImportError:
+    # Compressor not installed, skip it
+    pass
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -146,6 +155,22 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Django Compressor settings for minification (only if compressor is installed)
+try:
+    import compressor
+    COMPRESS_ENABLED = not DEBUG  # Only compress in production
+    COMPRESS_OFFLINE = True  # Pre-compress during collectstatic
+    COMPRESS_CSS_FILTERS = [
+        'compressor.filters.css_default.CssAbsoluteFilter',
+        'compressor.filters.cssmin.rCSSMinFilter',
+    ]
+    COMPRESS_JS_FILTERS = [
+        'compressor.filters.jsmin.JSMinFilter',
+    ]
+except ImportError:
+    # Compressor not installed, disable compression
+    COMPRESS_ENABLED = False
+
 # WhiteNoise: serve compressed static files
 STORAGES = {
     'staticfiles': {
@@ -158,14 +183,64 @@ if not DEBUG:
     # Cache static files for 1 year (handled by WhiteNoise)
     WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds
 
+# Cache configuration
+# Try Redis first, fallback to LocMemCache for development
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+
+# Use Redis in production if available
+if not DEBUG:
+    redis_host = os.environ.get('REDIS_HOST', '')
+    redis_port = os.environ.get('REDIS_PORT', '6379')
+    if redis_host:
+        try:
+            # Try django-redis first (recommended)
+            import django_redis
+            CACHES = {
+                'default': {
+                    'BACKEND': 'django_redis.cache.RedisCache',
+                    'LOCATION': f'redis://{redis_host}:{redis_port}/1',
+                    'OPTIONS': {
+                        'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    },
+                    'KEY_PREFIX': 'unirv_editais',
+                    'TIMEOUT': 300,  # Default timeout 5 minutes
+                }
+            }
+        except ImportError:
+            try:
+                # Fallback to Django's built-in Redis backend (no CLIENT_CLASS option)
+                import redis
+                CACHES = {
+                    'default': {
+                        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+                        'LOCATION': f'redis://{redis_host}:{redis_port}/1',
+                        'KEY_PREFIX': 'unirv_editais',
+                        'TIMEOUT': 300,  # Default timeout 5 minutes
+                    }
+                }
+            except ImportError:
+                # Redis not installed, use LocMemCache
+                pass
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Testing flag
+TESTING = 'test' in sys.argv
+
 # Login URL for @login_required decorator
-LOGIN_URL = '/admin/login/'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/home/'
 
 # Application-specific settings
 EDITAIS_PER_PAGE = 12  # Number of editais to display per page
@@ -240,6 +315,7 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
 # Logging configuration (FEAT-013)
+# Enhanced with rotation, structured logging, and security event logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -259,8 +335,24 @@ LOGGING = {
             'formatter': 'structured',
         },
         'file': {
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': BASE_DIR / 'logs' / 'django.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'performance_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'performance.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 5,
             'formatter': 'verbose',
         },
     },
@@ -277,6 +369,16 @@ LOGGING = {
         'editais': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['performance_file'] if not DEBUG else ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
     },

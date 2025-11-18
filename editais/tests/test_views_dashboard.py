@@ -101,8 +101,8 @@ class AdminDashboardViewTest(TestCase):
             )
         
         # Verificar número de queries (deve ser limitado)
-        # Ajustar limite baseado nas queries reais (10 queries foram executadas)
-        with self.assertNumQueries(12):  # Ajustar conforme necessário
+        # Queries esperadas: 2 (session/auth) + 1 (count) + 1 (status) + 1 (recent) + 1 (upcoming) + 1 (top entities) + 2 (session savepoint) = 9-10
+        with self.assertNumQueries(10):  # Ajustado para o número real de queries
             response = self.client.get(reverse('admin_dashboard'), follow=True)
             self.assertEqual(response.status_code, 200)
     

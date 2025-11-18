@@ -1,0 +1,102 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Novo Edital - Dashboard YPETEC{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'dashboard_editais' %}" class="variant-ghost hover:bg-gray-100 rounded-lg px-3 py-2 text-sm transition-all inline-flex items-center gap-2">
+        <i class="fas fa-arrow-left w-4 h-4"></i>
+        Voltar
+      </a>
+      <div>
+        <h1 class="text-gray-900 text-2xl font-semibold">Novo Edital</h1>
+        <p class="text-gray-600">
+          Configure os detalhes do edital e campos do formulário
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <button class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center gap-2">
+        <i class="fas fa-save w-4 h-4"></i>
+        Salvar Rascunho
+      </button>
+      <button class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+        <i class="fas fa-paper-plane w-4 h-4"></i>
+        Publicar
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Tabs -->
+  <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+    <div class="border-b border-gray-200">
+      <div class="flex gap-4">
+        <button class="tab-btn active px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">Informações Básicas</button>
+        <button class="tab-btn px-4 py-2 text-gray-600 hover:text-gray-900">Formulário</button>
+        <button class="tab-btn px-4 py-2 text-gray-600 hover:text-gray-900">Avaliação</button>
+      </div>
+    </div>
+
+    <!-- Tab Content: Informações Básicas -->
+    <div id="tab-informacoes" class="tab-content space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label for="numero" class="text-sm font-medium text-gray-700">Número do Edital *</label>
+          <input type="text" id="numero" placeholder="Ex: 001/2024" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+
+        <div class="space-y-2">
+          <label for="tipo" class="text-sm font-medium text-gray-700">Tipo de Edital *</label>
+          <select id="tipo" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+            <option value="fluxo-continuo">Fluxo Contínuo</option>
+            <option value="fomento">Edital de Fomento</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label for="titulo" class="text-sm font-medium text-gray-700">Título do Edital *</label>
+        <input type="text" id="titulo" placeholder="Ex: Edital de Incubação - Tecnologia 2024" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div class="space-y-2">
+        <label for="descricao" class="text-sm font-medium text-gray-700">Descrição *</label>
+        <textarea id="descricao" placeholder="Descreva os objetivos e requisitos do edital..." rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="space-y-2">
+          <label for="dataAbertura" class="text-sm font-medium text-gray-700">Data de Abertura *</label>
+          <input type="date" id="dataAbertura" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        </div>
+
+        <div class="space-y-2">
+          <label for="dataFechamento" class="text-sm font-medium text-gray-700">Data de Fechamento</label>
+          <input type="date" id="dataFechamento" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+          <p class="text-xs text-gray-500">Deixe em branco para fluxo contínuo</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
+        b.classList.add('text-gray-600');
+      });
+      this.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
+      this.classList.remove('text-gray-600');
+    });
+  });
+});
+</script>
+{% endblock %}
+

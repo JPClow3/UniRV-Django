@@ -1,0 +1,203 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Gerenciar Usuários - Dashboard YPETEC{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+      <h1 class="text-gray-900 mb-2 text-2xl font-semibold">Gerenciar Usuários</h1>
+      <p class="text-gray-600">
+        Gerencie usuários e permissões do sistema
+      </p>
+    </div>
+    <button onclick="openUserDialog()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+      <i class="fas fa-plus w-4 h-4"></i>
+      Novo Usuário
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="relative">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+      <input
+        type="text"
+        placeholder="Buscar usuários..."
+        class="pl-10 w-full"
+        id="search-users"
+      >
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-mail</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Criação</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">João Silva</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">joao@example.com</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="badge bg-red-100 text-red-700 border-none px-3 py-1 text-sm">Admin</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1 text-sm">Ativo</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">15/01/2024</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="relative inline-block">
+                <button class="action-menu-toggle p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <i class="fas fa-ellipsis-v text-gray-400"></i>
+                </button>
+                <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <a href="#" onclick="openUserDialog({id: 1, nome: 'João Silva', email: 'joao@example.com', role: 'admin'})" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fas fa-edit w-4 h-4"></i>
+                    Editar
+                  </a>
+                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fas fa-user-times w-4 h-4"></i>
+                    Desativar
+                  </a>
+                  <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">
+                    <i class="fas fa-trash w-4 h-4"></i>
+                    Excluir
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- User Dialog -->
+<div id="user-dialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="dialog-title" aria-hidden="true">
+  <div class="bg-white rounded-3xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" role="document">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-gray-900 text-xl font-semibold" id="dialog-title">Novo Usuário</h2>
+      <p class="text-gray-600 text-sm mt-1">Preencha os dados do usuário</p>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div class="space-y-2">
+        <label for="user-name" class="text-sm font-medium text-gray-700">Nome Completo</label>
+        <input type="text" id="user-name" placeholder="Nome do usuário" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div class="space-y-2">
+        <label for="user-email" class="text-sm font-medium text-gray-700">E-mail</label>
+        <input type="email" id="user-email" placeholder="email@example.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div class="space-y-2">
+        <label for="user-role" class="text-sm font-medium text-gray-700">Perfil</label>
+        <select id="user-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+          <option value="proponente">Proponente</option>
+          <option value="admin">Admin YpeTec</option>
+          <option value="gestor">Gestor de Editais</option>
+          <option value="avaliador">Avaliador</option>
+          <option value="comunicador">Comunicador/Secretaria</option>
+        </select>
+      </div>
+
+      <div id="password-field" class="space-y-2">
+        <label for="user-password" class="text-sm font-medium text-gray-700">Senha</label>
+        <input type="password" id="user-password" placeholder="Senha temporária" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        <p class="text-xs text-gray-500">
+          O usuário receberá um e-mail para redefinir a senha
+        </p>
+      </div>
+    </div>
+
+    <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+      <button onclick="closeUserDialog()" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all">
+        Cancelar
+      </button>
+      <button onclick="saveUser()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openUserDialog(user = null) {
+  const dialog = document.getElementById('user-dialog');
+  const title = document.getElementById('dialog-title');
+  const passwordField = document.getElementById('password-field');
+  
+  if (user) {
+    title.textContent = 'Editar Usuário';
+    document.getElementById('user-name').value = user.nome || '';
+    document.getElementById('user-email').value = user.email || '';
+    document.getElementById('user-role').value = user.role || 'proponente';
+    passwordField.style.display = 'none';
+  } else {
+    title.textContent = 'Novo Usuário';
+    document.getElementById('user-name').value = '';
+    document.getElementById('user-email').value = '';
+    document.getElementById('user-role').value = 'proponente';
+    document.getElementById('user-password').value = '';
+    passwordField.style.display = 'block';
+  }
+  
+  if (window.YPETECModal && typeof window.YPETECModal.open === 'function') {
+    window.YPETECModal.open(dialog);
+  } else {
+    dialog.classList.remove('hidden');
+  }
+}
+
+function closeUserDialog() {
+  const dialog = document.getElementById('user-dialog');
+  if (window.YPETECModal && typeof window.YPETECModal.close === 'function') {
+    window.YPETECModal.close(dialog);
+  } else {
+    dialog.classList.add('hidden');
+  }
+}
+
+function saveUser() {
+  alert('Usuário salvo com sucesso!');
+  closeUserDialog();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.action-menu-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const menu = this.nextElementSibling;
+      document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+      menu.classList.remove('hidden');
+    });
+  });
+  
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
+      document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+    }
+  });
+  
+  document.getElementById('user-dialog').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeUserDialog();
+    }
+  });
+});
+</script>
+{% endblock %}
+

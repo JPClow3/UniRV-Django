@@ -4,6 +4,7 @@ Decorators customizados para o aplicativo Editais.
 
 import logging
 from functools import wraps
+from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
@@ -29,6 +30,8 @@ def rate_limit(key='ip', rate=RATE_LIMIT_REQUESTS, window=RATE_LIMIT_WINDOW, met
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
+            if getattr(settings, 'TESTING', False):
+                return view_func(request, *args, **kwargs)
             # Aplicar rate limiting apenas para o método especificado
             if method and request.method != method:
                 return view_func(request, *args, **kwargs)

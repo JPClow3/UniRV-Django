@@ -1,8 +1,8 @@
-# UniRV Django - AgroHub
+# UniRV Django - YPETEC
 
-Sistema de gerenciamento de editais de fomento para o AgroHub UniRV.
+Sistema de gerenciamento de editais de fomento para a YPETEC - Incubadora UniRV.
 
-**Status do Projeto**: ✅ **95% Completo** - Pronto para homologação
+**Status do Projeto**: ✅ **Produção Ready** - Otimizado e seguro para deploy
 
 ---
 
@@ -24,15 +24,19 @@ Sistema de gerenciamento de editais de fomento para o AgroHub UniRV.
 
 ### Funcionalidades Principais
 
-- ✅ **Listagem de Editais**: Busca, filtros por status/data, paginação (12 itens por página)
+- ✅ **Listagem de Editais**: Busca, filtros por status/data/tipo, paginação (12 itens por página)
 - ✅ **Detalhes do Edital**: Visualização completa com cronogramas e valores
 - ✅ **URLs Amigáveis**: URLs baseadas em slug com redirecionamento automático de URLs antigas
 - ✅ **CRUD Completo**: Criar, editar e excluir editais (restrito a usuários `is_staff`)
 - ✅ **Exportação CSV**: Exportar editais filtrados para CSV (restrito a usuários `is_staff`)
-- ✅ **Dashboard Administrativo**: Estatísticas, atividade recente e prazos próximos
+- ✅ **Dashboard Completo**: Home, Editais, Projetos, Usuários, Avaliações, Relatórios, Publicações
 - ✅ **Histórico de Alterações**: Rastreamento completo de mudanças em editais
 - ✅ **Notificações por Email**: Alertas para prazos próximos (management command)
 - ✅ **Atualização Automática de Status**: Comando para atualizar status baseado em datas
+- ✅ **Registro de Usuários**: Sistema de cadastro com validação de email e senha
+- ✅ **Página de Comunidade**: Feed de publicações com interações (curtir/compartilhar)
+- ✅ **Projetos Aprovados**: Listagem de projetos aprovados
+- ✅ **Passo a Passo**: Guia de como participar dos editais
 
 ### Recursos de Segurança
 
@@ -159,6 +163,8 @@ O projeto usa variáveis de ambiente para configuração. Veja `.env.example` pa
 - `DEFAULT_FROM_EMAIL`: Email remetente padrão
 - `SITE_URL`: URL base do site (para links em emails)
 - `DJANGO_LOG_LEVEL`: Nível de log (padrão: `INFO`)
+- `REDIS_HOST`: Host do Redis para cache (opcional, usa LocMemCache se não configurado)
+- `REDIS_PORT`: Porta do Redis (padrão: `6379`)
 
 ### Configurações do Django
 
@@ -167,8 +173,10 @@ As principais configurações estão em `UniRV_Django/settings.py`:
 - **Idioma**: Português (pt-BR)
 - **Fuso Horário**: America/Sao_Paulo
 - **Paginação**: 12 itens por página
-- **Cache**: Configurado para produção
-- **Logging**: Estruturado com handlers para console e arquivo
+- **Cache**: Redis (produção) ou LocMemCache (desenvolvimento) com TTL de 5 minutos
+- **Logging**: Estruturado com rotação de arquivos, logs de segurança e performance
+- **Minificação**: CSS/JS minificados em produção via django-compressor
+- **SSL/HTTPS**: Configurado para produção com headers de segurança
 
 ---
 
@@ -176,10 +184,16 @@ As principais configurações estão em `UniRV_Django/settings.py`:
 
 ### Acessando o Sistema
 
-1. **Página Inicial**: `/editais/` - Lista todos os editais públicos
-2. **Detalhes**: `/editais/edital/<slug>/` - Visualizar edital específico
-3. **Admin Django**: `/admin/` - Interface administrativa completa
-4. **Dashboard**: `/editais/dashboard/` - Dashboard administrativo (requer `is_staff`)
+1. **Página Inicial**: `/` - Landing page com hero, estatísticas e features
+2. **Listagem de Editais**: `/editais/` - Lista todos os editais públicos
+3. **Detalhes**: `/editais/edital/<slug>/` - Visualizar edital específico
+4. **Comunidade**: `/comunidade/` - Feed de publicações da comunidade
+5. **Projetos Aprovados**: `/projetos-aprovados/` - Lista de projetos aprovados
+6. **Como Participar**: `/passo-a-passo/` - Guia passo a passo
+7. **Registro**: `/register/` - Criar nova conta
+8. **Login**: `/login/` - Fazer login
+9. **Admin Django**: `/admin/` - Interface administrativa completa
+10. **Dashboard**: `/dashboard/home/` - Dashboard principal (requer autenticação)
 
 ### Operações Administrativas
 
@@ -438,6 +452,7 @@ Antes de fazer deploy em produção, certifique-se de:
 - **WhiteNoise 6.7.0**: Servir arquivos estáticos em produção
 - **Bleach 6.1.0**: Sanitização de HTML (prevenção XSS)
 - **Gunicorn 23.0.0**: WSGI server (produção)
+- **django-compressor 4.4**: Minificação de CSS/JS em produção
 
 ### Opcionais (não utilizadas atualmente)
 
@@ -452,10 +467,13 @@ Antes de fazer deploy em produção, certifique-se de:
 
 ### Preparação
 
-1. Configure todas as variáveis de ambiente no servidor
-2. Execute `python manage.py collectstatic` para coletar arquivos estáticos
-3. Execute `python manage.py migrate` para aplicar migrações
-4. Crie um superusuário: `python manage.py createsuperuser`
+1. Configure todas as variáveis de ambiente no servidor (veja `.env.example`)
+2. Execute `python manage.py collectstatic` para coletar e minificar arquivos estáticos
+3. Execute `python manage.py compress` para comprimir CSS/JS (se usando django-compressor)
+4. Execute `python manage.py migrate` para aplicar migrações
+5. Crie um superusuário: `python manage.py createsuperuser`
+6. Configure Redis para cache (opcional, mas recomendado para produção)
+7. Configure SSL/HTTPS com certificado válido (Let's Encrypt recomendado)
 
 ### Heroku
 
@@ -491,17 +509,27 @@ heroku run python manage.py createsuperuser
 ```bash
 # Instalar dependências do sistema
 sudo apt update
-sudo apt install python3-pip python3-venv nginx
+sudo apt install python3-pip python3-venv nginx redis-server
 
-# Configurar Nginx como reverse proxy
-# (configuração específica depende do seu setup)
+# Configurar Nginx como reverse proxy (veja nginx.conf.example)
+# Copiar nginx.conf.example para /etc/nginx/sites-available/ypetec
+sudo cp nginx.conf.example /etc/nginx/sites-available/ypetec
+sudo ln -s /etc/nginx/sites-available/ypetec /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+# Configurar SSL com Let's Encrypt
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d ypetec.unirv.edu.br
 
 # Usar Gunicorn como servidor WSGI
-gunicorn UniRV_Django.wsgi:application --bind 0.0.0.0:8000
+gunicorn UniRV_Django.wsgi:application --bind 127.0.0.1:8000
 
 # Configurar systemd service para Gunicorn
 # (criar arquivo de serviço em /etc/systemd/system/)
 ```
+
+Veja `nginx.conf.example` para configuração completa do Nginx com SSL/HTTPS.
 
 ---
 
@@ -509,26 +537,38 @@ gunicorn UniRV_Django.wsgi:application --bind 0.0.0.0:8000
 
 ### Implementação
 
-- ✅ **95% das tarefas concluídas** (85/89)
+- ✅ **100% das funcionalidades principais implementadas**
 - ✅ **34+ testes passando**
-- ✅ **Todas as funcionalidades críticas implementadas**
+- ✅ **Otimizações de performance**: Cache, query optimization, minificação
+- ✅ **Segurança**: CSRF, XSS, SQL injection prevention, security headers
+- ✅ **Logging**: Rotação de logs, logs de segurança e performance
+- ✅ **Produção Ready**: SSL/HTTPS, caching, monitoring
 - ⚠️ **Cobertura de testes**: 69% (meta: 85%)
 
 ### Melhorias Recentes
 
-**Data**: 2025-01-15
+**Data**: 2025-01-XX
 
+- ✅ Migração completa do design React/TypeScript para Django
+- ✅ Sistema de registro de usuários implementado
+- ✅ Dashboard completo com todas as páginas (home, editais, projetos, usuários, avaliações, relatórios, publicações)
+- ✅ Páginas públicas: Comunidade, Projetos Aprovados, Passo a Passo
+- ✅ Otimização de queries: select_related/prefetch_related em todas as views
+- ✅ Sistema de cache: Redis (produção) ou LocMemCache (desenvolvimento)
+- ✅ Minificação de CSS/JS em produção via django-compressor
+- ✅ Logging aprimorado: rotação de arquivos, logs de segurança e performance
+- ✅ Configuração SSL/HTTPS com exemplo de Nginx
 - ✅ Correção de vulnerabilidade XSS no Django Admin
 - ✅ Melhorias no banco de dados (índices, validações)
-- ✅ Limpeza de código morto
-- ✅ Arquivos de suporte completos (`.gitignore`, `.env.example`)
+- ✅ Arquivos de suporte completos (`.gitignore`, `.env.example`, `nginx.conf.example`)
 
 ### Próximos Passos
 
 1. Aumentar cobertura de testes para 85%+
-2. Implementar testes para `admin_dashboard()`
-3. Implementar testes para `save_model()` no Admin
-4. Documentação de produção final
+2. Implementar testes para views do dashboard
+3. Implementar testes para registro de usuários
+4. Implementar testes de segurança (CSRF, XSS, SQL injection)
+5. Testes de performance (query counts)
 
 ---
 

@@ -1,0 +1,149 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Submeter Projeto - Dashboard YPETEC{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'dashboard_projetos' %}" class="variant-ghost hover:bg-gray-100 rounded-lg px-3 py-2 text-sm transition-all inline-flex items-center gap-2">
+        <i class="fas fa-arrow-left w-4 h-4"></i>
+        Voltar
+      </a>
+      <div>
+        <h1 class="text-gray-900 text-2xl font-semibold">Submeter Projeto</h1>
+        <p class="text-gray-600">
+          Preencha os dados do seu projeto para avaliação
+        </p>
+      </div>
+    </div>
+
+    <button class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center gap-2">
+      <i class="fas fa-save w-4 h-4"></i>
+      Salvar Rascunho
+    </button>
+  </div>
+
+  <!-- Info Alert -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+    <p class="text-blue-900">
+      <strong>Importante:</strong> Certifique-se de preencher todos os campos obrigatórios 
+      e anexar os documentos necessários antes de submeter seu projeto.
+    </p>
+  </div>
+
+  <!-- Form -->
+  <form class="space-y-6">
+    <!-- Seleção de Edital -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+      <div>
+        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Edital</h3>
+        <p class="text-gray-600">
+          Selecione o edital para o qual deseja submeter o projeto
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label for="edital" class="text-sm font-medium text-gray-700">Edital *</label>
+        <select id="edital" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+          <option value="">Selecione um edital</option>
+          <option value="001-2024">Edital 001/2024 - Fluxo Contínuo Pré-Incubação</option>
+          <option value="002-2024">Edital 002/2024 - Fomento Incubação 2024</option>
+          <option value="003-2024">Edital 003/2024 - Inovação Social</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Dados do Projeto -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+      <div>
+        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Dados do Projeto</h3>
+        <p class="text-gray-600">
+          Informações básicas sobre o seu projeto
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label for="nomeProjeto" class="text-sm font-medium text-gray-700">Nome do Projeto *</label>
+        <input type="text" id="nomeProjeto" placeholder="Ex: AgroTech Solutions" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+      </div>
+
+      <div class="space-y-2">
+        <label for="area" class="text-sm font-medium text-gray-700">Área de Atuação *</label>
+        <select id="area" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+          <option value="">Selecione a área</option>
+          <option value="tecnologia">Tecnologia</option>
+          <option value="saude">Saúde</option>
+          <option value="educacao">Educação</option>
+          <option value="agronegocio">Agronegócio</option>
+          <option value="sustentabilidade">Sustentabilidade</option>
+          <option value="impacto-social">Impacto Social</option>
+        </select>
+      </div>
+
+      <div class="space-y-2">
+        <label for="resumo" class="text-sm font-medium text-gray-700">Resumo Executivo *</label>
+        <textarea id="resumo" placeholder="Descreva de forma resumida o seu projeto, problema que resolve e solução proposta..." rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
+        <p class="text-xs text-gray-500">Máximo 500 caracteres</p>
+      </div>
+
+      <div class="space-y-2">
+        <label for="descricao" class="text-sm font-medium text-gray-700">Descrição Detalhada *</label>
+        <textarea id="descricao" placeholder="Descreva detalhadamente seu projeto, incluindo objetivos, metodologia, mercado-alvo, diferenciais competitivos..." rows="8" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
+      </div>
+    </div>
+
+    <!-- Anexos -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
+      <div>
+        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Documentos e Anexos</h3>
+        <p class="text-gray-600">
+          Faça upload dos documentos necessários
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <label for="planoNegocios" class="text-sm font-medium text-gray-700">Plano de Negócios *</label>
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+          <i class="fas fa-upload text-gray-400 text-3xl mb-2"></i>
+          <p class="text-gray-600 mb-2">
+            Clique para fazer upload ou arraste o arquivo
+          </p>
+          <input type="file" id="planoNegocios" accept=".pdf,.doc,.docx" class="hidden">
+          <label for="planoNegocios" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-block cursor-pointer">
+            Selecionar Arquivo
+          </label>
+          <p class="text-xs text-gray-500 mt-2">
+            PDF ou DOC, máximo 10MB
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Termos -->
+    <div class="bg-white rounded-xl border border-gray-200 p-6">
+      <div class="flex items-start gap-3">
+        <input type="checkbox" id="termos" required class="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+        <label for="termos" class="text-sm text-gray-700">
+          Declaro que li e aceito os termos do edital selecionado e que todas as 
+          informações fornecidas são verdadeiras. Estou ciente de que informações 
+          falsas podem resultar na desqualificação do projeto.
+        </label>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-4">
+      <a href="{% url 'dashboard_projetos' %}" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all">
+        Cancelar
+      </a>
+      <button type="submit" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+        <i class="fas fa-paper-plane w-4 h-4"></i>
+        Submeter Projeto
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

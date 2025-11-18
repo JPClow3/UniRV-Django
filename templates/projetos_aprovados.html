@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Projetos Aprovados - YPETEC{% endblock %}
+
+{% block content %}
+<div class="bg-white">
+  <!-- Header -->
+  <section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-20">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h1 class="text-white mb-6 text-4xl md:text-5xl leading-tight">Projetos Aprovados</h1>
+        <p class="text-lg md:text-xl text-white/90 leading-relaxed">
+          Conheça as startups e projetos que fazem parte do ecossistema YpeTec
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="bg-white py-20">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 max-w-5xl mx-auto">
+        <div class="text-center">
+          <div class="text-blue-600 mb-2 text-5xl md:text-6xl font-bold">4</div>
+          <div class="text-gray-700 text-base md:text-lg">Projetos Ativos</div>
+        </div>
+        <div class="text-center">
+          <div class="text-blue-600 mb-2 text-5xl md:text-6xl font-bold">4</div>
+          <div class="text-gray-700 text-base md:text-lg">Incubadas</div>
+        </div>
+        <div class="text-center">
+          <div class="text-blue-600 mb-2 text-5xl md:text-6xl font-bold">2</div>
+          <div class="text-gray-700 text-base md:text-lg">Pré-Incubadas</div>
+        </div>
+        <div class="text-center">
+          <div class="text-blue-600 mb-2 text-5xl md:text-6xl font-bold">1</div>
+          <div class="text-gray-700 text-base md:text-lg">Graduadas</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="bg-gray-50 border-b">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex flex-col md:flex-row gap-4 max-w-5xl mx-auto">
+        <div class="flex-1 relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+          <input type="text" id="search-projetos" placeholder="Buscar projetos..." class="pl-10 w-full">
+        </div>
+        <select id="filter-area" class="w-full md:w-48">
+          <option value="todas">Todas as áreas</option>
+          <option value="Agronegócio">Agronegócio</option>
+          <option value="Educação">Educação</option>
+          <option value="Saúde">Saúde</option>
+          <option value="Sustentabilidade">Sustentabilidade</option>
+          <option value="Tecnologia">Tecnologia</option>
+          <option value="Impacto Social">Impacto Social</option>
+        </select>
+        <select id="filter-tipo" class="w-full md:w-48">
+          <option value="todos">Todos</option>
+          <option value="Incubação">Incubação</option>
+          <option value="Pré-Incubação">Pré-Incubação</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects Grid -->
+  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="projetos-grid">
+        <!-- Projeto 1 -->
+        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Agronegócio" data-tipo="Incubação">
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <i class="fas fa-building text-white text-2xl"></i>
+              </div>
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1">Ativa</span>
+            </div>
+            <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">AgroTech Solutions</h3>
+            <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+              Plataforma de monitoramento inteligente para otimização de cultivos agrícolas usando IoT e IA.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-tag text-blue-600"></i>
+                <span>Agronegócio</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-trophy text-blue-600"></i>
+                <span>Incubação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-calendar text-blue-600"></i>
+                <span>15/02/2024</span>
+              </div>
+            </div>
+            <a href="https://agrotech.example.com" target="_blank" rel="noopener noreferrer" class="variant-outline w-full gap-2 rounded-full border-2 border-gray-300 hover:bg-gray-50 mt-4 inline-flex items-center justify-center py-2 px-4 transition-all">
+              Visitar Site
+              <i class="fas fa-external-link-alt ml-2"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Projeto 2 -->
+        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Educação" data-tipo="Pré-Incubação">
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <i class="fas fa-building text-white text-2xl"></i>
+              </div>
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1">Ativa</span>
+            </div>
+            <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">EduPlay</h3>
+            <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+              Aplicativo gamificado para educação infantil com foco em alfabetização e matemática básica.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-tag text-blue-600"></i>
+                <span>Educação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-trophy text-blue-600"></i>
+                <span>Pré-Incubação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-calendar text-blue-600"></i>
+                <span>20/01/2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projeto 3 -->
+        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Saúde" data-tipo="Incubação">
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <i class="fas fa-building text-white text-2xl"></i>
+              </div>
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1">Ativa</span>
+            </div>
+            <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">HealthMonitor</h3>
+            <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+              Sistema de monitoramento remoto de pacientes crônicos com alertas inteligentes para profissionais de saúde.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-tag text-blue-600"></i>
+                <span>Saúde</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-trophy text-blue-600"></i>
+                <span>Incubação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-calendar text-blue-600"></i>
+                <span>10/03/2024</span>
+              </div>
+            </div>
+            <a href="https://healthmonitor.example.com" target="_blank" rel="noopener noreferrer" class="variant-outline w-full gap-2 rounded-full border-2 border-gray-300 hover:bg-gray-50 mt-4 inline-flex items-center justify-center py-2 px-4 transition-all">
+              Visitar Site
+              <i class="fas fa-external-link-alt ml-2"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Projeto 4 -->
+        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Sustentabilidade" data-tipo="Incubação">
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <i class="fas fa-building text-white text-2xl"></i>
+              </div>
+              <span class="badge bg-gray-100 text-gray-600 border-none px-3 py-1">Graduada</span>
+            </div>
+            <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">EcoPackaging</h3>
+            <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+              Desenvolvimento de embalagens biodegradáveis a partir de resíduos agrícolas.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-tag text-blue-600"></i>
+                <span>Sustentabilidade</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-trophy text-blue-600"></i>
+                <span>Incubação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-calendar text-blue-600"></i>
+                <span>15/11/2023</span>
+              </div>
+            </div>
+            <a href="https://ecopack.example.com" target="_blank" rel="noopener noreferrer" class="variant-outline w-full gap-2 rounded-full border-2 border-gray-300 hover:bg-gray-50 mt-4 inline-flex items-center justify-center py-2 px-4 transition-all">
+              Visitar Site
+              <i class="fas fa-external-link-alt ml-2"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Projeto 5 -->
+        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Tecnologia" data-tipo="Incubação">
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <i class="fas fa-building text-white text-2xl"></i>
+              </div>
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1">Ativa</span>
+            </div>
+            <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">LogiSmart</h3>
+            <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+              Software de otimização de rotas logísticas para redução de custos e emissões.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-tag text-blue-600"></i>
+                <span>Tecnologia</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-trophy text-blue-600"></i>
+                <span>Incubação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-calendar text-blue-600"></i>
+                <span>01/02/2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projeto 6 -->
+        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Impacto Social" data-tipo="Pré-Incubação">
+          <div class="p-8">
+            <div class="flex items-start justify-between mb-6">
+              <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+                <i class="fas fa-building text-white text-2xl"></i>
+              </div>
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1">Ativa</span>
+            </div>
+            <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">SocialConnect</h3>
+            <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
+              Plataforma de conexão entre ONGs e voluntários para projetos sociais locais.
+            </p>
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-tag text-blue-600"></i>
+                <span>Impacto Social</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-trophy text-blue-600"></i>
+                <span>Pré-Incubação</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-gray-600">
+                <i class="fas fa-calendar text-blue-600"></i>
+                <span>05/03/2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="bg-blue-50 py-12">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-gray-900 mb-4">Quer fazer parte do nosso ecossistema?</h2>
+      <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+        Confira os editais abertos e candidate sua startup para incubação na YpeTec
+      </p>
+      <a href="{% url 'editais_index' %}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium text-white">
+        Ver Editais Abertos
+      </a>
+    </div>
+  </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-projetos');
+  const filterArea = document.getElementById('filter-area');
+  const filterTipo = document.getElementById('filter-tipo');
+  const projetoItems = document.querySelectorAll('.projeto-item');
+  
+  function filterProjetos() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedArea = filterArea.value;
+    const selectedTipo = filterTipo.value;
+    
+    projetoItems.forEach(item => {
+      const nome = item.querySelector('h3').textContent.toLowerCase();
+      const descricao = item.querySelector('p').textContent.toLowerCase();
+      const area = item.getAttribute('data-area');
+      const tipo = item.getAttribute('data-tipo');
+      
+      const matchesSearch = nome.includes(searchTerm) || descricao.includes(searchTerm);
+      const matchesArea = selectedArea === 'todas' || area === selectedArea;
+      const matchesTipo = selectedTipo === 'todos' || tipo === selectedTipo;
+      
+      if (matchesSearch && matchesArea && matchesTipo) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+  
+  searchInput.addEventListener('input', filterProjetos);
+  filterArea.addEventListener('change', filterProjetos);
+  filterTipo.addEventListener('change', filterProjetos);
+});
+</script>
+{% endblock %}
+

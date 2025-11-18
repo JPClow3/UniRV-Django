@@ -1,0 +1,225 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Dashboard - YPETEC{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <!-- Welcome Header -->
+  <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-3xl p-10 shadow-xl">
+    <div class="flex items-center gap-3 mb-4">
+      <i class="fas fa-sparkles text-white text-2xl"></i>
+      <h1 class="text-white text-3xl md:text-4xl font-bold">
+        Bem-vindo, {{ user.get_full_name|default:user.username }}!
+      </h1>
+    </div>
+    <p class="text-white/90 text-lg">
+      Aqui está um resumo das suas atividades recentes
+    </p>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    {% if user.is_staff %}
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-users text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">156</div>
+        <div class="text-gray-600 text-sm">Total de Usuários</div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-file-alt text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">3</div>
+        <div class="text-gray-600 text-sm">Editais Ativos</div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-cyan-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-folder-open text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">45</div>
+        <div class="text-gray-600 text-sm">Projetos Submetidos</div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-clock text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">12</div>
+        <div class="text-gray-600 text-sm">Avaliações Pendentes</div>
+      </div>
+    {% else %}
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-folder-open text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">2</div>
+        <div class="text-gray-600 text-sm">Meus Projetos</div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-clock text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">1</div>
+        <div class="text-gray-600 text-sm">Em Avaliação</div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-cyan-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-check-circle text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">1</div>
+        <div class="text-gray-600 text-sm">Aprovados</div>
+      </div>
+      <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 p-8 group">
+        <div class="flex items-start justify-between mb-6">
+          <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <i class="fas fa-chart-line text-white text-2xl"></i>
+          </div>
+        </div>
+        <div class="text-4xl text-gray-900 mb-2 font-bold">50%</div>
+        <div class="text-gray-600 text-sm">Taxa de Aprovação</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-6">
+    <!-- Quick Actions -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-3xl shadow-md border-0 p-8">
+        <h3 class="text-gray-900 mb-6 text-xl font-semibold">Ações Rápidas</h3>
+        <div class="space-y-8">
+          {% if user.is_staff %}
+            <a href="{% url 'dashboard_usuarios' %}">
+              <div class="group cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg text-white rounded-xl p-4 transition-all flex items-center gap-3 shadow-sm">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-users text-white text-sm"></i>
+                </div>
+                <span class="flex-1 text-left font-medium text-sm">Criar Novo Usuário</span>
+                <i class="fas fa-arrow-right opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all flex-shrink-0"></i>
+              </div>
+            </a>
+            <a href="{% url 'edital_create' %}">
+              <div class="group cursor-pointer bg-gradient-to-r from-green-500 to-blue-600 hover:shadow-lg text-white rounded-xl p-4 transition-all flex items-center gap-3 shadow-sm">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-file-alt text-white text-sm"></i>
+                </div>
+                <span class="flex-1 text-left font-medium text-sm">Publicar Edital</span>
+                <i class="fas fa-arrow-right opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all flex-shrink-0"></i>
+              </div>
+            </a>
+            <a href="{% url 'dashboard_relatorios' %}">
+              <div class="group cursor-pointer bg-gradient-to-r from-blue-600 to-blue-700 hover:shadow-lg text-white rounded-xl p-4 transition-all flex items-center gap-3 shadow-sm">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-chart-line text-white text-sm"></i>
+                </div>
+                <span class="flex-1 text-left font-medium text-sm">Ver Relatórios</span>
+                <i class="fas fa-arrow-right opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all flex-shrink-0"></i>
+              </div>
+            </a>
+          {% else %}
+            <a href="{% url 'dashboard_projetos' %}?action=submeter">
+              <div class="group cursor-pointer bg-gradient-to-r from-green-500 to-blue-600 hover:shadow-lg text-white rounded-xl p-4 transition-all flex items-center gap-3 shadow-sm">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-folder-open text-white text-sm"></i>
+                </div>
+                <span class="flex-1 text-left font-medium text-sm">Submeter Projeto</span>
+                <i class="fas fa-arrow-right opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all flex-shrink-0"></i>
+              </div>
+            </a>
+            <a href="{% url 'dashboard_projetos' %}">
+              <div class="group cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg text-white rounded-xl p-4 transition-all flex items-center gap-3 shadow-sm">
+                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-file-alt text-white text-sm"></i>
+                </div>
+                <span class="flex-1 text-left font-medium text-sm">Meus Projetos</span>
+                <i class="fas fa-arrow-right opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all flex-shrink-0"></i>
+              </div>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-3xl shadow-md border-0 p-8">
+        <h3 class="text-gray-900 mb-6 text-xl font-semibold">Atividades Recentes</h3>
+        <div class="space-y-5">
+          {% if user.is_staff %}
+            <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-blue-500">
+                <i class="fas fa-user text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-gray-900 mb-1">Novo usuário cadastrado: João Silva</p>
+                <p class="text-gray-500 text-sm">2 horas atrás</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-green-500">
+                <i class="fas fa-check-circle text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-gray-900 mb-1">Edital 003/2024 publicado com sucesso</p>
+                <p class="text-gray-500 text-sm">5 horas atrás</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-blue-500">
+                <i class="fas fa-file-alt text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-gray-900 mb-1">3 novos projetos submetidos</p>
+                <p class="text-gray-500 text-sm">1 dia atrás</p>
+              </div>
+            </div>
+          {% else %}
+            <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-green-500">
+                <i class="fas fa-check-circle text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-gray-900 mb-1">Seu projeto "AgroTech" foi aprovado!</p>
+                <p class="text-gray-500 text-sm">3 horas atrás</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-blue-500">
+                <i class="fas fa-file-alt text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-gray-900 mb-1">Projeto "EduPlay" está em avaliação</p>
+                <p class="text-gray-500 text-sm">2 dias atrás</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
+              <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm bg-blue-500">
+                <i class="fas fa-file-alt text-white text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-gray-900 mb-1">Novo edital disponível para submissão</p>
+                <p class="text-gray-500 text-sm">5 dias atrás</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

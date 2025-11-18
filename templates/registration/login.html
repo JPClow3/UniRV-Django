@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - YPETEC{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
+  <div class="w-full max-w-md">
+    <!-- Back Button -->
+    <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 transition-colors group">
+      <i class="fas fa-arrow-left w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+      <span class="font-medium">Voltar para o site</span>
+    </a>
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <a href="{% url 'home' %}" class="inline-flex items-center gap-3 mb-2">
+        <div class="w-12 h-12 rounded flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-700">
+          <span class="text-white font-bold text-lg">Y</span>
+        </div>
+      </a>
+      <h1 class="text-blue-600 mt-2 text-2xl font-bold">YPETEC</h1>
+      <p class="text-gray-600">Sistema de Gestão de Editais</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="bg-white rounded-3xl shadow-md p-10 border-0">
+      <div class="mb-8">
+        <h2 class="text-gray-900 text-2xl mb-2 font-semibold">Acessar Sistema</h2>
+        <p class="text-gray-600">Entre com suas credenciais</p>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert bg-red-50 border-red-200 mb-6">
+          <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
+          <div class="text-red-900">
+            {% if form.non_field_errors %}
+              {{ form.non_field_errors }}
+            {% else %}
+              E-mail ou senha inválidos. Tente novamente.
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next|default:'/' }}">
+        
+        <div class="space-y-2">
+          <label for="id_username" class="text-gray-700 font-medium">E-mail</label>
+          <input
+            id="id_username"
+            name="username"
+            type="email"
+            placeholder="seu@email.com"
+            required
+            autocomplete="email"
+            class="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            value="{{ form.username.value|default:'' }}"
+          >
+        </div>
+
+        <div class="space-y-2">
+          <label for="id_password" class="text-gray-700 font-medium">Senha</label>
+          <div class="relative">
+            <input
+              id="id_password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+              class="h-11 w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            >
+            <button
+              type="button"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              data-password-toggle="id_password"
+              aria-pressed="false"
+              aria-label="Mostrar ou ocultar senha"
+            >
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="checkbox" 
+              name="remember_me"
+              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            >
+            <span class="text-gray-600">Lembrar-me</span>
+          </label>
+          <a href="{% url 'admin:password_reset' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+            Esqueceu a senha?
+          </a>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full h-11 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all text-white font-medium flex items-center justify-center gap-2"
+        >
+          <i class="fas fa-sign-in-alt"></i>
+          Entrar
+        </button>
+      </form>
+
+      <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+        <p class="text-gray-600 text-sm">
+          Não tem uma conta?{' '}
+          <a href="{% url 'register' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+            Criar conta
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+

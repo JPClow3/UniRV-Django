@@ -1,344 +1,256 @@
 {% extends 'base.html' %}
-{% load editais_filters %}
+{% load static %}
 
-{% block title %}Editais de Fomento - AgroHub UniRV{% endblock %}
-
-{% block breadcrumb %}
-{% include 'editais/breadcrumb.html' %}
-{% block breadcrumb_items %}
-<li class="breadcrumb-item" aria-current="page">
-    <span>Lista de Editais</span>
-</li>
-{% endblock %}
-{% endblock %}
-
-{% block meta_description %}Explore editais de fomento abertos para o agronegócio. Encontre oportunidades de financiamento, pesquisa e inovação para seu projeto.{% endblock %}
-
-{% block meta_keywords %}editais fomento, agronegócio, financiamento rural, pesquisa agrícola, inovação, UniRV{% endblock %}
+{% block title %}Editais Publicados - YPETEC{% endblock %}
 
 {% block content %}
-<div class="editais-header">
-    <div class="search-section">
-        <div class="search-header">
-            <div class="title-group">
-                <h1 class="main-title">Editais de Fomento</h1>
-                <p class="search-subtitle">
-                    Encontramos <strong>{{ total_count }}</strong> 
-                    edita{{ total_count|pluralize:"l,is" }}
-                </p>
-            </div>
+<div class="bg-white">
+  <!-- Header -->
+  <section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-20">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <h1 class="text-white mb-6 text-4xl md:text-5xl leading-tight">Editais Publicados</h1>
+        <p class="text-lg md:text-xl text-white/90 leading-relaxed">
+          Confira os editais abertos e oportunidades de incubação disponíveis
+        </p>
+      </div>
+    </div>
+  </section>
 
-            <div class="header-actions">
-                {% if user.is_authenticated and user.is_staff %}
-                <a href="{% url 'edital_create' %}" 
-                   class="btn btn-primary"
-                   title="Criar novo edital"
-                   aria-label="Criar novo edital">
-                    <i class="fas fa-plus" aria-hidden="true"></i>
-                    Criar Edital
-                </a>
-                <a href="{% url 'admin_dashboard' %}" 
-                   class="btn-icon btn-icon-primary"
-                   title="Acessar dashboard administrativo"
-                   aria-label="Acessar dashboard administrativo">
-                    <i class="fas fa-chart-line" aria-hidden="true"></i>
-                    <span class="sr-only">Dashboard</span>
-                </a>
-                {% endif %}
-            </div>
+  <!-- Filters -->
+  <section class="bg-gray-50 border-b">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <form method="GET" class="search-form flex flex-col md:flex-row gap-4">
+        <div class="flex-1 relative search-input-wrapper">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"></i>
+          <input 
+            type="text" 
+            name="search" 
+            value="{{ search_query }}"
+            placeholder="Buscar editais... (Ctrl+K)" 
+            class="pl-10 w-full search-input"
+            id="search-editais"
+            aria-label="Buscar editais"
+          >
+          <div class="keyboard-hint absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hidden md:flex items-center gap-1">
+            <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Ctrl</kbd>
+            <span>+</span>
+            <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">K</kbd>
+          </div>
         </div>
 
-        <div class="filters-container">
-            <form method="GET" class="search-form" role="search" aria-label="Buscar editais">
-                <div class="search-input-row">
-                    <div class="search-input-wrapper">
-                        <i class="fas fa-search search-icon" aria-hidden="true"></i>
-                        <input type="text" 
-                            name="search" 
-                            value="{{ search_query }}"
-                            placeholder="Buscar por título, entidade ou número do edital..." 
-                            class="search-input"
-                            aria-label="Campo de busca"
-                            autocomplete="off">
-                        {% if search_query %}
-                            <button type="button" class="search-clear" aria-label="Limpar busca">
-                                <i class="fas fa-times" aria-hidden="true"></i>
-                            </button>
-                        {% else %}
-                            <div class="keyboard-hint" aria-hidden="true">
-                                <kbd>Ctrl</kbd> + <kbd>K</kbd>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <button type="submit" class="search-submit" aria-label="Buscar editais">
-                        <i class="fas fa-search" aria-hidden="true"></i>
-                    </button>
-                </div>
+        <select name="tipo" id="filter-tipo" class="w-full md:w-48" aria-label="Filtrar por tipo">
+          <option value="">Todos os tipos</option>
+          <option value="Fluxo Contínuo" {% if tipo_filter == 'Fluxo Contínuo' %}selected{% endif %}>Fluxo Contínuo</option>
+          <option value="Fomento" {% if tipo_filter == 'Fomento' %}selected{% endif %}>Fomento</option>
+        </select>
 
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label class="sr-only" for="status-filter">Filtrar por status</label>
-                        <select id="status-filter" name="status" class="status-filter" aria-label="Filtrar por status">
-                            <option value="">Todos os Status</option>
-                            {% for value, display in status_choices %}
-                                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ display }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="start_date-filter" class="filter-label">Data de Abertura:</label>
-                        <input type="date" 
-                               id="start_date-filter" 
-                               name="start_date" 
-                               value="{{ start_date_filter }}"
-                               class="date-filter"
-                               aria-label="Filtrar por data de abertura">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="end_date-filter" class="filter-label">Data de Encerramento:</label>
-                        <input type="date" 
-                               id="end_date-filter" 
-                               name="end_date" 
-                               value="{{ end_date_filter }}"
-                               class="date-filter"
-                               aria-label="Filtrar por data de encerramento">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="checkbox-filter">
-                            <input type="checkbox" 
-                                   name="only_open" 
-                                   value="1"
-                                   {% if only_open %}checked{% endif %}
-                                   aria-label="Mostrar somente editais abertos">
-                            <span>Somente Abertos</span>
-                        </label>
-                    </div>
-                </div>
-            </form>
+        <select name="status" id="filter-status" class="w-full md:w-48" aria-label="Filtrar por status">
+          <option value="">Todos</option>
+          <option value="aberto" {% if status_filter == 'aberto' %}selected{% endif %}>Abertos</option>
+          <option value="fechado" {% if status_filter == 'fechado' %}selected{% endif %}>Encerrados</option>
+        </select>
+        
+        {% if search_query or tipo_filter or status_filter %}
+        <button type="button" class="clear-filters-btn w-full md:w-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all inline-flex items-center gap-2" aria-label="Limpar filtros">
+          <i class="fas fa-times"></i>
+          <span>Limpar</span>
+        </button>
+        {% endif %}
+      </form>
+      
+      {% if search_query or tipo_filter or status_filter %}
+      <div class="mt-4 flex items-center gap-2 text-sm text-gray-600">
+        <i class="fas fa-filter"></i>
+        <span>Filtros ativos: 
+          {% if search_query %}<span class="badge bg-blue-100 text-blue-700 px-2 py-1 rounded">{{ search_query }}</span>{% endif %}
+          {% if tipo_filter %}<span class="badge bg-green-100 text-green-700 px-2 py-1 rounded">{{ tipo_filter }}</span>{% endif %}
+          {% if status_filter %}<span class="badge bg-purple-100 text-purple-700 px-2 py-1 rounded">{{ status_filter|title }}</span>{% endif %}
+        </span>
+      </div>
+      {% endif %}
 
+      {% if page_obj and not page_obj.object_list %}
+      <div class="mt-6 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3">
+        <i class="fas fa-circle-exclamation mt-1"></i>
+        <div class="flex-1">
+          <p class="font-semibold">Nenhum edital encontrado com os filtros selecionados.</p>
+          <p class="text-sm text-red-600/80">Revise os termos de busca ou limpe os filtros para visualizar todos os editais.</p>
+          {% if search_query or tipo_filter or status_filter %}
+          <button type="button" class="clear-filters-btn mt-3 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-600 transition-all">
+            <i class="fas fa-broom"></i>
+            Limpar filtros
+          </button>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Editais List -->
+  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-5xl mx-auto">
+      {% if page_obj and page_obj.object_list %}
+        <div class="space-y-6">
+          {% for edital in page_obj %}
+            <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden">
+              <div class="p-8">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-6 flex-wrap">
+                      {% if edital.numero_edital %}
+                        <span class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold shadow-sm">
+                          {{ edital.numero_edital }}
+                        </span>
+                      {% endif %}
+                      <span class="badge {% if edital.status == 'aberto' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %} border-none px-4 py-1.5">
+                        {{ edital.get_status_display|upper }}
+                      </span>
+                      <span class="badge variant-outline border-gray-300 px-4 py-1.5">
+                        {% if edital.end_date %}Fomento{% else %}Fluxo Contínuo{% endif %}
+                      </span>
+                    </div>
+
+                    <h3 class="text-blue-600 mb-4 text-xl font-semibold">
+                      <a href="{{ edital.get_absolute_url }}" class="hover:text-blue-700 transition-colors">{{ edital.titulo }}</a>
+                    </h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                      {{ edital.objetivo|default:edital.analise|default:"Sem descrição disponível."|truncatewords:30 }}
+                    </p>
+
+                    {% if edital.entidade_principal %}
+                      <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="px-4 py-2 bg-gray-50 text-gray-700 rounded-full text-sm border border-gray-200">
+                          {{ edital.entidade_principal }}
+                        </span>
+                      </div>
+                    {% endif %}
+
+                    <div class="flex flex-col sm:flex-row gap-4 text-sm text-gray-600">
+                      {% if edital.start_date %}
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-calendar text-blue-600"></i>
+                          <span>Abertura: {{ edital.start_date|date:"d/m/Y" }}</span>
+                        </div>
+                      {% endif %}
+                      {% if edital.end_date %}
+                        <div class="flex items-center gap-2">
+                          <i class="fas fa-clock text-blue-600"></i>
+                          <span>Fechamento: {{ edital.end_date|date:"d/m/Y" }}</span>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col gap-3 lg:min-w-[200px]">
+                    {% if edital.status == 'aberto' %}
+                      <a href="{{ edital.get_absolute_url }}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+                        Inscreva-se →
+                      </a>
+                    {% endif %}
+                    <a href="{{ edital.get_absolute_url }}" class="variant-outline gap-2 rounded-full border-2 border-gray-300 hover:bg-gray-50 inline-flex items-center justify-center px-6 py-3 text-gray-700 font-medium transition-all">
+                      <i class="fas fa-file-alt mr-2"></i>
+                      Saiba Mais
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
         </div>
 
-        <!-- Active filters display -->
-    {% if search_query or status_filter or start_date_filter or end_date_filter or only_open %}
-        <div class="active-filters">
-            <span class="active-filters-label">Filtros ativos:</span>
-            {% if search_query %}
-                <span class="filter-tag">
-                    Busca: "{{ search_query }}"
-                    <a href="?{% preserve_filters request search='' %}" class="filter-remove" aria-label="Remover filtro de busca">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </a>
-                </span>
-            {% endif %}
-            {% if status_filter %}
-                <span class="filter-tag">
-                    Status: {{ status_filter|title }}
-                    <a href="?{% preserve_filters request status='' %}" class="filter-remove" aria-label="Remover filtro de status">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </a>
-                </span>
-            {% endif %}
-            {% if start_date_filter %}
-                <span class="filter-tag">
-                    Abertura: {{ start_date_filter }}
-                    <a href="?{% preserve_filters request start_date='' %}" class="filter-remove" aria-label="Remover filtro de data de abertura">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </a>
-                </span>
-            {% endif %}
-            {% if end_date_filter %}
-                <span class="filter-tag">
-                    Encerramento: {{ end_date_filter }}
-                    <a href="?{% preserve_filters request end_date='' %}" class="filter-remove" aria-label="Remover filtro de data de encerramento">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </a>
-                </span>
-            {% endif %}
-            {% if only_open %}
-                <span class="filter-tag">
-                    Somente Abertos
-                    <a href="?{% preserve_filters request only_open='' %}" class="filter-remove" aria-label="Remover filtro somente abertos">
-                        <i class="fas fa-times" aria-hidden="true"></i>
-                    </a>
-                </span>
-            {% endif %}
-            <a href="{% url 'editais_index' %}" class="filter-clear-all">
-                <i class="fas fa-redo" aria-hidden="true"></i>
-                Limpar todos
-            </a>
-        </div>
-    {% endif %}
-</div>
-
-<div class="editais-grid" aria-label="Lista de editais">
-    {% for edital in page_obj %}
-        <article class="edital-card">
-            <div class="card-header">
-                <span class="status-badge status-{{ edital.status }}" aria-label="Status do edital">{{ edital.get_status_display }}</span>
-                {% if edital.numero_edital %}
-                    <span class="edital-number">{{ edital.numero_edital }}</span>
-                {% endif %}
-            </div>
-
-            <h2 class="edital-title">
-                <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatewords:12 }}</a>
-            </h2>
-
-            <div class="card-meta">
-                {% if edital.entidade_principal %}
-                    <div class="card-meta-item">
-                        <i class="fas fa-building" aria-hidden="true"></i>
-                        <span class="meta-label">Instituição:</span>
-                        <span class="meta-value">{{ edital.entidade_principal }}</span>
-                    </div>
-                {% endif %}
-                
-                <div class="card-meta-item">
-                    <i class="fas fa-tag" aria-hidden="true"></i>
-                    <span class="meta-label">Status:</span>
-                    <span class="meta-value status-text status-{{ edital.status }}">{{ edital.get_status_display }}</span>
-                </div>
-                
-                {% if edital.valores.exists %}
-                    {% with primeiro_valor=edital.valores.first %}
-                        {% if primeiro_valor.valor_total %}
-                            <div class="card-meta-item">
-                                <i class="fas fa-dollar-sign" aria-hidden="true"></i>
-                                <span class="meta-label">Valor:</span>
-                                <span class="meta-value">
-                                    {% if primeiro_valor.moeda == 'BRL' %}R${% elif primeiro_valor.moeda == 'USD' %}US${% elif primeiro_valor.moeda == 'EUR' %}€{% endif %}
-                                    {{ primeiro_valor.valor_total|floatformat:2 }}
-                                </span>
-                            </div>
-                        {% endif %}
-                    {% endwith %}
-                {% endif %}
-            </div>
-
-            <p class="edital-objective">
-                {{ edital.objetivo|default_if_none:''|truncatewords:25|default:"Sem descrição disponível." }}
-            </p>
-
-            <div class="card-footer">
-                <div class="card-dates">
-                    {% if edital.start_date %}
-                    <div class="date-item">
-                        <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-                        <span class="date-label">Abertura:</span>
-                        <time datetime="{{ edital.start_date|date:'Y-m-d' }}" class="date-value">
-                            {{ edital.start_date|date:"d/m/Y" }}
-                        </time>
-                    </div>
-                    {% elif edital.data_criacao %}
-                    <div class="date-item">
-                        <i class="fas fa-calendar-plus" aria-hidden="true"></i>
-                        <span class="date-label">Criado em:</span>
-                        <time datetime="{{ edital.data_criacao|date:'Y-m-d' }}" class="date-value">
-                            {{ edital.data_criacao|date:"d/m/Y" }}
-                        </time>
-                    </div>
-                    {% endif %}
-                    
-                    {% if edital.end_date %}
-                    <div class="date-item {% if edital.end_date|is_deadline_soon %}deadline-soon{% endif %}">
-                        <i class="fas fa-calendar-times" aria-hidden="true"></i>
-                        <span class="date-label">Encerra:</span>
-                        <time datetime="{{ edital.end_date|date:'Y-m-d' }}" class="date-value">
-                            {{ edital.end_date|date:"d/m/Y" }}
-                        </time>
-                        {% if edital.end_date|is_deadline_soon %}
-                            <span class="deadline-warning" aria-label="Prazo próximo">
-                                <i class="fas fa-clock" aria-hidden="true"></i> Prazo próximo
-                            </span>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    
-                    {% if edital.data_atualizacao %}
-                    <div class="date-item update-date">
-                        <i class="fas fa-sync-alt" aria-hidden="true"></i>
-                        <span class="date-label">Atualizado:</span>
-                        <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}" class="date-value">
-                            {{ edital.data_atualizacao|date:"d/m/Y" }}
-                        </time>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="card-actions">
-                    <a href="{{ edital.get_absolute_url }}" class="btn btn-ghost" aria-label="Ver detalhes de {{ edital.titulo }}">
-                        Ver Detalhes
-                    </a>
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'edital_update' edital.pk %}" class="btn btn-ghost-secondary" aria-label="Editar {{ edital.titulo }}">
-                        Editar
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-        </article>
-    {% empty %}
-        <div class="empty-state" role="status">
-            <div class="empty-state-icon">
-                <i class="fas fa-search" aria-hidden="true"></i>
-            </div>
-            <h3>Nenhum edital encontrado</h3>
-            {% if search_query or status_filter %}
-                <p>Não encontramos editais que correspondam aos seus filtros. Tente ajustar sua busca ou remover os filtros aplicados.</p>
-                <div class="empty-state-actions">
-                    <a href="{% url 'editais_index' %}" class="btn btn-outline">
-                        <i class="fas fa-redo" aria-hidden="true"></i> Limpar Filtros
-                    </a>
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
-                        <i class="fas fa-chart-line" aria-hidden="true"></i> Acessar Dashboard
-                    </a>
-                    {% endif %}
-                </div>
-            {% else %}
-                <p>Ainda não há editais cadastrados no sistema. Seja o primeiro a adicionar um edital de fomento!</p>
-                <div class="empty-state-actions">
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary">
-                        <i class="fas fa-chart-line" aria-hidden="true"></i> Acessar Dashboard
-                    </a>
-                    {% elif user.is_authenticated %}
-                    <a href="{% url 'admin:login' %}" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Fazer Login para Cadastrar
-                    </a>
-                    {% else %}
-                    <a href="{% url 'admin:login' %}" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Fazer Login para Cadastrar
-                    </a>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-    {% endfor %}
-</div>
-
-{% if page_obj.has_other_pages %}
-    <nav class="pagination-container" aria-label="Navegação de páginas">
-        <div class="pagination">
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+          <nav class="mt-12 flex justify-center items-center gap-2" aria-label="Navegação de páginas">
             {% if page_obj.has_previous %}
-                <a href="?{% preserve_filters request page=1 %}" class="page-link" aria-label="Ir para primeira página">&laquo; Primeira</a>
-                <a href="?{% preserve_filters request page=page_obj.previous_page_number %}" class="page-link" aria-label="Ir para página anterior">Anterior</a>
+              <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Primeira
+              </a>
+              <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Anterior
+              </a>
             {% endif %}
-
-            <!-- A11Y-004: Indicador de página atual com aria-current -->
-            <span class="page-info" aria-current="page" aria-label="Página atual, página {{ page_obj.number }}">
-                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            
+            <span class="px-4 py-2 text-gray-600">
+              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
             </span>
-
+            
             {% if page_obj.has_next %}
-                <a href="?{% preserve_filters request page=page_obj.next_page_number %}" class="page-link" aria-label="Ir para próxima página">Próxima</a>
-                <a href="?{% preserve_filters request page=page_obj.paginator.num_pages %}" class="page-link" aria-label="Ir para última página">Última &raquo;</a>
+              <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Próxima
+              </a>
+              <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                Última
+              </a>
             {% endif %}
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="empty-state text-center">
+          <div class="empty-state-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>Não encontramos editais</h3>
+          <p>Revise os termos de busca ou tente alterar os filtros selecionados.</p>
+          <div class="flex flex-col sm:flex-row justify-center gap-3 mt-4">
+            <a href="{% url 'editais_index' %}" class="btn bg-gradient-to-r from-green-500 to-blue-600 text-white">
+              Ver todos os editais
+            </a>
+            {% if search_query or status_filter or tipo_filter %}
+            <button type="button" class="clear-filters-btn btn variant-outline text-gray-700 border border-gray-300">
+              Limpar filtros
+            </button>
+            {% endif %}
+          </div>
         </div>
-    </nav>
-{% endif %}
-{% endblock %}
+      {% endif %}
+    </div>
+  </section>
 
+  <!-- CTA Section -->
+  <section class="bg-blue-50 py-12">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-gray-900 mb-4 text-2xl">Dúvidas sobre o processo?</h2>
+      <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+        Consulte nosso guia completo com o passo a passo para inscrição
+      </p>
+      <a href="{% url 'passo_a_passo' %}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-8 py-3 text-white font-medium">
+        Acessar Passo a Passo
+        <i class="fas fa-arrow-right ml-2"></i>
+      </a>
+    </div>
+  </section>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-editais');
+  const filterTipo = document.getElementById('filter-tipo');
+  const filterStatus = document.getElementById('filter-status');
+  const form = document.querySelector('form');
+  
+  // Auto-submit on filter change
+  if (filterTipo) {
+    filterTipo.addEventListener('change', function() {
+      form.submit();
+    });
+  }
+  
+  if (filterStatus) {
+    filterStatus.addEventListener('change', function() {
+      form.submit();
+    });
+  }
+  
+  // Submit on Enter in search
+  if (searchInput) {
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        form.submit();
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

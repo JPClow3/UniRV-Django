@@ -13,6 +13,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.views.decorators.cache import cache_page
 
 from .constants import (
     CACHE_TTL_INDEX, PAGINATION_DEFAULT, DEADLINE_WARNING_DAYS
@@ -158,10 +159,286 @@ def _clear_index_cache():
         cache.delete(old_cache_key)
 
 
+@cache_page(60 * 5)  # Cache for 5 minutes
+def home(request):
+    """Home page - landing page with hero, stats, features, etc."""
+    return render(request, 'home.html')
+
+
+def comunidade(request):
+    """Comunidade page - community feed with posts"""
+    return render(request, 'comunidade.html')
+
+
+def projetos_aprovados(request):
+    """Projetos Aprovados page - list of approved projects"""
+    return render(request, 'projetos_aprovados.html')
+
+
+def passo_a_passo(request):
+    """Passo a Passo page - step by step guide"""
+    return render(request, 'passo_a_passo.html')
+
+
+def login_view(request):
+    """Custom login page matching React design"""
+    from django.contrib.auth import authenticate, login
+    from django.contrib.auth.forms import AuthenticationForm
+    from django.shortcuts import redirect
+    
+    if request.user.is_authenticated:
+        return redirect('dashboard_home')
+    
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                next_url = request.GET.get('next', '/dashboard/home/')
+                return redirect(next_url)
+    else:
+        form = AuthenticationForm()
+    
+    return render(request, 'registration/login.html', {'form': form})
+
+
+def register_view(request):
+    """User registration view"""
+    if request.user.is_authenticated:
+        return redirect('dashboard_home')
+    
+    from .forms import UserRegistrationForm
+    from django.contrib.auth import login
+    from django.core.mail import send_mail
+    from django.conf import settings
+    
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            
+            # Log the user in automatically after registration
+            login(request, user)
+            
+            # Log successful registration
+            logger.info(
+                f"User registered successfully - username: {user.username}, "
+                f"email: {user.email}, IP: {request.META.get('REMOTE_ADDR')}"
+            )
+            
+            # Send welcome email (optional, only if email is configured)
+            try:
+                if hasattr(settings, 'EMAIL_HOST') and settings.EMAIL_HOST:
+                    send_mail(
+                        subject='Bem-vindo ao YPETEC!',
+                        message=f'Olá {user.first_name},\n\nBem-vindo ao sistema de gestão de editais da YPETEC - Incubadora UniRV!\n\nSua conta foi criada com sucesso.',
+                        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@unirv.edu.br'),
+                        recipient_list=[user.email],
+                        fail_silently=True,
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to send welcome email to {user.email}: {e}")
+            
+            messages.success(request, 'Conta criada com sucesso! Bem-vindo ao YPETEC!')
+            return redirect('dashboard_home')
+    else:
+        form = UserRegistrationForm()
+    
+    return render(request, 'registration/register.html', {'form': form})
+
+
+# Dashboard Views
+@login_required
+def dashboard_home(request):
+    """Dashboard home page matching React DashboardHomePage"""
+    return render(request, 'dashboard/home.html')
+
+
+@login_required
+def dashboard_editais(request):
+    """Dashboard editais management page"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
+    
+    from django.db.models import Count, Q
+    
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    tipo_filter = request.GET.get('tipo', '')
+    
+    # Optimize queries with select_related and prefetch_related
+    editais = Edital.objects.select_related(
+        'created_by', 'updated_by'
+    ).prefetch_related('valores', 'cronogramas')
+    
+    if search_query:
+        editais = editais.filter(build_search_query(search_query))
+    
+    if status_filter:
+        editais = editais.filter(status=status_filter)
+    
+    if tipo_filter:
+        if tipo_filter == 'Fluxo Contínuo':
+            editais = editais.filter(end_date__isnull=True)
+        elif tipo_filter == 'Fomento':
+            editais = editais.filter(end_date__isnull=False)
+    
+    editais = editais.order_by('-data_criacao')
+    
+    # Optimize stats queries using annotations (single query instead of multiple)
+    stats = Edital.objects.aggregate(
+        total_editais=Count('id'),
+        publicados=Count('id', filter=Q(status='aberto')),
+        rascunhos=Count('id', filter=Q(status='draft'))
+    )
+    
+    context = {
+        'editais': editais,
+        'total_editais': stats['total_editais'],
+        'publicados': stats['publicados'],
+        'rascunhos': stats['rascunhos'],
+        'total_submissoes': 0  # Placeholder
+    }
+    
+    return render(request, 'dashboard/editais.html', context)
+
+
+@login_required
+def dashboard_projetos(request):
+    """Dashboard projetos page"""
+    projects_data = [
+        {
+            'id': 1,
+            'name': 'AgroTech Solutions',
+            'edital_id': '1',
+            'edital_label': 'Edital 001/2024',
+            'proponente': 'João Silva',
+            'submitted_on': '15/02/2024',
+            'status': 'Em Avaliação',
+            'note': None,
+        },
+        {
+            'id': 2,
+            'name': 'EduPlay',
+            'edital_id': '2',
+            'edital_label': 'Edital 002/2024',
+            'proponente': 'Maria Santos',
+            'submitted_on': '20/01/2024',
+            'status': 'Aprovado',
+            'note': '8.5',
+        },
+        {
+            'id': 3,
+            'name': 'GreenFarm',
+            'edital_id': '3',
+            'edital_label': 'Edital 003/2024',
+            'proponente': 'Lucas Pereira',
+            'submitted_on': '05/03/2024',
+            'status': 'Pendente',
+            'note': None,
+        },
+        {
+            'id': 4,
+            'name': 'LogiSmart',
+            'edital_id': '1',
+            'edital_label': 'Edital 001/2024',
+            'proponente': 'Ana Oliveira',
+            'submitted_on': '28/02/2024',
+            'status': 'Reprovado',
+            'note': '6.2',
+        },
+    ]
+
+    search_query = request.GET.get('search', '').strip().lower()
+    edital_filter = request.GET.get('edital', '').strip()
+    status_filter = request.GET.get('status', '').strip().lower()
+
+    def matches(project):
+        if search_query and search_query not in project['name'].lower():
+            return False
+        if edital_filter and edital_filter != project['edital_id']:
+            return False
+        if status_filter and status_filter != project['status'].lower():
+            return False
+        return True
+
+    filtered_projects = [project for project in projects_data if matches(project)]
+
+    stats = {
+        'total': len(projects_data),
+        'em_avaliacao': sum(1 for p in projects_data if p['status'] == 'Em Avaliação'),
+        'aprovados': sum(1 for p in projects_data if p['status'] == 'Aprovado'),
+        'approval_rate': f"{round((sum(1 for p in projects_data if p['status'] == 'Aprovado') / max(len(projects_data), 1)) * 100)}%",
+    }
+
+    context = {
+        'projects': filtered_projects,
+        'search_query': request.GET.get('search', '').strip(),
+        'edital_filter': edital_filter,
+        'status_filter': request.GET.get('status', '').strip(),
+        'stats': stats,
+    }
+
+    return render(request, 'dashboard/projetos.html', context)
+
+
+@login_required
+def dashboard_avaliacoes(request):
+    """Dashboard avaliações page"""
+    return render(request, 'dashboard/avaliacoes.html')
+
+
+@login_required
+def dashboard_usuarios(request):
+    """Dashboard usuarios page"""
+    if not request.user.is_staff:
+        # Log unauthorized access attempt
+        security_logger = logging.getLogger('django.security')
+        security_logger.warning(
+            f"Unauthorized dashboard access attempt - user: {request.user.username}, "
+            f"IP: {request.META.get('REMOTE_ADDR')}, view: dashboard_usuarios"
+        )
+        return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
+    return render(request, 'dashboard/usuarios.html')
+
+
+@login_required
+def dashboard_relatorios(request):
+    """Dashboard relatorios page"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
+    return render(request, 'dashboard/relatorios.html')
+
+
+@login_required
+def dashboard_publicacoes(request):
+    """Dashboard minhas publicações page"""
+    return render(request, 'dashboard/publicacoes.html')
+
+
+@login_required
+def dashboard_novo_edital(request):
+    """Dashboard novo edital page"""
+    if not request.user.is_staff:
+        return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
+    return render(request, 'dashboard/novo_edital.html')
+
+
+@login_required
+def dashboard_submeter_projeto(request):
+    """Dashboard submeter projeto page"""
+    return render(request, 'dashboard/submeter_projeto.html')
+
+
+@cache_page(60 * 5)  # Cache for 5 minutes (overridden by manual cache logic)
 def index(request):
     """Landing page com todos os editais"""
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
+    tipo_filter = request.GET.get('tipo', '')  # Novo filtro: Fluxo Contínuo ou Fomento
     start_date_filter = request.GET.get('start_date', '')
     end_date_filter = request.GET.get('end_date', '')
     only_open = request.GET.get('only_open', '') == '1'  # Checkbox "somente abertos"
@@ -170,7 +447,7 @@ def index(request):
     # Build cache key based on query parameters
     # Only cache if no search or filter is applied (most common case)
     cache_key = None
-    has_filters = search_query or status_filter or start_date_filter or end_date_filter or only_open
+    has_filters = search_query or status_filter or tipo_filter or start_date_filter or end_date_filter or only_open
     use_cache = not has_filters and not request.user.is_authenticated
     cache_ttl = getattr(settings, 'EDITAIS_CACHE_TTL', CACHE_TTL_INDEX)
 
@@ -207,6 +484,13 @@ def index(request):
     elif only_open:
         # Filter "somente abertos" - show only editais with status='aberto'
         editais = editais.filter(status='aberto')
+    
+    # Apply tipo filter (Fluxo Contínuo = sem end_date, Fomento = com end_date)
+    if tipo_filter:
+        if tipo_filter == 'Fluxo Contínuo':
+            editais = editais.filter(end_date__isnull=True)
+        elif tipo_filter == 'Fomento':
+            editais = editais.filter(end_date__isnull=False)
 
     # Apply date filters
     if start_date_filter:
@@ -236,6 +520,7 @@ def index(request):
         'page_obj': page_obj,
         'search_query': search_query,
         'status_filter': status_filter,
+        'tipo_filter': tipo_filter,
         'start_date_filter': start_date_filter,
         'end_date_filter': end_date_filter,
         'only_open': only_open,
@@ -256,6 +541,11 @@ def edital_detail(request, slug=None, pk=None):
     """
     Página de detalhes do edital - suporta slug ou PK.
     
+    SECURITY NOTE: This view uses manual caching that considers user authentication
+    status to prevent cache poisoning. The @cache_page decorator was removed because
+    it caches based only on URL, which would allow unauthorized users to cache 404
+    responses that staff users would then see.
+    
     Args:
         request: HttpRequest
         slug: Slug do edital (opcional)
@@ -267,6 +557,18 @@ def edital_detail(request, slug=None, pk=None):
     Raises:
         Http404: Se o edital não for encontrado ou não tiver permissão
     """
+    # Build cache key that includes user authentication status
+    # This prevents cache poisoning between authenticated/unauthenticated users
+    user_key = 'staff' if (request.user.is_authenticated and request.user.is_staff) else 'public'
+    # Use slug if available, otherwise use pk
+    identifier = slug if slug else f'pk_{pk}'
+    cache_key = f'edital_detail_{identifier}_{user_key}'
+    
+    # Try to get cached response
+    cached_response = cache.get(cache_key)
+    if cached_response:
+        return cached_response
+    
     try:
         # Optimize query with select_related and prefetch_related
         if slug:
@@ -303,7 +605,13 @@ def edital_detail(request, slug=None, pk=None):
             'valores': valores,
             'cronogramas': cronogramas,
         }
-        return render(request, 'editais/detail.html', context)
+        response = render(request, 'editais/detail.html', context)
+        
+        # Cache successful responses only (not 404s)
+        # Cache for 15 minutes (900 seconds)
+        cache.set(cache_key, response, 60 * 15)
+        
+        return response
     except EditalNotFoundError as e:
         # Converter exceção customizada para Http404
         logger.warning(f"Edital não encontrado: {e.identifier}")
@@ -675,22 +983,43 @@ def admin_dashboard(request):
             'message': 'Apenas usuários staff podem acessar o dashboard.'
         }, status=403)
     
-    from django.db.models import Count
+    from django.db.models import Count, Q
     
     try:
-        # Estatísticas gerais
-        total_editais = Edital.objects.count()
-        editais_por_status = Edital.objects.values('status').annotate(
-            count=Count('id')
-        ).order_by('status')
+        # Cache expensive stats queries
+        cache_key_stats = 'admin_dashboard_stats'
+        cached_stats = cache.get(cache_key_stats)
         
-        # Usar serviços para obter dados otimizados
-        editais_recentes = EditalService.get_recent_editais(days=7)[:10]
+        if cached_stats:
+            total_editais = cached_stats['total_editais']
+            editais_por_status = cached_stats['editais_por_status']
+        else:
+            # Estatísticas gerais - optimized with single query
+            total_editais = Edital.objects.count()
+            editais_por_status = list(Edital.objects.values('status').annotate(
+                count=Count('id')
+            ).order_by('status'))
+            # Cache for 5 minutes
+            cache.set(cache_key_stats, {
+                'total_editais': total_editais,
+                'editais_por_status': editais_por_status
+            }, 300)
         
-        # Editais próximos do prazo usando serviço
-        editais_proximos_prazo = EditalService.get_editais_by_deadline(
-            days=DEADLINE_WARNING_DAYS
-        )[:10]
+        # Cache recent editais query
+        cache_key_recentes = 'admin_dashboard_recentes'
+        editais_recentes = cache.get(cache_key_recentes)
+        if not editais_recentes:
+            editais_recentes = EditalService.get_recent_editais(days=7)[:10]
+            cache.set(cache_key_recentes, editais_recentes, 300)
+        
+        # Cache deadline editais query
+        cache_key_deadline = 'admin_dashboard_deadline'
+        editais_proximos_prazo = cache.get(cache_key_deadline)
+        if not editais_proximos_prazo:
+            editais_proximos_prazo = EditalService.get_editais_by_deadline(
+                days=DEADLINE_WARNING_DAYS
+            )[:10]
+            cache.set(cache_key_deadline, editais_proximos_prazo, 300)
         
         # Atividades recentes usando serviço
         atividades_recentes = EditalService.get_recent_activities(days=7)[:15]

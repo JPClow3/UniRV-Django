@@ -93,6 +93,16 @@
                     setupPaginationAjax();
                 }
 
+                // Remove loading states
+                const wrapper = searchForm.querySelector('.search-input-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('searching');
+                }
+                const clearBtn = document.querySelector('.clear-filters-btn');
+                if (clearBtn) {
+                    clearBtn.classList.remove('loading');
+                }
+
                 // Update URL in browser (allow sharing filtered results)
                 history.pushState({search: params.toString()}, '', url);
 
@@ -100,9 +110,22 @@
                 editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
             })
             .catch(error => {
-                console.error('Error fetching results:', error);
+                if (typeof DEBUG !== 'undefined' && DEBUG) {
+                    console.error('Error fetching results:', error);
+                }
                 editaisGrid.classList.remove('loading');
                 isLoading = false;
+                
+                // Remove loading states on error
+                const wrapper = searchForm.querySelector('.search-input-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('searching');
+                }
+                const clearBtn = document.querySelector('.clear-filters-btn');
+                if (clearBtn) {
+                    clearBtn.classList.remove('loading');
+                }
+                
                 showToast('Erro ao filtrar editais. Tente novamente.', 'error');
             });
     };
@@ -196,12 +219,77 @@
         }
     });
 
+    // Clear filters button
+    const clearFiltersBtn = document.querySelector('.clear-filters-btn');
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            if (form) {
+                // Clear all form inputs
+                form.querySelectorAll('input[type="text"], select').forEach(input => {
+                    if (input.type === 'text') {
+                        input.value = '';
+                    } else if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0;
+                    }
+                });
+                // Clear URL params and reload
+                window.location.href = window.location.pathname;
+            }
+        });
+    }
+
+    // Filter change handlers with loading states
+    const filterSelects = document.querySelectorAll('select[name="tipo"], select[name="status"], select[name="edital"]');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const wrapper = this.closest('.search-input-wrapper') || this.closest('form');
+            if (wrapper) {
+                wrapper.classList.add('searching');
+            }
+            
+            // Add loading state to clear button if it exists
+            const clearBtn = document.querySelector('.clear-filters-btn');
+            if (clearBtn) {
+                clearBtn.classList.add('loading');
+            }
+            
+            // Perform search after a short delay
+            setTimeout(() => {
+                if (window.performSearch) {
+                    window.performSearch();
+                } else {
+                    const form = this.closest('form');
+                    if (form) {
+                        form.dispatchEvent(new Event('submit', { cancelable: true }));
+                    }
+                }
+                
+                // Remove loading states
+                if (wrapper) {
+                    wrapper.classList.remove('searching');
+                }
+                if (clearBtn) {
+                    clearBtn.classList.remove('loading');
+                }
+            }, 300);
+        });
+    });
+
     // Intercept form submission (manual submit)
     if (searchForm) {
         searchForm.addEventListener('submit', function (event) {
             event.preventDefault();
             clearTimeout(searchTimeout);
             window.searchTimeout = null;
+            
+            // Add loading state
+            const wrapper = searchForm.querySelector('.search-input-wrapper');
+            if (wrapper) {
+                wrapper.classList.add('searching');
+            }
+            
             window.performSearch();
         });
     }
@@ -1052,6 +1140,30 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
         document.body.style.overflow = ''; // Restore scrolling
     }
 
+    let manualModalCount = 0;
+
+    function openManualModal(modal) {
+        if (!modal) return;
+        manualModalCount++;
+        modal.classList.remove('hidden');
+        modal.classList.add('manual-modal-open');
+        modal.setAttribute('aria-hidden', 'false');
+        trapFocus(modal);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeManualModal(modal) {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('manual-modal-open');
+        modal.setAttribute('aria-hidden', 'true');
+        releaseFocus(modal);
+        manualModalCount = Math.max(0, manualModalCount - 1);
+        if (manualModalCount === 0) {
+            document.body.style.overflow = '';
+        }
+    }
+
     // Initialize modals
     document.addEventListener('DOMContentLoaded', function() {
         const modals = document.querySelectorAll('.modal');
@@ -1088,4 +1200,359 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
     // Expose functions globally
     window.openModal = openModal;
     window.closeModal = closeModal;
+})();
+
+// ========================================
+// COMMUNITY PAGE INTERACTIONS
+// ========================================
+(function() {
+    const likeButtons = document.querySelectorAll('.like-btn');
+    const shareButtons = document.querySelectorAll('.share-btn');
+    
+    likeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (this.disabled || this.classList.contains('loading')) return;
+            
+            const postId = this.getAttribute('data-post-id');
+            const icon = this.querySelector('i');
+            const countSpan = this.querySelector('span');
+            
+            // Add loading state
+            this.classList.add('loading');
+            this.disabled = true;
+            const originalIcon = icon ? icon.className : '';
+            if (icon) {
+                icon.className = 'fas fa-spinner fa-spin w-5 h-5';
+            }
+            
+            // Toggle like state (optimistic update)
+            const isLiked = this.classList.contains('text-red-500');
+            const newIsLiked = !isLiked;
+            
+            // Optimistic UI update
+            if (newIsLiked) {
+                this.classList.add('text-red-500');
+                this.classList.remove('text-gray-500', 'hover:text-red-500');
+                if (icon) {
+                    icon.classList.remove('far', 'fa-heart');
+                    icon.classList.add('fas', 'fa-heart');
+                }
+                if (countSpan) {
+                    const count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = count + 1;
+                }
+            } else {
+                this.classList.remove('text-red-500');
+                this.classList.add('text-gray-500', 'hover:text-red-500');
+                if (icon) {
+                    icon.classList.remove('fas', 'fa-heart');
+                    icon.classList.add('far', 'fa-heart');
+                }
+                if (countSpan) {
+                    const count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = Math.max(0, count - 1);
+                }
+            }
+            
+            // AJAX call to backend (ready for implementation)
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                            document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+            
+            fetch(`/api/posts/${postId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ action: newIsLiked ? 'like' : 'unlike' })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao processar curtida');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update UI with server response
+                if (data.liked !== undefined) {
+                    if (data.liked) {
+                        this.classList.add('text-red-500');
+                        this.classList.remove('text-gray-500', 'hover:text-red-500');
+                        if (icon) {
+                            icon.classList.remove('far', 'fa-heart');
+                            icon.classList.add('fas', 'fa-heart');
+                        }
+                    } else {
+                        this.classList.remove('text-red-500');
+                        this.classList.add('text-gray-500', 'hover:text-red-500');
+                        if (icon) {
+                            icon.classList.remove('fas', 'fa-heart');
+                            icon.classList.add('far', 'fa-heart');
+                        }
+                    }
+                }
+                if (data.likes_count !== undefined && countSpan) {
+                    countSpan.textContent = data.likes_count;
+                }
+                
+                // Show feedback
+                showToast(data.liked ? 'Publicação curtida!' : 'Curtida removida', 'success');
+            })
+            .catch(error => {
+                // Revert optimistic update on error
+                if (newIsLiked) {
+                    this.classList.remove('text-red-500');
+                    this.classList.add('text-gray-500', 'hover:text-red-500');
+                    if (icon) {
+                        icon.classList.remove('fas', 'fa-heart');
+                        icon.classList.add('far', 'fa-heart');
+                    }
+                    if (countSpan) {
+                        const count = parseInt(countSpan.textContent) || 0;
+                        countSpan.textContent = Math.max(0, count - 1);
+                    }
+                } else {
+                    this.classList.add('text-red-500');
+                    this.classList.remove('text-gray-500', 'hover:text-red-500');
+                    if (icon) {
+                        icon.classList.remove('far', 'fa-heart');
+                        icon.classList.add('fas', 'fa-heart');
+                    }
+                    if (countSpan) {
+                        const count = parseInt(countSpan.textContent) || 0;
+                        countSpan.textContent = count + 1;
+                    }
+                }
+                
+                // Show error message
+                showToast('Erro ao processar curtida. Tente novamente.', 'error');
+                
+                if (typeof DEBUG !== 'undefined' && DEBUG) {
+                    console.error('Like error:', error);
+                }
+            })
+            .finally(() => {
+                // Remove loading state
+                this.classList.remove('loading');
+                this.disabled = false;
+                if (icon) {
+                    icon.className = originalIcon;
+                }
+            });
+        });
+    });
+    
+    shareButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (this.disabled || this.classList.contains('loading')) return;
+            
+            const postId = this.getAttribute('data-post-id');
+            const icon = this.querySelector('i');
+            const countSpan = this.querySelector('span');
+            
+            // Add loading state
+            this.classList.add('loading');
+            this.disabled = true;
+            const originalIcon = icon ? icon.className : '';
+            if (icon) {
+                icon.className = 'fas fa-spinner fa-spin w-5 h-5';
+            }
+            
+            // Build share URL (ready for backend implementation)
+            const shareUrl = `${window.location.origin}/comunidade/post/${postId}/`;
+            const shareTitle = 'Publicação da Comunidade YpeTec';
+            const shareText = 'Confira esta publicação interessante!';
+            
+            // Try native share API first
+            if (navigator.share) {
+                navigator.share({
+                    title: shareTitle,
+                    text: shareText,
+                    url: shareUrl
+                })
+                .then(() => {
+                    // Track share on backend
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                    document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+                    
+                    fetch(`/api/posts/${postId}/share/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.shares_count !== undefined && countSpan) {
+                            countSpan.textContent = data.shares_count;
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof DEBUG !== 'undefined' && DEBUG) {
+                            console.error('Share tracking error:', err);
+                        }
+                    });
+                    
+                    showToast('Publicação compartilhada!', 'success');
+                })
+                .catch((error) => {
+                    // User cancelled or error occurred
+                    if (error.name !== 'AbortError') {
+                        // Fallback: copy to clipboard
+                        copyToClipboard(shareUrl);
+                        showToast('Link copiado para a área de transferência!', 'success');
+                    }
+                })
+                .finally(() => {
+                    // Remove loading state
+                    this.classList.remove('loading');
+                    this.disabled = false;
+                    if (icon) {
+                        icon.className = originalIcon;
+                    }
+                });
+            } else {
+                // Fallback: copy to clipboard
+                copyToClipboard(shareUrl);
+                
+                // Track share on backend
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                document.cookie.match(/csrftoken=([^;]+)/)?.[1];
+                
+                fetch(`/api/posts/${postId}/share/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.shares_count !== undefined && countSpan) {
+                        countSpan.textContent = data.shares_count;
+                    }
+                })
+                .catch(err => {
+                    if (typeof DEBUG !== 'undefined' && DEBUG) {
+                        console.error('Share tracking error:', err);
+                    }
+                })
+                .finally(() => {
+                    showToast('Link copiado para a área de transferência!', 'success');
+                    
+                    // Remove loading state
+                    this.classList.remove('loading');
+                    this.disabled = false;
+                    if (icon) {
+                        icon.className = originalIcon;
+                    }
+                });
+            }
+        });
+    });
+    
+    function copyToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+    }
+})();
+
+// ========================================
+// USER MENU DROPDOWN
+// ========================================
+(function() {
+    const userMenuToggle = document.getElementById('user-menu-toggle');
+    const userMenuDropdown = document.getElementById('user-menu') || document.getElementById('user-menu-dropdown');
+    
+    if (!userMenuToggle || !userMenuDropdown) return;
+    
+    function toggleMenu() {
+        const isExpanded = userMenuToggle.getAttribute('aria-expanded') === 'true';
+        userMenuToggle.setAttribute('aria-expanded', !isExpanded);
+        userMenuDropdown.classList.toggle('show');
+    }
+    
+    userMenuToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleMenu();
+    });
+    
+    // Close on click outside
+    document.addEventListener('click', function(e) {
+        if (!userMenuToggle.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+            userMenuToggle.setAttribute('aria-expanded', 'false');
+            userMenuDropdown.classList.remove('show');
+        }
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && userMenuToggle.getAttribute('aria-expanded') === 'true') {
+            toggleMenu();
+            userMenuToggle.focus();
+        }
+    });
+    
+    // Close on menu item click
+    const menuItems = userMenuDropdown.querySelectorAll('.user-menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function() {
+            userMenuToggle.setAttribute('aria-expanded', 'false');
+            userMenuDropdown.classList.remove('show');
+        });
+    });
+
+    window.YPETECModal = {
+        open(target) {
+            const modal = typeof target === 'string' ? document.getElementById(target) : target;
+            openManualModal(modal);
+        },
+        close(target) {
+            const modal = typeof target === 'string' ? document.getElementById(target) : target;
+            closeManualModal(modal);
+        }
+    };
+})();
+
+// ========================================
+// PASSWORD VISIBILITY TOGGLE (A11Y-006)
+// ========================================
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButtons = document.querySelectorAll('[data-password-toggle]');
+
+        toggleButtons.forEach(button => {
+            const targetId = button.getAttribute('data-password-toggle');
+            const icon = button.querySelector('i');
+
+            button.addEventListener('click', function() {
+                const input = document.getElementById(targetId);
+                if (!input) return;
+
+                const isVisible = input.type === 'text';
+                input.type = isVisible ? 'password' : 'text';
+                button.setAttribute('aria-pressed', (!isVisible).toString());
+
+                if (icon) {
+                    icon.classList.toggle('fa-eye', isVisible);
+                    icon.classList.toggle('fa-eye-slash', !isVisible);
+                }
+            });
+        });
+    });
 })();

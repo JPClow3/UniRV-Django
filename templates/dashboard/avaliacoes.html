@@ -1,0 +1,278 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if user.is_staff %}Gerenciar Avaliações{% else %}Minhas Avaliações{% endif %} - Dashboard YPETEC{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div>
+    <h1 class="text-gray-900 mb-2 text-2xl font-semibold">
+      {% if user.is_staff %}Gerenciar Avaliações{% else %}Minhas Avaliações{% endif %}
+    </h1>
+    <p class="text-gray-600">
+      {% if user.is_staff %}
+        Acompanhe o progresso das avaliações
+      {% else %}
+        Avalie os projetos atribuídos a você
+      {% endif %}
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-file-alt text-blue-600"></i>
+        </div>
+      </div>
+      <div class="text-gray-600 mb-1 text-sm">Total</div>
+      <div class="text-gray-900 text-2xl font-bold">4</div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-clock text-orange-600"></i>
+        </div>
+      </div>
+      <div class="text-gray-600 mb-1 text-sm">Pendentes</div>
+      <div class="text-gray-900 text-2xl font-bold">2</div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-check-circle text-green-600"></i>
+        </div>
+      </div>
+      <div class="text-gray-600 mb-1 text-sm">Concluídas</div>
+      <div class="text-gray-900 text-2xl font-bold">2</div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <i class="fas fa-check-circle text-purple-600"></i>
+        </div>
+      </div>
+      <div class="text-gray-600 mb-1 text-sm">Nota Média</div>
+      <div class="text-gray-900 text-2xl font-bold">8.0</div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="bg-white rounded-xl border border-gray-200 p-4">
+    <div class="relative">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+      <input
+        type="text"
+        placeholder="Buscar projetos..."
+        class="pl-10 w-full"
+        id="search-avaliacoes"
+      >
+    </div>
+  </div>
+
+  <!-- Avaliacoes Table -->
+  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projeto</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Edital</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proponente</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prazo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tempo Restante</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AgroTech Solutions</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Edital 001/2024</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">João Silva</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">15/03/2024</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-600">5 dias</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="badge bg-orange-100 text-orange-700 border-none px-3 py-1 text-sm">Pendente</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="text-gray-400">-</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex gap-2">
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Visualizar Projeto">
+                  <i class="fas fa-eye text-gray-400"></i>
+                </button>
+                {% if not user.is_staff %}
+                  <button class="avaliar-btn variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-3 py-1 text-sm transition-all" data-id="1">
+                    Avaliar
+                  </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">LogiSmart</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Edital 001/2024</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Ana Oliveira</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">01/03/2024</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Concluída</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1 text-sm">Concluída</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="font-mono">7.5</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex gap-2">
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Visualizar Projeto">
+                  <i class="fas fa-eye text-gray-400"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Avaliação Dialog -->
+<div id="avaliacao-dialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="avaliacao-dialog-title" aria-describedby="dialog-projeto-info" aria-hidden="true">
+  <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="document">
+    <div class="p-6 border-b border-gray-200">
+      <h2 id="avaliacao-dialog-title" class="text-gray-900 text-xl font-semibold">Avaliar Projeto</h2>
+      <p class="text-gray-600 text-sm mt-1" id="dialog-projeto-info">AgroTech Solutions - Edital 001/2024</p>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-700">Critérios de Avaliação</label>
+        
+        <div class="space-y-3">
+          <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <div class="text-sm text-gray-900">Inovação e Originalidade</div>
+              <div class="text-xs text-gray-500">Peso: 25%</div>
+            </div>
+            <input type="number" min="0" max="10" step="0.1" placeholder="0-10" class="w-24 px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+          <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <div class="text-sm text-gray-900">Viabilidade Técnica</div>
+              <div class="text-xs text-gray-500">Peso: 20%</div>
+            </div>
+            <input type="number" min="0" max="10" step="0.1" placeholder="0-10" class="w-24 px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+          <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <div class="text-sm text-gray-900">Potencial de Mercado</div>
+              <div class="text-xs text-gray-500">Peso: 20%</div>
+            </div>
+            <input type="number" min="0" max="10" step="0.1" placeholder="0-10" class="w-24 px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+          <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <div class="text-sm text-gray-900">Qualificação da Equipe</div>
+              <div class="text-xs text-gray-500">Peso: 15%</div>
+            </div>
+            <input type="number" min="0" max="10" step="0.1" placeholder="0-10" class="w-24 px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+          <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <div class="flex-1">
+              <div class="text-sm text-gray-900">Impacto Social/Ambiental</div>
+              <div class="text-xs text-gray-500">Peso: 20%</div>
+            </div>
+            <input type="number" min="0" max="10" step="0.1" placeholder="0-10" class="w-24 px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label for="parecer" class="text-sm font-medium text-gray-700">Parecer *</label>
+        <textarea
+          id="parecer"
+          placeholder="Escreva seu parecer detalhado sobre o projeto..."
+          rows="6"
+          required
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
+        ></textarea>
+        <p class="text-xs text-gray-500">
+          Forneça uma avaliação detalhada justificando as notas atribuídas
+        </p>
+      </div>
+
+      <div class="p-4 bg-blue-50 rounded-lg">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-gray-700">Nota Final Calculada:</span>
+          <span class="text-2xl text-blue-600 font-bold">8.5</span>
+        </div>
+        <p class="text-xs text-gray-600">
+          A nota final é calculada automaticamente com base nos pesos de cada critério
+        </p>
+      </div>
+    </div>
+
+    <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+      <button onclick="closeDialog()" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all">
+        Cancelar
+      </button>
+      <button onclick="submitAvaliacao()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+        <i class="fas fa-check-circle w-4 h-4"></i>
+        Enviar Avaliação
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openDialog(projeto, edital) {
+  const dialog = document.getElementById('avaliacao-dialog');
+  const info = document.getElementById('dialog-projeto-info');
+  info.textContent = `${projeto} - ${edital}`;
+  if (window.YPETECModal && typeof window.YPETECModal.open === 'function') {
+    window.YPETECModal.open(dialog);
+  } else {
+    dialog.classList.remove('hidden');
+  }
+}
+
+function closeDialog() {
+  const dialog = document.getElementById('avaliacao-dialog');
+  if (window.YPETECModal && typeof window.YPETECModal.close === 'function') {
+    window.YPETECModal.close(dialog);
+  } else {
+    dialog.classList.add('hidden');
+  }
+}
+
+function submitAvaliacao() {
+  alert('Avaliação enviada com sucesso!');
+  closeDialog();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.avaliar-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const row = this.closest('tr');
+      const projeto = row.querySelector('td:first-child').textContent;
+      const edital = row.querySelector('td:nth-child(2)').textContent;
+      openDialog(projeto, edital);
+    });
+  });
+  
+  // Close dialog on outside click
+  document.getElementById('avaliacao-dialog').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeDialog();
+    }
+  });
+});
+</script>
+{% endblock %}
+

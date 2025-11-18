@@ -1,0 +1,194 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Minhas Publicações - Dashboard YPETEC{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <!-- Header -->
+  <div>
+    <h1 class="text-gray-900 mb-2 text-2xl font-semibold">Minhas Publicações</h1>
+    <p class="text-gray-600">
+      Crie e gerencie suas publicações para a comunidade YpeTec
+    </p>
+  </div>
+
+  <!-- Create New Post Button -->
+  <button onclick="openCreateDialog()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+    <i class="fas fa-plus w-4 h-4"></i>
+    Nova Publicação
+  </button>
+
+  <!-- Posts Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-3xl shadow-md p-6 border-0">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+          <i class="fas fa-comment text-blue-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-2xl text-gray-900 font-bold">1</p>
+          <p class="text-sm text-gray-600">Publicações</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl shadow-md p-6 border-0">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+          <i class="fas fa-heart text-red-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-2xl text-gray-900 font-bold">24</p>
+          <p class="text-sm text-gray-600">Curtidas</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-3xl shadow-md p-6 border-0">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+          <i class="fas fa-share text-green-600 text-xl"></i>
+        </div>
+        <div>
+          <p class="text-2xl text-gray-900 font-bold">5</p>
+          <p class="text-sm text-gray-600">Compartilhamentos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Posts -->
+  <div class="space-y-6">
+    <div class="bg-white rounded-3xl shadow-md hover:shadow-lg transition-all border-0 p-8">
+      <!-- Post Header -->
+      <div class="flex items-start justify-between mb-6">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 text-white rounded-full flex items-center justify-center shadow-sm">
+            {{ user.first_name|first|default:user.username|first|upper }}
+          </div>
+          <div>
+            <h4 class="text-gray-900 font-medium">{{ user.get_full_name|default:user.username }}</h4>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-sm text-gray-500">{% if user.is_staff %}Admin{% else %}Proponente{% endif %}</span>
+              <span class="text-gray-300">•</span>
+              <span class="text-sm text-gray-500">2 horas atrás</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="badge bg-green-100 text-green-700 border-none px-4 py-1.5 text-sm">Conquista</span>
+          <button class="p-2 hover:bg-red-50 rounded-full transition-colors text-red-600">
+            <i class="fas fa-trash w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post Content -->
+      <p class="text-gray-700 leading-relaxed mb-6">
+        Acabamos de ter nosso projeto aprovado no edital de incubação! Muito feliz em compartilhar essa conquista com vocês. Agora é colocar a mão na massa! 🚀
+      </p>
+
+      <!-- Post Stats -->
+      <div class="flex items-center gap-6 pt-4 border-t border-gray-100">
+        <div class="flex items-center gap-2 text-gray-500">
+          <i class="fas fa-heart w-5 h-5"></i>
+          <span class="text-sm font-medium">24 curtidas</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-500">
+          <i class="fas fa-share w-5 h-5"></i>
+          <span class="text-sm font-medium">5 compartilhamentos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Post Dialog -->
+<div id="create-post-dialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="create-dialog-title" aria-describedby="create-dialog-description" aria-hidden="true">
+  <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="document">
+    <div class="p-6 border-b border-gray-200">
+      <h2 id="create-dialog-title" class="text-gray-900 text-xl font-semibold">Criar Nova Publicação</h2>
+      <p id="create-dialog-description" class="text-gray-600 text-sm mt-1">Compartilhe suas conquistas, dicas, dúvidas ou eventos com a comunidade</p>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="text-sm text-gray-600 mb-2 block">Categoria</label>
+        <div class="flex flex-wrap gap-2">
+          <button class="category-btn px-4 py-2 rounded-full flex items-center gap-2 transition-all bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md">
+            <i class="fas fa-trophy w-4 h-4"></i>
+            <span class="text-sm">Conquista</span>
+          </button>
+          <button class="category-btn px-4 py-2 rounded-full flex items-center gap-2 transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+            <i class="fas fa-lightbulb w-4 h-4"></i>
+            <span class="text-sm">Dica</span>
+          </button>
+          <button class="category-btn px-4 py-2 rounded-full flex items-center gap-2 transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+            <i class="fas fa-comment w-4 h-4"></i>
+            <span class="text-sm">Pergunta</span>
+          </button>
+          <button class="category-btn px-4 py-2 rounded-full flex items-center gap-2 transition-all bg-gray-100 text-gray-600 hover:bg-gray-200">
+            <i class="fas fa-chart-line w-4 h-4"></i>
+            <span class="text-sm">Evento</span>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="text-sm text-gray-600 mb-2 block">Conteúdo</label>
+        <textarea placeholder="O que você gostaria de compartilhar com a comunidade?" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-2xl resize-none min-h-[150px]"></textarea>
+      </div>
+    </div>
+
+    <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
+      <button onclick="closeCreateDialog()" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-full px-4 py-2 text-sm transition-all">
+        Cancelar
+      </button>
+      <button onclick="publishPost()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+        <i class="fas fa-paper-plane w-4 h-4"></i>
+        Publicar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openCreateDialog() {
+  const dialog = document.getElementById('create-post-dialog');
+  if (window.YPETECModal && typeof window.YPETECModal.open === 'function') {
+    window.YPETECModal.open(dialog);
+  } else {
+    dialog.classList.remove('hidden');
+  }
+}
+
+function closeCreateDialog() {
+  const dialog = document.getElementById('create-post-dialog');
+  if (window.YPETECModal && typeof window.YPETECModal.close === 'function') {
+    window.YPETECModal.close(dialog);
+  } else {
+    dialog.classList.add('hidden');
+  }
+}
+
+function publishPost() {
+  alert('Publicação criada com sucesso!');
+  closeCreateDialog();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.category-btn').forEach(b => {
+        b.className = 'category-btn px-4 py-2 rounded-full flex items-center gap-2 transition-all bg-gray-100 text-gray-600 hover:bg-gray-200';
+      });
+      this.className = 'category-btn px-4 py-2 rounded-full flex items-center gap-2 transition-all bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md';
+    });
+  });
+  
+  document.getElementById('create-post-dialog').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeCreateDialog();
+    }
+  });
+});
+</script>
+{% endblock %}
+
