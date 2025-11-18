@@ -385,21 +385,48 @@
 
   if (!menuToggle || !navMenu) return;
 
+  // Calculate actual menu height dynamically instead of hardcoded max-height
+  function getMenuHeight() {
+    // Temporarily show menu to measure its height
+    navMenu.style.display = 'block';
+    navMenu.style.maxHeight = 'none';
+    navMenu.style.visibility = 'hidden';
+    const height = navMenu.scrollHeight;
+    navMenu.style.display = '';
+    navMenu.style.maxHeight = '';
+    navMenu.style.visibility = '';
+    return height;
+  }
+
   menuToggle.addEventListener('click', function() {
     const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
 
     menuToggle.setAttribute('aria-expanded', !isExpanded);
 
-    navMenu.classList.toggle('menu-open');
-
-    // Accessibility: trap focus inside menu when open
     if (!isExpanded) {
+      // Opening menu - calculate actual height
+      const menuHeight = getMenuHeight();
+      navMenu.style.maxHeight = menuHeight + 'px';
+      navMenu.classList.add('menu-open');
+      
+      // Accessibility: trap focus inside menu when open
       const firstLink = navMenu.querySelector('a');
       if (firstLink) {
         setTimeout(() => firstLink.focus(), 100);
       }
+    } else {
+      // Closing menu
+      navMenu.style.maxHeight = '0';
+      navMenu.classList.remove('menu-open');
     }
   });
+
+  // Helper function to close menu
+  function closeMenu() {
+    menuToggle.setAttribute('aria-expanded', 'false');
+    navMenu.style.maxHeight = '0';
+    navMenu.classList.remove('menu-open');
+  }
 
   document.addEventListener('click', function(event) {
     const isClickInsideMenu = navMenu.contains(event.target);
@@ -407,15 +434,13 @@
     const isMenuOpen = menuToggle.getAttribute('aria-expanded') === 'true';
 
     if (isMenuOpen && !isClickInsideMenu && !isClickOnToggle) {
-      menuToggle.setAttribute('aria-expanded', 'false');
-      navMenu.classList.remove('menu-open');
+      closeMenu();
     }
   });
 
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
-      menuToggle.setAttribute('aria-expanded', 'false');
-      navMenu.classList.remove('menu-open');
+      closeMenu();
       menuToggle.focus();
     }
   });
@@ -423,8 +448,7 @@
   // Close menu when window is resized to desktop size
   window.addEventListener('resize', function() {
     if (window.innerWidth > 767) {
-      menuToggle.setAttribute('aria-expanded', 'false');
-      navMenu.classList.remove('menu-open');
+      closeMenu();
     }
   });
 
@@ -432,8 +456,7 @@
     document.querySelectorAll('.navbar-right a').forEach(function (link) {
         link.addEventListener('click', function () {
             if (window.innerWidth <= 767) {
-                menuToggle.setAttribute('aria-expanded', 'false');
-                navMenu.classList.remove('menu-open');
+                closeMenu();
             }
         });
     });
@@ -655,12 +678,20 @@
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.textContent = message;
     // A11Y-002: Usar role="alert" para notificações importantes
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+    toast.setAttribute('aria-atomic', 'true');
+    
+    // Use innerText instead of textContent for better screen reader support
+    // This ensures screen readers properly detect the content change
+    toast.innerText = message;
 
     document.body.appendChild(toast);
+    
+    // Force a reflow to ensure screen readers detect the new element
+    // This is important for some screen readers that need a layout recalculation
+    void toast.offsetHeight;
 
     setTimeout(() => toast.classList.add('show'), 10);
     setTimeout(() => {

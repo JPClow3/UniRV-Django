@@ -569,34 +569,81 @@ Este documento identifica requisitos que precisam de esclarecimento antes da imp
 - [x] CLAR-014: Interface Administrativa ✅
 - [x] CLAR-015: Mensagens de Erro e Validação ✅
 
-### Post-Implementation ✅ Questões Resolvidas
+### Post-Implementation
 
 - [x] CLAR-016: Funcionalidade de Export CSV ✅ (Manter no MVP)
 - [x] CLAR-017: Inconsistência em Paginação (12 vs 20) ✅ (Padronizar para 12)
 - [x] CLAR-018: Sistema de Permissões Avançado ✅ (Restrito a `is_staff` no MVP)
+- [ ] CLAR-019: Inconsistência entre Rotas de Criação de Editais ⏳ (Pendente)
+
+---
+
+### CLAR-019: Inconsistência entre Rotas de Criação de Editais ⏳ PENDENTE
+
+**Context**: Existem duas rotas diferentes para criar editais:
+- `/dashboard/editais/novo/` → view `dashboard_novo_edital` → template `dashboard/novo_edital.html` (não processa POST)
+- `/cadastrar/` → view `edital_create` → template `editais/create.html` (processa POST corretamente)
+
+**Problems Identified**:
+
+1. O template `dashboard/novo_edital.html` tem um formulário HTML manual com POST mas a view `dashboard_novo_edital` não processa requisições POST
+2. O template `dashboard/novo_edital.html` usa campos HTML manuais que não correspondem ao modelo `Edital`:
+   - Campo "tipo" com valores "fluxo-continuo" e "fomento" que não existem no modelo
+   - Campo "status" mapeado incorretamente como "tipo"
+   - Campos faltantes: `url`, `entidade_principal`, campos de conteúdo detalhado
+3. Existem dois templates diferentes para a mesma funcionalidade
+4. O formulário em `novo_edital.html` não especifica action, então tenta postar para a mesma URL que não processa POST
+
+**Questions**:
+
+1. Qual rota deve ser a principal para criação de editais? `/dashboard/editais/novo/` ou `/cadastrar/`?
+2. Deve haver apenas uma rota ou ambas devem coexistir?
+3. Qual template deve ser usado? `dashboard/novo_edital.html` (com design do dashboard) ou `editais/create.html` (com Django forms)?
+4. O template `dashboard/novo_edital.html` deve usar Django forms (`EditalForm`) ou manter formulário HTML manual?
+5. Como mapear o campo "Tipo de Edital" do template para o modelo? Deve ser removido ou mapeado para algum campo existente?
+6. As abas "Formulário" e "Avaliação" no template `novo_edital.html` devem ser implementadas no MVP ou são para fase futura?
+7. Os botões "Salvar Rascunho" e "Publicar" devem ter comportamentos diferentes? Como implementar?
+
+**Decisão Tomada** ⏳: **PENDENTE - Aguardando decisão do product owner**
+
+**Impacto na Implementação** (a ser definido após decisão):
+
+- Consolidar rotas e templates conforme decisão
+- Atualizar view `dashboard_novo_edital` para processar POST se mantida
+- Ou remover rota/template duplicado se não for necessário
+- Atualizar links e referências no código e templates
+- Garantir que formulário use `EditalForm` para validação consistente
+
+**Prioridade**: Alta (afeta funcionalidade crítica)  
+**Status**: ⏳ Pendente
 
 ---
 
 ## ✅ Status: Clarificações Principais Resolvidas
 
 **Data de Resolução Inicial**: 2025-11-11  
-**Última Atualização**: 2025-01-XX
+**Última Atualização**: 2025-01-15
 
-**Clarificações Resolvidas**: 18/18 (100%)
+**Clarificações Resolvidas**: 18/19 (95%)
 
 - ✅ 15 clarificações iniciais resolvidas
 - ✅ 3 clarificações pós-implementação resolvidas (CLAR-016, CLAR-017, CLAR-018)
+- ⏳ 1 clarificação pendente (CLAR-019: Inconsistência entre rotas de criação)
 
-Todas as clarificações críticas e de alta prioridade estão resolvidas. As decisões de pós-implementação foram incorporadas e não bloqueiam o MVP.
+**Status**: Uma clarificação crítica pendente (CLAR-019) precisa ser resolvida antes de continuar o desenvolvimento da funcionalidade de criação de editais no dashboard.
 
 ---
 
 ## Next Steps
 
-1. ✅ **Decisões Tomadas**: Todas as questões foram respondidas
-2. ⏳ **Update Spec**: Atualizar spec.md, plan.md, checklist.md e analysis.md com as decisões de CLAR-016, CLAR-017 e CLAR-018
-3. ⏳ **Technical Review**: Equipe técnica revisar as atualizações documentais
-4. ✅ **Start Implementation**: Continuação da implementação com requisitos claros (já em andamento)
+1. ✅ **Decisões Tomadas**: 18/19 clarificações resolvidas (95%)
+2. ⚠️ **URGENTE - Resolver CLAR-019**: Decidir sobre inconsistência entre rotas de criação de editais (`/dashboard/editais/novo/` vs `/cadastrar/`)
+   - Consolidar rotas e templates
+   - Atualizar view `dashboard_novo_edital` ou remover rota duplicada
+   - Garantir que formulário use `EditalForm` para validação consistente
+3. ⏳ **Update Spec**: Atualizar spec.md, plan.md, checklist.md e analysis.md com as decisões de CLAR-016, CLAR-017, CLAR-018 e CLAR-019 (após resolução)
+4. ⏳ **Technical Review**: Equipe técnica revisar as atualizações documentais
+5. ✅ **Start Implementation**: Continuação da implementação com requisitos claros (já em andamento - bloqueado por CLAR-019 para funcionalidade de criação no dashboard)
 
 ---
 

@@ -229,28 +229,54 @@ document.addEventListener('DOMContentLoaded', function() {
   const filterTipo = document.getElementById('filter-tipo');
   const filterStatus = document.getElementById('filter-status');
   const form = document.querySelector('form');
+  let filterTimeout = null;
   
-  // Auto-submit on filter change
+  // Debounced filter submission - allows users to select multiple filters before submitting
+  function submitFilters() {
+    if (filterTimeout) {
+      clearTimeout(filterTimeout);
+    }
+    filterTimeout = setTimeout(function() {
+      form.submit();
+    }, 500); // 500ms delay - user can select multiple filters quickly
+  }
+  
+  // Debounced filter change handlers
   if (filterTipo) {
     filterTipo.addEventListener('change', function() {
-      form.submit();
+      submitFilters();
     });
   }
   
   if (filterStatus) {
     filterStatus.addEventListener('change', function() {
-      form.submit();
+      submitFilters();
     });
   }
   
-  // Submit on Enter in search
+  // Submit on Enter in search (immediate)
   if (searchInput) {
     searchInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
+        if (filterTimeout) {
+          clearTimeout(filterTimeout);
+        }
         form.submit();
       }
     });
   }
+});
+
+// Ctrl+K keyboard shortcut to focus search input
+document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-editais');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select(); // Select existing text for easy replacement
+        }
+    }
 });
 </script>
 {% endblock %}

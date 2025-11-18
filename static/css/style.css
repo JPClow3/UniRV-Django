@@ -151,6 +151,7 @@ body {
     -webkit-font-smoothing: antialiased; 
     -moz-osx-font-smoothing: grayscale; 
     width: 100%;
+    overflow-x: hidden;
 }
 
 a { text-decoration: none; }
@@ -235,13 +236,14 @@ header nav.container {
     z-index: 1000;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
     opacity: 0;
+    visibility: hidden;
 }
 
 .navbar-right.menu-open {
     display: block;
-    max-height: 500px;
+    /* max-height is set dynamically via JS to accommodate actual content */
     opacity: 1;
     visibility: visible;
 }

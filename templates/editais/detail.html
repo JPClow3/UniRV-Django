@@ -78,6 +78,8 @@
 {% if edital.objetivo_safe %}
 <div class="edital-section" id="objetivo">
   <h3>1. Objetivo do Edital</h3>
+  {# SECURITY NOTE: objetivo_safe should be sanitized on the server side using bleach or similar #}
+  {# to prevent XSS attacks. Ensure mark_safe is only used after proper HTML sanitization. #}
   <div class="prose">{{ edital.objetivo_safe }}</div>
 </div>
 {% endif %}
@@ -85,6 +87,7 @@
 {% if edital.etapas_safe %}
 <div class="edital-section" id="etapas">
   <h3>2. Etapas do Edital</h3>
+  {# SECURITY NOTE: All _safe fields should be sanitized server-side before mark_safe #}
   <div class="prose">{{ edital.etapas_safe }}</div>
 </div>
 {% endif %}
