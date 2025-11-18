@@ -226,17 +226,6 @@ class DashboardPublicacoesViewTest(TestCase):
             password='testpass123'
         )
     
-    def test_dashboard_publicacoes_requires_login(self):
-        """Test that dashboard publicacoes requires authentication"""
-        response = self.client.get(reverse('dashboard_publicacoes'))
-        self.assertRedirects(response, f"{reverse('login')}?next={reverse('dashboard_publicacoes')}")
-    
-    def test_dashboard_publicacoes_loads_for_authenticated_user(self):
-        """Test that dashboard publicacoes loads for authenticated user"""
-        self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('dashboard_publicacoes'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'dashboard/publicacoes.html')
 
 
 class DashboardNovoEditalViewTest(TestCase):

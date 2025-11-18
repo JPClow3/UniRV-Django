@@ -193,9 +193,8 @@ class AuthenticationAuthorizationTest(TestCase):
         """Test that public views are accessible without authentication"""
         public_views = [
             'home',
-            'comunidade',
+            'ambientes_inovacao',
             'projetos_aprovados',
-            'passo_a_passo',
             'editais_index',
         ]
         

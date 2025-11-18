@@ -166,19 +166,14 @@ def home(request):
     return render(request, 'home.html')
 
 
-def comunidade(request):
-    """Comunidade page - community feed with posts"""
-    return render(request, 'comunidade.html')
+def ambientes_inovacao(request):
+    """Ambientes de Inovação page - list of innovation environments"""
+    return render(request, 'ambientes_inovacao.html')
 
 
 def projetos_aprovados(request):
     """Projetos Aprovados page - list of approved projects"""
     return render(request, 'projetos_aprovados.html')
-
-
-def passo_a_passo(request):
-    """Passo a Passo page - step by step guide"""
-    return render(request, 'passo_a_passo.html')
 
 
 def login_view(request):
@@ -412,12 +407,6 @@ def dashboard_relatorios(request):
     if not request.user.is_staff:
         return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
     return render(request, 'dashboard/relatorios.html')
-
-
-@login_required
-def dashboard_publicacoes(request):
-    """Dashboard minhas publicações page"""
-    return render(request, 'dashboard/publicacoes.html')
 
 
 @login_required

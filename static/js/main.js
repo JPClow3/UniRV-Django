@@ -1400,8 +1400,9 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
             }
             
             // Build share URL (ready for backend implementation)
-            const shareUrl = `${window.location.origin}/comunidade/post/${postId}/`;
-            const shareTitle = 'Publicação da Comunidade YpeTec';
+            // NOTE: Comunidade feature removed - this code is kept for future reference
+            const shareUrl = `${window.location.origin}/editais/`;
+            const shareTitle = 'YpeTec - Incubadora UniRV';
             const shareText = 'Confira esta publicação interessante!';
             
             // Try native share API first

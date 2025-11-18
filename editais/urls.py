@@ -7,9 +7,8 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('editais/', views.index, name='editais_index'),
-    path('comunidade/', views.comunidade, name='comunidade'),
+    path('ambientes-inovacao/', views.ambientes_inovacao, name='ambientes_inovacao'),
     path('projetos-aprovados/', views.projetos_aprovados, name='projetos_aprovados'),
-    path('passo-a-passo/', views.passo_a_passo, name='passo_a_passo'),
     path('edital/', RedirectView.as_view(pattern_name='editais_index', permanent=False)),
     
     # Slug-based URLs (primary)
@@ -36,5 +35,4 @@ urlpatterns = [
     path('dashboard/avaliacoes/', views.dashboard_avaliacoes, name='dashboard_avaliacoes'),
     path('dashboard/usuarios/', views.dashboard_usuarios, name='dashboard_usuarios'),
     path('dashboard/relatorios/', views.dashboard_relatorios, name='dashboard_relatorios'),
-    path('dashboard/minhas-publicacoes/', views.dashboard_publicacoes, name='dashboard_publicacoes'),
 ]

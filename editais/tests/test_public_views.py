@@ -1,5 +1,5 @@
 """
-Tests for public views (home, comunidade, projetos_aprovados, passo_a_passo, login, register).
+Tests for public views (home, ambientes_inovacao, projetos_aprovados, login, register).
 """
 
 from django.contrib.auth.models import User
@@ -28,17 +28,17 @@ class HomeViewTest(TestCase):
         self.assertContains(response, 'YPETEC', status_code=200)
 
 
-class ComunidadeViewTest(TestCase):
-    """Tests for comunidade page view"""
+class AmbientesInovacaoViewTest(TestCase):
+    """Tests for ambientes de inovação page view"""
     
     def setUp(self):
         self.client = Client()
     
-    def test_comunidade_page_loads(self):
-        """Test that comunidade page loads without authentication"""
-        response = self.client.get(reverse('comunidade'))
+    def test_ambientes_inovacao_page_loads(self):
+        """Test that ambientes de inovação page loads without authentication"""
+        response = self.client.get(reverse('ambientes_inovacao'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'comunidade.html')
+        self.assertTemplateUsed(response, 'ambientes_inovacao.html')
 
 
 class ProjetosAprovadosViewTest(TestCase):
@@ -52,19 +52,6 @@ class ProjetosAprovadosViewTest(TestCase):
         response = self.client.get(reverse('projetos_aprovados'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'projetos_aprovados.html')
-
-
-class PassoAPassoViewTest(TestCase):
-    """Tests for passo a passo page view"""
-    
-    def setUp(self):
-        self.client = Client()
-    
-    def test_passo_a_passo_page_loads(self):
-        """Test that passo a passo page loads without authentication"""
-        response = self.client.get(reverse('passo_a_passo'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'passo_a_passo.html')
 
 
 class LoginViewTest(TestCase):

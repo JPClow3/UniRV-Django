@@ -4,277 +4,252 @@
 {% block title %}Editais Publicados - YPETEC{% endblock %}
 
 {% block content %}
-<div class="bg-white">
+<div class="bg-white min-h-screen">
   <!-- Header -->
-  <section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-20">
+  <section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-16">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl">
-        <h1 class="text-white mb-6 text-4xl md:text-5xl leading-tight">Editais Publicados</h1>
-        <p class="text-lg md:text-xl text-white/90 leading-relaxed">
+        <h1 class="text-white mb-4 text-4xl md:text-5xl font-bold tracking-tight">Editais Publicados</h1>
+        <p class="text-lg md:text-xl text-blue-50 leading-relaxed">
           Confira os editais abertos e oportunidades de incubação disponíveis
         </p>
       </div>
     </div>
   </section>
 
-  <!-- Filters -->
-  <section class="bg-gray-50 border-b">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <form method="GET" class="search-form flex flex-col md:flex-row gap-4">
-        <div class="flex-1 relative search-input-wrapper">
-          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"></i>
-          <input 
-            type="text" 
-            name="search" 
-            value="{{ search_query }}"
-            placeholder="Buscar editais... (Ctrl+K)" 
-            class="pl-10 w-full search-input"
-            id="search-editais"
-            aria-label="Buscar editais"
-          >
-          <div class="keyboard-hint absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hidden md:flex items-center gap-1">
-            <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">Ctrl</kbd>
-            <span>+</span>
-            <kbd class="px-1.5 py-0.5 bg-gray-100 rounded text-xs">K</kbd>
+  <!-- Main Content -->
+  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex flex-col lg:flex-row gap-8">
+      
+      <!-- Sidebar Filters -->
+      <aside class="w-full lg:w-64 flex-shrink-0">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-bold text-gray-900">Filtros</h2>
+            {% if search_query or tipo_filter or status_filter %}
+            <a href="{% url 'editais_index' %}" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline">
+              Limpar
+            </a>
+            {% endif %}
           </div>
+          
+          <form method="GET" action="{% url 'editais_index' %}" id="filter-form" class="space-y-6">
+            {% if search_query %}
+            <input type="hidden" name="search" value="{{ search_query }}">
+            {% endif %}
+            
+            <!-- Status Filter -->
+            <div>
+              <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <select name="status" id="filter-status" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
+                <option value="">Todos</option>
+                <option value="aberto" {% if status_filter == 'aberto' %}selected{% endif %}>Abertos</option>
+                <option value="fechado" {% if status_filter == 'fechado' %}selected{% endif %}>Encerrados</option>
+              </select>
+            </div>
+
+            <!-- Type Filter -->
+            <div>
+              <label for="filter-tipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+              <select name="tipo" id="filter-tipo" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
+                <option value="">Todos os tipos</option>
+                <option value="Fluxo Contínuo" {% if tipo_filter == 'Fluxo Contínuo' %}selected{% endif %}>Fluxo Contínuo</option>
+                <option value="Fomento" {% if tipo_filter == 'Fomento' %}selected{% endif %}>Fomento</option>
+              </select>
+            </div>
+
+            <!-- Mobile Search (only visible on mobile if needed, but we keep main search accessible) -->
+          </form>
+        </div>
+      </aside>
+
+      <!-- Results Column -->
+      <div class="flex-1">
+        <!-- Search Bar -->
+        <div class="mb-8">
+          <form method="GET" action="{% url 'editais_index' %}" class="relative">
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+            {% if tipo_filter %}<input type="hidden" name="tipo" value="{{ tipo_filter }}">{% endif %}
+            
+            <div class="relative">
+              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+              <input 
+                type="text" 
+                name="search" 
+                value="{{ search_query }}"
+                placeholder="Buscar editais por título, número ou descrição... (Ctrl+K)" 
+                class="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                id="search-editais"
+              >
+              {% if search_query %}
+              <a href="?{% if status_filter %}status={{ status_filter }}&{% endif %}{% if tipo_filter %}tipo={{ tipo_filter }}{% endif %}" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
+                <i class="fas fa-times"></i>
+              </a>
+              {% endif %}
+            </div>
+          </form>
         </div>
 
-        <select name="tipo" id="filter-tipo" class="w-full md:w-48" aria-label="Filtrar por tipo">
-          <option value="">Todos os tipos</option>
-          <option value="Fluxo Contínuo" {% if tipo_filter == 'Fluxo Contínuo' %}selected{% endif %}>Fluxo Contínuo</option>
-          <option value="Fomento" {% if tipo_filter == 'Fomento' %}selected{% endif %}>Fomento</option>
-        </select>
-
-        <select name="status" id="filter-status" class="w-full md:w-48" aria-label="Filtrar por status">
-          <option value="">Todos</option>
-          <option value="aberto" {% if status_filter == 'aberto' %}selected{% endif %}>Abertos</option>
-          <option value="fechado" {% if status_filter == 'fechado' %}selected{% endif %}>Encerrados</option>
-        </select>
-        
+        <!-- Active Filters Badges -->
         {% if search_query or tipo_filter or status_filter %}
-        <button type="button" class="clear-filters-btn w-full md:w-auto px-4 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all inline-flex items-center gap-2" aria-label="Limpar filtros">
-          <i class="fas fa-times"></i>
-          <span>Limpar</span>
-        </button>
-        {% endif %}
-      </form>
-      
-      {% if search_query or tipo_filter or status_filter %}
-      <div class="mt-4 flex items-center gap-2 text-sm text-gray-600">
-        <i class="fas fa-filter"></i>
-        <span>Filtros ativos: 
-          {% if search_query %}<span class="badge bg-blue-100 text-blue-700 px-2 py-1 rounded">{{ search_query }}</span>{% endif %}
-          {% if tipo_filter %}<span class="badge bg-green-100 text-green-700 px-2 py-1 rounded">{{ tipo_filter }}</span>{% endif %}
-          {% if status_filter %}<span class="badge bg-purple-100 text-purple-700 px-2 py-1 rounded">{{ status_filter|title }}</span>{% endif %}
-        </span>
-      </div>
-      {% endif %}
-
-      {% if page_obj and not page_obj.object_list %}
-      <div class="mt-6 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3">
-        <i class="fas fa-circle-exclamation mt-1"></i>
-        <div class="flex-1">
-          <p class="font-semibold">Nenhum edital encontrado com os filtros selecionados.</p>
-          <p class="text-sm text-red-600/80">Revise os termos de busca ou limpe os filtros para visualizar todos os editais.</p>
-          {% if search_query or tipo_filter or status_filter %}
-          <button type="button" class="clear-filters-btn mt-3 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-600 transition-all">
-            <i class="fas fa-broom"></i>
-            Limpar filtros
-          </button>
+        <div class="flex flex-wrap gap-2 mb-6">
+          {% if search_query %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            Busca: {{ search_query }}
+            <a href="?search=&status={{ status_filter }}&tipo={{ tipo_filter }}" class="ml-2 text-blue-600 hover:text-blue-800"><i class="fas fa-times"></i></a>
+          </span>
+          {% endif %}
+          {% if status_filter %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+            Status: {{ status_filter|title }}
+            <a href="?search={{ search_query }}&status=&tipo={{ tipo_filter }}" class="ml-2 text-purple-600 hover:text-purple-800"><i class="fas fa-times"></i></a>
+          </span>
+          {% endif %}
+          {% if tipo_filter %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            Tipo: {{ tipo_filter }}
+            <a href="?search={{ search_query }}&status={{ status_filter }}&tipo=" class="ml-2 text-green-600 hover:text-green-800"><i class="fas fa-times"></i></a>
+          </span>
           {% endif %}
         </div>
-      </div>
-      {% endif %}
-    </div>
-  </section>
+        {% endif %}
 
-  <!-- Editais List -->
-  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="max-w-5xl mx-auto">
-      {% if page_obj and page_obj.object_list %}
-        <div class="space-y-6">
-          {% for edital in page_obj %}
-            <div class="bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden">
-              <div class="p-8">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-6 flex-wrap">
-                      {% if edital.numero_edital %}
-                        <span class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold shadow-sm">
-                          {{ edital.numero_edital }}
+        <!-- List -->
+        {% if page_obj and page_obj.object_list %}
+          <div class="space-y-6">
+            {% for edital in page_obj %}
+              <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-100 overflow-hidden group">
+                <div class="p-6 md:p-8">
+                  <div class="flex flex-col lg:flex-row gap-6">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-3 mb-4 flex-wrap">
+                        {% if edital.numero_edital %}
+                          <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-bold uppercase tracking-wide">
+                            Edital {{ edital.numero_edital }}
+                          </span>
+                        {% endif %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide {% if edital.status == 'aberto' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600{% endif %}">
+                          {{ edital.get_status_display }}
                         </span>
-                      {% endif %}
-                      <span class="badge {% if edital.status == 'aberto' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %} border-none px-4 py-1.5">
-                        {{ edital.get_status_display|upper }}
-                      </span>
-                      <span class="badge variant-outline border-gray-300 px-4 py-1.5">
-                        {% if edital.end_date %}Fomento{% else %}Fluxo Contínuo{% endif %}
-                      </span>
-                    </div>
-
-                    <h3 class="text-blue-600 mb-4 text-xl font-semibold">
-                      <a href="{{ edital.get_absolute_url }}" class="hover:text-blue-700 transition-colors">{{ edital.titulo }}</a>
-                    </h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">
-                      {{ edital.objetivo|default:edital.analise|default:"Sem descrição disponível."|truncatewords:30 }}
-                    </p>
-
-                    {% if edital.entidade_principal %}
-                      <div class="flex flex-wrap gap-2 mb-6">
-                        <span class="px-4 py-2 bg-gray-50 text-gray-700 rounded-full text-sm border border-gray-200">
-                          {{ edital.entidade_principal }}
-                        </span>
+                        {% if edital.end_date %}
+                          <span class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold uppercase tracking-wide">
+                            Fomento
+                          </span>
+                        {% else %}
+                          <span class="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-bold uppercase tracking-wide">
+                            Fluxo Contínuo
+                          </span>
+                        {% endif %}
                       </div>
-                    {% endif %}
 
-                    <div class="flex flex-col sm:flex-row gap-4 text-sm text-gray-600">
-                      {% if edital.start_date %}
-                        <div class="flex items-center gap-2">
-                          <i class="fas fa-calendar text-blue-600"></i>
-                          <span>Abertura: {{ edital.start_date|date:"d/m/Y" }}</span>
+                      <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                        <a href="{{ edital.get_absolute_url }}">
+                          {{ edital.titulo }}
+                        </a>
+                      </h3>
+                      
+                      <p class="text-gray-600 mb-6 leading-relaxed line-clamp-2">
+                        {{ edital.objetivo|default:edital.analise|default:"Sem descrição disponível."|striptags }}
+                      </p>
+
+                      {% if edital.entidade_principal %}
+                        <div class="flex items-center gap-2 mb-4">
+                          <span class="text-sm text-gray-500 font-medium">Entidade:</span>
+                          <span class="px-3 py-1 bg-gray-50 text-gray-700 rounded-full text-sm border border-gray-200">
+                            {{ edital.entidade_principal }}
+                          </span>
                         </div>
                       {% endif %}
-                      {% if edital.end_date %}
-                        <div class="flex items-center gap-2">
-                          <i class="fas fa-clock text-blue-600"></i>
-                          <span>Fechamento: {{ edital.end_date|date:"d/m/Y" }}</span>
-                        </div>
-                      {% endif %}
+
+                      <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 border-t border-gray-100 pt-4 mt-auto">
+                        {% if edital.start_date %}
+                          <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-blue-500"></i>
+                            <span>Abertura: <span class="font-medium text-gray-900">{{ edital.start_date|date:"d/m/Y" }}</span></span>
+                          </div>
+                        {% endif %}
+                        {% if edital.end_date %}
+                          <div class="flex items-center gap-2">
+                            <i class="fas fa-clock text-orange-500"></i>
+                            <span>Encerramento: <span class="font-medium text-gray-900">{{ edital.end_date|date:"d/m/Y" }}</span></span>
+                          </div>
+                        {% endif %}
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="flex flex-col gap-3 lg:min-w-[200px]">
-                    {% if edital.status == 'aberto' %}
-                      <a href="{{ edital.get_absolute_url }}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
-                        Inscreva-se →
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col gap-3 lg:w-48 flex-shrink-0 justify-center">
+                      {% if edital.status == 'aberto' %}
+                        <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow transition-all text-center">
+                          Inscreva-se
+                        </a>
+                      {% endif %}
+                      <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border-2 border-gray-200 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
+                        Ver Detalhes
                       </a>
-                    {% endif %}
-                    <a href="{{ edital.get_absolute_url }}" class="variant-outline gap-2 rounded-full border-2 border-gray-300 hover:bg-gray-50 inline-flex items-center justify-center px-6 py-3 text-gray-700 font-medium transition-all">
-                      <i class="fas fa-file-alt mr-2"></i>
-                      Saiba Mais
-                    </a>
+                    </div>
                   </div>
                 </div>
               </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if page_obj.has_other_pages %}
+            <div class="mt-12 flex justify-center">
+              <nav class="flex items-center gap-2" aria-label="Pagination">
+                {% if page_obj.has_previous %}
+                  <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="p-2 rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                    <span class="sr-only">Anterior</span>
+                    <i class="fas fa-chevron-left"></i>
+                  </a>
+                {% endif %}
+                
+                <span class="px-4 py-2 text-sm font-medium text-gray-700">
+                  Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                  <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="p-2 rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                    <span class="sr-only">Próxima</span>
+                    <i class="fas fa-chevron-right"></i>
+                  </a>
+                {% endif %}
+              </nav>
             </div>
-          {% endfor %}
-        </div>
+          {% endif %}
 
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-          <nav class="mt-12 flex justify-center items-center gap-2" aria-label="Navegação de páginas">
-            {% if page_obj.has_previous %}
-              <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                Primeira
-              </a>
-              <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                Anterior
-              </a>
-            {% endif %}
-            
-            <span class="px-4 py-2 text-gray-600">
-              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-            </span>
-            
-            {% if page_obj.has_next %}
-              <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                Próxima
-              </a>
-              <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                Última
-              </a>
-            {% endif %}
-          </nav>
-        {% endif %}
-      {% else %}
-        <div class="empty-state text-center">
-          <div class="empty-state-icon">
-            <i class="fas fa-search"></i>
-          </div>
-          <h3>Não encontramos editais</h3>
-          <p>Revise os termos de busca ou tente alterar os filtros selecionados.</p>
-          <div class="flex flex-col sm:flex-row justify-center gap-3 mt-4">
-            <a href="{% url 'editais_index' %}" class="btn bg-gradient-to-r from-green-500 to-blue-600 text-white">
-              Ver todos os editais
-            </a>
+        {% else %}
+          <!-- Empty State -->
+          <div class="text-center py-16 bg-white rounded-3xl border border-dashed border-gray-300">
+            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-search text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum edital encontrado</h3>
+            <p class="text-gray-500 max-w-md mx-auto mb-6">
+              Não encontramos resultados para sua busca. Tente termos diferentes ou remova os filtros.
+            </p>
             {% if search_query or status_filter or tipo_filter %}
-            <button type="button" class="clear-filters-btn btn variant-outline text-gray-700 border border-gray-300">
-              Limpar filtros
-            </button>
+            <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-xl text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors">
+              Limpar Filtros
+            </a>
             {% endif %}
           </div>
-        </div>
-      {% endif %}
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="bg-blue-50 py-12">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-gray-900 mb-4 text-2xl">Dúvidas sobre o processo?</h2>
-      <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
-        Consulte nosso guia completo com o passo a passo para inscrição
-      </p>
-      <a href="{% url 'passo_a_passo' %}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-8 py-3 text-white font-medium">
-        Acessar Passo a Passo
-        <i class="fas fa-arrow-right ml-2"></i>
-      </a>
+        {% endif %}
+      </div>
     </div>
   </section>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById('search-editais');
-  const filterTipo = document.getElementById('filter-tipo');
-  const filterStatus = document.getElementById('filter-status');
-  const form = document.querySelector('form');
-  let filterTimeout = null;
-  
-  // Debounced filter submission - allows users to select multiple filters before submitting
-  function submitFilters() {
-    if (filterTimeout) {
-      clearTimeout(filterTimeout);
-    }
-    filterTimeout = setTimeout(function() {
-      form.submit();
-    }, 500); // 500ms delay - user can select multiple filters quickly
-  }
-  
-  // Debounced filter change handlers
-  if (filterTipo) {
-    filterTipo.addEventListener('change', function() {
-      submitFilters();
-    });
-  }
-  
-  if (filterStatus) {
-    filterStatus.addEventListener('change', function() {
-      submitFilters();
-    });
-  }
-  
-  // Submit on Enter in search (immediate)
-  if (searchInput) {
-    searchInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        if (filterTimeout) {
-          clearTimeout(filterTimeout);
-        }
-        form.submit();
-      }
-    });
-  }
-});
-
-// Ctrl+K keyboard shortcut to focus search input
+// Ctrl+K to focus search
 document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         const searchInput = document.getElementById('search-editais');
         if (searchInput) {
             searchInput.focus();
-            searchInput.select(); // Select existing text for easy replacement
+            searchInput.select();
         }
     }
 });
