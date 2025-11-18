@@ -7,10 +7,26 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install Node.js and npm (required for Tailwind CSS)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
+
+# Install npm dependencies for Tailwind CSS
+WORKDIR /app/theme/static_src
+RUN npm install
+
+# Build Tailwind CSS before collecting static files
+WORKDIR /app
+RUN python manage.py tailwind build
 
 # Collect static assets
 RUN python manage.py collectstatic --noinput

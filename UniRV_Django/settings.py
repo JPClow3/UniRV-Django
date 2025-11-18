@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tailwind',
+    'theme',  # Tailwind theme app
     'editais.apps.EditaisConfig',
 ]
 
@@ -70,6 +72,10 @@ except ImportError:
     # Compressor not installed, skip it
     pass
 
+# Add django_browser_reload only in DEBUG mode
+if DEBUG:
+    INSTALLED_APPS += ['django_browser_reload']
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -80,6 +86,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Add django_browser_reload middleware only in DEBUG mode
+# Should be after any middleware that encodes the response (like GZipMiddleware)
+if DEBUG:
+    MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
 
 ROOT_URLCONF = 'UniRV_Django.urls'
 
@@ -154,6 +165,27 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Tailwind CSS configuration
+TAILWIND_APP_NAME = 'theme'
+
+# NPM binary path (Windows may need npm.cmd)
+# Uncomment and adjust if npm is not found automatically
+# NPM_BIN_PATH = "npm.cmd"  # For Windows
+# NPM_BIN_PATH = "/usr/local/bin/npm"  # For Linux/Mac
+
+# Static files finders
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# Add compressor finder if compressor is installed
+try:
+    import compressor
+    STATICFILES_FINDERS.append('compressor.finders.CompressorFinder')
+except ImportError:
+    pass
 
 # Django Compressor settings for minification (only if compressor is installed)
 try:

@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/**
+  * Source paths for Tailwind CSS to scan for class names.
+  * Updated to match project structure.
+  */
+@source "../../../templates/**/*.html";
+@source "../../../editais/templates/**/*.html";
+@source "../../../**/*.py";
+@source "../../../static/js/**/*.js";
+
+/**
+  * Theme configuration using CSS variables.
+  * Colors match existing CSS variables in style.css.
+  */
+@theme {
+  --color-primary: #2563eb;
+  --color-secondary: #00d66b;
+  --color-accent: #00d66b;
+  
+  --font-family-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 999px;
+}
