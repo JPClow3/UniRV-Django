@@ -14,5 +14,5 @@ Este é um lembrete automático sobre editais de fomento que estão próximos do
 Acesse o sistema para mais detalhes: {{ site_url }}
 
 ---
-YPETEC UniRV - Sistema de Editais de Fomento
+AgroHub UniRV - Sistema de Editais de Fomento
 

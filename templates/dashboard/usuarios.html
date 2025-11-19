@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Gerenciar Usuários - Dashboard YPETEC{% endblock %}
+{% block title %}Gerenciar Usuários - Dashboard AgroHub{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -108,7 +108,7 @@
         <label for="user-role" class="text-sm font-medium text-gray-700">Perfil</label>
         <select id="user-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
           <option value="proponente">Proponente</option>
-          <option value="admin">Admin YpeTec</option>
+          <option value="admin">Admin AgroHub</option>
           <option value="gestor">Gestor de Editais</option>
           <option value="avaliador">Avaliador</option>
           <option value="comunicador">Comunicador/Secretaria</option>
@@ -125,7 +125,7 @@
     </div>
 
     <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
-      <button onclick="closeUserDialog()" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all">
+      <button onclick="closeUserDialog()" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
         Cancelar
       </button>
       <button onclick="saveUser()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">

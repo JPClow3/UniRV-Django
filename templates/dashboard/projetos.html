@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}{% if user.is_staff %}Projetos Submetidos{% else %}Meus Projetos{% endif %} - Dashboard YPETEC{% endblock %}
+{% block title %}{% if user.is_staff %}Projetos Submetidos{% else %}Meus Projetos{% endif %} - Dashboard AgroHub{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -172,7 +172,7 @@
                     Novo Projeto
                   </a>
                   {% endif %}
-                  <a href="{% url 'dashboard_projetos' %}" class="btn variant-outline text-gray-700 border border-gray-300">
+                  <a href="{% url 'dashboard_projetos' %}" class="btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
                     Limpar filtros
                   </a>
                 </div>

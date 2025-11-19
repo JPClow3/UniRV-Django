@@ -1,14 +1,16 @@
-{% load static %}
+{% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard - YPETEC{% endblock %}</title>
+    <title>{% block title %}Dashboard - AgroHub{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    {% tailwind_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="min-h-screen bg-gray-50">
@@ -19,20 +21,20 @@
         <!-- Logo -->
         <a href="{% url 'home' %}" class="flex items-center gap-3">
           <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded flex items-center justify-center shadow-sm">
-            <span class="text-white font-bold text-lg">Y</span>
+            <span class="text-white font-bold text-lg">A</span>
           </div>
           <div>
-            <div class="text-blue-600 text-lg leading-tight tracking-tight font-bold">YPETEC</div>
-            <div class="text-gray-500 text-xs leading-tight">Admin</div>
+            <div class="text-blue-600 text-lg leading-tight tracking-tight font-bold">AgroHub</div>
+            <div class="text-gray-500 text-xs leading-tight">Gestão UniRV</div>
           </div>
         </a>
 
         <!-- Desktop Navigation -->
         <nav class="hidden lg:flex items-center gap-2">
-          <!-- Voltar para YpeTec -->
+          <!-- Voltar para AgroHub -->
           <a href="{% url 'home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 mr-2">
             <i class="fas fa-arrow-left w-4 h-4"></i>
-            <span>Site YpeTec</span>
+            <span>Portal AgroHub</span>
           </a>
           <div class="w-px h-6 bg-gray-200 mr-2"></div>
 
@@ -84,7 +86,7 @@
             <div class="lg:hidden">
               <a href="{% url 'home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                 <i class="fas fa-arrow-left w-4 h-4"></i>
-                Site YpeTec
+                Portal AgroHub
               </a>
               {% if user.is_staff %}
                 <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -148,6 +150,7 @@
     }
   });
   </script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
 

@@ -1,13 +1,13 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Submeter Projeto - Dashboard YPETEC{% endblock %}
+{% block title %}Submeter Projeto - Dashboard AgroHub{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <a href="{% url 'dashboard_projetos' %}" class="variant-ghost hover:bg-gray-100 rounded-lg px-3 py-2 text-sm transition-all inline-flex items-center gap-2">
+      <a href="{% url 'dashboard_projetos' %}" class="bg-transparent hover:bg-gray-100 text-gray-700 rounded-lg px-3 py-2 text-sm transition-all inline-flex items-center gap-2">
         <i class="fas fa-arrow-left w-4 h-4"></i>
         Voltar
       </a>
@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <button class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center gap-2">
+    <button class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center gap-2">
       <i class="fas fa-save w-4 h-4"></i>
       Salvar Rascunho
     </button>
@@ -111,7 +111,7 @@
             Clique para fazer upload ou arraste o arquivo
           </p>
           <input type="file" id="planoNegocios" accept=".pdf,.doc,.docx" class="hidden">
-          <label for="planoNegocios" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-block cursor-pointer">
+          <label for="planoNegocios" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-block cursor-pointer">
             Selecionar Arquivo
           </label>
           <p class="text-xs text-gray-500 mt-2">
@@ -135,7 +135,7 @@
 
     <!-- Actions -->
     <div class="flex justify-end gap-4">
-      <a href="{% url 'dashboard_projetos' %}" class="variant-outline border-2 border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all">
+      <a href="{% url 'dashboard_projetos' %}" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
         Cancelar
       </a>
       <button type="submit" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">

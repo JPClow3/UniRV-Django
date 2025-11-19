@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editais Publicados - YPETEC{% endblock %}
+{% block title %}Editais Publicados - AgroHub UniRV{% endblock %}
 
 {% block content %}
 <div class="bg-white min-h-screen">
@@ -24,42 +24,48 @@
       <!-- Sidebar Filters -->
       <aside class="w-full lg:w-64 flex-shrink-0">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-bold text-gray-900">Filtros</h2>
-            {% if search_query or tipo_filter or status_filter %}
-            <a href="{% url 'editais_index' %}" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline">
-              Limpar
-            </a>
-            {% endif %}
-          </div>
           
-          <form method="GET" action="{% url 'editais_index' %}" id="filter-form" class="space-y-6">
-            {% if search_query %}
-            <input type="hidden" name="search" value="{{ search_query }}">
-            {% endif %}
+          <details class="group filter-details" open>
+            <summary class="flex items-center justify-between mb-6 cursor-pointer list-none lg:cursor-default lg:pointer-events-none">
+              <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-filter text-blue-600"></i>
+                Filtros
+              </h2>
+              <span class="lg:hidden text-blue-600">
+                <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
+              </span>
+              
+              {% if search_query or tipo_filter or status_filter %}
+              <a href="{% url 'editais_index' %}" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline ml-auto lg:ml-0 mr-4 lg:mr-0 lg:pointer-events-auto">
+                Limpar
+              </a>
+              {% endif %}
+            </summary>
             
-            <!-- Status Filter -->
-            <div>
-              <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <select name="status" id="filter-status" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
-                <option value="">Todos</option>
-                <option value="aberto" {% if status_filter == 'aberto' %}selected{% endif %}>Abertos</option>
-                <option value="fechado" {% if status_filter == 'fechado' %}selected{% endif %}>Encerrados</option>
-              </select>
-            </div>
+            <form method="GET" action="{% url 'editais_index' %}" id="filter-form" class="space-y-6 pt-2 border-t border-gray-100 lg:border-t-0 lg:pt-0">
+              {% if search_query %}
+              <input type="hidden" name="search" value="{{ search_query }}">
+              {% endif %}
+              
+              <div>
+                <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select name="status" id="filter-status" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
+                  <option value="">Todos</option>
+                  <option value="aberto" {% if status_filter == 'aberto' %}selected{% endif %}>Abertos</option>
+                  <option value="fechado" {% if status_filter == 'fechado' %}selected{% endif %}>Encerrados</option>
+                </select>
+              </div>
 
-            <!-- Type Filter -->
-            <div>
-              <label for="filter-tipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-              <select name="tipo" id="filter-tipo" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
-                <option value="">Todos os tipos</option>
-                <option value="Fluxo Contínuo" {% if tipo_filter == 'Fluxo Contínuo' %}selected{% endif %}>Fluxo Contínuo</option>
-                <option value="Fomento" {% if tipo_filter == 'Fomento' %}selected{% endif %}>Fomento</option>
-              </select>
-            </div>
-
-            <!-- Mobile Search (only visible on mobile if needed, but we keep main search accessible) -->
-          </form>
+              <div>
+                <label for="filter-tipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                <select name="tipo" id="filter-tipo" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
+                  <option value="">Todos os tipos</option>
+                  <option value="Fluxo Contínuo" {% if tipo_filter == 'Fluxo Contínuo' %}selected{% endif %}>Fluxo Contínuo</option>
+                  <option value="Fomento" {% if tipo_filter == 'Fomento' %}selected{% endif %}>Fomento</option>
+                </select>
+              </div>
+            </form>
+          </details>
         </div>
       </aside>
 
@@ -240,9 +246,11 @@
     </div>
   </section>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-// Ctrl+K to focus search
+// Ctrl+K to focus search (fallback if main.js doesn't handle this specific input)
 document.addEventListener('keydown', function(e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
@@ -253,5 +261,50 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// Prevent filter details from closing on large screens
+(function() {
+    const filterDetails = document.querySelector('.filter-details');
+    if (!filterDetails) return;
+    
+    function handleToggle(e) {
+        // On large screens (lg breakpoint = 1024px), prevent closing
+        if (window.innerWidth >= 1024) {
+            e.preventDefault();
+            // Force it to stay open
+            filterDetails.setAttribute('open', '');
+        }
+    }
+    
+    // Listen for toggle events
+    filterDetails.addEventListener('toggle', handleToggle);
+    
+    // Also prevent click on summary on large screens
+    const summary = filterDetails.querySelector('summary');
+    if (summary) {
+        summary.addEventListener('click', function(e) {
+            if (window.innerWidth >= 1024) {
+                e.preventDefault();
+                filterDetails.setAttribute('open', '');
+            }
+        });
+    }
+    
+    // Ensure it's open on large screens on load
+    if (window.innerWidth >= 1024) {
+        filterDetails.setAttribute('open', '');
+    }
+    
+    // Handle window resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            if (window.innerWidth >= 1024) {
+                filterDetails.setAttribute('open', '');
+            }
+        }, 100);
+    });
+})();
 </script>
 {% endblock %}

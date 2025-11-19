@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Gerenciar Editais - Dashboard YPETEC{% endblock %}
+{% block title %}Gerenciar Editais - Dashboard AgroHub{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -124,7 +124,7 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="badge variant-outline border-gray-300 px-3 py-1 text-sm">
+                <span class="badge bg-white border border-gray-300 text-gray-700 px-3 py-1 text-sm rounded">
                   {% if edital.end_date %}Fomento{% else %}Fluxo Contínuo{% endif %}
                 </span>
               </td>
@@ -181,7 +181,7 @@
                     <a href="{% url 'dashboard_novo_edital' %}" class="btn bg-gradient-to-r from-green-500 to-blue-600 text-white">
                       Novo Edital
                     </a>
-                    <a href="{% url 'dashboard_editais' %}" class="btn variant-outline text-gray-700 border border-gray-300">
+                    <a href="{% url 'dashboard_editais' %}" class="btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
                       Limpar filtros
                     </a>
                   </div>

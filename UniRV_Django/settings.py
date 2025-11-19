@@ -91,6 +91,9 @@ MIDDLEWARE = [
 # Should be after any middleware that encodes the response (like GZipMiddleware)
 if DEBUG:
     MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
 
 ROOT_URLCONF = 'UniRV_Django.urls'
 

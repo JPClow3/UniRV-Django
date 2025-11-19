@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}YPETEC - Incubadora UniRV{% endblock %}</title>
+    <title>{% block title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}</title>
 
     <!-- SEO Meta Tags -->
-    <meta name="description" content="{% block meta_description %}YPETEC - Incubadora de empresas da Universidade de Rio Verde, fomentando inovação e empreendedorismo através de programas de pré-incubação e incubação de startups{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}incubadora, startups, empreendedorismo, UniRV, inovação, editais, fomento{% endblock %}">
+    <meta name="description" content="{% block meta_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}AgroHub, UniRV, inovação, agronegócio, startups, YpeTec, FabLab, FINEP, Rio Verde{% endblock %}">
     <meta name="author" content="UniRV - Universidade de Rio Verde">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Social Media Meta Tags -->
-    <meta property="og:title" content="{% block og_title %}{% block title_og %}YPETEC - Incubadora UniRV{% endblock %}{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Incubadora de empresas da Universidade de Rio Verde, fomentando inovação e empreendedorismo{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% block title_og %}AgroHub UniRV{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Centro de Inovação e Tecnologia da UniRV. Transformação digital, automação e sustentabilidade no campo.{% endblock %}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
-    <meta property="og:site_name" content="YPETEC - Incubadora UniRV">
+    <meta property="og:site_name" content="AgroHub UniRV">
     {% load static tailwind_tags %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,6 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     {% tailwind_css %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="min-h-screen flex flex-col bg-gray-50 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}page-detail{% endif %}">
@@ -39,13 +38,13 @@
     <nav class="relative z-10 site-nav">
         <div class="flex justify-between items-center h-16" style="width: 100%; max-width: 1280px; margin: 0 auto; gap: 2rem; flex-wrap: nowrap;">
             <!-- Logo -->
-            <a href="{% url 'home' %}" class="flex items-center gap-3 flex-shrink-0" aria-label="YPETEC - Incubadora UniRV" style="white-space: nowrap; margin-right: auto;">
+            <a href="{% url 'home' %}" class="flex items-center gap-3 flex-shrink-0" aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia" style="white-space: nowrap; margin-right: auto;">
                 <div class="w-10 h-10 rounded flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-700 flex-shrink-0">
-                    <span class="text-white font-bold">Y</span>
+                    <span class="text-white font-bold">A</span>
                 </div>
                 <div class="flex-shrink-0">
-                    <div class="font-bold text-blue-600 text-lg tracking-tight whitespace-nowrap">YPETEC</div>
-                    <div class="text-xs text-gray-500 whitespace-nowrap">Incubadora UniRV</div>
+                    <div class="font-bold text-blue-600 text-lg tracking-tight whitespace-nowrap">AgroHub UniRV</div>
+                    <div class="text-xs text-gray-500 whitespace-nowrap">Centro de Inovação e Tecnologia</div>
                 </div>
             </a>
 
@@ -176,15 +175,15 @@
             <div class="md:col-span-2">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-12 h-12 rounded flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-700">
-                        <span class="text-white font-bold text-lg">Y</span>
+                        <span class="text-white font-bold text-lg">A</span>
                     </div>
                     <div>
-                        <div class="font-bold text-xl">YPETEC</div>
-                        <div class="text-sm text-gray-400">Incubadora UniRV</div>
+                        <div class="font-bold text-xl">AgroHub UniRV</div>
+                        <div class="text-sm text-gray-400">NIT - Núcleo de Inovação e Tecnologia</div>
                     </div>
                 </div>
                 <p class="text-gray-400 text-sm leading-relaxed max-w-md">
-                    Incubadora de empresas da Universidade de Rio Verde, fomentando inovação e empreendedorismo através de programas de pré-incubação e incubação de startups.
+                    Centro de Inovação e Tecnologia apoiado pela FINEP, voltado à transformação digital do agronegócio em Goiás. Conectamos pesquisa, startups e o setor produtivo.
                 </p>
             </div>
 
@@ -246,7 +245,7 @@
         <div class="border-t border-gray-800 pt-8">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <p class="text-sm text-gray-400">
-                    © 2025 YpeTec - Incubadora UniRV. Todos os direitos reservados.
+                    © 2025 AgroHub UniRV. Todos os direitos reservados.
                 </p>
                 <div class="flex gap-4 text-sm text-gray-400">
                     <a href="#" class="hover:text-white transition-colors">Política de Privacidade</a>
@@ -259,5 +258,6 @@
 </footer>
 
 <script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>
