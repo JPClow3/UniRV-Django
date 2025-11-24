@@ -26,6 +26,9 @@ class UpdateEditalStatusCommandTest(TestCase):
             start_date=today - timedelta(days=30),
             end_date=today - timedelta(days=1),  # Encerrou ontem
         )
+        # Force status 'aberto' bypassing save() logic
+        Edital.objects.filter(pk=self.edital_to_close.pk).update(status='aberto')
+        self.edital_to_close.refresh_from_db()
         
         # Edital que deve ser programado (start_date > hoje, status != 'draft')
         self.edital_to_schedule = Edital.objects.create(
@@ -35,6 +38,9 @@ class UpdateEditalStatusCommandTest(TestCase):
             start_date=today + timedelta(days=10),  # Começa em 10 dias
             end_date=today + timedelta(days=40),
         )
+        # Force status 'aberto' bypassing save() logic
+        Edital.objects.filter(pk=self.edital_to_schedule.pk).update(status='aberto')
+        self.edital_to_schedule.refresh_from_db()
         
         # Edital que deve ser aberto (start_date <= hoje <= end_date, status='programado')
         self.edital_to_open = Edital.objects.create(
@@ -44,6 +50,9 @@ class UpdateEditalStatusCommandTest(TestCase):
             start_date=today - timedelta(days=1),  # Começou ontem
             end_date=today + timedelta(days=30),
         )
+        # Force status 'programado' bypassing save() logic
+        Edital.objects.filter(pk=self.edital_to_open.pk).update(status='programado')
+        self.edital_to_open.refresh_from_db()
         
         # Edital que não deve mudar (draft)
         self.edital_draft = Edital.objects.create(

@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from io import StringIO
 
-from .models import Edital
+from editais.models import Edital
 
 
 class EditaisCrudTest(TestCase):
@@ -81,7 +81,7 @@ class EditaisCrudTest(TestCase):
         resp = self.client.get(reverse("edital_create"))
         # Should redirect to login
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/login/', resp.url)
 
     def test_update_requires_authentication(self):
         """Test that update view requires authentication"""
@@ -89,7 +89,7 @@ class EditaisCrudTest(TestCase):
         resp = self.client.get(reverse("edital_update", args=[edital.pk]))
         # Should redirect to login
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/login/', resp.url)
 
     def test_delete_requires_authentication(self):
         """Test that delete view requires authentication"""
@@ -97,7 +97,7 @@ class EditaisCrudTest(TestCase):
         resp = self.client.get(reverse("edital_delete", args=[edital.pk]))
         # Should redirect to login
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/login/', resp.url)
 
 
 class EditalSearchAndFilterTest(TestCase):

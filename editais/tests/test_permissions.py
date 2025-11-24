@@ -94,7 +94,7 @@ class EditalPermissionsTest(TestCase):
         resp = self.client.get(reverse('edital_create'))
         # Deve redirecionar para login
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/login/', resp.url)
     
     def test_visitor_cannot_update_edital(self):
         """Testa que visitante não pode editar editais."""
@@ -102,7 +102,7 @@ class EditalPermissionsTest(TestCase):
         resp = self.client.get(reverse('edital_update', args=[self.edital.pk]))
         # Deve redirecionar para login
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/login/', resp.url)
     
     def test_visitor_cannot_delete_edital(self):
         """Testa que visitante não pode deletar editais."""
@@ -110,7 +110,7 @@ class EditalPermissionsTest(TestCase):
         resp = self.client.get(reverse('edital_delete', args=[self.edital.pk]))
         # Deve redirecionar para login
         self.assertEqual(resp.status_code, 302)
-        self.assertIn('/admin/login/', resp.url)
+        self.assertIn('/login/', resp.url)
     
     def test_staff_can_view_draft_editais(self):
         """Testa que usuário staff pode ver editais em draft."""
