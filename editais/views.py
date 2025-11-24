@@ -229,16 +229,16 @@ def register_view(request):
             try:
                 if hasattr(settings, 'EMAIL_HOST') and settings.EMAIL_HOST:
                     send_mail(
-                        subject='Bem-vindo ao YPETEC!',
-                        message=f'Olá {user.first_name},\n\nBem-vindo ao sistema de gestão de editais da YPETEC - Incubadora UniRV!\n\nSua conta foi criada com sucesso.',
-                        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@unirv.edu.br'),
+                        subject='Bem-vindo ao AgroHub!',
+                        message=f'Olá {user.first_name},\n\nBem-vindo ao sistema de gestão de editais do AgroHub UniRV!\n\nSua conta foi criada com sucesso.',
+                        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@agrohub.unirv.edu.br'),
                         recipient_list=[user.email],
                         fail_silently=True,
                     )
             except Exception as e:
                 logger.warning(f"Failed to send welcome email to {user.email}: {e}")
             
-            messages.success(request, 'Conta criada com sucesso! Bem-vindo ao YPETEC!')
+            messages.success(request, 'Conta criada com sucesso! Bem-vindo ao AgroHub!')
             return redirect('dashboard_home')
     else:
         form = UserRegistrationForm()

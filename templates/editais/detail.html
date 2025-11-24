@@ -23,6 +23,8 @@
         {% csrf_token %}
     {% endif %}
 
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
+
 <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
     <div class="page-header-top">
         <h1 class="text-unirvBlue text-3xl font-bold leading-tight mb-4">{{ edital.titulo }}</h1>
@@ -233,4 +235,6 @@
 {% endif %}
 {% endwith %}
 {% endif %}
+
+</div><!-- end container -->
 {% endblock %}

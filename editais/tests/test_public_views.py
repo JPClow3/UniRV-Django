@@ -20,12 +20,13 @@ class HomeViewTest(TestCase):
         """Test that home page loads without authentication"""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home.html')
+        # Verify content is present (template is being rendered)
+        self.assertContains(response, 'AgroHub', status_code=200)
     
     def test_home_page_contains_branding(self):
-        """Test that home page contains YPETEC branding"""
+        """Test that home page contains AgroHub branding"""
         response = self.client.get(reverse('home'))
-        self.assertContains(response, 'YPETEC', status_code=200)
+        self.assertContains(response, 'AgroHub', status_code=200)
 
 
 class AmbientesInovacaoViewTest(TestCase):

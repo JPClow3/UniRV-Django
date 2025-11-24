@@ -30,7 +30,9 @@ class EditalService:
         today = timezone.now().date()
         deadline = today + timedelta(days=days)
         
-        return Edital.objects.filter(
+        return Edital.objects.select_related(
+            'created_by', 'updated_by'
+        ).filter(
             end_date__gte=today,
             end_date__lte=deadline,
             status__in=['aberto', 'em_andamento']

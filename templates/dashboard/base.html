@@ -7,7 +7,7 @@
     <title>{% block title %}Dashboard - AgroHub{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     {% tailwind_css %}
@@ -20,9 +20,7 @@
       <div class="flex justify-between items-center h-20">
         <!-- Logo -->
         <a href="{% url 'home' %}" class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded flex items-center justify-center shadow-sm">
-            <span class="text-white font-bold text-lg">A</span>
-          </div>
+          <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10" />
           <div>
             <div class="text-blue-600 text-lg leading-tight tracking-tight font-bold">AgroHub</div>
             <div class="text-gray-500 text-xs leading-tight">Gestão UniRV</div>
@@ -116,10 +114,13 @@
               {% endif %}
               <div class="border-t border-gray-200 my-1"></div>
             </div>
-            <a href="{% url 'admin:logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-              <i class="fas fa-sign-out-alt w-4 h-4"></i>
-              Sair
-            </a>
+            <form action="{% url 'admin:logout' %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full cursor-pointer">
+                <i class="fas fa-sign-out-alt w-4 h-4"></i>
+                Sair
+              </button>
+            </form>
           </div>
         </div>
       </div>

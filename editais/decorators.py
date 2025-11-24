@@ -14,6 +14,31 @@ from .constants import RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW
 logger = logging.getLogger(__name__)
 
 
+def get_client_ip(request):
+    """
+    Get the real client IP address, handling proxies and load balancers.
+    
+    Checks X-Forwarded-For header first (common for proxies), then falls back
+    to REMOTE_ADDR. Returns 'unknown' if neither is available.
+    
+    Args:
+        request: Django HttpRequest object
+        
+    Returns:
+        str: Client IP address
+    """
+    # Check X-Forwarded-For header (set by proxies/load balancers)
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        # X-Forwarded-For can contain multiple IPs; the first is the client
+        ip = x_forwarded_for.split(',')[0].strip()
+        if ip:
+            return ip
+    
+    # Fallback to REMOTE_ADDR
+    return request.META.get('REMOTE_ADDR', 'unknown')
+
+
 def rate_limit(key='ip', rate=RATE_LIMIT_REQUESTS, window=RATE_LIMIT_WINDOW, method='POST'):
     """
     Decorator para rate limiting usando cache do Django.
@@ -38,7 +63,8 @@ def rate_limit(key='ip', rate=RATE_LIMIT_REQUESTS, window=RATE_LIMIT_WINDOW, met
             
             # Determinar a chave de cache baseada no tipo
             if key == 'ip':
-                cache_key = f'rate_limit_ip_{request.META.get("REMOTE_ADDR", "unknown")}'
+                client_ip = get_client_ip(request)
+                cache_key = f'rate_limit_ip_{client_ip}'
             elif key == 'user':
                 if not request.user.is_authenticated:
                     return view_func(request, *args, **kwargs)

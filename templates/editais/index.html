@@ -185,12 +185,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col gap-3 lg:w-48 flex-shrink-0 justify-center">
-                      {% if edital.status == 'aberto' %}
-                        <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-secondary hover:bg-unirvBlue shadow-sm hover:shadow transition-all text-center">
-                          Inscreva-se
-                        </a>
-                      {% endif %}
-                      <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border-2 border-gray-200 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
+                      <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white {% if edital.status == 'aberto' %}bg-secondary hover:bg-unirvBlue{% else %}bg-gray-500 hover:bg-gray-600{% endif %} shadow-sm hover:shadow transition-all text-center">
                         Ver Detalhes
                       </a>
                     </div>

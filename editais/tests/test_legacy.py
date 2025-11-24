@@ -447,13 +447,13 @@ class EditalFormTest(TestCase):
 
     def test_form_valid_with_required_fields(self):
         """Testa que formulário é válido com campos obrigatórios."""
-        from .forms import EditalForm
+        from editais.forms import EditalForm
         form = EditalForm(data=self.valid_data)
         self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
 
     def test_form_invalid_without_titulo(self):
         """Testa que formulário é inválido sem título."""
-        from .forms import EditalForm
+        from editais.forms import EditalForm
         data = self.valid_data.copy()
         data.pop('titulo')
         form = EditalForm(data=data)
@@ -462,7 +462,7 @@ class EditalFormTest(TestCase):
 
     def test_form_invalid_without_url(self):
         """Testa que formulário é inválido sem URL."""
-        from .forms import EditalForm
+        from editais.forms import EditalForm
         data = self.valid_data.copy()
         data.pop('url')
         form = EditalForm(data=data)
@@ -492,7 +492,7 @@ class EditalFormTest(TestCase):
 
     def test_form_saves_correctly(self):
         """Testa que formulário salva edital corretamente."""
-        from .forms import EditalForm
+        from editais.forms import EditalForm
         form = EditalForm(data=self.valid_data)
         self.assertTrue(form.is_valid())
         edital = form.save()
@@ -502,7 +502,7 @@ class EditalFormTest(TestCase):
 
     def test_form_updates_existing_edital(self):
         """Testa que formulário atualiza edital existente."""
-        from .forms import EditalForm
+        from editais.forms import EditalForm
         edital = Edital.objects.create(**self.valid_data)
         new_data = self.valid_data.copy()
         new_data['titulo'] = 'Título Atualizado'

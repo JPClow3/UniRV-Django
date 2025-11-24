@@ -14,7 +14,7 @@
     />
     <meta
       name="keywords"
-      content="{% block meta_keywords %}AgroHub, UniRV, inovação, agronegócio, startups, YpeTec, FabLab, FINEP, Rio Verde{% endblock %}"
+      content="{% block meta_keywords %}AgroHub, UniRV, inovação, agronegócio, startups, incubadora, FabLab, FINEP, Rio Verde{% endblock %}"
     />
     <meta name="author" content="UniRV - Universidade de Rio Verde" />
     <meta name="robots" content="index, follow" />
@@ -38,7 +38,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
@@ -53,12 +53,10 @@
   <body
     class="min-h-screen flex flex-col bg-gray-50 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}page-detail{% endif %}"
   >
-    <!-- Skip to main content link for accessibility (only on list pages) -->
-    {% if request.resolver_match.url_name != 'edital_detail' and request.resolver_match.url_name != 'edital_detail_slug' %}
+    <!-- Skip to main content link for accessibility -->
     <a href="#main-content" class="skip-link"
       >Pular para o conteúdo principal</a
     >
-    {% endif %}
 
     <header
       class="site-header bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200 relative w-full full-bleed"
@@ -121,6 +119,16 @@
             >
               DASHBOARD
             </a>
+            <form action="{% url 'admin:logout' %}" method="post" class="inline">
+              {% csrf_token %}
+              <button
+                type="submit"
+                class="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm cursor-pointer"
+                title="Sair"
+              >
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </form>
             {% else %}
             <a
               href="{% url 'login' %}"
@@ -175,23 +183,36 @@
                 >Projetos Aprovados</a
               >
             </li>
+            {% if user.is_authenticated %}
             <li>
-              {% if user.is_authenticated %}
               <a
                 href="{% url 'dashboard_home' %}"
                 class="nav-cta block mx-4 mt-4 text-center"
               >
                 Dashboard
               </a>
-              {% else %}
+            </li>
+            <li>
+              <form action="{% url 'admin:logout' %}" method="post" class="block">
+                {% csrf_token %}
+                <button
+                  type="submit"
+                  class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                >
+                  <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                </button>
+              </form>
+            </li>
+            {% else %}
+            <li>
               <a
                 href="{% url 'login' %}"
                 class="nav-cta block mx-4 mt-4 text-center"
               >
                 Login
               </a>
-              {% endif %}
             </li>
+            {% endif %}
           </ul>
         </div>
       </nav>
@@ -281,12 +302,12 @@
               <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-12 h-12" />
               <div>
                 <div class="font-bold text-xl">AgroHub UniRV</div>
-                <div class="text-sm text-gray-400">
+                <div class="text-sm text-gray-300">
                   NIT - Núcleo de Inovação e Tecnologia
                 </div>
               </div>
             </div>
-            <p class="text-gray-400 text-sm leading-relaxed max-w-md">
+            <p class="text-gray-300 text-sm leading-relaxed max-w-md">
               Centro de Inovação e Tecnologia apoiado pela FINEP, voltado à
               transformação digital do agronegócio em Goiás. Conectamos
               pesquisa, startups e o setor produtivo.
@@ -299,7 +320,7 @@
               <li>
                 <a
                   href="{% url 'home' %}"
-                  class="text-gray-400 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group"
+                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -310,7 +331,7 @@
               <li>
                 <a
                   href="{% url 'ambientes_inovacao' %}"
-                  class="text-gray-400 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group"
+                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -321,7 +342,7 @@
               <li>
                 <a
                   href="{% url 'editais_index' %}"
-                  class="text-gray-400 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group"
+                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -332,7 +353,7 @@
               <li>
                 <a
                   href="{% url 'projetos_aprovados' %}"
-                  class="text-gray-400 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group"
+                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -345,14 +366,14 @@
 
           <div>
             <h3 class="font-bold mb-6 text-white">Contato</h3>
-            <ul class="space-y-4 text-sm text-gray-400">
+            <ul class="space-y-4 text-sm text-gray-300">
               <li>
                 <a
-                  href="mailto:ypetec@unirv.edu.br"
+                  href="mailto:agrohub@unirv.edu.br"
                   class="hover:text-white transition-colors flex items-start gap-2"
                 >
-                  <span class="text-green-500 mt-0.5">✉</span>
-                  ypetec@unirv.edu.br
+                  <i class="fas fa-envelope text-green-500 mt-0.5"></i>
+                  agrohub@unirv.edu.br
                 </a>
               </li>
               <li>
@@ -360,7 +381,7 @@
                   href="tel:+556298172-9376"
                   class="hover:text-white transition-colors flex items-start gap-2"
                 >
-                  <span class="text-green-500 mt-0.5">☎</span>
+                  <i class="fas fa-phone text-green-500 mt-0.5"></i>
                   (62) 98172-9376
                 </a>
               </li>
@@ -371,7 +392,7 @@
                   rel="noopener noreferrer"
                   class="hover:text-white transition-colors flex items-start gap-2"
                 >
-                  <span class="text-green-500 mt-0.5">🌐</span>
+                  <i class="fas fa-globe text-green-500 mt-0.5"></i>
                   www.unirv.edu.br
                 </a>
               </li>
@@ -383,10 +404,10 @@
           <div
             class="flex flex-col md:flex-row justify-between items-center gap-4"
           >
-            <p class="text-sm text-gray-400">
+            <p class="text-sm text-gray-300">
               © 2025 AgroHub UniRV. Todos os direitos reservados.
             </p>
-            <div class="flex gap-4 text-sm text-gray-400">
+            <div class="flex gap-4 text-sm text-gray-300">
               <a href="#" class="hover:text-white transition-colors"
                 >Política de Privacidade</a
               >
