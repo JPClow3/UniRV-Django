@@ -23,61 +23,61 @@
         {% csrf_token %}
     {% endif %}
 
-<div class="page-header">
+<div class="bg-white p-6 rounded-xl shadow-sm mb-8">
     <div class="page-header-top">
-        <h1>{{ edital.titulo }}</h1>
+        <h1 class="text-unirvBlue text-3xl font-bold leading-tight mb-4">{{ edital.titulo }}</h1>
     </div>
-    <div class="page-meta">
+    <div class="flex flex-wrap gap-5 mt-4 pt-4 border-t border-gray-200">
         {% if edital.numero_edital %}
-        <span class="page-meta-item">
-            <i class="fas fa-file-alt" aria-hidden="true"></i>
-            <strong>Nº:</strong> {{ edital.numero_edital }}
+        <span class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="fas fa-file-alt text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Nº:</strong> {{ edital.numero_edital }}
         </span>
         {% endif %}
         {% if edital.entidade_principal %}
-        <span class="page-meta-item">
-            <i class="fas fa-building" aria-hidden="true"></i>
-            <strong>Entidade:</strong> {{ edital.entidade_principal }}
+        <span class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="fas fa-building text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Entidade:</strong> {{ edital.entidade_principal }}
         </span>
         {% endif %}
-        <span class="page-meta-item">
-            <i class="fas fa-tag" aria-hidden="true"></i>
-            <strong>Status:</strong> <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
+        <span class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="fas fa-tag text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Status:</strong> <span class="status-badge status-{{ edital.status }}">{{ edital.get_status_display }}</span>
         </span>
         {% if edital.start_date %}
-        <span class="page-meta-item">
-            <i class="fas fa-calendar-alt" aria-hidden="true"></i>
-            <strong>Abertura:</strong> <time datetime="{{ edital.start_date|date:'Y-m-d' }}">{{ edital.start_date|date:"d/m/Y" }}</time>
+        <span class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="fas fa-calendar-alt text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Abertura:</strong> <time datetime="{{ edital.start_date|date:'Y-m-d' }}">{{ edital.start_date|date:"d/m/Y" }}</time>
         </span>
         {% endif %}
         {% if edital.end_date %}
-        <span class="page-meta-item {% if edital.end_date|is_deadline_soon %}deadline-soon-meta{% endif %}">
-            <i class="fas fa-calendar-times" aria-hidden="true"></i>
-            <strong>Encerramento:</strong> <time datetime="{{ edital.end_date|date:'Y-m-d' }}">{{ edital.end_date|date:"d/m/Y" }}</time>
+        <span class="flex items-center gap-2 text-sm text-gray-700 {% if edital.end_date|is_deadline_soon %}bg-red-50 px-3 py-2 rounded-md border-l-4 border-red-600{% endif %}">
+            <i class="fas fa-calendar-times text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Encerramento:</strong> <time datetime="{{ edital.end_date|date:'Y-m-d' }}">{{ edital.end_date|date:"d/m/Y" }}</time>
             {% if edital.end_date|is_deadline_soon %}
-                <span class="deadline-warning" aria-label="Prazo próximo">
+                <span class="text-red-600 text-xs font-medium ml-2" aria-label="Prazo próximo">
                     <i class="fas fa-clock" aria-hidden="true"></i> Prazo próximo
                 </span>
             {% endif %}
         </span>
         {% endif %}
         {% if edital.created_by %}
-        <span class="page-meta-item">
-            <i class="fas fa-user" aria-hidden="true"></i>
-            <strong>Criado por:</strong> {{ edital.created_by.username }}
+        <span class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="fas fa-user text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Criado por:</strong> {{ edital.created_by.username }}
         </span>
         {% endif %}
-        <span class="page-meta-item">
-            <i class="fas fa-calendar" aria-hidden="true"></i>
-            <strong>Atualizado:</strong> <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}">{{ edital.data_atualizacao|date:"d/m/Y" }}</time>
+        <span class="flex items-center gap-2 text-sm text-gray-700">
+            <i class="fas fa-calendar text-unirvBlue" aria-hidden="true"></i>
+            <strong class="text-unirvBlue font-semibold">Atualizado:</strong> <time datetime="{{ edital.data_atualizacao|date:'Y-m-d' }}">{{ edital.data_atualizacao|date:"d/m/Y" }}</time>
         </span>
     </div>
 </div>
 
 
 {% if edital.objetivo_safe %}
-<div class="edital-section" id="objetivo">
-  <h3>1. Objetivo do Edital</h3>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-6" id="objetivo">
+  <h3 class="text-unirvBlue text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-200">1. Objetivo do Edital</h3>
   {# SECURITY NOTE: objetivo_safe should be sanitized on the server side using bleach or similar #}
   {# to prevent XSS attacks. Ensure mark_safe is only used after proper HTML sanitization. #}
   <div class="prose">{{ edital.objetivo_safe }}</div>
@@ -85,48 +85,48 @@
 {% endif %}
 
 {% if edital.etapas_safe %}
-<div class="edital-section" id="etapas">
-  <h3>2. Etapas do Edital</h3>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-6" id="etapas">
+  <h3 class="text-unirvBlue text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-200">2. Etapas do Edital</h3>
   {# SECURITY NOTE: All _safe fields should be sanitized server-side before mark_safe #}
   <div class="prose">{{ edital.etapas_safe }}</div>
 </div>
 {% endif %}
 
 {% if edital.recursos_safe %}
-<div class="edital-section" id="recursos-financeiros">
-  <h3>3. Cronograma / Recursos</h3>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-6" id="recursos-financeiros">
+  <h3 class="text-unirvBlue text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-200">3. Cronograma / Recursos</h3>
   <div class="prose">{{ edital.recursos_safe }}</div>
 </div>
 {% endif %}
 
 {% if edital.itens_financiaveis_safe or edital.criterios_elegibilidade_safe or edital.criterios_avaliacao_safe %}
-<div class="edital-section" id="itens-financiaveis">
-  <h3>4. Itens Financiáveis / Elegibilidade / Avaliação</h3>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-6" id="itens-financiaveis">
+  <h3 class="text-unirvBlue text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-200">4. Itens Financiáveis / Elegibilidade / Avaliação</h3>
   {% if edital.itens_financiaveis_safe %}
-    <h4>Itens Financiáveis</h4>
+    <h4 class="text-blue-900 text-lg font-semibold mt-6 mb-3">Itens Financiáveis</h4>
     <div class="prose">{{ edital.itens_financiaveis_safe }}</div>
   {% endif %}
   {% if edital.criterios_elegibilidade_safe %}
-    <h4>Critérios de Elegibilidade</h4>
+    <h4 class="text-blue-900 text-lg font-semibold mt-6 mb-3">Critérios de Elegibilidade</h4>
     <div class="prose">{{ edital.criterios_elegibilidade_safe }}</div>
   {% endif %}
   {% if edital.criterios_avaliacao_safe %}
-    <h4>Critérios de Avaliação</h4>
+    <h4 class="text-blue-900 text-lg font-semibold mt-6 mb-3">Critérios de Avaliação</h4>
     <div class="prose">{{ edital.criterios_avaliacao_safe }}</div>
   {% endif %}
 </div>
 {% endif %}
 
 {% if edital.itens_essenciais_observacoes_safe %}
-<div class="edital-section" id="itens-essenciais">
-  <h3>5. Itens Essenciais / Observações</h3>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-6" id="itens-essenciais">
+  <h3 class="text-unirvBlue text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-200">5. Itens Essenciais / Observações</h3>
   <div class="prose">{{ edital.itens_essenciais_observacoes_safe }}</div>
 </div>
 {% endif %}
 
 {% if edital.detalhes_unirv_safe %}
-<div class="edital-section" id="pontos-unirv">
-  <h3>6. Pontos para a UniRV</h3>
+<div class="bg-white p-6 rounded-xl shadow-sm mb-6" id="pontos-unirv">
+  <h3 class="text-unirvBlue text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-200">6. Pontos para a UniRV</h3>
   <div class="prose">{{ edital.detalhes_unirv_safe }}</div>
 </div>
 {% endif %}
@@ -187,18 +187,16 @@
     </div>
 </div>
 
-<div class="detail-actions">
-  <a href="{{ edital.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-      <i class="fas fa-external-link-alt" aria-hidden="true"></i> Acessar Edital
-  </a>
+<div class="flex flex-wrap gap-3 mt-8">
+  {% include "components/button.html" with href=edital.url type="primary" slot='<i class="fas fa-external-link-alt" aria-hidden="true"></i> Acessar Edital' attrs='target="_blank" rel="noopener noreferrer"' %}
+  
   {% if user.is_authenticated and user.is_staff %}
-  <a href="{% url 'edital_update' edital.pk %}" class="btn btn-secondary">
-      <i class="fas fa-edit" aria-hidden="true"></i> Editar
-  </a>
+    {% url 'edital_update' edital.pk as update_url %}
+    {% include "components/button.html" with href=update_url type="secondary" slot='<i class="fas fa-edit" aria-hidden="true"></i> Editar' %}
   {% endif %}
-  <a href="{% url 'editais_index' %}" class="btn btn-outline">
-      <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
-  </a>
+  
+  {% url 'editais_index' as index_url %}
+  {% include "components/button.html" with href=index_url type="outline" slot='<i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar' %}
 </div>
 
 {% if user.is_authenticated and user.is_staff %}

@@ -174,7 +174,7 @@ TAILWIND_APP_NAME = 'theme'
 
 # NPM binary path (Windows may need npm.cmd)
 # Uncomment and adjust if npm is not found automatically
-# NPM_BIN_PATH = "npm.cmd"  # For Windows
+NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # For Windows
 # NPM_BIN_PATH = "/usr/local/bin/npm"  # For Linux/Mac
 
 # Static files finders

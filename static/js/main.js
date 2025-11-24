@@ -1237,6 +1237,8 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
     // Expose functions globally
     window.openModal = openModal;
     window.closeModal = closeModal;
+    window.openManualModal = openManualModal;
+    window.closeManualModal = closeManualModal;
 })();
 
 // ========================================

@@ -6,21 +6,23 @@
 {% block content %}
 <div>
   <!-- Hero Section -->
-<section class="bg-gradient-to-r from-blue-600 to-green-500 text-white w-full full-bleed" aria-label="Seção principal">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
-      <div class="max-w-3xl">
-        <h1 class="text-white mb-8 text-4xl md:text-5xl lg:text-6xl leading-tight">
+  <!-- Hero Section -->
+<section class="relative bg-cover bg-center py-20 md:py-32 lg:py-48" style="background-image: url('{% static 'img/agrohub-hero.webp' %}');" aria-label="Seção principal">
+    <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue/90 to-unirvBlue/70"></div>
+    <div class="container relative z-10 text-center mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-white mb-8 text-4xl md:text-5xl lg:text-6xl leading-tight font-extrabold tracking-tight">
           Inovação e Sustentabilidade no Coração do Agro
         </h1>
-        <p class="text-lg md:text-xl text-white/90 mb-10 leading-relaxed">
-          O AgroHub UniRV é o centro de inovação e tecnologia da Universidade de Rio Verde, criado para conectar pesquisa, startups, indústria e produtores rurais. Impulsionando o Agro 4.0 com soluções digitais.
+        <p class="text-lg md:text-xl text-white/90 mb-10 leading-relaxed max-w-3xl mx-auto">
+          O AgroHub UniRV é o centro de inovação e tecnologia da Universidade de Rio Verde, criado para conectar pesquisa, startups, indústria e produtores rurais. Impulsionando o Agro 4.0 com soluções digitais, automação e sustentabilidade.
         </p>
-        <div class="flex flex-col sm:flex-row gap-4">
-          <a href="{% url 'ambientes_inovacao' %}" class="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium">
-            Ambientes de Inovação →
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-secondary hover:bg-opacity-90 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
+            Ver Editais Abertos <i class="fas fa-arrow-right ml-2"></i>
           </a>
-          <a href="{% url 'editais_index' %}" class="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-full px-8 py-6 text-base inline-flex items-center justify-center font-medium transition-all">
-            Ver Editais Abertos
+          <a href="{% url 'ambientes_inovacao' %}" class="inline-flex items-center justify-center px-8 py-3 border-2 border-white text-base font-medium rounded-full text-white hover:bg-white/10 transition-all duration-300 ease-in-out">
+            Ambientes de Inovação
           </a>
         </div>
       </div>
@@ -31,20 +33,20 @@
 <section class="bg-white py-16 border-b w-full full-bleed">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-        <div class="bg-white rounded-3xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
-          <div class="text-blue-600 mb-3 text-3xl md:text-4xl font-bold">3</div>
+        <div class="bg-white rounded-2xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">3</div>
           <div class="text-gray-600 text-sm md:text-base font-medium">Fases de Expansão</div>
         </div>
-        <div class="bg-white rounded-3xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
-          <div class="text-blue-600 mb-3 text-3xl md:text-4xl font-bold">12+</div>
+        <div class="bg-white rounded-2xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">12+</div>
           <div class="text-gray-600 text-sm md:text-base font-medium">Startups Incubadas</div>
         </div>
-        <div class="bg-white rounded-3xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
-          <div class="text-blue-600 mb-3 text-3xl md:text-4xl font-bold">40ha</div>
+        <div class="bg-white rounded-2xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">40ha</div>
           <div class="text-gray-600 text-sm md:text-base font-medium">Smart Farm</div>
         </div>
-        <div class="bg-white rounded-3xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
-          <div class="text-blue-600 mb-3 text-3xl md:text-4xl font-bold">R$ 10M+</div>
+        <div class="bg-white rounded-2xl shadow-md p-8 text-center border-0 hover:shadow-lg transition-all">
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">R$ 10M+</div>
           <div class="text-gray-600 text-sm md:text-base font-medium">Investimento Captado</div>
         </div>
       </div>
@@ -55,36 +57,36 @@
 <section class="py-20 bg-gray-50 w-full full-bleed">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-3xl mx-auto mb-16">
-        <h2 class="text-blue-600 mb-6 section-title text-3xl md:text-4xl">O Ecossistema AgroHub</h2>
+        <h2 class="text-unirvBlue mb-6 section-title text-3xl md:text-4xl">O Ecossistema AgroHub</h2>
         <p class="text-gray-600 text-lg leading-relaxed">
           Uma estrutura completa integrando a Hélice Quádrupla: academia, setor produtivo, governo e sociedade civil.
         </p>
       </div>
 
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div class="bg-white p-8 rounded-3xl shadow-md hover:shadow-xl transition-all border-0">
-          <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border-0">
+          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
             <i class="fas fa-rocket text-white text-2xl"></i>
           </div>
           <h3 class="text-gray-900 mb-4 text-lg font-semibold">Incubadora YpeTec</h3>
           <p class="text-gray-600 text-sm leading-relaxed">Ambiente colaborativo para desenvolvimento de startups do setor agro e suporte à inovação.</p>
         </div>
-        <div class="bg-white p-8 rounded-3xl shadow-md hover:shadow-xl transition-all border-0">
-          <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border-0">
+          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
             <i class="fas fa-microchip text-white text-2xl"></i>
           </div>
           <h3 class="text-gray-900 mb-4 text-lg font-semibold">FabLab & InovaLab</h3>
           <p class="text-gray-600 text-sm leading-relaxed">Laboratórios de ponta para prototipagem, monitoramento em tempo real e experimentação.</p>
         </div>
-        <div class="bg-white p-8 rounded-3xl shadow-md hover:shadow-xl transition-all border-0">
-          <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border-0">
+          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
             <i class="fas fa-tractor text-white text-2xl"></i>
           </div>
           <h3 class="text-gray-900 mb-4 text-lg font-semibold">Smart Farm</h3>
           <p class="text-gray-600 text-sm leading-relaxed">Fazenda inteligente com 40 hectares para testar tecnologias diretamente no campo.</p>
         </div>
-        <div class="bg-white p-8 rounded-3xl shadow-md hover:shadow-xl transition-all border-0">
-          <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border-0">
+          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
             <i class="fas fa-file-signature text-white text-2xl"></i>
           </div>
           <h3 class="text-gray-900 mb-4 text-lg font-semibold">Fomento à Inovação</h3>
@@ -106,7 +108,7 @@
 
       <div class="max-w-6xl mx-auto">
         <!-- Desktop Flow -->
-        <div style="display: block;">
+        <div class="hidden lg:block">
           <div class="relative">
             <!-- Connecting Line -->
             <div class="absolute top-10 left-[12.5%] right-[12.5%] h-1 bg-gradient-to-r from-blue-200 via-blue-300 to-blue-200"></div>
@@ -114,12 +116,12 @@
             <div class="grid grid-cols-4 gap-4 relative">
               <div class="flex flex-col items-center">
                 <!-- Circle with Number -->
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white" aria-label="Etapa 1">
+                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white" aria-label="Etapa 1">
                   <span class="text-white font-bold text-3xl">1</span>
                 </div>
                 <!-- Card Content -->
-                <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
+                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                     <i class="fas fa-file-alt text-white text-xl"></i>
                   </div>
                   <h3 class="text-gray-900 mb-3 text-base font-semibold">Leia o Edital</h3>
@@ -127,11 +129,11 @@
                 </div>
               </div>
               <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
+                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
                   <span class="text-white font-bold text-3xl">2</span>
                 </div>
-                <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
+                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                     <i class="fas fa-users text-white text-xl"></i>
                   </div>
                   <h3 class="text-gray-900 mb-3 text-base font-semibold">Preencha Formulários</h3>
@@ -139,11 +141,11 @@
                 </div>
               </div>
               <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
+                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
                   <span class="text-white font-bold text-3xl">3</span>
                 </div>
-                <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
+                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                     <i class="fas fa-check-circle text-white text-xl"></i>
                   </div>
                   <h3 class="text-gray-900 mb-3 text-base font-semibold">Envie Documentos</h3>
@@ -151,11 +153,11 @@
                 </div>
               </div>
               <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
+                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
                   <span class="text-white font-bold text-3xl">4</span>
                 </div>
-                <div class="bg-white rounded-3xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border-0 min-h-[180px] flex flex-col">
+                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                     <i class="fas fa-trophy text-white text-xl"></i>
                   </div>
                   <h3 class="text-gray-900 mb-3 text-base font-semibold">Aguarde Avaliação</h3>
@@ -167,9 +169,9 @@
         </div>
 
         <!-- Mobile/Tablet Flow -->
-        <div class="lg:hidden space-y-6" style="display: none;">
+        <div class="lg:hidden space-y-6">
           <div class="relative">
-            <div class="bg-white rounded-3xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
+            <div class="bg-white rounded-2xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
               <div class="flex items-start gap-4">
                 <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
                   <span class="text-white font-bold text-2xl">1</span>
@@ -188,7 +190,7 @@
             </div>
           </div>
           <div class="relative">
-            <div class="bg-white rounded-3xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
+            <div class="bg-white rounded-2xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
               <div class="flex items-start gap-4">
                 <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
                   <span class="text-white font-bold text-2xl">2</span>
@@ -207,7 +209,7 @@
             </div>
           </div>
           <div class="relative">
-            <div class="bg-white rounded-3xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
+            <div class="bg-white rounded-2xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
               <div class="flex items-start gap-4">
                 <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
                   <span class="text-white font-bold text-2xl">3</span>
@@ -226,7 +228,7 @@
             </div>
           </div>
           <div class="relative">
-            <div class="bg-white rounded-3xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
+            <div class="bg-white rounded-2xl shadow-md p-6 border-0 hover:shadow-xl transition-all">
               <div class="flex items-start gap-4">
                 <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
                   <span class="text-white font-bold text-2xl">4</span>
@@ -245,7 +247,7 @@
       </div>
 
       <div class="text-center mt-12">
-        <a href="{% url 'ambientes_inovacao' %}" class="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium text-white">
+        <a href="{% url 'ambientes_inovacao' %}" class="bg-secondary hover:bg-opacity-90 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium text-white">
           Conheça os Ambientes de Inovação →
         </a>
       </div>
@@ -253,14 +255,14 @@
   </section>
 
   <!-- CTA Section -->
-<section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-24 w-full full-bleed">
+<section class="bg-unirvBlue text-white py-24 w-full full-bleed">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-white mb-6 text-3xl md:text-4xl">Pronto para começar?</h2>
       <p class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
         Consulte os editais abertos e dê o primeiro passo para transformar sua ideia em realidade.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="{% url 'editais_index' %}" class="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium">
+        <a href="{% url 'editais_index' %}" class="w-full sm:w-auto bg-white text-unirvBlue hover:bg-blue-50 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium">
           Ver Editais Abertos
         </a>
         <a href="{% url 'projetos_aprovados' %}" class="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-full px-8 py-6 text-base inline-flex items-center justify-center font-medium transition-all">
@@ -271,4 +273,3 @@
   </section>
 </div>
 {% endblock %}
-

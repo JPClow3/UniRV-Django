@@ -6,7 +6,7 @@
 {% block content %}
 <div class="bg-white min-h-screen">
   <!-- Header -->
-  <section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-16">
+  <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-16">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl">
         <h1 class="text-white mb-4 text-4xl md:text-5xl font-bold tracking-tight">Editais Publicados</h1>
@@ -28,15 +28,15 @@
           <details class="group filter-details" open>
             <summary class="flex items-center justify-between mb-6 cursor-pointer list-none lg:cursor-default lg:pointer-events-none">
               <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <i class="fas fa-filter text-blue-600"></i>
+                <i class="fas fa-filter text-secondary"></i>
                 Filtros
               </h2>
-              <span class="lg:hidden text-blue-600">
+              <span class="lg:hidden text-secondary">
                 <i class="fas fa-chevron-down group-open:rotate-180 transition-transform"></i>
               </span>
               
               {% if search_query or tipo_filter or status_filter %}
-              <a href="{% url 'editais_index' %}" class="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline ml-auto lg:ml-0 mr-4 lg:mr-0 lg:pointer-events-auto">
+              <a href="{% url 'editais_index' %}" class="text-sm text-secondary hover:text-unirvBlue font-medium hover:underline ml-auto lg:ml-0 mr-4 lg:mr-0 lg:pointer-events-auto">
                 Limpar
               </a>
               {% endif %}
@@ -49,7 +49,7 @@
               
               <div>
                 <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select name="status" id="filter-status" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
+                <select name="status" id="filter-status" class="w-full rounded-lg border-gray-300 text-sm focus:border-secondary focus:ring-secondary bg-gray-50" onchange="this.form.submit()">
                   <option value="">Todos</option>
                   <option value="aberto" {% if status_filter == 'aberto' %}selected{% endif %}>Abertos</option>
                   <option value="fechado" {% if status_filter == 'fechado' %}selected{% endif %}>Encerrados</option>
@@ -58,7 +58,7 @@
 
               <div>
                 <label for="filter-tipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
-                <select name="tipo" id="filter-tipo" class="w-full rounded-lg border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-50" onchange="this.form.submit()">
+                <select name="tipo" id="filter-tipo" class="w-full rounded-lg border-gray-300 text-sm focus:border-secondary focus:ring-secondary bg-gray-50" onchange="this.form.submit()">
                   <option value="">Todos os tipos</option>
                   <option value="Fluxo Contínuo" {% if tipo_filter == 'Fluxo Contínuo' %}selected{% endif %}>Fluxo Contínuo</option>
                   <option value="Fomento" {% if tipo_filter == 'Fomento' %}selected{% endif %}>Fomento</option>
@@ -84,7 +84,7 @@
                 name="search" 
                 value="{{ search_query }}"
                 placeholder="Buscar editais por título, número ou descrição... (Ctrl+K)" 
-                class="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                class="w-full pl-12 pr-12 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all"
                 id="search-editais"
               >
               {% if search_query %}
@@ -100,9 +100,9 @@
         {% if search_query or tipo_filter or status_filter %}
         <div class="flex flex-wrap gap-2 mb-6">
           {% if search_query %}
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-unirvBlue">
             Busca: {{ search_query }}
-            <a href="?search=&status={{ status_filter }}&tipo={{ tipo_filter }}" class="ml-2 text-blue-600 hover:text-blue-800"><i class="fas fa-times"></i></a>
+            <a href="?search=&status={{ status_filter }}&tipo={{ tipo_filter }}" class="ml-2 text-secondary hover:text-unirvBlue"><i class="fas fa-times"></i></a>
           </span>
           {% endif %}
           {% if status_filter %}
@@ -148,7 +148,7 @@
                         {% endif %}
                       </div>
 
-                      <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                      <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-secondary transition-colors">
                         <a href="{{ edital.get_absolute_url }}">
                           {{ edital.titulo }}
                         </a>
@@ -170,7 +170,7 @@
                       <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 border-t border-gray-100 pt-4 mt-auto">
                         {% if edital.start_date %}
                           <div class="flex items-center gap-2">
-                            <i class="fas fa-calendar-alt text-blue-500"></i>
+                            <i class="fas fa-calendar-alt text-secondary"></i>
                             <span>Abertura: <span class="font-medium text-gray-900">{{ edital.start_date|date:"d/m/Y" }}</span></span>
                           </div>
                         {% endif %}
@@ -186,7 +186,7 @@
                     <!-- Action Buttons -->
                     <div class="flex flex-col gap-3 lg:w-48 flex-shrink-0 justify-center">
                       {% if edital.status == 'aberto' %}
-                        <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow transition-all text-center">
+                        <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-secondary hover:bg-unirvBlue shadow-sm hover:shadow transition-all text-center">
                           Inscreva-se
                         </a>
                       {% endif %}
@@ -227,16 +227,16 @@
 
         {% else %}
           <!-- Empty State -->
-          <div class="text-center py-16 bg-white rounded-3xl border border-dashed border-gray-300">
-            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-search text-gray-400 text-2xl"></i>
+          <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300 hover:border-secondary/50 transition-colors">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-folder-open text-secondary text-2xl"></i>
             </div>
             <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum edital encontrado</h3>
             <p class="text-gray-500 max-w-md mx-auto mb-6">
               Não encontramos resultados para sua busca. Tente termos diferentes ou remova os filtros.
             </p>
             {% if search_query or status_filter or tipo_filter %}
-            <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-xl text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors">
+            <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-xl text-secondary bg-blue-100 hover:bg-blue-200 transition-colors">
               Limpar Filtros
             </a>
             {% endif %}
