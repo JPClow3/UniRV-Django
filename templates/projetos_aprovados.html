@@ -6,10 +6,10 @@
 {% block content %}
 <div class="bg-white">
   <!-- Header -->
-  <section class="bg-gradient-to-r from-blue-600 to-green-500 text-white py-20">
+  <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-16">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl">
-        <h1 class="text-white mb-6 text-4xl md:text-5xl leading-tight">Projetos Aprovados</h1>
+        <h1 class="text-white mb-4 text-4xl md:text-5xl leading-tight font-bold">Projetos Aprovados</h1>
         <p class="text-lg md:text-xl text-white/90 leading-relaxed">
           Conheça as startups e projetos que fazem parte do ecossistema AgroHub UniRV
         </p>
@@ -72,7 +72,7 @@
     <div class="max-w-6xl mx-auto">
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="projetos-grid">
         <!-- Projeto 1 -->
-        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Agronegócio" data-tipo="Incubação">
+        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Agronegócio" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -106,7 +106,7 @@
         </div>
 
         <!-- Projeto 2 -->
-        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Educação" data-tipo="Pré-Incubação">
+        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Educação" data-tipo="Pré-Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -136,7 +136,7 @@
         </div>
 
         <!-- Projeto 3 -->
-        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Saúde" data-tipo="Incubação">
+        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Saúde" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -170,7 +170,7 @@
         </div>
 
         <!-- Projeto 4 -->
-        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Sustentabilidade" data-tipo="Incubação">
+        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Sustentabilidade" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -204,7 +204,7 @@
         </div>
 
         <!-- Projeto 5 -->
-        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Tecnologia" data-tipo="Incubação">
+        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Tecnologia" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -234,7 +234,7 @@
         </div>
 
         <!-- Projeto 6 -->
-        <div class="projeto-item bg-white rounded-3xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Impacto Social" data-tipo="Pré-Incubação">
+        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Impacto Social" data-tipo="Pré-Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -267,14 +267,15 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="bg-blue-50 py-12">
+  <section class="bg-gradient-to-br from-unirvBlue via-unirvBlue to-agrohubBlue py-16">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-gray-900 mb-4">Quer fazer parte do nosso ecossistema?</h2>
-      <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
+      <h2 class="text-white mb-4 text-3xl font-bold">Quer fazer parte do nosso ecossistema?</h2>
+      <p class="text-white/80 mb-8 max-w-2xl mx-auto text-lg">
         Confira os editais abertos e candidate sua startup para incubação no AgroHub UniRV
       </p>
-      <a href="{% url 'editais_index' %}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full px-8 py-6 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium text-white">
-        Ver Editais Abertos
+      <a href="{% url 'editais_index' %}" class="bg-white text-unirvBlue hover:bg-blue-50 rounded-xl px-8 py-4 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-semibold gap-2">
+        <i class="fas fa-rocket"></i>
+        Se Candidate
       </a>
     </div>
   </section>

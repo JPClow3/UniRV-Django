@@ -62,9 +62,34 @@
     background-color: #f0f2f5;
   }
 
+  /* Mobile Menu Toggle */
+  .mobile-menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .mobile-menu-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  body.page-detail .mobile-menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
   /* Hamburger menu lines */
   .hamburger-line {
-    width: 100%;
+    width: 24px;
     height: 3px;
     background-color: #333;
     border-radius: 2px;
@@ -76,7 +101,7 @@
   }
 
   .mobile-menu-toggle[aria-expanded="true"] .hamburger-line:nth-child(1) {
-    transform: rotate(45deg) translate(8px, 8px);
+    transform: rotate(45deg) translate(6px, 6px);
   }
 
   .mobile-menu-toggle[aria-expanded="true"] .hamburger-line:nth-child(2) {
@@ -85,7 +110,34 @@
   }
 
   .mobile-menu-toggle[aria-expanded="true"] .hamburger-line:nth-child(3) {
-    transform: rotate(-45deg) translate(7px, -7px);
+    transform: rotate(-45deg) translate(6px, -6px);
+  }
+
+  /* Mobile Navigation Menu */
+  .navbar-right {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  body.page-detail .navbar-right {
+    background: var(--color-unirvBlue);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  body.page-detail .navbar-right .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  body.page-detail .navbar-right .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar-right.menu-open {
+    border-top: 1px solid #e5e7eb;
   }
 
   /* Button components */
@@ -569,6 +621,185 @@
   }
   .btn-loading {
     @apply hidden;
+  }
+
+  /* Back to Top Button */
+  .back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-unirvBlue), var(--color-agrohubBlue));
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(10, 37, 88, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+
+  .back-to-top:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(10, 37, 88, 0.4);
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .back-to-top:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5), 0 4px 12px rgba(10, 37, 88, 0.3);
+  }
+
+  /* Form Page Styles */
+  .form-page {
+    @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .form-header-modern {
+    @apply bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white rounded-2xl p-8 mb-8 shadow-lg;
+  }
+
+  .form-header-content {
+    @apply flex items-center gap-6;
+  }
+
+  .form-header-icon {
+    @apply w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl;
+  }
+
+  .form-header-text {
+    @apply flex-1;
+  }
+
+  .form-main-title {
+    @apply text-2xl md:text-3xl font-bold mb-2;
+  }
+
+  .form-subtitle-modern {
+    @apply text-white/80 text-base;
+  }
+
+  .styled-form-modern {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8;
+  }
+
+  .form-section-modern {
+    @apply border-0 p-0 mb-8;
+  }
+
+  .section-title-modern {
+    @apply text-lg font-bold text-unirvBlue flex items-center gap-3 mb-6 pb-3 border-b-2 border-gray-100;
+  }
+
+  .form-group {
+    @apply mb-6;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-2;
+  }
+
+  .required-mark {
+    @apply text-red-500 ml-1;
+  }
+
+  .form-help {
+    @apply text-xs text-gray-500 mt-1 block;
+  }
+
+  .form-help-text {
+    @apply bg-blue-50 text-blue-800 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2;
+  }
+
+  .form-actions-modern {
+    @apply flex flex-wrap gap-4 mt-8 pt-6 border-t border-gray-100;
+  }
+
+  .error-summary {
+    @apply bg-red-50 border border-red-200 rounded-xl p-6 mb-6;
+  }
+
+  .error-summary-title {
+    @apply text-red-800 font-bold text-lg flex items-center gap-2 mb-3;
+  }
+
+  .error-summary-list {
+    @apply list-disc list-inside space-y-1;
+  }
+
+  .error-link {
+    @apply text-red-700 hover:text-red-900 underline;
+  }
+
+  /* Form Inputs */
+  .styled-form-modern input[type="text"],
+  .styled-form-modern input[type="url"],
+  .styled-form-modern input[type="date"],
+  .styled-form-modern input[type="email"],
+  .styled-form-modern input[type="number"],
+  .styled-form-modern select,
+  .styled-form-modern textarea {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-agrohubBlue focus:border-agrohubBlue transition-all bg-gray-50 focus:bg-white;
+  }
+
+  .styled-form-modern textarea {
+    @apply min-h-32 resize-y;
+  }
+
+  .styled-form-modern select {
+    @apply appearance-none bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
+
+  /* Status Badge */
+  .status-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+  }
+
+  .status-aberto {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .status-fechado {
+    @apply bg-gray-100 text-gray-600;
+  }
+
+  .status-em_andamento {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  .status-suspenso {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+
+  /* Breadcrumb - hidden but kept for legacy */
+  .breadcrumb {
+    display: none;
+  }
+
+  /* Clear Filters Button */
+  .clear-filters-btn {
+    @apply flex items-center gap-1 text-secondary hover:text-unirvBlue transition-colors;
+  }
+
+  .clear-filters-btn.loading {
+    @apply opacity-50 pointer-events-none;
   }
 }
 

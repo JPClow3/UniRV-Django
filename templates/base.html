@@ -59,14 +59,16 @@
     >
 
     <header
-      class="site-header bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200 relative w-full full-bleed"
+      class="site-header {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white{% else %}bg-white{% endif %} shadow-sm sticky top-0 z-50 {% if request.resolver_match.url_name != 'edital_detail' and request.resolver_match.url_name != 'edital_detail_slug' %}border-b border-gray-200{% endif %} relative w-full full-bleed"
     >
+      {% if request.resolver_match.url_name != 'edital_detail' and request.resolver_match.url_name != 'edital_detail_slug' %}
       <div
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
         style="height: 4px; z-index: 1"
       ></div>
+      {% endif %}
       <nav class="relative z-10 site-nav">
-        <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto gap-8 flex-nowrap">
+        <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
           <!-- Logo -->
           <a
             href="{% url 'home' %}"
@@ -76,11 +78,11 @@
             <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10 flex-shrink-0" />
             <div class="flex-shrink-0">
               <div
-                class="font-bold text-unirvBlue text-lg tracking-tight whitespace-nowrap"
+                class="font-bold {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white{% else %}text-unirvBlue{% endif %} text-lg tracking-tight whitespace-nowrap"
               >
                 AgroHub UniRV
               </div>
-              <div class="text-xs text-gray-500 whitespace-nowrap">
+              <div class="text-xs {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/70{% else %}text-gray-500{% endif %} whitespace-nowrap">
                 Centro de Inovação e Tecnologia
               </div>
             </div>
@@ -90,32 +92,32 @@
           <div class="hidden md:flex items-center gap-6 flex-shrink-0 ml-auto whitespace-nowrap flex-nowrap">
             <a
               href="{% url 'home' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'home' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/80 hover:text-white{% elif request.resolver_match.url_name == 'home' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
             >
               Início
             </a>
             <a
               href="{% url 'ambientes_inovacao' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'ambientes_inovacao' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/80 hover:text-white{% elif request.resolver_match.url_name == 'ambientes_inovacao' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
             >
               Ambientes de Inovação
             </a>
             <a
               href="{% url 'editais_index' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'editais_index' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/80 hover:text-white{% elif request.resolver_match.url_name == 'editais_index' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
             >
               Editais
             </a>
             <a
               href="{% url 'projetos_aprovados' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'projetos_aprovados' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/80 hover:text-white{% elif request.resolver_match.url_name == 'projetos_aprovados' %}text-unirvBlue{% else %}text-gray-700 hover:text-unirvBlue{% endif %}"
             >
               Projetos Aprovados
             </a>
             {% if user.is_authenticated %}
             <a
               href="{% url 'dashboard_home' %}"
-              class="nav-cta"
+              class="nav-cta {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
             >
               DASHBOARD
             </a>
@@ -123,7 +125,7 @@
               {% csrf_token %}
               <button
                 type="submit"
-                class="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm cursor-pointer"
+                class="{% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/80 hover:text-white{% else %}text-gray-600 hover:text-red-600{% endif %} transition-colors font-medium text-sm cursor-pointer"
                 title="Sair"
               >
                 <i class="fas fa-sign-out-alt"></i>
@@ -132,7 +134,7 @@
             {% else %}
             <a
               href="{% url 'login' %}"
-              class="nav-cta"
+              class="nav-cta {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
             >
               LOGIN
             </a>
@@ -158,28 +160,28 @@
             <li>
               <a
                 href="{% url 'home' %}"
-                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'home' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/90 hover:text-white hover:bg-white/10{% elif request.resolver_match.url_name == 'home' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
                 >Início</a
               >
             </li>
             <li>
               <a
                 href="{% url 'ambientes_inovacao' %}"
-                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'ambientes_inovacao' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/90 hover:text-white hover:bg-white/10{% elif request.resolver_match.url_name == 'ambientes_inovacao' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
                 >Ambientes de Inovação</a
               >
             </li>
             <li>
               <a
                 href="{% url 'editais_index' %}"
-                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'editais_index' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/90 hover:text-white hover:bg-white/10{% elif request.resolver_match.url_name == 'editais_index' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
                 >Editais</a
               >
             </li>
             <li>
               <a
                 href="{% url 'projetos_aprovados' %}"
-                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'projetos_aprovados' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/90 hover:text-white hover:bg-white/10{% elif request.resolver_match.url_name == 'projetos_aprovados' %}text-unirvBlue bg-blue-50{% else %}text-gray-700 hover:bg-gray-50{% endif %}"
                 >Projetos Aprovados</a
               >
             </li>
@@ -187,7 +189,7 @@
             <li>
               <a
                 href="{% url 'dashboard_home' %}"
-                class="nav-cta block mx-4 mt-4 text-center"
+                class="nav-cta block mx-4 mt-4 text-center {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
               >
                 Dashboard
               </a>
@@ -197,7 +199,7 @@
                 {% csrf_token %}
                 <button
                   type="submit"
-                  class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                  class="w-full text-left px-4 py-2 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-red-300 hover:text-red-200 hover:bg-white/10{% else %}text-red-600 hover:bg-red-50{% endif %} font-medium cursor-pointer"
                 >
                   <i class="fas fa-sign-out-alt mr-2"></i>Sair
                 </button>
@@ -207,7 +209,7 @@
             <li>
               <a
                 href="{% url 'login' %}"
-                class="nav-cta block mx-4 mt-4 text-center"
+                class="nav-cta block mx-4 mt-4 text-center {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
               >
                 Login
               </a>

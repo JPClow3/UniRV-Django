@@ -10,7 +10,7 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-3xl">
         <h1 class="text-white mb-4 text-4xl md:text-5xl font-bold tracking-tight">Editais Publicados</h1>
-        <p class="text-lg md:text-xl text-blue-50 leading-relaxed">
+        <p class="text-lg md:text-xl text-white/90 leading-relaxed">
           Confira os editais abertos e oportunidades de incubação disponíveis
         </p>
       </div>
@@ -36,8 +36,8 @@
               </span>
               
               {% if search_query or tipo_filter or status_filter %}
-              <a href="{% url 'editais_index' %}" class="text-sm text-secondary hover:text-unirvBlue font-medium hover:underline ml-auto lg:ml-0 mr-4 lg:mr-0 lg:pointer-events-auto">
-                Limpar
+              <a href="{% url 'editais_index' %}" class="clear-filters-btn text-sm text-secondary hover:text-unirvBlue font-medium hover:underline ml-auto lg:ml-0 mr-4 lg:mr-0 lg:pointer-events-auto">
+                <i class="fas fa-times mr-1"></i> Limpar
               </a>
               {% endif %}
             </summary>
