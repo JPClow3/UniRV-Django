@@ -196,40 +196,6 @@
     Consulte o edital oficial para detalhes completos.
 </p>
 
-<div class="share-section">
-    <h3>Compartilhar</h3>
-    <div class="share-buttons">
-        {% with share_url=request.build_absolute_uri share_text=edital.titulo|urlencode %}
-        <a href="https://wa.me/?text={{ share_text }}%20{{ share_url|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer" 
-           class="share-btn share-whatsapp"
-           aria-label="Compartilhar no WhatsApp">
-            <i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp
-        </a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer" 
-           class="share-btn share-linkedin"
-           aria-label="Compartilhar no LinkedIn">
-            <i class="fab fa-linkedin" aria-hidden="true"></i> LinkedIn
-        </a>
-        <a href="https://twitter.com/intent/tweet?text={{ share_text|urlencode }}&url={{ share_url|urlencode }}" 
-           target="_blank" 
-           rel="noopener noreferrer" 
-           class="share-btn share-twitter"
-           aria-label="Compartilhar no Twitter">
-            <i class="fab fa-twitter" aria-hidden="true"></i> Twitter
-        </a>
-        <button onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri }}'); showToast('Link copiado!', 'success');" 
-                class="share-btn share-copy"
-                aria-label="Copiar link">
-            <i class="fas fa-copy" aria-hidden="true"></i> Copiar Link
-        </button>
-        {% endwith %}
-    </div>
-</div>
-
 <div class="flex flex-wrap gap-3 mt-8">
   {% include "components/button.html" with href=edital.url type="primary" icon="fas fa-external-link-alt" slot="Acessar Edital" attrs='target="_blank" rel="noopener noreferrer"' %}
   

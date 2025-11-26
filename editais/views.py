@@ -1,106 +1,30 @@
-import csv
 import logging
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Dict, Any, Union
 
-import bleach
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db import connection
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Count
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.views.decorators.cache import cache_page
 
 from .constants import (
-    CACHE_TTL_INDEX, PAGINATION_DEFAULT, DEADLINE_WARNING_DAYS, HTML_FIELDS
+    CACHE_TTL_INDEX, PAGINATION_DEFAULT, DEADLINE_WARNING_DAYS
 )
 from .decorators import rate_limit
 from .exceptions import EditalNotFoundError
 from .forms import EditalForm
 from .models import Edital, Project
 from .services import EditalService
+from .utils import sanitize_edital_fields, mark_edital_fields_safe
 
 logger = logging.getLogger(__name__)
-
-# Allowed tags and attributes for HTML sanitization
-ALLOWED_TAGS = [
-    'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'ul', 'ol', 'li', 'blockquote', 'a', 'code', 'pre', 'table',
-    'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'
-]
-ALLOWED_ATTRIBUTES = {
-    'a': ['href', 'title', 'target', 'rel'],
-    'div': ['class', 'id'],
-    'span': ['class'],
-    'table': ['class'],
-    'th': ['scope'],
-    'abbr': ['title'],
-    'acronym': ['title']
-}
-
-
-def sanitize_html(text: Optional[str]) -> str:
-    """
-    Sanitiza conteúdo HTML para prevenir ataques XSS.
-    
-    Args:
-        text: Texto a ser sanitizado
-        
-    Returns:
-        str: Texto sanitizado ou string vazia em caso de erro
-    """
-    if not text:
-        return ""
-    # Ensure text is a string
-    if not isinstance(text, str):
-        text = str(text)
-    try:
-        cleaned = bleach.clean(text, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, strip=True)
-        return cleaned
-    except Exception as e:
-        logger.error(f"Erro ao sanitizar HTML: {e}")
-        # If sanitization fails, return empty string to prevent XSS
-        return ''
-
-
-def sanitize_edital_fields(edital: Edital) -> Edital:
-    """
-    Sanitiza todos os campos de texto de uma instância de edital.
-    
-    Args:
-        edital: Instância do modelo Edital
-        
-    Returns:
-        Edital: Instância sanitizada
-    """
-    for field in HTML_FIELDS:
-        value = getattr(edital, field, None)
-        if value:
-            setattr(edital, field, sanitize_html(value))
-    return edital
-
-
-def mark_edital_fields_safe(edital: Edital) -> Edital:
-    """
-    Marca campos HTML sanitizados como seguros para renderização em templates.
-    
-    Args:
-        edital: Instância do modelo Edital
-        
-    Returns:
-        Edital: Instância com campos marcados como seguros
-    """
-    for field in HTML_FIELDS:
-        value = getattr(edital, field, None)
-        if value:
-            setattr(edital, f'{field}_safe', mark_safe(value))
-    return edital
 
 
 def build_search_query(search_query: str) -> Q:
@@ -149,9 +73,14 @@ def _clear_index_cache() -> None:
         cache.delete(old_cache_key)
 
 
-@cache_page(60 * 5)  # Cache for 5 minutes
 def home(request: HttpRequest) -> HttpResponse:
-    """Home page - landing page with hero, stats, features, etc."""
+    """
+    Home page - landing page with hero, stats, features, etc.
+    
+    Note: Manual caching removed to avoid potential CSRF token caching issues.
+    The home page is mostly static content, so caching is less critical.
+    If caching is needed, use manual cache with render_to_string like other views.
+    """
     return render(request, 'home.html')
 
 
@@ -249,8 +178,6 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
     
     try:
-        from django.db.models import Count, Q
-        
         search_query = request.GET.get('search', '')
         status_filter = request.GET.get('status', '')
         tipo_filter = request.GET.get('tipo', '')
@@ -276,6 +203,9 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
             rascunhos=Count('id', filter=Q(status='draft'))
         )
         
+        # Calculate total submissions (projects) across all editais
+        total_submissoes = Project.objects.count()
+        
         # Now build the display queryset with all filters including status
         editais = Edital.objects.select_related(
             'created_by', 'updated_by'
@@ -300,7 +230,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
             'total_editais': stats['total_editais'],
             'publicados': stats['publicados'],
             'rascunhos': stats['rascunhos'],
-            'total_submissoes': 0  # Placeholder
+            'total_submissoes': total_submissoes
         }
         
         return render(request, 'dashboard/editais.html', context)
@@ -312,12 +242,17 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
             exc_info=True
         )
         messages.error(request, 'Erro ao carregar editais. Tente novamente.')
+        # Calculate total_submissoes even in error case for consistency
+        try:
+            total_submissoes = Project.objects.count()
+        except Exception:
+            total_submissoes = 0
         context = {
             'editais': Edital.objects.none(),
             'total_editais': 0,
             'publicados': 0,
             'rascunhos': 0,
-            'total_submissoes': 0,
+            'total_submissoes': total_submissoes,
         }
         return render(request, 'dashboard/editais.html', context)
 
@@ -326,8 +261,6 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
 def dashboard_projetos(request: HttpRequest) -> HttpResponse:
     """Dashboard projetos page"""
     try:
-        from django.db.models import Count, Q
-        
         # Get filter parameters
         search_query = request.GET.get('search', '').strip()
         edital_filter = request.GET.get('edital', '').strip()
@@ -358,7 +291,6 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         # Calculate stats from base queryset BEFORE applying status filter
         # Stats are calculated on the same filtered queryset that will be displayed
         # (excluding projects with missing relationships) to ensure accuracy
-        from django.db.models import Count, Q
         stats_base = projects
         stats = stats_base.aggregate(
             total=Count('id'),
@@ -403,13 +335,9 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
             stats['approval_rate'] = "0%"
         
         # Convert projects to dict format for template compatibility
-        # Note: Projects with missing relationships are already filtered at queryset level
-        # (lines 340-343), but we keep defensive checks here for data integrity edge cases
         projects_list = []
         
         for project in projects:
-            # Validate that required relationships exist (defensive check for data integrity)
-            # This should rarely happen since we filter at queryset level, but provides safety
             if not project.edital or not project.proponente:
                 logger.warning(f"Project {project.id} has missing relationship (edital or proponente) despite queryset filter, skipping")
                 continue
@@ -576,7 +504,6 @@ def dashboard_submeter_projeto(request: HttpRequest) -> HttpResponse:
     return render(request, 'dashboard/submeter_projeto.html')
 
 
-# Note: Manual caching is implemented below, @cache_page decorator removed to avoid conflicts
 def index(request: HttpRequest) -> HttpResponse:
     """Landing page com todos os editais"""
     try:
@@ -1090,90 +1017,6 @@ def edital_delete(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
 
 
 @login_required
-def export_editais_csv(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
-    """
-    Exporta editais para arquivo CSV.
-    
-    Requer autenticação e permissão de staff.
-    Suporta filtros de busca e status via parâmetros GET.
-    
-    Args:
-        request: HttpRequest com parâmetros opcionais:
-            - search: Termo de busca
-            - status: Filtro por status
-            
-    Returns:
-        HttpResponse: Arquivo CSV para download
-    """
-    if not request.user.is_staff:
-        return render(request, '403.html', {
-            'message': 'Apenas usuários staff podem exportar editais.'
-        }, status=403)
-    
-    try:
-        # Get filtered editais (same filters as index page)
-        # Optimize query with select_related for foreign keys
-        search_query = request.GET.get('search', '')
-        status_filter = request.GET.get('status', '')
-
-        editais = Edital.objects.select_related('created_by', 'updated_by').all()
-        
-        # Note: Staff users can export draft editais (intentional for admin purposes)
-        # Non-staff users are already blocked by the is_staff check above
-
-        if search_query:
-            editais = editais.filter(build_search_query(search_query))
-
-        if status_filter:
-            editais = editais.filter(status=status_filter)
-
-        # Create CSV response
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment; filename="editais.csv"'
-        response.write('\ufeff')  # UTF-8 BOM for Excel compatibility
-
-        writer = csv.writer(response)
-
-        # Write header
-        writer.writerow([
-            'Número',
-            'Título',
-            'Entidade',
-            'Status',
-            'URL',
-            'Data Criação',
-            'Data Atualização',
-            'Criado Por',
-            'Atualizado Por'
-        ])
-
-        # Write data - use iterator() for better memory efficiency with large datasets
-        for edital in editais.iterator(chunk_size=1000):
-            writer.writerow([
-                edital.numero_edital or '',
-                edital.titulo,
-                edital.entidade_principal or '',
-                edital.get_status_display(),
-                edital.url,
-                edital.data_criacao.strftime('%d/%m/%Y %H:%M') if edital.data_criacao else '',
-                edital.data_atualizacao.strftime('%d/%m/%Y %H:%M') if edital.data_atualizacao else '',
-                edital.created_by.username if edital.created_by else '',
-                edital.updated_by.username if edital.updated_by else '',
-            ])
-
-        return response
-    
-    except Exception as e:
-        logger.error(
-            f"Erro ao exportar editais CSV - usuário: {request.user.username}, "
-            f"erro: {str(e)}",
-            exc_info=True
-        )
-        messages.error(request, 'Erro ao exportar editais. Tente novamente.')
-        return redirect('editais_index')
-
-
-@login_required
 @rate_limit(key='ip', rate=10, window=60, method='GET')
 def admin_dashboard(request: HttpRequest) -> HttpResponse:
     """
@@ -1189,8 +1032,6 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         return render(request, '403.html', {
             'message': 'Apenas usuários staff podem acessar o dashboard.'
         }, status=403)
-    
-    from django.db.models import Count, Q
     
     try:
         # Cache expensive stats queries

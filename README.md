@@ -28,10 +28,8 @@ Sistema de gerenciamento de editais de fomento para a YPETEC - Incubadora UniRV.
 - ✅ **Detalhes do Edital**: Visualização completa com cronogramas e valores
 - ✅ **URLs Amigáveis**: URLs baseadas em slug com redirecionamento automático de URLs antigas
 - ✅ **CRUD Completo**: Criar, editar e excluir editais (restrito a usuários `is_staff`)
-- ✅ **Exportação CSV**: Exportar editais filtrados para CSV (restrito a usuários `is_staff`)
 - ✅ **Dashboard Completo**: Home, Editais, Projetos, Usuários, Avaliações, Relatórios, Publicações
 - ✅ **Histórico de Alterações**: Rastreamento completo de mudanças em editais
-- ✅ **Notificações por Email**: Alertas para prazos próximos (management command)
 - ✅ **Atualização Automática de Status**: Comando para atualizar status baseado em datas
 - ✅ **Registro de Usuários**: Sistema de cadastro com validação de email e senha
 - ✅ **Página de Comunidade**: Feed de publicações com interações (curtir/compartilhar)
@@ -49,7 +47,6 @@ Sistema de gerenciamento de editais de fomento para a YPETEC - Incubadora UniRV.
 
 - ✅ **Design Responsivo**: Interface adaptável para mobile e desktop
 - ✅ **Notificações Toast**: Feedback visual para ações do usuário
-- ✅ **Breadcrumbs**: Navegação contextual
 - ✅ **Indicador de Prazo Próximo**: Alerta visual para editais com prazo nos próximos 7 dias
 - ✅ **Filtros Preservados**: Filtros mantidos durante paginação
 - ✅ **Acessibilidade**: Suporte a leitores de tela e navegação por teclado
@@ -197,7 +194,7 @@ As principais configurações estão em `UniRV_Django/settings.py`:
 
 ### Operações Administrativas
 
-Todas as operações administrativas (criar, editar, excluir, exportar) requerem que o usuário seja `is_staff`.
+Todas as operações administrativas (criar, editar, excluir) requerem que o usuário seja `is_staff`.
 
 #### Criar Edital
 
@@ -213,13 +210,6 @@ Todas as operações administrativas (criar, editar, excluir, exportar) requerem
 2. Clique em "Editar" (visível apenas para `is_staff`)
 3. Faça as alterações necessárias
 4. Salve as alterações
-
-#### Exportar Editais
-
-1. Acesse a página de listagem
-2. Aplique filtros se necessário
-3. Clique em "EXPORTAR CSV" no menu (visível apenas para `is_staff`)
-4. O arquivo CSV será baixado com os editais filtrados
 
 ### Management Commands
 
@@ -247,17 +237,6 @@ python manage.py update_edital_status
 ```
 
 #### Enviar Notificações de Prazo
-
-Envia emails para staff sobre editais com prazos próximos:
-
-```bash
-python manage.py send_deadline_notifications
-```
-
-**Opções:**
-
-- `--days`: Número de dias para considerar "prazo próximo" (padrão: 7)
-- `--dry-run`: Executa sem enviar emails
 
 ---
 
@@ -304,7 +283,6 @@ coverage html
 - ✅ Modelos (slug, validação, status) (5 testes)
 - ✅ Formulários (6 testes)
 - ✅ Permissões (12 testes)
-- ✅ Exportação CSV (7 testes)
 - ✅ Management commands (8 testes)
 - ✅ Admin interface (15 testes)
 
@@ -312,7 +290,6 @@ coverage html
 
 - ⚠️ View `admin_dashboard()` (não testada)
 - ⚠️ Método `save_model()` no Admin (sanitização XSS)
-- ⚠️ Management command `send_deadline_notifications` (não testado)
 - ⚠️ Edge cases em views e models
 
 ---
@@ -325,8 +302,7 @@ UniRV-Django/
 │   ├── management/
 │   │   └── commands/
 │   │       ├── seed_editais.py              # Popular banco com dados de exemplo
-│   │       ├── update_edital_status.py      # Atualizar status automaticamente
-│   │       └── send_deadline_notifications.py  # Notificações de prazo
+│   │       └── update_edital_status.py      # Atualizar status automaticamente
 │   ├── migrations/               # Migrações do banco de dados
 │   ├── templatetags/
 │   │   └── editais_filters.py   # Template tags customizados

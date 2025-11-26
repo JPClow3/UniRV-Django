@@ -65,9 +65,12 @@ INSTALLED_APPS = [
     'editais.apps.EditaisConfig',
 ]
 
-# Add compressor if available (optional dependency)
+# Check if compressor is available (optional dependency)
+# This check is done once and reused throughout settings
+HAS_COMPRESSOR = False
 try:
     import compressor
+    HAS_COMPRESSOR = True
     INSTALLED_APPS.insert(-1, 'compressor')  # Insert before editais app
 except ImportError:
     # Compressor not installed, skip it
@@ -173,9 +176,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 TAILWIND_APP_NAME = 'theme'
 
 # NPM binary path (Windows may need npm.cmd)
-# Uncomment and adjust if npm is not found automatically
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # For Windows
-# NPM_BIN_PATH = "/usr/local/bin/npm"  # For Linux/Mac
 
 # Static files finders
 STATICFILES_FINDERS = [
@@ -184,15 +185,11 @@ STATICFILES_FINDERS = [
 ]
 
 # Add compressor finder if compressor is installed
-try:
-    import compressor
+if HAS_COMPRESSOR:
     STATICFILES_FINDERS.append('compressor.finders.CompressorFinder')
-except ImportError:
-    pass
 
 # Django Compressor settings for minification (only if compressor is installed)
-try:
-    import compressor
+if HAS_COMPRESSOR:
     # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
     COMPRESS_ROOT = STATIC_ROOT
     COMPRESS_URL = STATIC_URL
@@ -215,7 +212,7 @@ try:
     COMPRESS_JS_FILTERS = [
         'compressor.filters.jsmin.JSMinFilter',
     ]
-except ImportError:
+else:
     # Compressor not installed, disable compression
     COMPRESS_ENABLED = False
     COMPRESS_OFFLINE = False
@@ -437,7 +434,6 @@ LOGGING = {
 }
 
 # Create logs directory if it doesn't exist
-import os
 logs_dir = BASE_DIR / 'logs'
 if not logs_dir.exists():
     os.makedirs(logs_dir, exist_ok=True)

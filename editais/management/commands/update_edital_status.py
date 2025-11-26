@@ -11,9 +11,9 @@ Uso:
 import logging
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from django.db.models import Q
 from django.core.cache import cache
 from editais.models import Edital
+from editais.services import EditalService
 
 logger = logging.getLogger(__name__)
 
@@ -41,85 +41,75 @@ class Command(BaseCommand):
         updated_count = 0
         errors = []
 
-        # Atualizar editais que devem ser fechados (end_date <= hoje e status='aberto')
-        editais_to_close = Edital.objects.filter(
-            end_date__lte=today,
-            status='aberto'
-        )
-        
-        for edital in editais_to_close:
-            try:
-                if verbose:
-                    self.stdout.write(
-                        f"  Fechando edital '{edital.titulo}' (ID: {edital.pk}) - "
-                        f"end_date: {edital.end_date}"
-                    )
-                
-                if not dry_run:
-                    edital.status = 'fechado'
-                    edital.save(update_fields=['status', 'data_atualizacao'])
-                
-                updated_count += 1
-            except Exception as e:
-                error_msg = f"Erro ao fechar edital ID {edital.pk}: {str(e)}"
-                errors.append(error_msg)
-                logger.error(error_msg)
-                if verbose:
-                    self.stdout.write(self.style.ERROR(f"  ERRO: {error_msg}"))
+        if verbose:
+            # In verbose mode, show which editais would be affected before bulk update
+            editais_to_close = Edital.objects.filter(
+                end_date__lt=today,  # Close only after deadline day has passed
+                status='aberto'
+            )
+            for edital in editais_to_close:
+                self.stdout.write(
+                    f"  Fechando edital '{edital.titulo}' (ID: {edital.pk}) - "
+                    f"end_date: {edital.end_date}"
+                )
+            
+            editais_to_schedule = Edital.objects.filter(
+                start_date__gt=today
+            ).exclude(
+                status__in=['draft', 'programado']
+            )
+            for edital in editais_to_schedule:
+                self.stdout.write(
+                    f"  Programando edital '{edital.titulo}' (ID: {edital.pk}) - "
+                    f"start_date: {edital.start_date}, status atual: {edital.status}"
+                )
+            
+            editais_to_open = Edital.objects.filter(
+                start_date__lte=today,
+                end_date__gte=today,  # Include deadline day so editals remain open throughout
+                status='programado'
+            )
+            for edital in editais_to_open:
+                self.stdout.write(
+                    f"  Abrindo edital '{edital.titulo}' (ID: {edital.pk}) - "
+                    f"start_date: {edital.start_date}, end_date: {edital.end_date}"
+                )
 
-        # Atualizar editais que devem ser programados (start_date > hoje e status != 'draft')
-        editais_to_schedule = Edital.objects.filter(
+        # Count updates that would be made (for dry-run reporting)
+        # Count editais that would be affected using the same logic as the service method
+        count_to_close = Edital.objects.filter(
+            end_date__lt=today,  # Close only after deadline day has passed
+            status='aberto'
+        ).count()
+        
+        count_to_schedule = Edital.objects.filter(
             start_date__gt=today
         ).exclude(
             status__in=['draft', 'programado']
-        )
+        ).count()
         
-        for edital in editais_to_schedule:
-            try:
-                if verbose:
-                    self.stdout.write(
-                        f"  Programando edital '{edital.titulo}' (ID: {edital.pk}) - "
-                        f"start_date: {edital.start_date}, status atual: {edital.status}"
-                    )
-                
-                if not dry_run:
-                    edital.status = 'programado'
-                    edital.save(update_fields=['status', 'data_atualizacao'])
-                
-                updated_count += 1
-            except Exception as e:
-                error_msg = f"Erro ao programar edital ID {edital.pk}: {str(e)}"
-                errors.append(error_msg)
-                logger.error(error_msg)
-                if verbose:
-                    self.stdout.write(self.style.ERROR(f"  ERRO: {error_msg}"))
-
-        # Atualizar editais que devem ser abertos (start_date <= hoje <= end_date e status='programado')
-        editais_to_open = Edital.objects.filter(
+        count_to_open = Edital.objects.filter(
             start_date__lte=today,
-            end_date__gte=today,
+            end_date__gte=today,  # Include deadline day so editals remain open throughout
             status='programado'
-        )
+        ).count()
         
-        for edital in editais_to_open:
+        potential_updates = count_to_close + count_to_schedule + count_to_open
+
+        if not dry_run:
             try:
-                if verbose:
-                    self.stdout.write(
-                        f"  Abrindo edital '{edital.titulo}' (ID: {edital.pk}) - "
-                        f"start_date: {edital.start_date}, end_date: {edital.end_date}"
-                    )
-                
-                if not dry_run:
-                    edital.status = 'aberto'
-                    edital.save(update_fields=['status', 'data_atualizacao'])
-                
-                updated_count += 1
+                # Use the service method for efficient bulk updates
+                result = EditalService.update_status_by_dates()
+                updated_count = sum(result.values())
             except Exception as e:
-                error_msg = f"Erro ao abrir edital ID {edital.pk}: {str(e)}"
+                error_msg = f"Erro ao atualizar status dos editais: {str(e)}"
                 errors.append(error_msg)
-                logger.error(error_msg)
+                logger.error(error_msg, exc_info=True)
                 if verbose:
                     self.stdout.write(self.style.ERROR(f"  ERRO: {error_msg}"))
+        else:
+            # In dry-run mode, use the potential updates count
+            updated_count = potential_updates
 
         # Resumo
         if dry_run:

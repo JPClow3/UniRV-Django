@@ -1,9 +1,4 @@
-// ========================================
-// ========================================
-
-// ========================================
 // AJAX FILTERS FOR INDEX PAGE WITH DEBOUNCING
-// ========================================
 (function () {
     const searchForm = document.querySelector('.search-form');
     const editaisGrid = document.querySelector('.editais-grid');
@@ -110,9 +105,6 @@
                 editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
             })
             .catch(error => {
-                if (typeof DEBUG !== 'undefined' && DEBUG) {
-                    console.error('Error fetching results:', error);
-                }
                 editaisGrid.classList.remove('loading');
                 isLoading = false;
                 
@@ -349,9 +341,6 @@
                         editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
                     })
                     .catch(error => {
-                        if (typeof DEBUG !== 'undefined' && DEBUG) {
-                            console.error('Error:', error);
-                        }
                         editaisGrid.classList.remove('loading');
                         isLoading = false;
                         showToast('Erro ao carregar página. Tente novamente.', 'error');
@@ -496,9 +485,6 @@
                     }
                 }
             } catch (e) {
-                if (typeof DEBUG !== 'undefined' && DEBUG) {
-                    console.error('Error restoring autosave:', e);
-                }
                 localStorage.removeItem(AUTOSAVE_KEY);
             }
         }
@@ -534,9 +520,7 @@
             localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
             showAutosaveIndicator();
         } catch (e) {
-            if (typeof DEBUG !== 'undefined' && DEBUG) {
-                console.error('Autosave failed:', e);
-            }
+            // Silently fail autosave - non-critical feature
         }
     }
 
@@ -1205,41 +1189,7 @@ function showConfirmDialog(options) {
     });
 })();
 
-// Development logging (remove in production or use proper logging)
-if (typeof DEBUG !== 'undefined' && DEBUG) {
-    console.log('✓ Back to top button initialized');
-    console.log('✓ Confirmation dialogs initialized');
-    console.log('✓ Keyboard shortcuts initialized (Ctrl+K for search)');
-    console.log('✓ Smooth scroll initialized');
-    console.log('✓ Loading skeletons initialized');
-    console.log('✓ Debounced search initialized');
-}
 
-// ========================================
-// LOADING STATE FOR CSV EXPORT (UI-004)
-// ========================================
-(function() {
-    document.addEventListener('DOMContentLoaded', function() {
-        const exportLinks = document.querySelectorAll('a[href*="export_editais_csv"], .export-link');
-
-        exportLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Adicionar estado de loading
-                const originalHTML = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Exportando...';
-                this.style.pointerEvents = 'none';
-                this.style.opacity = '0.7';
-
-                // Restaurar após 5 segundos (caso o download não inicie)
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.style.pointerEvents = '';
-                    this.style.opacity = '';
-                }, 5000);
-            });
-        });
-    });
-})();
 
 // ========================================
 // MODAL FOCUS TRAP (A11Y-005)

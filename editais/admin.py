@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Edital, EditalValor, Cronograma, EditalHistory, Project
-from .views import sanitize_edital_fields
+from .utils import sanitize_edital_fields
 
 
 class EditalValorInline(admin.TabularInline):

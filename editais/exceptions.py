@@ -21,13 +21,3 @@ class EditalNotFoundError(EditalException):
         super().__init__(message)
 
 
-class EditalPermissionError(EditalException):
-    """Exceção levantada quando o usuário não tem permissão para realizar a ação."""
-    
-    def __init__(self, action, message=None):
-        self.action = action
-        if message is None:
-            message = f"Você não tem permissão para {action}."
-        super().__init__(message)
-
-

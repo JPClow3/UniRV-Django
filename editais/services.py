@@ -86,7 +86,7 @@ class EditalService:
             dict com contagem de editais atualizados por status
         """
         today = timezone.now().date()
-        now = timezone.now()
+        now = timezone.now()  # Used for data_atualizacao in bulk updates
         
         updated_count = {
             'fechado': 0,
@@ -95,8 +95,10 @@ class EditalService:
         }
         
         # Atualizar editais para 'fechado'
+        # Close only after deadline day has passed (end_date < today)
+        # This keeps editals open throughout the entire deadline day
         count_closed = Edital.objects.filter(
-            end_date__lte=today,
+            end_date__lt=today,
             status='aberto'
         ).update(status='fechado', data_atualizacao=now)
         updated_count['fechado'] = count_closed
@@ -110,6 +112,7 @@ class EditalService:
         updated_count['programado'] = count_scheduled
         
         # Atualizar editais para 'aberto'
+        # Include deadline day (end_date >= today) so editals remain open throughout deadline day
         count_opened = Edital.objects.filter(
             start_date__lte=today,
             end_date__gte=today,

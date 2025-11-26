@@ -1,6 +1,6 @@
 import re
 import time
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError
 from django.urls import reverse
@@ -172,16 +172,46 @@ class Edital(models.Model):
             raise ValidationError('Slug não pode ser None. Título inválido para geração de slug.')
         
         # Auto-update status based on dates
+        # Only auto-update if not in draft status (draft is manual)
         today = timezone.now().date()
         
-        if self.start_date and self.end_date:
-            if self.end_date <= today and self.status == 'aberto':
-                self.status = 'fechado'
-            elif self.start_date <= today and self.end_date >= today and self.status == 'programado':
-                # Adicionar lógica para mover de programado para aberto
-                self.status = 'aberto'
-            elif self.start_date > today and self.status != 'draft':
-                self.status = 'programado'
+        if self.status == 'draft':
+            # Don't auto-update draft status - it's manually controlled
+            pass
+        elif self.start_date and self.end_date:
+            # Edital has both start and end dates
+            if self.end_date < today:
+                # End date has passed - close if currently open
+                if self.status == 'aberto':
+                    self.status = 'fechado'
+            elif self.start_date <= today <= self.end_date:
+                # Currently within the date range (including deadline day) - should be open
+                if self.status == 'programado':
+                    self.status = 'aberto'
+                elif self.status == 'em_andamento':
+                    pass
+            elif self.start_date > today:
+                # Start date is in the future - should be scheduled
+                if self.status not in ['draft', 'programado']:
+                    self.status = 'programado'
+        elif self.start_date and not self.end_date:
+            # Edital has start date but no end date (fluxo contínuo)
+            if self.start_date <= today:
+                # Start date has passed - should be open
+                if self.status == 'programado':
+                    self.status = 'aberto'
+                elif self.status == 'em_andamento':
+                    pass
+            elif self.start_date > today:
+                # Start date is in the future - should be scheduled
+                if self.status not in ['draft', 'programado']:
+                    self.status = 'programado'
+        elif not self.start_date and self.end_date:
+            # Edital has end date but no start date (edge case)
+            if self.end_date < today:
+                # End date has passed - close if currently open
+                if self.status == 'aberto':
+                    self.status = 'fechado'
         
         # Handle race condition for slug uniqueness (retry if IntegrityError)
         max_retries = 3
