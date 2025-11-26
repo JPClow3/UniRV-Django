@@ -31,7 +31,3 @@ class EditalPermissionError(EditalException):
         super().__init__(message)
 
 
-class EditalValidationError(EditalException):
-    """Exceção levantada quando há erro de validação em um edital."""
-    pass
-

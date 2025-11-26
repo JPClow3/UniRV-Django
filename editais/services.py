@@ -5,8 +5,10 @@ Este módulo contém a lógica de negócio extraída das views,
 seguindo o princípio de separação de responsabilidades.
 """
 
+from typing import Dict
 from datetime import timedelta
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.utils import timezone
 
 from .models import Edital
@@ -17,7 +19,7 @@ class EditalService:
     """Serviço para operações de negócio relacionadas a editais."""
     
     @staticmethod
-    def get_editais_by_deadline(days=DEADLINE_WARNING_DAYS):
+    def get_editais_by_deadline(days: int = DEADLINE_WARNING_DAYS) -> QuerySet:
         """
         Retorna editais que expiram dentro de N dias.
         
@@ -39,7 +41,7 @@ class EditalService:
         ).order_by('end_date')
     
     @staticmethod
-    def get_recent_editais(days=7):
+    def get_recent_editais(days: int = 7) -> QuerySet:
         """
         Retorna editais criados nos últimos N dias.
         
@@ -56,7 +58,7 @@ class EditalService:
         ).select_related('created_by', 'updated_by').order_by('-data_criacao')
     
     @staticmethod
-    def get_recent_activities(days=7):
+    def get_recent_activities(days: int = 7) -> QuerySet:
         """
         Retorna editais criados ou atualizados nos últimos N dias.
         
@@ -73,7 +75,7 @@ class EditalService:
         ).select_related('created_by', 'updated_by').order_by('-data_atualizacao')
     
     @staticmethod
-    def update_status_by_dates():
+    def update_status_by_dates() -> Dict[str, int]:
         """
         Atualiza o status dos editais baseado nas datas.
         

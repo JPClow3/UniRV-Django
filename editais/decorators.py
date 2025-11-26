@@ -3,18 +3,18 @@ Decorators customizados para o aplicativo Editais.
 """
 
 import logging
+from typing import Callable, Any, Optional
 from functools import wraps
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse, JsonResponse
-from django.utils.decorators import method_decorator
+from django.http import HttpResponse, HttpRequest
 
 from .constants import RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW
 
 logger = logging.getLogger(__name__)
 
 
-def get_client_ip(request):
+def get_client_ip(request: HttpRequest) -> str:
     """
     Get the real client IP address, handling proxies and load balancers.
     
@@ -39,7 +39,7 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR', 'unknown')
 
 
-def rate_limit(key='ip', rate=RATE_LIMIT_REQUESTS, window=RATE_LIMIT_WINDOW, method='POST'):
+def rate_limit(key: str = 'ip', rate: int = RATE_LIMIT_REQUESTS, window: int = RATE_LIMIT_WINDOW, method: Optional[str] = 'POST') -> Callable[[Callable], Callable]:
     """
     Decorator para rate limiting usando cache do Django.
     
@@ -52,9 +52,9 @@ def rate_limit(key='ip', rate=RATE_LIMIT_REQUESTS, window=RATE_LIMIT_WINDOW, met
     Returns:
         Decorator function
     """
-    def decorator(view_func):
+    def decorator(view_func: Callable) -> Callable:
         @wraps(view_func)
-        def wrapper(request, *args, **kwargs):
+        def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
             if getattr(settings, 'TESTING', False):
                 return view_func(request, *args, **kwargs)
             # Aplicar rate limiting apenas para o método especificado

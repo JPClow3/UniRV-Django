@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # For timesince and other human-readable filters
     'tailwind',
     'theme',  # Tailwind theme app
     'editais.apps.EditaisConfig',
@@ -100,8 +101,7 @@ ROOT_URLCONF = 'UniRV_Django.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -193,8 +193,21 @@ except ImportError:
 # Django Compressor settings for minification (only if compressor is installed)
 try:
     import compressor
-    COMPRESS_ENABLED = not DEBUG  # Only compress in production
-    COMPRESS_OFFLINE = True  # Pre-compress during collectstatic
+    # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
+    COMPRESS_ROOT = STATIC_ROOT
+    COMPRESS_URL = STATIC_URL
+    
+    # Enable compression in both dev and production
+    # In development, compress on-the-fly; in production, use offline mode
+    COMPRESS_ENABLED = True
+    
+    if DEBUG:
+        # In development: compress on-the-fly for easier development
+        COMPRESS_OFFLINE = False
+    else:
+        # In production: pre-compress during collectstatic for better performance
+        COMPRESS_OFFLINE = True
+    
     COMPRESS_CSS_FILTERS = [
         'compressor.filters.css_default.CssAbsoluteFilter',
         'compressor.filters.cssmin.rCSSMinFilter',
@@ -205,6 +218,7 @@ try:
 except ImportError:
     # Compressor not installed, disable compression
     COMPRESS_ENABLED = False
+    COMPRESS_OFFLINE = False
 
 # WhiteNoise: serve compressed static files
 STORAGES = {
@@ -213,10 +227,13 @@ STORAGES = {
     },
 }
 
-# Static files caching headers (for production)
-if not DEBUG:
-    # Cache static files for 1 year (handled by WhiteNoise)
-    WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds
+# Static files caching headers
+# Set cache headers for both development and production
+# Development: 1 hour cache for testing, Production: 1 year
+if DEBUG:
+    WHITENOISE_MAX_AGE = 3600  # 1 hour in seconds for development
+else:
+    WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds for production
 
 # Cache configuration
 # Try Redis first, fallback to LocMemCache for development

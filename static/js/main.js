@@ -674,31 +674,205 @@
     }
 })();
 
-// Toast notification helper
-function showToast(message, type = 'success') {
+// HTML escape function to prevent XSS attacks
+function escapeHtml(text) {
+    if (text == null) {
+        return '';
+    }
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+// Escape JavaScript string for template literals (prevents injection via ${}, backticks, etc.)
+function escapeJsString(text) {
+    if (text == null) {
+        return '';
+    }
+    return String(text)
+        .replace(/\\/g, '\\\\')
+        .replace(/`/g, '\\`')
+        .replace(/\${/g, '\\${');
+}
+
+// Toast notification helper - Enhanced version
+function showToast(message, type = 'success', duration = 5000) {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container';
+        document.body.appendChild(toastContainer);
+    }
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    // A11Y-002: Usar role="alert" para notificações importantes
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
     toast.setAttribute('aria-atomic', 'true');
     
-    // Use innerText instead of textContent for better screen reader support
-    // This ensures screen readers properly detect the content change
-    toast.innerText = message;
-
-    document.body.appendChild(toast);
+    // Add icon based on type
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
     
-    // Force a reflow to ensure screen readers detect the new element
-    // This is important for some screen readers that need a layout recalculation
+    // Escape user-supplied message to prevent XSS
+    const escapedMessage = escapeHtml(message);
+    const iconClass = icons[type] || icons.success;
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas ${iconClass} toast-icon"></i>
+            <span class="toast-message">${escapedMessage}</span>
+        </div>
+        <button class="toast-close" aria-label="Fechar notificação">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    toastContainer.appendChild(toast);
+    
+    // Force reflow for screen readers
     void toast.offsetHeight;
 
+    // Show toast with animation
     setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    
+    // Auto-dismiss
+    const dismissTimer = setTimeout(() => {
+        dismissToast(toast);
+    }, duration);
+    
+    // Clear timer on manual close and dismiss toast
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        clearTimeout(dismissTimer);
+        dismissToast(toast);
+    });
 }
+
+function dismissToast(toast) {
+    toast.classList.remove('show');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 300);
+}
+
+// Confirmation dialog helper
+function showConfirmDialog(options) {
+    return new Promise((resolve) => {
+        const {
+            title = 'Confirmar ação',
+            message = 'Tem certeza que deseja continuar?',
+            confirmText = 'Confirmar',
+            cancelText = 'Cancelar',
+            type = 'warning',
+            confirmButtonClass = 'btn-danger'
+        } = options;
+
+        // Create dialog overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'confirm-dialog-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'confirm-dialog-title');
+        
+        const icons = {
+            warning: 'fa-exclamation-triangle',
+            danger: 'fa-trash',
+            info: 'fa-info-circle'
+        };
+        
+        // Escape user-supplied text to prevent XSS attacks
+        const escapedTitle = escapeHtml(title);
+        const escapedMessage = escapeHtml(message);
+        const escapedConfirmText = escapeHtml(confirmText);
+        const escapedCancelText = escapeHtml(cancelText);
+        const iconClass = icons[type] || icons.warning;
+        
+        overlay.innerHTML = `
+            <div class="confirm-dialog">
+                <div class="confirm-dialog-header">
+                    <div class="confirm-dialog-icon confirm-dialog-icon-${type}">
+                        <i class="fas ${iconClass}"></i>
+                    </div>
+                    <h3 id="confirm-dialog-title" class="confirm-dialog-title">${escapedTitle}</h3>
+                </div>
+                <div class="confirm-dialog-body">
+                    <p>${escapedMessage}</p>
+                </div>
+                <div class="confirm-dialog-footer">
+                    <button class="confirm-dialog-btn confirm-dialog-cancel" data-action="cancel">
+                        ${escapedCancelText}
+                    </button>
+                    <button class="confirm-dialog-btn ${confirmButtonClass}" data-action="confirm">
+                        ${escapedConfirmText}
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Focus trap
+        const focusableElements = overlay.querySelectorAll('button');
+        const firstFocusable = focusableElements[0];
+        const lastFocusable = focusableElements[focusableElements.length - 1];
+        
+        // Show dialog
+        setTimeout(() => overlay.classList.add('show'), 10);
+        firstFocusable.focus();
+        
+        // Handle button clicks
+        const handleAction = (action) => {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                overlay.remove();
+                resolve(action === 'confirm');
+            }, 300);
+        };
+        
+        overlay.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                handleAction(btn.getAttribute('data-action'));
+            });
+        });
+        
+        // Handle Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                handleAction('cancel');
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
+        // Handle Enter key (confirm)
+        const handleEnter = (e) => {
+            if (e.key === 'Enter' && e.target === lastFocusable) {
+                e.preventDefault();
+                handleAction('confirm');
+            }
+        };
+        overlay.addEventListener('keydown', handleEnter);
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                handleAction('cancel');
+            }
+        });
+    });
+}
+
+// Make functions globally available
+window.showToast = showToast;
+window.showConfirmDialog = showConfirmDialog;
 
 // ========================================
 // ERROR SUMMARY NAVIGATION (Accessibility)
@@ -793,46 +967,6 @@ function showToast(message, type = 'success') {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
-})();
-
-// ========================================
-// GREEN CURVE PARALLAX EFFECT (Detail pages)
-// ========================================
-// Move a curva DEVAGAR conforme o scroll (parallax) para criar sensação de fluir pela curva
-(function(){
-  const curve = document.querySelector('.green-curve');
-  if(!curve) return;
-
-  function updateCurvePosition() {
-    const scrolled = window.pageYOffset || document.documentElement.scrollTop;
-
-    // A curva se move MAIS DEVAGAR que o scroll (fator 0.22 para movimento ultra suave)
-    const parallaxFactor = 0.22;
-    const translateY = -(scrolled * parallaxFactor);
-
-    curve.style.transform = `translateY(${translateY}px)`;
-  }
-
-  updateCurvePosition();
-
-    // Atualiza conforme scrolla (com throttle via requestAnimationFrame + debouncing)
-  let ticking = false;
-    let scrollTimeout;
-
-  window.addEventListener('scroll', function() {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(function () {
-          if (!ticking) {
-              window.requestAnimationFrame(function () {
-                  updateCurvePosition();
-                  ticking = false;
-              });
-              ticking = true;
-          }
-      }, 10);
-  }, { passive: true });
-
-  window.addEventListener('resize', updateCurvePosition);
 })();
 
 // ========================================
@@ -1239,277 +1373,6 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
     window.closeModal = closeModal;
     window.openManualModal = openManualModal;
     window.closeManualModal = closeManualModal;
-})();
-
-// ========================================
-// COMMUNITY PAGE INTERACTIONS
-// ========================================
-(function() {
-    const likeButtons = document.querySelectorAll('.like-btn');
-    const shareButtons = document.querySelectorAll('.share-btn');
-    
-    likeButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (this.disabled || this.classList.contains('loading')) return;
-            
-            const postId = this.getAttribute('data-post-id');
-            const icon = this.querySelector('i');
-            const countSpan = this.querySelector('span');
-            
-            // Add loading state
-            this.classList.add('loading');
-            this.disabled = true;
-            const originalIcon = icon ? icon.className : '';
-            if (icon) {
-                icon.className = 'fas fa-spinner fa-spin w-5 h-5';
-            }
-            
-            // Toggle like state (optimistic update)
-            const isLiked = this.classList.contains('text-red-500');
-            const newIsLiked = !isLiked;
-            
-            // Optimistic UI update
-            if (newIsLiked) {
-                this.classList.add('text-red-500');
-                this.classList.remove('text-gray-500', 'hover:text-red-500');
-                if (icon) {
-                    icon.classList.remove('far', 'fa-heart');
-                    icon.classList.add('fas', 'fa-heart');
-                }
-                if (countSpan) {
-                    const count = parseInt(countSpan.textContent) || 0;
-                    countSpan.textContent = count + 1;
-                }
-            } else {
-                this.classList.remove('text-red-500');
-                this.classList.add('text-gray-500', 'hover:text-red-500');
-                if (icon) {
-                    icon.classList.remove('fas', 'fa-heart');
-                    icon.classList.add('far', 'fa-heart');
-                }
-                if (countSpan) {
-                    const count = parseInt(countSpan.textContent) || 0;
-                    countSpan.textContent = Math.max(0, count - 1);
-                }
-            }
-            
-            // AJAX call to backend (ready for implementation)
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
-                            document.cookie.match(/csrftoken=([^;]+)/)?.[1];
-            
-            fetch(`/api/posts/${postId}/like/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({ action: newIsLiked ? 'like' : 'unlike' })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao processar curtida');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Update UI with server response
-                if (data.liked !== undefined) {
-                    if (data.liked) {
-                        this.classList.add('text-red-500');
-                        this.classList.remove('text-gray-500', 'hover:text-red-500');
-                        if (icon) {
-                            icon.classList.remove('far', 'fa-heart');
-                            icon.classList.add('fas', 'fa-heart');
-                        }
-                    } else {
-                        this.classList.remove('text-red-500');
-                        this.classList.add('text-gray-500', 'hover:text-red-500');
-                        if (icon) {
-                            icon.classList.remove('fas', 'fa-heart');
-                            icon.classList.add('far', 'fa-heart');
-                        }
-                    }
-                }
-                if (data.likes_count !== undefined && countSpan) {
-                    countSpan.textContent = data.likes_count;
-                }
-                
-                // Show feedback
-                showToast(data.liked ? 'Publicação curtida!' : 'Curtida removida', 'success');
-            })
-            .catch(error => {
-                // Revert optimistic update on error
-                if (newIsLiked) {
-                    this.classList.remove('text-red-500');
-                    this.classList.add('text-gray-500', 'hover:text-red-500');
-                    if (icon) {
-                        icon.classList.remove('fas', 'fa-heart');
-                        icon.classList.add('far', 'fa-heart');
-                    }
-                    if (countSpan) {
-                        const count = parseInt(countSpan.textContent) || 0;
-                        countSpan.textContent = Math.max(0, count - 1);
-                    }
-                } else {
-                    this.classList.add('text-red-500');
-                    this.classList.remove('text-gray-500', 'hover:text-red-500');
-                    if (icon) {
-                        icon.classList.remove('far', 'fa-heart');
-                        icon.classList.add('fas', 'fa-heart');
-                    }
-                    if (countSpan) {
-                        const count = parseInt(countSpan.textContent) || 0;
-                        countSpan.textContent = count + 1;
-                    }
-                }
-                
-                // Show error message
-                showToast('Erro ao processar curtida. Tente novamente.', 'error');
-                
-                if (typeof DEBUG !== 'undefined' && DEBUG) {
-                    console.error('Like error:', error);
-                }
-            })
-            .finally(() => {
-                // Remove loading state
-                this.classList.remove('loading');
-                this.disabled = false;
-                if (icon) {
-                    icon.className = originalIcon;
-                }
-            });
-        });
-    });
-    
-    shareButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (this.disabled || this.classList.contains('loading')) return;
-            
-            const postId = this.getAttribute('data-post-id');
-            const icon = this.querySelector('i');
-            const countSpan = this.querySelector('span');
-            
-            // Add loading state
-            this.classList.add('loading');
-            this.disabled = true;
-            const originalIcon = icon ? icon.className : '';
-            if (icon) {
-                icon.className = 'fas fa-spinner fa-spin w-5 h-5';
-            }
-            
-            // Build share URL (ready for backend implementation)
-            // NOTE: Comunidade feature removed - this code is kept for future reference
-            const shareUrl = `${window.location.origin}/editais/`;
-            const shareTitle = 'YpeTec - Incubadora UniRV';
-            const shareText = 'Confira esta publicação interessante!';
-            
-            // Try native share API first
-            if (navigator.share) {
-                navigator.share({
-                    title: shareTitle,
-                    text: shareText,
-                    url: shareUrl
-                })
-                .then(() => {
-                    // Track share on backend
-                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
-                                    document.cookie.match(/csrftoken=([^;]+)/)?.[1];
-                    
-                    fetch(`/api/posts/${postId}/share/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        credentials: 'same-origin'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.shares_count !== undefined && countSpan) {
-                            countSpan.textContent = data.shares_count;
-                        }
-                    })
-                    .catch(err => {
-                        if (typeof DEBUG !== 'undefined' && DEBUG) {
-                            console.error('Share tracking error:', err);
-                        }
-                    });
-                    
-                    showToast('Publicação compartilhada!', 'success');
-                })
-                .catch((error) => {
-                    // User cancelled or error occurred
-                    if (error.name !== 'AbortError') {
-                        // Fallback: copy to clipboard
-                        copyToClipboard(shareUrl);
-                        showToast('Link copiado para a área de transferência!', 'success');
-                    }
-                })
-                .finally(() => {
-                    // Remove loading state
-                    this.classList.remove('loading');
-                    this.disabled = false;
-                    if (icon) {
-                        icon.className = originalIcon;
-                    }
-                });
-            } else {
-                // Fallback: copy to clipboard
-                copyToClipboard(shareUrl);
-                
-                // Track share on backend
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
-                                document.cookie.match(/csrftoken=([^;]+)/)?.[1];
-                
-                fetch(`/api/posts/${postId}/share/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.shares_count !== undefined && countSpan) {
-                        countSpan.textContent = data.shares_count;
-                    }
-                })
-                .catch(err => {
-                    if (typeof DEBUG !== 'undefined' && DEBUG) {
-                        console.error('Share tracking error:', err);
-                    }
-                })
-                .finally(() => {
-                    showToast('Link copiado para a área de transferência!', 'success');
-                    
-                    // Remove loading state
-                    this.classList.remove('loading');
-                    this.disabled = false;
-                    if (icon) {
-                        icon.className = originalIcon;
-                    }
-                });
-            }
-        });
-    });
-    
-    function copyToClipboard(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-    }
 })();
 
 // ========================================

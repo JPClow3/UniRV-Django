@@ -34,7 +34,8 @@
       content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}"
     />
     <meta property="og:site_name" content="AgroHub UniRV" />
-    {% load static tailwind_tags %}
+    {% load static tailwind_tags compress %}
+    {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,10 +46,21 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
     {% tailwind_css %}
+    <!-- Font Awesome: Loaded asynchronously to prevent render blocking -->
+    <!-- TODO: Consider self-hosting only needed icons to reduce unused CSS (14 KiB savings) -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      />
+    </noscript>
+    {% block extra_head %}{% endblock %}
   </head>
   <body
     class="min-h-screen flex flex-col bg-gray-50 {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}page-detail{% endif %}"
@@ -82,7 +94,7 @@
               >
                 AgroHub UniRV
               </div>
-              <div class="text-xs {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/70{% else %}text-gray-500{% endif %} whitespace-nowrap">
+              <div class="text-xs {% if request.resolver_match.url_name == 'edital_detail' or request.resolver_match.url_name == 'edital_detail_slug' %}text-white/90{% else %}text-gray-600{% endif %} whitespace-nowrap">
                 Centro de Inovação e Tecnologia
               </div>
             </div>
@@ -114,6 +126,9 @@
             >
               Projetos Aprovados
             </a>
+            <button onclick="openShortcutsModal()" class="p-2 text-gray-600 hover:text-unirvBlue transition-colors rounded-lg hover:bg-gray-100" title="Atalhos de teclado (?)" aria-label="Atalhos de teclado">
+              <i class="fas fa-keyboard"></i>
+            </button>
             {% if user.is_authenticated %}
             <a
               href="{% url 'dashboard_home' %}"
@@ -222,7 +237,6 @@
 
     <main class="flex-1 w-full" style="width: 100%; margin: 0; padding: 0">
       <div style="width: 100%; margin: 0; padding: 0">
-        {% block breadcrumb %}{% endblock %}
         <div class="content-area" id="main-content" style="width: 100%">
           {% if messages %}
           <div
@@ -423,7 +437,109 @@
       </div>
     </footer>
 
+    <!-- Keyboard Shortcuts Modal -->
+    <div id="keyboard-shortcuts-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title" aria-hidden="true">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+          <h2 id="shortcuts-title" class="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <i class="fas fa-keyboard text-unirvBlue"></i>
+            Atalhos de Teclado
+          </h2>
+          <button onclick="closeShortcutsModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100" aria-label="Fechar">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="p-6">
+          <div class="space-y-4">
+            <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+              <kbd class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-mono text-gray-700 shadow-sm">Ctrl</kbd>
+              <span class="text-gray-400">+</span>
+              <kbd class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-mono text-gray-700 shadow-sm">K</kbd>
+              <div class="flex-1 ml-4">
+                <div class="font-medium text-gray-900">Focar na busca</div>
+                <div class="text-sm text-gray-600">Foca o campo de busca na página atual</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+              <kbd class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-mono text-gray-700 shadow-sm">Esc</kbd>
+              <div class="flex-1 ml-4">
+                <div class="font-medium text-gray-900">Fechar modais / Limpar busca</div>
+                <div class="text-sm text-gray-600">Fecha diálogos abertos ou limpa o campo de busca</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+              <kbd class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-mono text-gray-700 shadow-sm">?</kbd>
+              <div class="flex-1 ml-4">
+                <div class="font-medium text-gray-900">Mostrar atalhos</div>
+                <div class="text-sm text-gray-600">Abre este diálogo de atalhos de teclado</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+              <kbd class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-mono text-gray-700 shadow-sm">Tab</kbd>
+              <div class="flex-1 ml-4">
+                <div class="font-medium text-gray-900">Navegação por teclado</div>
+                <div class="text-sm text-gray-600">Navega entre elementos interativos</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+              <kbd class="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-mono text-gray-700 shadow-sm">Enter</kbd>
+              <div class="flex-1 ml-4">
+                <div class="font-medium text-gray-900">Confirmar ação</div>
+                <div class="text-sm text-gray-600">Confirma ações em diálogos e formulários</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    function openShortcutsModal() {
+      const modal = document.getElementById('keyboard-shortcuts-modal');
+      if (!modal) return; // Guard clause: element doesn't exist yet
+      modal.classList.remove('hidden');
+      modal.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+        if (modal) { // Check again before accessing
+          modal.classList.add('show');
+        }
+      }, 10);
+    }
+    function closeShortcutsModal() {
+      const modal = document.getElementById('keyboard-shortcuts-modal');
+      if (!modal) return; // Guard clause: element doesn't exist yet
+      modal.classList.remove('show');
+      setTimeout(() => {
+        if (modal) { // Check again before accessing
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+      }, 300);
+    }
+    // Keyboard shortcut to open modal
+    document.addEventListener('keydown', function(e) {
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const activeElement = document.activeElement;
+        if (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          openShortcutsModal();
+        }
+      }
+      if (e.key === 'Escape') {
+        closeShortcutsModal();
+      }
+    });
+    // Close on overlay click
+    document.getElementById('keyboard-shortcuts-modal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeShortcutsModal();
+      }
+    });
+    </script>
+
+    {% compress js %}
     <script src="{% static 'js/main.js' %}"></script>
+    {% endcompress %}
     {% block extra_js %}{% endblock %}
   </body>
 </html>

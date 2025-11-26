@@ -3,17 +3,6 @@
 
 {% block title %}Excluir Edital - AgroHub UniRV{% endblock %}
 
-{% block breadcrumb %}
-{% include 'editais/breadcrumb.html' %}
-{% block breadcrumb_items %}
-<li class="breadcrumb-item">
-    <a href="{{ edital.get_absolute_url }}">{{ edital.titulo|truncatewords:5 }}</a>
-</li>
-<li class="breadcrumb-item" aria-current="page">
-    <span>Excluir</span>
-</li>
-{% endblock %}
-{% endblock %}
 {% block content %}
 <div class="form-page">
     <div class="form-header">
@@ -30,6 +19,8 @@
             <p class="delete-warning-title">
                 <strong>"{{ edital.titulo }}"</strong>
             </p>
+            <!-- Store edital title in data attribute for safe retrieval in JavaScript -->
+            <span id="edital-title-data" data-edital-title="{{ edital.titulo }}" style="display: none;"></span>
             <p class="warning-text">
                 <i class="fas fa-info-circle" aria-hidden="true"></i>
                 Todos os dados relacionados serão permanentemente removidos, incluindo:
@@ -42,10 +33,10 @@
         </div>
     </div>
     
-    <form method="post" class="delete-form">
+    <form method="post" class="delete-form" id="delete-form">
         {% csrf_token %}
         <div class="form-actions">
-            <button type="submit" class="btn btn-danger" id="delete-confirm-btn">
+            <button type="button" class="btn btn-danger" id="delete-confirm-btn" onclick="confirmDelete()">
                 <i class="fas fa-trash" aria-hidden="true"></i>
                 <span>Confirmar Exclusão</span>
             </button>
@@ -55,6 +46,46 @@
             </a>
         </div>
     </form>
+
+<script>
+async function confirmDelete() {
+    // Safely retrieve edital title from data attribute with fallback
+    const titleElement = document.getElementById('edital-title-data');
+    const titleStrongElement = document.querySelector('.delete-warning-title strong');
+    
+    // Try to get title from data attribute first, then fallback to DOM textContent
+    let editalTitle = '';
+    if (titleElement && titleElement.getAttribute('data-edital-title')) {
+        editalTitle = titleElement.getAttribute('data-edital-title');
+    } else if (titleStrongElement && titleStrongElement.textContent) {
+        // Remove surrounding quotes if present
+        editalTitle = titleStrongElement.textContent.trim().replace(/^"|"$/g, '');
+    } else {
+        // Last resort fallback
+        editalTitle = 'este edital';
+    }
+    
+    // Escape the edital title to prevent XSS attacks and template literal injection
+    // This prevents injection via backticks, ${}, and other template literal syntax
+    const escapedTitle = escapeJsString(editalTitle);
+    
+    const confirmed = await showConfirmDialog({
+        title: 'Confirmar Exclusão',
+        message: `Tem certeza que deseja excluir o edital "${escapedTitle}"? Esta ação não pode ser desfeita.`,
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar',
+        type: 'danger',
+        confirmButtonClass: 'btn-danger'
+    });
+    
+    if (confirmed) {
+        const form = document.getElementById('delete-form');
+        if (form) {
+            form.submit();
+        }
+    }
+}
+</script>
 </div>
 {% endblock %}
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Edital, EditalValor, Cronograma, EditalHistory
+from .models import Edital, EditalValor, Cronograma, EditalHistory, Project
 from .views import sanitize_edital_fields
 
 
@@ -97,5 +97,39 @@ class EditalHistoryAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request):
         return False  # History entries are created automatically
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'edital',
+        'proponente',
+        'status',
+        'note',
+        'submitted_on'
+    )
+    list_filter = ('status', 'edital', 'submitted_on')
+    search_fields = (
+        'name',
+        'edital__titulo',
+        'edital__numero_edital',
+        'proponente__username',
+        'proponente__email',
+        'proponente__first_name',
+        'proponente__last_name'
+    )
+    readonly_fields = ('data_criacao', 'data_atualizacao', 'submitted_on')
+    date_hierarchy = 'submitted_on'
+    
+    fieldsets = (
+        ('Informações do Projeto', {
+            'fields': ('name', 'edital', 'proponente', 'status', 'note')
+        }),
+        ('Datas', {
+            'fields': ('submitted_on', 'data_criacao', 'data_atualizacao'),
+            'classes': ('collapse',)
+        }),
+    )
 
 

@@ -92,6 +92,11 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
+          {% comment %}
+          TODO: When evaluation data is available from the view, replace False with actual evaluations queryset/variable.
+          For now, this will always show the empty state until evaluation data is provided.
+          {% endcomment %}
+          {% if evaluations %}
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AgroTech Solutions</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Edital 001/2024</td>
@@ -137,6 +142,13 @@
               </div>
             </td>
           </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="px-6 py-12">
+              {% include 'components/empty_state.html' with icon='fa-clipboard-list' title='Nenhuma avaliação encontrada' description='Não há avaliações pendentes ou concluídas no momento.' %}
+            </td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>

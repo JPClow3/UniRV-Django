@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
@@ -48,7 +49,7 @@ class UserRegistrationForm(UserCreationForm):
             }),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields['username'].label = 'Nome de usuário'
         self.fields['password1'].label = 'Senha'
@@ -64,13 +65,13 @@ class UserRegistrationForm(UserCreationForm):
             'autocomplete': 'new-password'
         })
 
-    def clean_email(self):
+    def clean_email(self) -> str:
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise ValidationError('Este e-mail já está cadastrado.')
         return email
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> User:
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
@@ -110,7 +111,7 @@ class EditalForm(forms.ModelForm):
             'detalhes_unirv': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
-    def clean(self):
+    def clean(self) -> Dict[str, Any]:
         """Validação de datas: end_date deve ser posterior a start_date"""
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')

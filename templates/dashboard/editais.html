@@ -160,7 +160,7 @@
                       <i class="fas fa-calendar w-4 h-4"></i>
                       Ver Submissões
                     </a>
-                    <a href="{% url 'edital_delete' edital.pk %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" onclick="return confirm('Tem certeza que deseja excluir este edital?')">
+                    <a href="{% url 'edital_delete' edital.pk %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 delete-edital-link" data-edital-title="{{ edital.titulo }}">
                       <i class="fas fa-trash w-4 h-4"></i>
                       Excluir
                     </a>
@@ -170,22 +170,8 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="8" class="px-6 py-10">
-                <div class="empty-state-table text-center">
-                  <div class="empty-state-icon">
-                    <i class="fas fa-folder-open"></i>
-                  </div>
-                  <h3>Sem editais cadastrados</h3>
-                  <p>Crie um novo edital ou ajuste os filtros para visualizar registros existentes.</p>
-                  <div class="flex justify-center gap-3 mt-4">
-                    <a href="{% url 'dashboard_novo_edital' %}" class="btn bg-gradient-to-r from-green-500 to-blue-600 text-white">
-                      Novo Edital
-                    </a>
-                    <a href="{% url 'dashboard_editais' %}" class="btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
-                      Limpar filtros
-                    </a>
-                  </div>
-                </div>
+              <td colspan="8" class="px-6 py-12">
+                {% include 'components/empty_state.html' with icon='fa-file-alt' title='Sem editais cadastrados' description='Crie um novo edital ou ajuste os filtros para visualizar registros existentes.' action_url_name='dashboard_novo_edital' action_text='Novo Edital' %}
               </td>
             </tr>
           {% endfor %}
@@ -219,6 +205,64 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
       document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
     }
+  });
+
+  // Delete confirmation
+  document.querySelectorAll('.delete-edital-link').forEach(link => {
+    link.addEventListener('click', async function(e) {
+      e.preventDefault();
+      const editalTitle = this.getAttribute('data-edital-title');
+      const deleteUrl = this.getAttribute('href');
+      
+      // Escape the edital title to prevent XSS attacks
+      // Note: Django already HTML-escapes the value, but we escape again for JS string context
+      const escapedTitle = escapeJsString(editalTitle || '');
+      
+      const confirmed = await showConfirmDialog({
+        title: 'Confirmar Exclusão',
+        message: `Tem certeza que deseja excluir o edital "${escapedTitle}"? Esta ação não pode ser desfeita e todos os dados relacionados serão permanentemente removidos.`,
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar',
+        type: 'danger',
+        confirmButtonClass: 'btn-danger'
+      });
+      
+      if (confirmed) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteUrl;
+        
+        // Get CSRF token from cookie or meta tag
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         document.querySelector('meta[name=csrf-token]')?.getAttribute('content') ||
+                         getCookie('csrftoken');
+        if (csrfToken) {
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrfmiddlewaretoken';
+          csrfInput.value = csrfToken;
+          form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
   });
 });
 </script>

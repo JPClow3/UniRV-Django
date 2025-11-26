@@ -1,4 +1,6 @@
 import re
+import time
+from typing import Optional, Dict, Any
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError
 from django.urls import reverse
@@ -100,7 +102,7 @@ class Edital(models.Model):
             models.Index(fields=['titulo'], name='idx_titulo'),
         ]
 
-    def _generate_unique_slug(self):
+    def _generate_unique_slug(self) -> str:
         """Generate a unique slug from the title - optimized to reduce database queries"""
         base_slug = slugify(self.titulo)
         
@@ -111,7 +113,6 @@ class Edital(models.Model):
                 base_slug = f"edital-{self.pk}"
             else:
                 # For new objects, use timestamp as fallback
-                import time
                 base_slug = f"edital-{int(time.time())}"
         
         # Fetch slugs that match the exact base_slug or follow the pattern base_slug-N
@@ -146,12 +147,11 @@ class Edital(models.Model):
         
         # If we hit the limit, append timestamp to ensure uniqueness
         if attempts >= max_attempts:
-            import time
             slug = f"{base_slug}-{int(time.time())}"
         
         return slug
 
-    def clean(self):
+    def clean(self) -> None:
         """Validate model fields"""
         super().clean()
         
@@ -162,7 +162,7 @@ class Edital(models.Model):
                     'end_date': 'A data de encerramento deve ser posterior à data de abertura.'
                 })
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         # Generate slug only if it doesn't exist (on creation)
         if not self.slug:
             self.slug = self._generate_unique_slug()
@@ -206,17 +206,17 @@ class Edital(models.Model):
                 # Re-raise other exceptions
                 raise
 
-    def get_summary(self):
+    def get_summary(self) -> str:
         """Return a short summary for list views"""
         if self.objetivo:
             return self.objetivo[:200] + '...' if len(self.objetivo) > 200 else self.objetivo
         return ''
 
-    def is_open(self):
+    def is_open(self) -> bool:
         """Check if edital is currently open"""
         return self.status == 'aberto'
 
-    def is_closed(self):
+    def is_closed(self) -> bool:
         """Check if edital is closed"""
         return self.status == 'fechado'
 
@@ -234,7 +234,7 @@ class Edital(models.Model):
         return delta.days
     
     @property
-    def is_deadline_imminent(self):
+    def is_deadline_imminent(self) -> bool:
         """
         Verifica se o prazo está próximo (dentro de 7 dias).
         
@@ -246,7 +246,7 @@ class Edital(models.Model):
             return False
         return 0 <= days <= 7
     
-    def can_edit(self, user):
+    def can_edit(self, user: Optional[User]) -> bool:
         """
         Verifica se o usuário pode editar este edital.
         
@@ -266,7 +266,7 @@ class Edital(models.Model):
     def __repr__(self):
         return f"<Edital: {self.titulo[:50]} (pk={self.pk}, status={self.status})>"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         """Return URL using slug if available, otherwise use PK"""
         if self.slug:
             return reverse('edital_detail_slug', kwargs={'slug': self.slug})
@@ -421,4 +421,81 @@ class EditalHistory(models.Model):
     def __repr__(self):
         edital_id = self.edital_id if self.edital else None
         return f"<EditalHistory: edital_id={edital_id}, action={self.action}, timestamp={self.timestamp}>"
+
+
+class Project(models.Model):
+    """
+    Modelo que representa um projeto submetido a um edital.
+    
+    Um projeto é uma submissão de um usuário (proponente) para um edital específico,
+    contendo informações sobre o projeto, status de avaliação e nota.
+    
+    Attributes:
+        name: Nome do projeto
+        edital: Edital relacionado (ForeignKey)
+        proponente: Usuário que submeteu o projeto (ForeignKey)
+        submitted_on: Data de submissão
+        status: Status atual (Em Avaliação, Aprovado, Reprovado, Pendente)
+        note: Nota/score do projeto (opcional)
+        data_criacao: Data de criação do registro
+        data_atualizacao: Data da última atualização
+    """
+    STATUS_CHOICES = [
+        ('em_avaliacao', 'Em Avaliação'),
+        ('aprovado', 'Aprovado'),
+        ('reprovado', 'Reprovado'),
+        ('pendente', 'Pendente'),
+    ]
+    
+    name = models.CharField(max_length=200, verbose_name='Nome do Projeto')
+    edital = models.ForeignKey(
+        Edital,
+        on_delete=models.CASCADE,
+        related_name='projetos',
+        verbose_name='Edital'
+    )
+    proponente = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='projetos_submetidos',
+        verbose_name='Proponente'
+    )
+    submitted_on = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Data de Submissão'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pendente',
+        verbose_name='Status'
+    )
+    note = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        verbose_name='Nota',
+        help_text='Nota/score do projeto (opcional)'
+    )
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_atualizacao = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-submitted_on']
+        verbose_name = 'Projeto'
+        verbose_name_plural = 'Projetos'
+        indexes = [
+            models.Index(fields=['-submitted_on'], name='idx_project_submitted'),
+            models.Index(fields=['status'], name='idx_project_status'),
+            models.Index(fields=['edital', 'status'], name='idx_project_edital_status'),
+            models.Index(fields=['proponente'], name='idx_project_proponente'),
+        ]
+    
+    def __str__(self):
+        edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''
+        return f'{self.name} - {edital_titulo}' if edital_titulo else self.name
+    
+    def __repr__(self):
+        return f"<Project: {self.name} (pk={self.pk}, status={self.status}, edital_id={self.edital_id})>"
 
