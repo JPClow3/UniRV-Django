@@ -1,18 +1,18 @@
 import logging
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db import connection
-from django.db.models import Q, QuerySet, Count
+from django.db.models import Q, Count, Avg
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.utils.safestring import mark_safe
 
 from .constants import (
     CACHE_TTL_INDEX, PAGINATION_DEFAULT, DEADLINE_WARNING_DAYS
@@ -98,7 +98,6 @@ def login_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect
     """Custom login page matching React design"""
     from django.contrib.auth import authenticate, login
     from django.contrib.auth.forms import AuthenticationForm
-    from django.shortcuts import redirect
     
     if request.user.is_authenticated:
         return redirect('dashboard_home')
@@ -127,7 +126,6 @@ def register_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedir
     from .forms import UserRegistrationForm
     from django.contrib.auth import login
     from django.core.mail import send_mail
-    from django.conf import settings
     
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -168,7 +166,18 @@ def register_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedir
 @login_required
 def dashboard_home(request: HttpRequest) -> HttpResponse:
     """Dashboard home page matching React DashboardHomePage"""
-    return render(request, 'dashboard/home.html')
+    # Calculate statistics for staff users
+    context = {}
+    if request.user.is_staff:
+        context = {
+            'total_usuarios': User.objects.count(),
+            'editais_ativos': Edital.objects.filter(status='aberto').count(),
+            'projetos_submetidos': Project.objects.count(),
+            'avaliacoes_pendentes': Project.objects.filter(
+                status__in=['pendente', 'em_avaliacao']
+            ).count(),
+        }
+    return render(request, 'dashboard/home.html', context)
 
 
 @login_required
@@ -465,7 +474,35 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
 @login_required
 def dashboard_avaliacoes(request: HttpRequest) -> HttpResponse:
     """Dashboard avaliações page"""
-    return render(request, 'dashboard/avaliacoes.html')
+    if not request.user.is_staff:
+        return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
+    
+    # Get projects that need evaluation
+    projects = Project.objects.select_related('edital', 'proponente').filter(
+        status__in=['em_avaliacao', 'pendente']
+    ).order_by('-submitted_on')
+    
+    # Calculate statistics
+    total = Project.objects.filter(status__in=['em_avaliacao', 'pendente']).count()
+    pendentes = Project.objects.filter(status='pendente').count()
+    concluidas = Project.objects.filter(status='aprovado').count()
+    
+    # Calculate average note (only for projects with notes)
+    # Note: note is a DecimalField, so we only check for isnull, not empty string
+    projetos_com_nota = Project.objects.exclude(note__isnull=True)
+    nota_media = 0
+    if projetos_com_nota.exists():
+        nota_media = projetos_com_nota.aggregate(Avg('note'))['note__avg'] or 0
+        nota_media = round(nota_media, 1)
+    
+    context = {
+        'evaluations': projects,
+        'total': total,
+        'pendentes': pendentes,
+        'concluidas': concluidas,
+        'nota_media': nota_media,
+    }
+    return render(request, 'dashboard/avaliacoes.html', context)
 
 
 @login_required
@@ -479,7 +516,25 @@ def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
             f"IP: {request.META.get('REMOTE_ADDR')}, view: dashboard_usuarios"
         )
         return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
-    return render(request, 'dashboard/usuarios.html')
+    
+    # Get all users with related data
+    users = User.objects.all().order_by('-date_joined')
+    
+    # Search functionality
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+    
+    context = {
+        'users': users,
+        'search_query': search_query,
+    }
+    return render(request, 'dashboard/usuarios.html', context)
 
 
 @login_required
@@ -487,21 +542,106 @@ def dashboard_relatorios(request: HttpRequest) -> HttpResponse:
     """Dashboard relatorios page"""
     if not request.user.is_staff:
         return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
-    return render(request, 'dashboard/relatorios.html')
-
-
-@login_required
-def dashboard_novo_edital(request: HttpRequest) -> HttpResponse:
-    """Dashboard novo edital page"""
-    if not request.user.is_staff:
-        return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
-    return render(request, 'dashboard/novo_edital.html')
-
-
+    
+    # Calculate statistics
+    total_projetos = Project.objects.count()
+    projetos_aprovados = Project.objects.filter(status='aprovado').count()
+    
+    # Calculate approval rate, handling division by zero
+    taxa_aprovacao = 0
+    if total_projetos > 0:
+        taxa_aprovacao = round((projetos_aprovados / total_projetos) * 100)
+    
+    usuarios_ativos = User.objects.filter(projetos_submetidos__isnull=False).distinct().count()
+    editais_ativos = Edital.objects.filter(status='aberto').count()
+    
+    context = {
+        'total_projetos': total_projetos,
+        'taxa_aprovacao': taxa_aprovacao,
+        'usuarios_ativos': usuarios_ativos,
+        'editais_ativos': editais_ativos,
+    }
+    
+    return render(request, 'dashboard/relatorios.html', context)
 @login_required
 def dashboard_submeter_projeto(request: HttpRequest) -> HttpResponse:
     """Dashboard submeter projeto page"""
     return render(request, 'dashboard/submeter_projeto.html')
+
+
+@login_required
+@rate_limit(key='ip', rate=5, window=60, method='POST')
+def dashboard_novo_edital(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
+    """
+    Dashboard page para criar novo edital - Requer autenticação e is_staff.
+    Usa o mesmo EditalForm que a rota /cadastrar/ para consistência (CLAR-021).
+    
+    Args:
+        request: HttpRequest
+        
+    Returns:
+        HttpResponse: Formulário de criação ou redirecionamento após sucesso
+    """
+    if not request.user.is_staff:
+        logger.warning(
+            f"Unauthorized dashboard_novo_edital access attempt - user: {request.user.username}, "
+            f"IP: {request.META.get('REMOTE_ADDR')}"
+        )
+        return render(request, '403.html', {
+            'message': 'Apenas usuários staff podem criar editais.'
+        }, status=403)
+    
+    logger.info(
+        f"dashboard_novo_edital iniciado - usuário: {request.user.username}, "
+        f"IP: {request.META.get('REMOTE_ADDR')}"
+    )
+    
+    try:
+        if request.method == 'POST':
+            form = EditalForm(request.POST)
+            if form.is_valid():
+                edital = form.save(commit=False)
+                # Track who created this edital
+                edital.created_by = request.user
+                edital.updated_by = request.user
+                # Sanitize all text fields using helper function
+                sanitize_edital_fields(edital)
+                edital.save()
+                
+                # Create history entry
+                from .models import EditalHistory
+                EditalHistory.objects.create(
+                    edital=edital,
+                    edital_titulo=edital.titulo,
+                    user=request.user,
+                    action='create',
+                    changes_summary={'titulo': edital.titulo}
+                )
+                
+                # Invalidate cache for index pages (clear all index cache keys)
+                _clear_index_cache()
+                
+                logger.info(
+                    f"edital criado via dashboard com sucesso - ID: {edital.pk}, "
+                    f"título: {edital.titulo}, usuário: {request.user.username}"
+                )
+                
+                messages.success(request, 'Edital cadastrado com sucesso!')
+                # Redirect to dashboard editais list after creation
+                return redirect('dashboard_editais')
+        else:
+            form = EditalForm()
+
+        return render(request, 'dashboard/novo_edital.html', {'form': form})
+    except Exception as e:
+        logger.error(
+            f"Erro ao criar edital via dashboard - usuário: {request.user.username}, "
+            f"erro: {str(e)}",
+            exc_info=True
+        )
+        messages.error(request, 'Erro ao cadastrar edital. Tente novamente.')
+        form = EditalForm(request.POST if request.method == 'POST' else None)
+        return render(request, 'dashboard/novo_edital.html', {'form': form})
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -622,7 +762,6 @@ def index(request: HttpRequest) -> HttpResponse:
             exc_info=True
         )
         # Return empty results on error
-        from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
         empty_queryset = Edital.objects.none()
         paginator = Paginator(empty_queryset, PAGINATION_DEFAULT)
         try:
@@ -782,7 +921,6 @@ def edital_detail_redirect(request: HttpRequest, pk: int) -> HttpResponseRedirec
     # Check before redirecting to prevent information leakage via redirect URL
     if edital.status == 'draft':
         if not request.user.is_authenticated or not request.user.is_staff:
-            from django.http import Http404
             raise Http404("Edital não encontrado")
     
     if edital.slug:

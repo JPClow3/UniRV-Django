@@ -125,7 +125,7 @@
             >
               Projetos Aprovados
             </a>
-            <button onclick="openShortcutsModal()" class="p-2 text-gray-600 hover:text-unirvBlue transition-colors rounded-lg hover:bg-gray-100" title="Atalhos de teclado (?)" aria-label="Atalhos de teclado">
+            <button type="button" id="open-shortcuts-btn" class="p-2 text-gray-600 hover:text-unirvBlue transition-colors rounded-lg hover:bg-gray-100" title="Atalhos de teclado (?)" aria-label="Atalhos de teclado">
               <i class="fas fa-keyboard"></i>
             </button>
             {% if user.is_authenticated %}
@@ -423,13 +423,13 @@
               © 2025 AgroHub UniRV. Todos os direitos reservados.
             </p>
             <div class="flex gap-4 text-sm text-gray-300">
-              <a href="#" class="hover:text-white transition-colors"
-                >Política de Privacidade</a
-              >
+              <button type="button" class="hover:text-white transition-colors cursor-not-allowed opacity-50" title="Em breve" aria-label="Política de Privacidade (em breve)" disabled>
+                Política de Privacidade
+              </button>
               <span>•</span>
-              <a href="#" class="hover:text-white transition-colors"
-                >Termos de Uso</a
-              >
+              <button type="button" class="hover:text-white transition-colors cursor-not-allowed opacity-50" title="Em breve" aria-label="Termos de Uso (em breve)" disabled>
+                Termos de Uso
+              </button>
             </div>
           </div>
         </div>
@@ -444,7 +444,7 @@
             <i class="fas fa-keyboard text-unirvBlue"></i>
             Atalhos de Teclado
           </h2>
-          <button onclick="closeShortcutsModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100" aria-label="Fechar">
+          <button type="button" id="close-shortcuts-btn" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100" aria-label="Fechar">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -534,6 +534,17 @@
         closeShortcutsModal();
       }
     });
+    
+    // Button event listeners
+    const openShortcutsBtn = document.getElementById('open-shortcuts-btn');
+    if (openShortcutsBtn) {
+      openShortcutsBtn.addEventListener('click', openShortcutsModal);
+    }
+    
+    const closeShortcutsBtn = document.getElementById('close-shortcuts-btn');
+    if (closeShortcutsBtn) {
+      closeShortcutsBtn.addEventListener('click', closeShortcutsModal);
+    }
     </script>
 
     {% compress js %}

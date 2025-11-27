@@ -188,21 +188,23 @@ STATICFILES_FINDERS = [
 if HAS_COMPRESSOR:
     STATICFILES_FINDERS.append('compressor.finders.CompressorFinder')
 
+# Testing flag (needed before compressor settings)
+TESTING = 'test' in sys.argv
+
 # Django Compressor settings for minification (only if compressor is installed)
 if HAS_COMPRESSOR:
     # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
     COMPRESS_ROOT = STATIC_ROOT
-    COMPRESS_URL = STATIC_URL
+    # COMPRESS_URL should match the format used by {% static %} tag (with leading slash)
+    COMPRESS_URL = '/static/' if not STATIC_URL.startswith('/') else STATIC_URL
     
-    # Enable compression in both dev and production
-    # In development, compress on-the-fly; in production, use offline mode
-    COMPRESS_ENABLED = True
-    
-    if DEBUG:
-        # In development: compress on-the-fly for easier development
+    # Disable compression in tests and development to avoid file not found errors
+    if TESTING or DEBUG:
+        COMPRESS_ENABLED = False
         COMPRESS_OFFLINE = False
     else:
         # In production: pre-compress during collectstatic for better performance
+        COMPRESS_ENABLED = True
         COMPRESS_OFFLINE = True
     
     COMPRESS_CSS_FILTERS = [
@@ -283,9 +285,6 @@ if not DEBUG:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Testing flag
-TESTING = 'test' in sys.argv
 
 # Login URL for @login_required decorator
 LOGIN_URL = '/login/'

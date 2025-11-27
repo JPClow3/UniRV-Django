@@ -756,7 +756,7 @@ function showConfirmDialog(options) {
             confirmText = 'Confirmar',
             cancelText = 'Cancelar',
             type = 'warning',
-            confirmButtonClass = 'btn-danger'
+            confirmButtonClass = options.confirmClass || 'btn-danger'  // Support both confirmClass and confirmButtonClass
         } = options;
 
         // Create dialog overlay
@@ -817,6 +817,10 @@ function showConfirmDialog(options) {
             overlay.classList.remove('show');
             setTimeout(() => {
                 overlay.remove();
+                if (action === 'confirm' && options.onConfirm) {
+                    // Support callback pattern for backward compatibility
+                    options.onConfirm();
+                }
                 resolve(action === 'confirm');
             }, 300);
         };
@@ -1006,105 +1010,6 @@ window.showConfirmDialog = showConfirmDialog;
     });
   });
 })();
-
-function showConfirmDialog(options) {
-    const triggerElement = document.activeElement;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'confirm-dialog-overlay';
-    overlay.setAttribute('role', 'alertdialog');
-    overlay.setAttribute('aria-modal', 'true');
-
-  const dialog = document.createElement('div');
-  dialog.className = 'confirm-dialog';
-    dialog.setAttribute('role', 'document');
-  dialog.setAttribute('aria-labelledby', 'dialog-title');
-  dialog.setAttribute('aria-describedby', 'dialog-desc');
-
-  dialog.innerHTML = `
-    <h3 id="dialog-title">${options.title || 'Confirmar'}</h3>
-    <p id="dialog-desc">${options.message || 'Tem certeza?'}</p>
-    <div class="confirm-dialog-actions">
-      <button class="btn btn-secondary" id="dialog-cancel">
-        ${options.cancelText || 'Cancelar'}
-      </button>
-      <button class="btn ${options.confirmClass || 'btn-primary'}" id="dialog-confirm">
-        ${options.confirmText || 'Confirmar'}
-      </button>
-    </div>
-  `;
-
-  overlay.appendChild(dialog);
-  document.body.appendChild(overlay);
-
-    const focusableElements = dialog.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstFocusable = focusableElements[0];
-    const lastFocusable = focusableElements[focusableElements.length - 1];
-
-  setTimeout(() => overlay.classList.add('active'), 10);
-
-  // Focus first button for accessibility
-    firstFocusable.focus();
-
-    function trapFocus(e) {
-        if (e.key === 'Tab') {
-            if (e.shiftKey) {
-                if (document.activeElement === firstFocusable) {
-                    lastFocusable.focus();
-                    e.preventDefault();
-                }
-            } else {
-                if (document.activeElement === lastFocusable) {
-                    firstFocusable.focus();
-                    e.preventDefault();
-                }
-            }
-        }
-    }
-
-    dialog.addEventListener('keydown', trapFocus);
-
-  dialog.querySelector('#dialog-cancel').addEventListener('click', function() {
-    closeDialog();
-  });
-
-  // Handle confirm
-  dialog.querySelector('#dialog-confirm').addEventListener('click', function() {
-    if (options.onConfirm) {
-      options.onConfirm();
-    }
-    closeDialog();
-  });
-
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) {
-      closeDialog();
-    }
-  });
-
-  function handleEscape(e) {
-    if (e.key === 'Escape') {
-      closeDialog();
-    }
-  }
-
-  document.addEventListener('keydown', handleEscape);
-
-  function closeDialog() {
-    overlay.classList.remove('active');
-    setTimeout(() => {
-      overlay.remove();
-      document.removeEventListener('keydown', handleEscape);
-        dialog.removeEventListener('keydown', trapFocus);
-
-        if (triggerElement && typeof triggerElement.focus === 'function') {
-            triggerElement.focus();
-        }
-    }, 300);
-  }
-}
 
 // ========================================
 // KEYBOARD SHORTCUTS (Ctrl+K for search, Escape to clear)

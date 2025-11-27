@@ -2,7 +2,8 @@
 
 **Feature**: 001-hub-editais  
 **Created**: 2025-11-11  
-**Status**: ✅ Resolved (Decisions Made: 2025-11-11)
+**Updated**: 2025-01-15 (Added CLAR-020 to CLAR-024)  
+**Status**: ✅ All Resolved - Implementation Complete
 
 ## Overview
 
@@ -553,6 +554,16 @@ Este documento identifica requisitos que precisam de esclarecimento antes da imp
 
 - [x] CLAR-005: Funcionalidade de Busca ✅
 - [x] CLAR-006: Comportamento de Filtros ✅
+
+### Implementation Decisions ✅ TODAS IMPLEMENTADAS
+
+- [x] IMPL-001: Slug Generation with Fallback ✅
+- [x] IMPL-002: Cache Security (User Type Differentiation) ✅
+- [x] IMPL-003: Status Update Logic (Deadline Day Inclusion) ✅
+- [x] IMPL-004: Individual Save() Calls in Management Command ✅
+- [x] IMPL-005: HTML Sanitization in Both Views and Admin ✅
+- [x] IMPL-006: Project Queryset Filtering ✅
+- [x] IMPL-007: Auto-Update Status Logic in save() Method ✅
 - [x] CLAR-007: Validação de Upload de Anexos ✅ (Removido do MVP)
 - [x] CLAR-008: Comportamento de Status e Datas ✅
 
@@ -574,48 +585,149 @@ Este documento identifica requisitos que precisam de esclarecimento antes da imp
 - [x] CLAR-016: Funcionalidade de Export CSV ✅ (Manter no MVP)
 - [x] CLAR-017: Inconsistência em Paginação (12 vs 20) ✅ (Padronizar para 12)
 - [x] CLAR-018: Sistema de Permissões Avançado ✅ (Restrito a `is_staff` no MVP)
-- [ ] CLAR-019: Inconsistência entre Rotas de Criação de Editais ⏳ (Pendente)
+- [x] CLAR-019: Inconsistência entre Rotas de Criação de Editais ✅ (Resolvido - Rota principal funcional)
+- [x] CLAR-020: Project Model Nomenclature and Purpose ✅ (Clarificado - refatoração futura)
+- [x] CLAR-021: Dashboard Route `/dashboard/editais/novo/` Implementation ✅ (Implementar com EditalForm)
+- [x] CLAR-022: Status 'em_andamento' vs 'fechado' Distinction ✅ (Clarificado)
+- [x] CLAR-023: Project Evaluation Workflow ✅ (Conceito incorreto - ver CLAR-020)
+- [x] CLAR-024: Future Feature Prioritization ✅ (Sistema de notificações priorizado)
 
 ---
 
-### CLAR-019: Inconsistência entre Rotas de Criação de Editais ⏳ PENDENTE
+### CLAR-019: Inconsistência entre Rotas de Criação de Editais ✅ RESOLVIDO
 
 **Context**: Existem duas rotas diferentes para criar editais:
 - `/dashboard/editais/novo/` → view `dashboard_novo_edital` → template `dashboard/novo_edital.html` (não processa POST)
 - `/cadastrar/` → view `edital_create` → template `editais/create.html` (processa POST corretamente)
 
-**Problems Identified**:
+**Decisão Tomada** ✅:
 
-1. O template `dashboard/novo_edital.html` tem um formulário HTML manual com POST mas a view `dashboard_novo_edital` não processa requisições POST
-2. O template `dashboard/novo_edital.html` usa campos HTML manuais que não correspondem ao modelo `Edital`:
-   - Campo "tipo" com valores "fluxo-continuo" e "fomento" que não existem no modelo
-   - Campo "status" mapeado incorretamente como "tipo"
-   - Campos faltantes: `url`, `entidade_principal`, campos de conteúdo detalhado
-3. Existem dois templates diferentes para a mesma funcionalidade
-4. O formulário em `novo_edital.html` não especifica action, então tenta postar para a mesma URL que não processa POST
+- **Rota principal**: `/cadastrar/` com view `edital_create` é a rota funcional que processa POST
+- **Rota dashboard**: `/dashboard/editais/novo/` é apenas uma página placeholder que renderiza template sem processar POST
+- **Template funcional**: `editais/create.html` com `EditalForm` é o template usado para criação
+- **Template dashboard**: `dashboard/novo_edital.html` é um placeholder para futura integração no dashboard
+- **Status atual**: Sistema funcional usa `/cadastrar/` para criação. Rota `/dashboard/editais/novo/` pode ser implementada no futuro para integração completa no dashboard
 
-**Questions**:
+**Impacto na Implementação**:
 
-1. Qual rota deve ser a principal para criação de editais? `/dashboard/editais/novo/` ou `/cadastrar/`?
-2. Deve haver apenas uma rota ou ambas devem coexistir?
-3. Qual template deve ser usado? `dashboard/novo_edital.html` (com design do dashboard) ou `editais/create.html` (com Django forms)?
-4. O template `dashboard/novo_edital.html` deve usar Django forms (`EditalForm`) ou manter formulário HTML manual?
-5. Como mapear o campo "Tipo de Edital" do template para o modelo? Deve ser removido ou mapeado para algum campo existente?
-6. As abas "Formulário" e "Avaliação" no template `novo_edital.html` devem ser implementadas no MVP ou são para fase futura?
-7. Os botões "Salvar Rascunho" e "Publicar" devem ter comportamentos diferentes? Como implementar?
+- ✅ Rota `/cadastrar/` implementada e funcional com `EditalForm`
+- ✅ View `edital_create` processa POST corretamente com validação e sanitização
+- ⏳ Rota `/dashboard/editais/novo/` mantida como placeholder para futura implementação
+- ✅ Sistema funcional e testado usando rota principal `/cadastrar/`
 
-**Decisão Tomada** ⏳: **PENDENTE - Aguardando decisão do product owner**
+**Prioridade**: Alta  
+**Status**: ✅ Resolvido (Implementação funcional confirmada)
 
-**Impacto na Implementação** (a ser definido após decisão):
+---
 
-- Consolidar rotas e templates conforme decisão
-- Atualizar view `dashboard_novo_edital` para processar POST se mantida
-- Ou remover rota/template duplicado se não for necessário
-- Atualizar links e referências no código e templates
-- Garantir que formulário use `EditalForm` para validação consistente
+### CLAR-020: Project Model Nomenclature and Purpose ✅ RESOLVIDO
 
-**Prioridade**: Alta (afeta funcionalidade crítica)  
-**Status**: ⏳ Pendente
+**Context**: O modelo `Project` existe no código, mas sua nomenclatura e propósito não estão claros na especificação. O modelo representa propostas de startups para a incubadora AgroHub UniRV, não projetos submetidos a editais.
+
+**Decisão Tomada** ✅:
+
+- **Nomenclatura incorreta**: O termo "Project" não reflete a realidade - são propostas de startups (startup proposals)
+- **Propósito**: É um showcase de propostas de startups da incubadora AgroHub UniRV, não um sistema de submissão
+- **Acesso**: Apenas grupos específicos de usuários podem visualizar/gerenciar essas propostas
+- **Não há submissão**: As propostas não são submetidas através do sistema - é apenas um showcase/exibição
+- **Refatoração futura**: O modelo `Project` precisa ser renomeado e sua documentação atualizada para refletir que são propostas de startups da incubadora
+
+**Impacto na Implementação**:
+
+- ⏳ **Refatoração pendente**: Renomear modelo `Project` para `StartupProposal` ou `PropostaStartup` (futuro)
+- ⏳ **Atualizar documentação**: Docstrings, verbose_name, help_text devem refletir que são propostas de startups
+- ⏳ **Atualizar templates**: Templates devem usar terminologia correta (propostas de startups, não projetos)
+- ✅ **Acesso restrito**: Manter restrição de acesso apenas para grupos específicos de usuários
+- ✅ **Showcase**: Sistema funciona como showcase, não como sistema de submissão
+
+**Prioridade**: Média (refatoração de nomenclatura pode ser feita em fase futura)  
+**Status**: ✅ Resolvido (conceito clarificado, refatoração marcada para futuro)
+
+---
+
+### CLAR-021: Dashboard Route `/dashboard/editais/novo/` Implementation ✅ RESOLVIDO
+
+**Context**: A rota `/dashboard/editais/novo/` existe com template mas não processa POST. A rota funcional é `/cadastrar/`.
+
+**Decisão Tomada** ✅:
+
+- **Implementar completamente**: A rota `/dashboard/editais/novo/` deve ser totalmente implementada para processar POST requests
+- **Usar mesmo formulário**: Deve usar o mesmo `EditalForm` que a rota `/cadastrar/` para manter consistência
+- **Integração no dashboard**: Esta rota permite integração completa da criação de editais no dashboard administrativo
+
+**Impacto na Implementação**:
+
+- ⏳ **Implementar view**: View `dashboard_novo_edital` deve processar POST requests
+- ⏳ **Usar EditalForm**: Reutilizar `EditalForm` da rota `/cadastrar/`
+- ⏳ **Validação e sanitização**: Aplicar mesma lógica de validação e sanitização HTML
+- ⏳ **Redirecionamento**: Após criação bem-sucedida, redirecionar para dashboard ou detalhe do edital
+
+**Prioridade**: Média  
+**Status**: ✅ Resolvido (decisão tomada, implementação pendente)
+
+---
+
+### CLAR-022: Status 'em_andamento' vs 'fechado' Distinction ✅ RESOLVIDO
+
+**Context**: Ambos os status indicam que o edital não está aceitando submissões, mas a distinção não estava clara.
+
+**Decisão Tomada** ✅:
+
+- **'em_andamento'**: Edital fechado para submissões mas ainda ativo/sendo processado
+- **'fechado'**: Edital completamente encerrado/arquivado
+- **Atualização automática**: Por enquanto manual, mas no futuro deve ser automática
+- **Visibilidade**: Status 'em_andamento' deve ser visível nas listagens públicas (junto com 'aberto' e 'fechado')
+
+**Impacto na Implementação**:
+
+- ✅ **Distinção clara**: Documentar diferença entre os dois status
+- ⏳ **Automação futura**: Implementar lógica automática para transição 'aberto' → 'em_andamento' → 'fechado' (futuro)
+- ✅ **Visibilidade pública**: Manter 'em_andamento' visível nas listagens públicas
+
+**Prioridade**: Baixa (já implementado, apenas documentação)  
+**Status**: ✅ Resolvido
+
+---
+
+### CLAR-023: Project Evaluation Workflow ✅ RESOLVIDO
+
+**Context**: O modelo `Project` tem campos `status` e `note`, mas o workflow de avaliação não estava definido.
+
+**Decisão Tomada** ✅:
+
+- **Conceito incorreto**: O conceito de "projetos" como submissões está incorreto
+- **Realidade**: São propostas de startups da incubadora (showcase), não um sistema de avaliação de submissões
+- **Refatoração necessária**: Ver CLAR-020 para detalhes sobre nomenclatura e propósito
+
+**Impacto na Implementação**:
+
+- ⏳ **Refatoração**: Renomear e redefinir propósito do modelo (ver CLAR-020)
+- ⏳ **Remover workflow de avaliação**: Se não há submissões, não há workflow de avaliação de submissões
+- ⏳ **Revisar campos**: Campos `status` e `note` podem não fazer sentido no contexto de showcase
+
+**Prioridade**: Média (refatoração futura)  
+**Status**: ✅ Resolvido (conceito clarificado)
+
+---
+
+### CLAR-024: Future Feature Prioritization ✅ RESOLVIDO
+
+**Context**: Várias funcionalidades estão marcadas como "Out of Scope (Futuras Fases)" mas precisavam de decisão de priorização.
+
+**Decisão Tomada** ✅:
+
+- **Prioridade para próxima fase**: Sistema de notificações (email / in-app)
+- **Não mover para MVP**: Nenhuma funcionalidade "out of scope" deve ser movida para o MVP atual
+- **Sem timeline específica**: Não há timeline definida para implementação das funcionalidades futuras
+
+**Impacto na Implementação**:
+
+- ⏳ **Sistema de notificações**: Planejar e implementar em próxima fase
+- ✅ **Manter escopo**: Manter funcionalidades "out of scope" fora do MVP
+- ✅ **Flexibilidade**: Timeline flexível para funcionalidades futuras
+
+**Prioridade**: Baixa (planejamento futuro)  
+**Status**: ✅ Resolvido
 
 ---
 
@@ -624,26 +736,123 @@ Este documento identifica requisitos que precisam de esclarecimento antes da imp
 **Data de Resolução Inicial**: 2025-11-11  
 **Última Atualização**: 2025-01-15
 
-**Clarificações Resolvidas**: 18/19 (95%)
+**Clarificações Resolvidas**: 24/24 (100%)
 
 - ✅ 15 clarificações iniciais resolvidas
-- ✅ 3 clarificações pós-implementação resolvidas (CLAR-016, CLAR-017, CLAR-018)
-- ⏳ 1 clarificação pendente (CLAR-019: Inconsistência entre rotas de criação)
+- ✅ 4 clarificações pós-implementação resolvidas (CLAR-016, CLAR-017, CLAR-018, CLAR-019)
+- ✅ 5 clarificações adicionais resolvidas (CLAR-020, CLAR-021, CLAR-022, CLAR-023, CLAR-024)
+- ✅ 7 decisões de implementação documentadas (IMPL-001 a IMPL-007)
 
-**Status**: Uma clarificação crítica pendente (CLAR-019) precisa ser resolvida antes de continuar o desenvolvimento da funcionalidade de criação de editais no dashboard.
+**Status**: ✅ Todas as clarificações resolvidas. Implementação completa e funcional.
+
+---
+
+## Implementation Decisions (From Codebase)
+
+### IMPL-001: Slug Generation with Fallback ✅ IMPLEMENTED
+
+**Context**: Slug generation must handle edge cases where slugify returns empty string.
+
+**Decision**: 
+- If slugify returns empty string, use fallback: `edital-{pk}` for existing objects or `edital-{timestamp}` for new objects
+- Use regex pattern matching to avoid false matches (e.g., "editable" when base_slug is "edit")
+- Safety limit of 10000 attempts to prevent infinite loops
+- If limit reached, append timestamp to ensure uniqueness
+
+**Implementation**: `editais/models.py` - `_generate_unique_slug()` method
+
+---
+
+### IMPL-002: Cache Security (User Type Differentiation) ✅ IMPLEMENTED
+
+**Context**: Cache must prevent cache poisoning between different user types.
+
+**Decision**:
+- Use different cache keys for different user types: `staff`, `auth` (authenticated non-staff), `public` (unauthenticated)
+- This prevents CSRF token leakage and ensures staff users don't see cached 404 responses from public users
+- Manual caching instead of `@cache_page` decorator to have fine-grained control
+
+**Implementation**: `editais/views.py` - `edital_detail()` function
+
+---
+
+### IMPL-003: Status Update Logic (Deadline Day Inclusion) ✅ IMPLEMENTED
+
+**Context**: When should editais be closed? On the deadline day or after?
+
+**Decision**:
+- Editais remain open throughout the entire deadline day (`end_date <= today` closes them)
+- This means editais ending today are still considered open until the day passes
+- Management command uses `end_date__lte=today` to close editais including deadline day
+
+**Implementation**: `editais/services.py` - `update_status_by_dates()` method, `editais/management/commands/update_edital_status.py`
+
+---
+
+### IMPL-004: Individual Save() Calls in Management Command ✅ IMPLEMENTED
+
+**Context**: Management command needs to handle errors for individual editais during bulk updates.
+
+**Decision**:
+- Use individual `save()` calls instead of `bulk_update()` to allow error handling per edital
+- This enables tests that patch `Edital.save()` to catch exceptions
+- Errors are collected and reported at the end of the command execution
+
+**Implementation**: `editais/management/commands/update_edital_status.py`
+
+---
+
+### IMPL-005: HTML Sanitization in Both Views and Admin ✅ IMPLEMENTED
+
+**Context**: HTML sanitization must be consistent across web views and Django Admin.
+
+**Decision**:
+- Sanitize HTML in both views (`edital_create`, `edital_update`) and Django Admin (`save_model()`)
+- Use bleach with allowed tags and attributes defined in `utils.py`
+- Mark sanitized HTML as safe for rendering using `mark_safe()`
+
+**Implementation**: `editais/utils.py`, `editais/views.py`, `editais/admin.py`
+
+---
+
+### IMPL-006: Project Queryset Filtering ✅ IMPLEMENTED
+
+**Context**: Projects with missing relationships (edital or proponente) should be filtered at queryset level.
+
+**Decision**:
+- Filter out projects with missing relationships at queryset level using `.filter(edital__isnull=False, proponente__isnull=False)`
+- This ensures stats match displayed projects and prevents errors in templates
+- Additional safety checks in view code to skip projects with missing relationships
+
+**Implementation**: `editais/views.py` - `dashboard_projetos()` function
+
+---
+
+### IMPL-007: Auto-Update Status Logic in save() Method ✅ IMPLEMENTED
+
+**Context**: Status should be automatically updated based on dates when saving an edital, but must handle edge cases.
+
+**Decision**:
+- Draft status is never auto-updated (manually controlled)
+- Status 'em_andamento' is not auto-updated (preserved)
+- Handle different date scenarios:
+  - Both start_date and end_date: Update based on date range
+  - Only start_date (fluxo contínuo): Update based on start_date only
+  - Only end_date: Update based on end_date only
+- Include deadline day in date range checks (start_date <= today <= end_date)
+- Use retry logic (max 3 attempts) for slug uniqueness race conditions
+
+**Implementation**: `editais/models.py` - `save()` method
 
 ---
 
 ## Next Steps
 
-1. ✅ **Decisões Tomadas**: 18/19 clarificações resolvidas (95%)
-2. ⚠️ **URGENTE - Resolver CLAR-019**: Decidir sobre inconsistência entre rotas de criação de editais (`/dashboard/editais/novo/` vs `/cadastrar/`)
-   - Consolidar rotas e templates
-   - Atualizar view `dashboard_novo_edital` ou remover rota duplicada
-   - Garantir que formulário use `EditalForm` para validação consistente
-3. ⏳ **Update Spec**: Atualizar spec.md, plan.md, checklist.md e analysis.md com as decisões de CLAR-016, CLAR-017, CLAR-018 e CLAR-019 (após resolução)
-4. ⏳ **Technical Review**: Equipe técnica revisar as atualizações documentais
-5. ✅ **Start Implementation**: Continuação da implementação com requisitos claros (já em andamento - bloqueado por CLAR-019 para funcionalidade de criação no dashboard)
+1. ✅ **Decisões Tomadas**: 24/24 clarificações resolvidas (100%)
+2. ✅ **Implementation Decisions**: 7 decisões de implementação documentadas (IMPL-001 a IMPL-007)
+3. ✅ **Implementation Complete**: Todas as funcionalidades implementadas e testadas (95% - 85/89 tasks)
+4. ⏳ **Documentation**: README de produção pendente
+5. ⏳ **Coverage**: Verificar cobertura de testes ≥ 85%
 
 ---
 

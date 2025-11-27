@@ -12,7 +12,7 @@
         Gerencie usuários e permissões do sistema
       </p>
     </div>
-    <button onclick="openUserDialog()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+    <button type="button" id="new-user-btn" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
       <i class="fas fa-plus w-4 h-4"></i>
       Novo Usuário
     </button>
@@ -20,16 +20,18 @@
 
   <!-- Search -->
   <div class="bg-white rounded-xl border border-gray-200 p-4">
-    <div class="relative">
+    <form method="get" action="{% url 'dashboard_usuarios' %}" class="relative">
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
       <input
         type="text"
+        name="search"
         placeholder="Buscar usuários..."
         class="pl-10 w-full"
         id="search-users"
         aria-label="Buscar usuários"
+        value="{{ search_query }}"
       >
-    </div>
+    </form>
   </div>
 
   <!-- Users Table -->
@@ -47,38 +49,60 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
+          {% for user in users %}
           <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">João Silva</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">joao@example.com</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ user.get_full_name|default:user.username }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ user.email }}</td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="badge bg-red-100 text-red-700 border-none px-3 py-1 text-sm">Admin</span>
+              {% if user.is_staff %}
+                <span class="badge bg-red-100 text-red-700 border-none px-3 py-1 text-sm">Admin</span>
+              {% else %}
+                <span class="badge bg-blue-100 text-blue-700 border-none px-3 py-1 text-sm">Usuário</span>
+              {% endif %}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1 text-sm">Ativo</span>
+              {% if user.is_active %}
+                <span class="badge bg-green-100 text-green-700 border-none px-3 py-1 text-sm">Ativo</span>
+              {% else %}
+                <span class="badge bg-gray-100 text-gray-700 border-none px-3 py-1 text-sm">Inativo</span>
+              {% endif %}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">15/01/2024</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ user.date_joined|date:"d/m/Y" }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="relative inline-block">
-                <button class="action-menu-toggle p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <button class="action-menu-toggle p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Menu de ações para {{ user.get_full_name|default:user.username }}" aria-expanded="false">
                   <i class="fas fa-ellipsis-v text-gray-400"></i>
                 </button>
                 <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                  <a href="#" onclick="openUserDialog({id: 1, nome: 'João Silva', email: 'joao@example.com', role: 'admin'})" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                  <button type="button" data-action="edit" data-user-id="{{ user.id }}" data-user-name="{{ user.get_full_name|default:user.username }}" data-user-email="{{ user.email }}" data-user-is-staff="{{ user.is_staff|yesno:'true,false' }}" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
                     <i class="fas fa-edit w-4 h-4"></i>
                     Editar
-                  </a>
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                  </button>
+                  <button type="button" data-action="toggle-active" data-user-id="{{ user.id }}" data-user-active="{{ user.is_active|yesno:'true,false' }}" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
                     <i class="fas fa-user-times w-4 h-4"></i>
-                    Desativar
-                  </a>
-                  <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2" onclick="return confirm('Tem certeza que deseja excluir este usuário?')">
+                    {% if user.is_active %}Desativar{% else %}Ativar{% endif %}
+                  </button>
+                  <button type="button" data-action="delete" data-user-id="{{ user.id }}" data-user-name="{{ user.get_full_name|default:user.username }}" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
                     <i class="fas fa-trash w-4 h-4"></i>
                     Excluir
-                  </a>
+                  </button>
                 </div>
               </div>
             </td>
           </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+              {% if search_query %}
+                Nenhum usuário encontrado para "{{ search_query }}"
+              {% else %}
+                Nenhum usuário cadastrado
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -94,6 +118,7 @@
     </div>
 
     <div class="p-6 space-y-4">
+      <input type="hidden" id="user-id" value="">
       <div class="space-y-2">
         <label for="user-name" class="text-sm font-medium text-gray-700">Nome Completo</label>
         <input type="text" id="user-name" placeholder="Nome do usuário" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
@@ -125,10 +150,10 @@
     </div>
 
     <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
-      <button onclick="closeUserDialog()" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
+      <button type="button" id="cancel-user-btn" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
         Cancelar
       </button>
-      <button onclick="saveUser()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+      <button type="button" id="save-user-btn" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
         Salvar
       </button>
     </div>
@@ -136,16 +161,17 @@
 </div>
 
 <script>
-function openUserDialog(user = null) {
+function openUserDialog(userData = null) {
   const dialog = document.getElementById('user-dialog');
   const title = document.getElementById('dialog-title');
   const passwordField = document.getElementById('password-field');
   
-  if (user) {
+  if (userData) {
     title.textContent = 'Editar Usuário';
-    document.getElementById('user-name').value = user.nome || '';
-    document.getElementById('user-email').value = user.email || '';
-    document.getElementById('user-role').value = user.role || 'proponente';
+    document.getElementById('user-name').value = userData.userName || '';
+    document.getElementById('user-email').value = userData.userEmail || '';
+    document.getElementById('user-role').value = userData.userIsStaff === 'true' ? 'admin' : 'proponente';
+    document.getElementById('user-id').value = userData.userId || '';
     passwordField.style.display = 'none';
   } else {
     title.textContent = 'Novo Usuário';
@@ -153,6 +179,7 @@ function openUserDialog(user = null) {
     document.getElementById('user-email').value = '';
     document.getElementById('user-role').value = 'proponente';
     document.getElementById('user-password').value = '';
+    document.getElementById('user-id').value = '';
     passwordField.style.display = 'block';
   }
   
@@ -160,6 +187,7 @@ function openUserDialog(user = null) {
     window.YPETECModal.open(dialog);
   } else {
     dialog.classList.remove('hidden');
+    dialog.setAttribute('aria-hidden', 'false');
   }
 }
 
@@ -169,35 +197,175 @@ function closeUserDialog() {
     window.YPETECModal.close(dialog);
   } else {
     dialog.classList.add('hidden');
+    dialog.setAttribute('aria-hidden', 'true');
   }
 }
 
 function saveUser() {
-  alert('Usuário salvo com sucesso!');
+  // TODO: Implement backend integration
+  if (window.showToast) {
+    showToast('Funcionalidade em desenvolvimento. Em breve você poderá criar e editar usuários.', 'info');
+  } else {
+    alert('Funcionalidade em desenvolvimento. Em breve você poderá criar e editar usuários.');
+  }
   closeUserDialog();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Action menu toggles
   document.querySelectorAll('.action-menu-toggle').forEach(toggle => {
     toggle.addEventListener('click', function(e) {
       e.stopPropagation();
       const menu = this.nextElementSibling;
+      const isExpanded = menu.classList.contains('hidden') === false;
+      
+      // Close all menus
       document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
-      menu.classList.remove('hidden');
+      document.querySelectorAll('.action-menu-toggle').forEach(t => t.setAttribute('aria-expanded', 'false'));
+      
+      // Toggle current menu
+      if (isExpanded) {
+        menu.classList.add('hidden');
+        this.setAttribute('aria-expanded', 'false');
+      } else {
+        menu.classList.remove('hidden');
+        this.setAttribute('aria-expanded', 'true');
+      }
     });
   });
   
+  // Close menus when clicking outside
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
       document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+      document.querySelectorAll('.action-menu-toggle').forEach(t => t.setAttribute('aria-expanded', 'false'));
     }
   });
   
+  // Handle action menu buttons
+  document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const userData = {
+        userId: this.getAttribute('data-user-id'),
+        userName: this.getAttribute('data-user-name'),
+        userEmail: this.getAttribute('data-user-email'),
+        userIsStaff: this.getAttribute('data-user-is-staff')
+      };
+      openUserDialog(userData);
+    });
+  });
+  
+  document.querySelectorAll('[data-action="toggle-active"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const userId = this.getAttribute('data-user-id');
+      const userName = this.getAttribute('data-user-name');
+      const isActive = this.getAttribute('data-user-active') === 'true';
+      const action = isActive ? 'desativar' : 'ativar';
+      
+      if (window.showConfirmDialog) {
+        showConfirmDialog({
+          title: `${action.charAt(0).toUpperCase() + action.slice(1)} Usuário`,
+          message: `Tem certeza que deseja ${action} o usuário "${userName}"?`,
+          confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+          cancelText: 'Cancelar',
+          type: 'warning'
+        }).then(confirmed => {
+          if (confirmed) {
+            // TODO: Implement backend integration
+            if (window.showToast) {
+              showToast('Funcionalidade em desenvolvimento. Em breve você poderá ativar/desativar usuários.', 'info');
+            } else {
+              alert('Funcionalidade em desenvolvimento. Em breve você poderá ativar/desativar usuários.');
+            }
+          }
+        });
+      } else {
+        if (confirm(`Tem certeza que deseja ${action} o usuário "${userName}"?`)) {
+          // TODO: Implement backend integration
+          if (window.showToast) {
+            showToast('Funcionalidade em desenvolvimento. Em breve você poderá ativar/desativar usuários.', 'info');
+          } else {
+            alert('Funcionalidade em desenvolvimento. Em breve você poderá ativar/desativar usuários.');
+          }
+        }
+      }
+    });
+  });
+  
+  document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const userId = this.getAttribute('data-user-id');
+      const userName = this.getAttribute('data-user-name');
+      
+      if (window.showConfirmDialog) {
+        showConfirmDialog({
+          title: 'Excluir Usuário',
+          message: `Tem certeza que deseja excluir o usuário "${userName}"? Esta ação não pode ser desfeita.`,
+          confirmText: 'Excluir',
+          cancelText: 'Cancelar',
+          type: 'danger',
+          confirmButtonClass: 'btn-danger'
+        }).then(confirmed => {
+          if (confirmed) {
+            // TODO: Implement backend integration
+            if (window.showToast) {
+              showToast('Funcionalidade em desenvolvimento. Em breve você poderá excluir usuários.', 'info');
+            } else {
+              alert('Funcionalidade em desenvolvimento. Em breve você poderá excluir usuários.');
+            }
+          }
+        });
+      } else {
+        if (confirm(`Tem certeza que deseja excluir o usuário "${userName}"? Esta ação não pode ser desfeita.`)) {
+          // TODO: Implement backend integration
+          if (window.showToast) {
+            showToast('Funcionalidade em desenvolvimento. Em breve você poderá excluir usuários.', 'info');
+          } else {
+            alert('Funcionalidade em desenvolvimento. Em breve você poderá excluir usuários.');
+          }
+        }
+      }
+    });
+  });
+  
+  // Dialog close on overlay click
   document.getElementById('user-dialog').addEventListener('click', function(e) {
     if (e.target === this) {
       closeUserDialog();
     }
   });
+  
+  // Search form submission
+  const searchForm = document.querySelector('form[method="get"]');
+  if (searchForm) {
+    const searchInput = document.getElementById('search-users');
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        if (this.value.length === 0 || this.value.length >= 2) {
+          searchForm.submit();
+        }
+      }, 500);
+    });
+  }
+  
+  // New user button
+  const newUserBtn = document.getElementById('new-user-btn');
+  if (newUserBtn) {
+    newUserBtn.addEventListener('click', () => openUserDialog());
+  }
+  
+  // Dialog buttons
+  const cancelBtn = document.getElementById('cancel-user-btn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeUserDialog);
+  }
+  
+  const saveBtn = document.getElementById('save-user-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', saveUser);
+  }
 });
 </script>
 {% endblock %}

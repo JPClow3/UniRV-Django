@@ -93,22 +93,22 @@ class EditalForm(forms.ModelForm):
             'itens_essenciais_observacoes', 'detalhes_unirv'
         ]
         widgets = {
-            'titulo': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
-            'url': forms.URLInput(attrs={'class': 'form-control', 'required': True}),
-            'numero_edital': forms.TextInput(attrs={'class': 'form-control'}),
-            'entidade_principal': forms.TextInput(attrs={'class': 'form-control'}),
-            'status': forms.Select(attrs={'class': 'form-control'}),
-            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'analise': forms.Textarea(attrs={'class': 'form-control', 'rows': 12, 'placeholder': 'Análise do Edital'}),
-            'objetivo': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'etapas': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'recursos': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'itens_financiaveis': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'criterios_elegibilidade': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'criterios_avaliacao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'itens_essenciais_observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'detalhes_unirv': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'titulo': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'required': True}),
+            'url': forms.URLInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'required': True}),
+            'numero_edital': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'}),
+            'entidade_principal': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'}),
+            'status': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'}),
+            'start_date': forms.DateInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'type': 'date'}),
+            'analise': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 12, 'placeholder': 'Análise do Edital'}),
+            'objetivo': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 4}),
+            'etapas': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 4}),
+            'recursos': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
+            'itens_financiaveis': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
+            'criterios_elegibilidade': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
+            'criterios_avaliacao': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
+            'itens_essenciais_observacoes': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
+            'detalhes_unirv': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
         }
 
     def clean(self) -> Dict[str, Any]:

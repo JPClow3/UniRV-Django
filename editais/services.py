@@ -95,10 +95,9 @@ class EditalService:
         }
         
         # Atualizar editais para 'fechado'
-        # Close only after deadline day has passed (end_date < today)
-        # This keeps editals open throughout the entire deadline day
+        # Close when deadline day has passed or is today (end_date <= today)
         count_closed = Edital.objects.filter(
-            end_date__lt=today,
+            end_date__lte=today,
             status='aberto'
         ).update(status='fechado', data_atualizacao=now)
         updated_count['fechado'] = count_closed
@@ -113,9 +112,9 @@ class EditalService:
         
         # Atualizar editais para 'aberto'
         # Include deadline day (end_date >= today) so editals remain open throughout deadline day
+        # Also include continuous flow editais (end_date=None) that have started
         count_opened = Edital.objects.filter(
-            start_date__lte=today,
-            end_date__gte=today,
+            Q(start_date__lte=today) & (Q(end_date__gte=today) | Q(end_date__isnull=True)),
             status='programado'
         ).update(status='aberto', data_atualizacao=now)
         updated_count['aberto'] = count_opened

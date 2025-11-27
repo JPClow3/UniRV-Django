@@ -12,7 +12,7 @@
         Crie, edite e publique editais de incubação e pré-incubação
       </p>
     </div>
-    <a href="{% url 'dashboard_novo_edital' %}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+    <a href="{% url 'edital_create' %}" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
       <i class="fas fa-plus w-4 h-4"></i>
       Novo Edital
     </a>
@@ -144,7 +144,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="relative inline-block">
-                  <button class="action-menu-toggle p-2 hover:bg-gray-100 rounded-lg transition-colors" data-id="{{ edital.id }}">
+                  <button class="action-menu-toggle p-2 hover:bg-gray-100 rounded-lg transition-colors" data-id="{{ edital.id }}" aria-label="Menu de ações para {{ edital.titulo }}" aria-expanded="false">
                     <i class="fas fa-ellipsis-v text-gray-400"></i>
                   </button>
                   <div class="action-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
@@ -156,10 +156,10 @@
                       <i class="fas fa-edit w-4 h-4"></i>
                       Editar
                     </a>
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <button type="button" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 opacity-50 cursor-not-allowed" title="Em breve" aria-label="Ver Submissões (em breve)" disabled>
                       <i class="fas fa-calendar w-4 h-4"></i>
                       Ver Submissões
-                    </a>
+                    </button>
                     <a href="{% url 'edital_delete' edital.pk %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 delete-edital-link" data-edital-title="{{ edital.titulo }}">
                       <i class="fas fa-trash w-4 h-4"></i>
                       Excluir
@@ -171,7 +171,7 @@
           {% empty %}
             <tr>
               <td colspan="8" class="px-6 py-12">
-                {% include 'components/empty_state.html' with icon='fa-file-alt' title='Sem editais cadastrados' description='Crie um novo edital ou ajuste os filtros para visualizar registros existentes.' action_url_name='dashboard_novo_edital' action_text='Novo Edital' %}
+                {% include 'components/empty_state.html' with icon='fa-file-alt' title='Sem editais cadastrados' description='Crie um novo edital ou ajuste os filtros para visualizar registros existentes.' action_url_name='edital_create' action_text='Novo Edital' %}
               </td>
             </tr>
           {% endfor %}

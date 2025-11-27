@@ -8,7 +8,6 @@ tratamento de erros e logging.
 
 class EditalException(Exception):
     """Exceção base para erros relacionados a editais."""
-    pass
 
 
 class EditalNotFoundError(EditalException):

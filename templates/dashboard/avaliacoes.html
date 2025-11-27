@@ -27,7 +27,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Total</div>
-      <div class="text-gray-900 text-2xl font-bold">4</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ total|default:0 }}</div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -37,7 +37,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Pendentes</div>
-      <div class="text-gray-900 text-2xl font-bold">2</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ pendentes|default:0 }}</div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -47,7 +47,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Concluídas</div>
-      <div class="text-gray-900 text-2xl font-bold">2</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ concluidas|default:0 }}</div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -57,7 +57,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Nota Média</div>
-      <div class="text-gray-900 text-2xl font-bold">8.0</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ nota_media|default:0 }}</div>
     </div>
   </div>
 
@@ -92,63 +92,69 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {% comment %}
-          TODO: When evaluation data is available from the view, replace False with actual evaluations queryset/variable.
-          For now, this will always show the empty state until evaluation data is provided.
-          {% endcomment %}
-          {% if evaluations %}
+          {% for evaluation in evaluations %}
           <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">AgroTech Solutions</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Edital 001/2024</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">João Silva</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">15/03/2024</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-600">5 dias</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="badge bg-orange-100 text-orange-700 border-none px-3 py-1 text-sm">Pendente</span>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ evaluation.name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ evaluation.edital.titulo|truncatewords:5 }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ evaluation.proponente.get_full_name|default:evaluation.proponente.username }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ evaluation.submitted_on|date:"d/m/Y" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm {% if evaluation.status == 'pendente' %}text-orange-600{% else %}text-gray-600{% endif %}">
+              {% if evaluation.status == 'pendente' %}
+                {% if evaluation.edital.end_date %}
+                  {% with days_left=evaluation.edital.days_until_deadline %}
+                    {% if days_left is not None and days_left > 0 %}
+                      {{ days_left }} dia{{ days_left|pluralize }}
+                    {% elif days_left is not None %}
+                      Vencido
+                    {% else %}
+                      Sem prazo
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  Sem prazo
+                {% endif %}
+              {% else %}
+                {{ evaluation.get_status_display }}
+              {% endif %}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="text-gray-400">-</span>
+              {% if evaluation.status == 'aprovado' %}
+                <span class="badge bg-green-100 text-green-700 border-none px-3 py-1 text-sm">Aprovado</span>
+              {% elif evaluation.status == 'reprovado' %}
+                <span class="badge bg-red-100 text-red-700 border-none px-3 py-1 text-sm">Reprovado</span>
+              {% elif evaluation.status == 'em_avaliacao' %}
+                <span class="badge bg-blue-100 text-blue-700 border-none px-3 py-1 text-sm">Em Avaliação</span>
+              {% else %}
+                <span class="badge bg-orange-100 text-orange-700 border-none px-3 py-1 text-sm">Pendente</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if evaluation.note %}
+                <span class="font-mono">{{ evaluation.note }}</span>
+              {% else %}
+                <span class="text-gray-400">-</span>
+              {% endif %}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Visualizar Projeto">
+                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors opacity-50 cursor-not-allowed" title="Em breve" aria-label="Visualizar Projeto (em breve)" disabled>
                   <i class="fas fa-eye text-gray-400"></i>
                 </button>
-                {% if not user.is_staff %}
-                  <button class="avaliar-btn bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-3 py-1 text-sm transition-all" data-id="1">
+                {% if not user.is_staff and evaluation.status == 'pendente' %}
+                  <button type="button" class="avaliar-btn bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-3 py-1 text-sm transition-all" data-id="{{ evaluation.id }}" data-projeto="{{ evaluation.name }}" data-edital="{{ evaluation.edital.titulo }}">
                     Avaliar
                   </button>
                 {% endif %}
               </div>
             </td>
           </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">LogiSmart</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Edital 001/2024</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Ana Oliveira</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">01/03/2024</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Concluída</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="badge bg-green-100 text-green-700 border-none px-3 py-1 text-sm">Concluída</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="font-mono">7.5</span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex gap-2">
-                <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Visualizar Projeto">
-                  <i class="fas fa-eye text-gray-400"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          {% else %}
+          {% empty %}
           <tr>
             <td colspan="8" class="px-6 py-12">
               {% include 'components/empty_state.html' with icon='fa-clipboard-list' title='Nenhuma avaliação encontrada' description='Não há avaliações pendentes ou concluídas no momento.' %}
             </td>
           </tr>
-          {% endif %}
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -232,10 +238,10 @@
     </div>
 
     <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
-      <button onclick="closeDialog()" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
+      <button type="button" id="cancel-avaliacao-btn" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
         Cancelar
       </button>
-      <button onclick="submitAvaliacao()" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+      <button type="button" id="submit-avaliacao-btn" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
         <i class="fas fa-check-circle w-4 h-4"></i>
         Enviar Avaliação
       </button>
@@ -247,11 +253,14 @@
 function openDialog(projeto, edital) {
   const dialog = document.getElementById('avaliacao-dialog');
   const info = document.getElementById('dialog-projeto-info');
-  info.textContent = `${projeto} - ${edital}`;
+  if (info) {
+    info.textContent = `${projeto} - ${edital}`;
+  }
   if (window.YPETECModal && typeof window.YPETECModal.open === 'function') {
     window.YPETECModal.open(dialog);
   } else {
     dialog.classList.remove('hidden');
+    dialog.setAttribute('aria-hidden', 'false');
   }
 }
 
@@ -261,30 +270,49 @@ function closeDialog() {
     window.YPETECModal.close(dialog);
   } else {
     dialog.classList.add('hidden');
+    dialog.setAttribute('aria-hidden', 'true');
   }
 }
 
 function submitAvaliacao() {
-  alert('Avaliação enviada com sucesso!');
+  // TODO: Implement backend integration
+  if (window.showToast) {
+    showToast('Funcionalidade em desenvolvimento. Em breve você poderá enviar avaliações.', 'info');
+  } else {
+    alert('Funcionalidade em desenvolvimento. Em breve você poderá enviar avaliações.');
+  }
   closeDialog();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('.avaliar-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-      const row = this.closest('tr');
-      const projeto = row.querySelector('td:first-child').textContent;
-      const edital = row.querySelector('td:nth-child(2)').textContent;
+      const projeto = this.getAttribute('data-projeto');
+      const edital = this.getAttribute('data-edital');
       openDialog(projeto, edital);
     });
   });
   
   // Close dialog on outside click
-  document.getElementById('avaliacao-dialog').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeDialog();
-    }
-  });
+  const dialog = document.getElementById('avaliacao-dialog');
+  if (dialog) {
+    dialog.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeDialog();
+      }
+    });
+  }
+  
+  // Dialog buttons
+  const cancelBtn = document.getElementById('cancel-avaliacao-btn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeDialog);
+  }
+  
+  const submitBtn = document.getElementById('submit-avaliacao-btn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', submitAvaliacao);
+  }
 });
 </script>
 {% endblock %}

@@ -119,7 +119,6 @@
         <span class="badge bg-green-100 text-green-700 px-2 py-1 rounded">Edital {{ edital_filter }}</span>
       {% endfor %}
     {% endif %}
-    {% endif %}
     {% if status_filter %}
       <span class="badge bg-purple-100 text-purple-700 px-2 py-1 rounded">{{ status_filter }}</span>
     {% endif %}
@@ -193,11 +192,11 @@
       <!-- Card Footer -->
       <div class="flex items-center justify-between pt-4 border-t border-gray-100">
         <div class="flex gap-2">
-          <button class="p-2 hover:bg-gray-100 rounded-lg transition-all hover:scale-110" title="Visualizar projeto" aria-label="Visualizar projeto">
-            <i class="fas fa-eye text-gray-600 hover:text-unirvBlue"></i>
+          <button class="p-2 rounded-lg transition-all opacity-50 cursor-not-allowed" title="Em breve" aria-label="Visualizar projeto (em breve)" disabled>
+            <i class="fas fa-eye text-gray-400"></i>
           </button>
-          <button class="p-2 hover:bg-gray-100 rounded-lg transition-all hover:scale-110" title="Download" aria-label="Download do projeto">
-            <i class="fas fa-download text-gray-600 hover:text-unirvBlue"></i>
+          <button class="p-2 rounded-lg transition-all opacity-50 cursor-not-allowed" title="Em breve" aria-label="Download do projeto (em breve)" disabled>
+            <i class="fas fa-download text-gray-400"></i>
           </button>
         </div>
         <span class="text-xs text-gray-400">{{ project.submitted_on }}</span>

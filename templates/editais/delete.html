@@ -36,7 +36,7 @@
     <form method="post" class="delete-form" id="delete-form">
         {% csrf_token %}
         <div class="form-actions">
-            <button type="button" class="btn btn-danger" id="delete-confirm-btn" onclick="confirmDelete()">
+            <button type="button" class="btn btn-danger" id="delete-confirm-btn">
                 <i class="fas fa-trash" aria-hidden="true"></i>
                 <span>Confirmar Exclusão</span>
             </button>
@@ -85,6 +85,14 @@ async function confirmDelete() {
         }
     }
 }
+
+// Add event listener for delete button
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteBtn = document.getElementById('delete-confirm-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', confirmDelete);
+    }
+});
 </script>
 </div>
 {% endblock %}

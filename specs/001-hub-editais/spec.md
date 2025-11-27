@@ -140,11 +140,17 @@ Como administrador, quero filtrar e paginar a lista de editais na interface admi
 
 ### Key Entities *(include if feature involves data)*
 
-- **Edital**: Representa um edital de fomento. Atributos principais: título, slug (único, gerado automaticamente), organização (entidade_principal), objetivo, critérios de elegibilidade, data de início (start_date), data de fim (end_date), status (draft/aberto/em_andamento/fechado/programado), criado por, datas de criação/atualização. Relacionamentos: tem muitos cronogramas (Cronograma), criado por usuário (User). **NOTA**: Upload de anexos REMOVIDO do MVP; manter campo 'url' para links externos.
+- **Edital**: Representa um edital de fomento. Atributos principais: título, slug (único, gerado automaticamente), organização (entidade_principal), objetivo, critérios de elegibilidade, data de início (start_date), data de fim (end_date), status (draft/aberto/em_andamento/fechado/programado), criado por, datas de criação/atualização. Relacionamentos: tem muitos cronogramas (Cronograma), valores (EditalValor), projetos (Project), histórico (EditalHistory), criado por usuário (User). **NOTA**: Upload de anexos REMOVIDO do MVP; manter campo 'url' para links externos. **IMPLEMENTADO**: Modelo completo com todos os campos, métodos (get_absolute_url, is_open, is_closed, can_edit), propriedades (days_until_deadline, is_deadline_imminent), auto-atualização de status, sanitização HTML.
 
-- **Cronograma**: Representa etapas e cronogramas distintos de um edital. Atributos principais: data_inicio, data_fim, data_publicacao, descricao. Relacionamentos: pertence a um Edital (ForeignKey com CASCADE).
+- **Cronograma**: Representa etapas e cronogramas distintos de um edital. Atributos principais: data_inicio, data_fim, data_publicacao, descricao. Relacionamentos: pertence a um Edital (ForeignKey com CASCADE). **IMPLEMENTADO**: Modelo completo com índices otimizados.
 
-- **User** (Django built-in): Representa usuários do sistema. Usuários `is_staff` podem criar, editar, excluir e exportar editais; usuários autenticados não-staff e visitantes têm acesso apenas à visualização de listagens e detalhes. Permissões adicionais (grupos, níveis editor/admin) podem ser avaliadas futuramente.
+- **EditalValor**: Representa valores financeiros de um edital. Atributos principais: valor_total, moeda (BRL/USD/EUR). Relacionamentos: pertence a um Edital (ForeignKey com CASCADE). **IMPLEMENTADO**: Modelo completo com choices para moeda e índices otimizados.
+
+- **EditalHistory**: Representa histórico de alterações em editais para auditoria. Atributos principais: edital (pode ser NULL se deletado), edital_titulo (preservado), user, action (create/update/delete), changes_summary (JSON), timestamp. Relacionamentos: pertence a um Edital (ForeignKey com SET_NULL), usuário (User). **IMPLEMENTADO**: Modelo completo com preservação de histórico mesmo após deleção.
+
+- **Project**: Representa uma proposta de startup da incubadora AgroHub UniRV (showcase). **NOTA IMPORTANTE (CLAR-020)**: O modelo atual usa nomenclatura incorreta - não são "projetos submetidos", mas sim propostas de startups da incubadora exibidas em showcase. Acesso restrito a grupos específicos de usuários. Não há sistema de submissão. **REFATORAÇÃO FUTURA**: Renomear modelo para `StartupProposal` ou `PropostaStartup` e atualizar documentação. Atributos principais: name, edital, proponente, submitted_on, status, note. **IMPLEMENTADO**: Modelo completo com índices otimizados e dashboard de gerenciamento.
+
+- **User** (Django built-in): Representa usuários do sistema. Usuários `is_staff` podem criar, editar, excluir e exportar editais; usuários autenticados não-staff e visitantes têm acesso apenas à visualização de listagens e detalhes. Permissões adicionais (grupos, níveis editor/admin) podem ser avaliadas futuramente. **IMPLEMENTADO**: Sistema de permissões baseado em `is_staff` com verificação em todas as views administrativas.
 
 ## Success Criteria *(mandatory)*
 
@@ -357,7 +363,7 @@ class EditalValor(models.Model):
 
 ## Out of Scope (Futuras Fases)
 
-- Sistema de notificações personalizadas (email / in-app) — planejar apenas
+- Sistema de notificações personalizadas (email / in-app) — **PRIORIDADE PARA PRÓXIMA FASE** (CLAR-024)
 - Acompanhamento personalizado de editais e recomendação (ML)
 - Integração SSO institucional (apenas autenticação Django por ora)
 - Upload de anexos — REMOVIDO do MVP, será implementado em fase futura
@@ -379,66 +385,74 @@ class EditalValor(models.Model):
 
 ### Estado Atual vs. Especificação
 
-**Modelos Existentes:**
+**Modelos Implementados:**
 
-- `Edital` com campos: `numero_edital`, `titulo`, `url`, `entidade_principal`, `status` ('aberto', 'fechado', 'em_andamento'), campos de conteúdo detalhados (`analise`, `objetivo`, `etapas`, etc.)
-- `Cronograma` (separado, relacionado a Edital) com `data_inicio`, `data_fim`, `data_publicacao`
-- `EditalValor` para valores financeiros
-- `EditalFavorite` para favoritos de usuários
-- URLs usam PK (`/editais/<pk>/`) ao invés de slug
+- ✅ `Edital` com todos os campos: `numero_edital`, `titulo`, `slug`, `url`, `entidade_principal`, `status` ('draft', 'aberto', 'em_andamento', 'fechado', 'programado'), `start_date`, `end_date`, campos de conteúdo detalhados (`analise`, `objetivo`, `etapas`, etc.), `created_by`, `updated_by`
+- ✅ `Cronograma` (separado, relacionado a Edital) com `data_inicio`, `data_fim`, `data_publicacao`, `descricao` - índices otimizados
+- ✅ `EditalValor` para valores financeiros - com choices para moeda (BRL/USD/EUR) e índices otimizados
+- ✅ `EditalHistory` para auditoria de alterações - preserva histórico mesmo após deleção
+- ✅ `Project` para showcase de propostas de startups da incubadora AgroHub UniRV - com status e notas (**NOTA**: Nomenclatura incorreta - refatoração futura necessária, ver CLAR-020)
+- ❌ `EditalFavorite` removido do MVP (modelo deletado)
+- ✅ URLs migradas para slug (`/edital/<slug>/`) com redirecionamento 301 de PK
 
-**Alterações Necessárias:**
+**Alterações Implementadas:**
 
-1. Adicionar campo `slug` ao modelo Edital (único, gerado automaticamente a partir do título, não editável)
-2. Adicionar campos `start_date` e `end_date` diretamente ao Edital (manter relação com Cronograma para cronogramas detalhados)
-3. Atualizar status choices para incluir 'draft' (rascunho) e 'programado' (editais futuros)
-4. Migrar URLs de PK para slug (com redirecionamento 301)
-5. Manter compatibilidade com dados existentes durante migração (base vazia - nenhuma migração de dados necessária)
-6. **NÃO adicionar campo `location`** (removido do MVP - será implementado em fase futura se necessário)
-7. **NÃO adicionar campos em inglês** (`description`, `requirements`) - usar apenas campos em português existentes
-8. **NÃO criar modelo `EditalAttachment`** (upload de anexos removido do MVP - manter apenas campo 'url' para links externos)
+1. ✅ Campo `slug` adicionado ao modelo Edital (único, gerado automaticamente, não editável, com fallback)
+2. ✅ Campos `start_date` e `end_date` adicionados ao Edital (mantida relação com Cronograma para cronogramas detalhados)
+3. ✅ Status choices atualizados para incluir 'draft' (rascunho) e 'programado' (editais futuros)
+4. ✅ URLs migradas de PK para slug (com redirecionamento 301 permanente)
+5. ✅ Data migration para popular slugs existentes (0006_populate_slugs.py)
+6. ✅ **NÃO adicionado campo `location`** (removido do MVP)
+7. ✅ **NÃO adicionados campos em inglês** (`description`, `requirements`) - apenas campos em português
+8. ✅ **NÃO criado modelo `EditalAttachment`** (upload de anexos removido do MVP)
+9. ✅ Modelo `EditalHistory` criado para auditoria completa
+10. ✅ Modelo `Project` criado para showcase de propostas de startups (nomenclatura a ser corrigida - ver CLAR-020)
 
-### Plano de Implementação
+### Plano de Implementação (Status: ✅ Concluído)
 
-1. **Fase 1: Preparação**
-   - Analisar dados existentes (base vazia - nenhuma migração de dados necessária)
-   - Criar migration para adicionar novos campos (slug, start_date, end_date)
-   - Criar data migration para popular slugs a partir de títulos existentes (se houver dados)
-   - Adicionar status 'draft' e 'programado' aos STATUS_CHOICES
+1. **✅ Fase 1: Preparação**
+   - ✅ Analisados dados existentes (base vazia - nenhuma migração de dados necessária)
+   - ✅ Criada migration para adicionar novos campos (slug, start_date, end_date) - 0005_add_slug_and_dates.py
+   - ✅ Criada data migration para popular slugs a partir de títulos existentes - 0006_populate_slugs.py
+   - ✅ Adicionados status 'draft' e 'programado' aos STATUS_CHOICES
 
-2. **Fase 2: Modelos**
-   - Adicionar campos faltantes ao modelo `Edital` (slug, start_date, end_date)
-   - Implementar método `_generate_unique_slug()` no modelo Edital
-   - Implementar lógica de status automático no método `save()`
-   - Atualizar índices conforme especificação
-   - Manter modelos existentes (Cronograma, EditalValor) para compatibilidade
-   - **NÃO criar modelo EditalAttachment** (upload de anexos REMOVIDO do MVP)
+2. **✅ Fase 2: Modelos**
+   - ✅ Adicionados campos faltantes ao modelo `Edital` (slug, start_date, end_date)
+   - ✅ Implementado método `_generate_unique_slug()` no modelo Edital com fallback
+   - ✅ Implementada lógica de status automático no método `save()` com tratamento de edge cases
+   - ✅ Atualizados índices conforme especificação (15+ índices em todos os modelos)
+   - ✅ Mantidos modelos existentes (Cronograma, EditalValor) com melhorias
+   - ✅ Criado modelo `EditalHistory` para auditoria completa
+   - ✅ Criado modelo `Project` para showcase de propostas de startups (nomenclatura a ser corrigida - ver CLAR-020)
+   - ✅ **NÃO criado modelo EditalAttachment** (upload de anexos REMOVIDO do MVP)
 
-3. **Fase 3: Migração de URLs**
-   - Adicionar suporte a slug nas URLs
-   - Manter compatibilidade com URLs antigas (PK) durante período de transição
-   - Atualizar `get_absolute_url()` para usar slug
+3. **✅ Fase 3: Migração de URLs**
+   - ✅ Adicionado suporte a slug nas URLs (`/edital/<slug>/`)
+   - ✅ Mantida compatibilidade com URLs antigas (PK) com redirecionamento 301
+   - ✅ Atualizado `get_absolute_url()` para usar slug (com fallback para PK)
 
-4. **Fase 4: Views e Templates**
-   - Implementar views públicas (list, detail) com busca e filtros
-   - Implementar views administrativas (create, update, delete) usando Django Admin
-   - Criar templates públicos e administrativos
-   - Implementar sistema de permissões (staff, editor, admin)
-   - Implementar redirecionamento de URLs PK para slug (301)
-   - **NÃO implementar upload de anexos** (REMOVIDO do MVP)
+4. **✅ Fase 4: Views e Templates**
+   - ✅ Implementadas views públicas (list, detail) com busca e filtros avançados
+   - ✅ Implementadas views administrativas (create, update, delete) com verificação `is_staff`
+   - ✅ Criados templates públicos e administrativos (dashboard completo)
+   - ✅ Implementado sistema de permissões baseado em `is_staff`
+   - ✅ Implementado redirecionamento de URLs PK para slug (301)
+   - ✅ Implementado dashboard administrativo completo
+   - ✅ Implementado sistema de showcase de propostas de startups (nomenclatura a ser corrigida - ver CLAR-020)
+   - ✅ **NÃO implementado upload de anexos** (REMOVIDO do MVP)
 
-5. **Fase 5: Testes e Qualidade**
-   - Adicionar testes unitários e de integração
-   - Alcançar cobertura mínima de 85%
-   - Configurar permissões e segurança
-   - Implementar management command para atualizar status automaticamente
-   - Implementar cache para listagens públicas
-   - Validar conformidade com Constituição
+5. **✅ Fase 5: Testes e Qualidade**
+   - ✅ Adicionados testes unitários e de integração (169+ testes)
+   - ⚠️ Cobertura mínima de 85% ainda não verificada (executar `coverage`)
+   - ✅ Configuradas permissões e segurança (XSS, CSRF, SQL injection, rate limiting)
+   - ✅ Implementado management command para atualizar status automaticamente
+   - ✅ Implementado cache para listagens públicas (cache versionado)
+   - ✅ Validada conformidade com Constituição
 
-6. **Fase 6: Deploy**
-   - Testar em ambiente de desenvolvimento
-   - Revisar migrações em ambiente de staging
-   - Deploy em produção
+6. **⏳ Fase 6: Deploy**
+   - ✅ Testado em ambiente de desenvolvimento
+   - ⏳ Revisar migrações em ambiente de staging
+   - ⏳ Deploy em produção
 
 ## Notes
 

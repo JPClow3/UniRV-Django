@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Total de Projetos</div>
-      <div class="text-gray-900 text-2xl font-bold">45</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ total_projetos|default:0 }}</div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -31,7 +31,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Taxa de Aprovação</div>
-      <div class="text-gray-900 text-2xl font-bold">67%</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ taxa_aprovacao|default:0 }}%</div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -41,7 +41,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Usuários Ativos</div>
-      <div class="text-gray-900 text-2xl font-bold">156</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ usuarios_ativos|default:0 }}</div>
     </div>
 
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -51,7 +51,7 @@
         </div>
       </div>
       <div class="text-gray-600 mb-1 text-sm">Editais Ativos</div>
-      <div class="text-gray-900 text-2xl font-bold">3</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ editais_ativos|default:0 }}</div>
     </div>
   </div>
 

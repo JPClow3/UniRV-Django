@@ -59,6 +59,7 @@ Sistema de gerenciamento de editais de fomento para a YPETEC - Incubadora UniRV.
 
 - Python 3.9 ou superior
 - pip (gerenciador de pacotes Python)
+- Node.js 18+ e npm (para Tailwind CSS)
 - Git
 
 ### 1. Clone o repositório
@@ -81,13 +82,41 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Instale as dependências
+### 3. Instale as dependências Python
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure as variáveis de ambiente
+### 4. Instale as dependências npm (Tailwind CSS)
+
+**Opção 1: Usando o script de setup automático (recomendado)**
+
+```bash
+# Windows
+setup.bat
+
+# Linux/Mac
+chmod +x setup.sh
+./setup.sh
+
+# Ou usando Python
+python setup.py
+```
+
+**Opção 2: Usando django-tailwind diretamente**
+
+```bash
+python manage.py tailwind install
+```
+
+Isso irá:
+- Instalar automaticamente todas as dependências npm necessárias
+- Compilar o CSS do Tailwind para produção
+
+> **Nota:** Se você não tiver Node.js instalado, baixe em https://nodejs.org/
+
+### 5. Configure as variáveis de ambiente
 
 **IMPORTANTE:** Copie o arquivo `.env.example` para `.env` e configure as variáveis:
 
@@ -107,13 +136,13 @@ Edite o arquivo `.env` e configure as variáveis necessárias (veja seção [Con
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-### 5. Execute as migrações
+### 6. Execute as migrações
 
 ```bash
 python manage.py migrate
 ```
 
-### 6. Crie um superusuário
+### 7. Crie um superusuário
 
 ```bash
 python manage.py createsuperuser
@@ -121,13 +150,13 @@ python manage.py createsuperuser
 
 Siga as instruções para criar um usuário administrador.
 
-### 7. (Opcional) Popular o banco com dados de exemplo
+### 8. (Opcional) Popular o banco com dados de exemplo
 
 ```bash
 python manage.py seed_editais
 ```
 
-### 8. Inicie o servidor
+### 9. Inicie o servidor
 
 ```bash
 python manage.py runserver
@@ -428,7 +457,11 @@ Antes de fazer deploy em produção, certifique-se de:
 - **WhiteNoise 6.7.0**: Servir arquivos estáticos em produção
 - **Bleach 6.1.0**: Sanitização de HTML (prevenção XSS)
 - **Gunicorn 23.0.0**: WSGI server (produção)
-- **django-compressor 4.4**: Minificação de CSS/JS em produção
+- **django-compressor 4.6.0**: Minificação de CSS/JS em produção
+- **django-tailwind 3.8.0+**: Integração do Tailwind CSS com Django
+  - Fornece comandos de gerenciamento: `tailwind install`, `tailwind build`, `tailwind dev`
+  - Gerencia automaticamente as dependências npm do Tailwind CSS
+  - **Necessário** para compilar o CSS do projeto
 
 ### Opcionais (não utilizadas atualmente)
 
