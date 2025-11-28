@@ -763,7 +763,9 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
         valores = edital.valores.all()
         cronogramas = edital.cronogramas.all()
 
-        # Mark HTML fields as safe for rendering (values are sanitized on write)
+        # Sanitize and mark HTML fields as safe for rendering
+        # This creates {field}_safe attributes with sanitized HTML marked as safe.
+        # Original fields remain unchanged so Django can auto-escape them if needed.
         mark_edital_fields_safe(edital)
 
         # Calculate if edital was recently updated (within last 24 hours)

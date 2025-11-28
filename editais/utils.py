@@ -110,17 +110,22 @@ def sanitize_edital_fields(edital: 'Edital') -> 'Edital':
 
 def mark_edital_fields_safe(edital: 'Edital') -> 'Edital':
     """
-    Marca campos HTML sanitizados como seguros para renderização em templates.
+    Sanitiza e marca campos HTML como seguros para renderização em templates.
+    Cria atributos {field}_safe que contêm HTML sanitizado e marcado como seguro.
+    Os campos originais permanecem inalterados para que Django possa auto-escapá-los.
     
     Args:
         edital: Instância do modelo Edital
         
     Returns:
-        Edital: Instância com campos marcados como seguros
+        Edital: Instância com campos _safe sanitizados e marcados como seguros
     """
     for field in HTML_FIELDS:
         value = getattr(edital, field, None)
         if value:
-            setattr(edital, f'{field}_safe', mark_safe(value))
+            # Sanitize the value and mark it as safe for the _safe attribute
+            # Original field remains unchanged (will be auto-escaped by Django)
+            sanitized_value = sanitize_html(value)
+            setattr(edital, f'{field}_safe', mark_safe(sanitized_value))
     return edital
 
