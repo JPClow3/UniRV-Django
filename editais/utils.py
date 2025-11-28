@@ -2,13 +2,17 @@
 Utility functions for the editais app.
 """
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+from datetime import date
 import logging
 import bleach
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 
 from .constants import HTML_FIELDS
-from .models import Edital
+
+if TYPE_CHECKING:
+    from .models import Edital
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +57,41 @@ def sanitize_html(text: Optional[str]) -> str:
         return ''
 
 
-def sanitize_edital_fields(edital: Edital) -> Edital:
+def determine_edital_status(
+    *,
+    current_status: str,
+    start_date: Optional[date],
+    end_date: Optional[date],
+    today: Optional[date] = None,
+) -> str:
+    """
+    Centraliza a lógica de status para manter consistência entre salvamentos e jobs.
+    """
+    today = today or timezone.now().date()
+
+    if current_status == 'draft':
+        return 'draft'
+
+    if start_date and end_date:
+        if end_date < today and current_status == 'aberto':
+            return 'fechado'
+        if start_date <= today <= end_date and current_status == 'programado':
+            return 'aberto'
+        if start_date > today and current_status not in ['draft', 'programado']:
+            return 'programado'
+    elif start_date and not end_date:
+        if start_date <= today and current_status == 'programado':
+            return 'aberto'
+        if start_date > today and current_status not in ['draft', 'programado']:
+            return 'programado'
+    elif not start_date and end_date:
+        if end_date < today and current_status == 'aberto':
+            return 'fechado'
+
+    return current_status
+
+
+def sanitize_edital_fields(edital: 'Edital') -> 'Edital':
     """
     Sanitiza todos os campos de texto de uma instância de edital.
     
@@ -70,7 +108,7 @@ def sanitize_edital_fields(edital: Edital) -> Edital:
     return edital
 
 
-def mark_edital_fields_safe(edital: Edital) -> Edital:
+def mark_edital_fields_safe(edital: 'Edital') -> 'Edital':
     """
     Marca campos HTML sanitizados como seguros para renderização em templates.
     

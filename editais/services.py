@@ -5,7 +5,7 @@ Este módulo contém a lógica de negócio extraída das views,
 seguindo o princípio de separação de responsabilidades.
 """
 
-from typing import Dict
+from typing import Dict, List
 from datetime import timedelta
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from .models import Edital
 from .constants import DEADLINE_WARNING_DAYS
+from .utils import determine_edital_status
 
 
 class EditalService:
@@ -86,38 +87,27 @@ class EditalService:
             dict com contagem de editais atualizados por status
         """
         today = timezone.now().date()
-        now = timezone.now()  # Used for data_atualizacao in bulk updates
-        
-        updated_count = {
-            'fechado': 0,
-            'programado': 0,
-            'aberto': 0,
-        }
-        
-        # Atualizar editais para 'fechado'
-        # Close when deadline day has passed or is today (end_date <= today)
-        count_closed = Edital.objects.filter(
-            end_date__lte=today,
-            status='aberto'
-        ).update(status='fechado', data_atualizacao=now)
-        updated_count['fechado'] = count_closed
-        
-        # Atualizar editais para 'programado'
-        count_scheduled = Edital.objects.filter(
-            start_date__gt=today
-        ).exclude(
-            status__in=['draft', 'programado']
-        ).update(status='programado', data_atualizacao=now)
-        updated_count['programado'] = count_scheduled
-        
-        # Atualizar editais para 'aberto'
-        # Include deadline day (end_date >= today) so editals remain open throughout deadline day
-        # Also include continuous flow editais (end_date=None) that have started
-        count_opened = Edital.objects.filter(
-            Q(start_date__lte=today) & (Q(end_date__gte=today) | Q(end_date__isnull=True)),
-            status='programado'
-        ).update(status='aberto', data_atualizacao=now)
-        updated_count['aberto'] = count_opened
-        
+        now = timezone.now()
+        updated_count = {'fechado': 0, 'programado': 0, 'aberto': 0}
+        to_update: List[Edital] = []
+
+        queryset = Edital.objects.exclude(status='draft').only('id', 'status', 'start_date', 'end_date')
+        for edital in queryset:
+            new_status = determine_edital_status(
+                current_status=edital.status,
+                start_date=edital.start_date,
+                end_date=edital.end_date,
+                today=today,
+            )
+            if new_status != edital.status:
+                edital.status = new_status
+                edital.data_atualizacao = now
+                to_update.append(edital)
+                if new_status in updated_count:
+                    updated_count[new_status] += 1
+
+        if to_update:
+            Edital.objects.bulk_update(to_update, ['status', 'data_atualizacao'])
+
         return updated_count
 

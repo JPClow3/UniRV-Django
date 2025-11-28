@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 from typing import Optional, Union
 
 from django.conf import settings
@@ -7,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import Q, Count, Avg
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
@@ -343,105 +344,17 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         else:
             stats['approval_rate'] = "0%"
         
-        # Convert projects to dict format for template compatibility
-        projects_list = []
-        
-        for project in projects:
-            if not project.edital or not project.proponente:
-                logger.warning(f"Project {project.id} has missing relationship (edital or proponente) despite queryset filter, skipping")
-                continue
-            
-            # Calculate relative time for submission date
-            if project.submitted_on:
-                time_diff = timezone.now() - project.submitted_on
-                # Handle negative time differences (future dates)
-                if time_diff.total_seconds() < 0:
-                    relative_time = project.submitted_on.strftime('%d/%m/%Y')
-                elif time_diff.days == 0:
-                    if time_diff.seconds < 3600:
-                        relative_time = f"há {time_diff.seconds // 60} minutos"
-                    else:
-                        relative_time = f"há {time_diff.seconds // 3600} horas"
-                elif time_diff.days == 1:
-                    relative_time = "há 1 dia"
-                elif time_diff.days < 7:
-                    relative_time = f"há {time_diff.days} dias"
-                else:
-                    relative_time = project.submitted_on.strftime('%d/%m/%Y')
-            else:
-                relative_time = "Data não disponível"
-            
-            # Calculate relative time for last update
-            if project.data_atualizacao:
-                update_time_diff = timezone.now() - project.data_atualizacao
-                # Handle negative time differences (future dates)
-                if update_time_diff.total_seconds() < 0:
-                    updated_relative = project.data_atualizacao.strftime('%d/%m/%Y')
-                    is_recent_update = False
-                elif update_time_diff.days == 0:
-                    if update_time_diff.seconds < 3600:
-                        updated_relative = f"há {update_time_diff.seconds // 60} minutos"
-                    else:
-                        updated_relative = f"há {update_time_diff.seconds // 3600} horas"
-                    is_recent_update = True
-                elif update_time_diff.days == 1:
-                    updated_relative = "há 1 dia"
-                    is_recent_update = True
-                elif update_time_diff.days < 7:
-                    updated_relative = f"há {update_time_diff.days} dias"
-                    is_recent_update = update_time_diff.days < 2
-                else:
-                    updated_relative = project.data_atualizacao.strftime('%d/%m/%Y')
-                    is_recent_update = False
-            else:
-                updated_relative = None
-                is_recent_update = False
-            
-            # Safely access edital attributes with fallbacks
-            try:
-                edital_label = project.edital.numero_edital or f'Edital {project.edital_id}'
-                edital_titulo = project.edital.titulo or 'Sem título'
-                edital_url = project.edital.get_absolute_url()
-            except AttributeError:
-                logger.error(f"Error accessing edital attributes for project {project.id}")
-                edital_label = f'Edital {project.edital_id}'
-                edital_titulo = 'Edital não disponível'
-                edital_url = '#'
-            
-            # Safely access proponente attributes
-            try:
-                proponente_name = project.proponente.get_full_name() or project.proponente.username or 'Usuário desconhecido'
-            except AttributeError:
-                logger.error(f"Error accessing proponente attributes for project {project.id}")
-                proponente_name = 'Usuário desconhecido'
-            
-            projects_list.append({
-                'id': project.id,
-                'name': project.name,
-                'edital_id': str(project.edital_id),
-                'edital_label': edital_label,
-                'edital_titulo': edital_titulo,
-                'edital_url': edital_url,
-                'proponente': proponente_name,
-                'submitted_on': project.submitted_on.strftime('%d/%m/%Y') if project.submitted_on else 'N/A',
-                'submitted_on_relative': relative_time,
-                'status': project.get_status_display(),
-                'status_value': project.status,
-                'note': str(project.note) if project.note is not None else None,
-                'data_atualizacao': project.data_atualizacao,
-                'updated_relative': updated_relative,
-                'is_recent_update': is_recent_update,
-                'updated_date_formatted': project.data_atualizacao.strftime('%d/%m/%Y %H:%M') if project.data_atualizacao else None,
-            })
-        
+        recent_update_cutoff = timezone.now() - timedelta(days=2)
+
         context = {
-            'projects': projects_list,
+            'projects': projects,
             'search_query': search_query,
             'edital_filter': edital_filter,
             'status_filter': status_filter,
             'sort_by': sort_by,
             'stats': stats,
             'available_editais': available_editais,
+            'recent_update_cutoff': recent_update_cutoff,
         }
         
         return render(request, 'dashboard/projetos.html', context)
@@ -467,6 +380,7 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
                 'approval_rate': '0%',
             },
             'available_editais': Edital.objects.none(),
+            'recent_update_cutoff': timezone.now() - timedelta(days=2),
         }
         return render(request, 'dashboard/projetos.html', context)
 
@@ -600,26 +514,21 @@ def dashboard_novo_edital(request: HttpRequest) -> Union[HttpResponse, HttpRespo
         if request.method == 'POST':
             form = EditalForm(request.POST)
             if form.is_valid():
-                edital = form.save(commit=False)
-                # Track who created this edital
-                edital.created_by = request.user
-                edital.updated_by = request.user
-                # Sanitize all text fields using helper function
-                sanitize_edital_fields(edital)
-                edital.save()
-                
-                # Create history entry
                 from .models import EditalHistory
-                EditalHistory.objects.create(
-                    edital=edital,
-                    edital_titulo=edital.titulo,
-                    user=request.user,
-                    action='create',
-                    changes_summary={'titulo': edital.titulo}
-                )
-                
-                # Invalidate cache for index pages (clear all index cache keys)
-                _clear_index_cache()
+                with transaction.atomic():
+                    edital = form.save(commit=False)
+                    edital.created_by = request.user
+                    edital.updated_by = request.user
+                    sanitize_edital_fields(edital)
+                    edital.save()
+                    EditalHistory.objects.create(
+                        edital=edital,
+                        edital_titulo=edital.titulo,
+                        user=request.user,
+                        action='create',
+                        changes_summary={'titulo': edital.titulo}
+                    )
+                    transaction.on_commit(_clear_index_cache)
                 
                 logger.info(
                     f"edital criado via dashboard com sucesso - ID: {edital.pk}, "
@@ -854,10 +763,7 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
         valores = edital.valores.all()
         cronogramas = edital.cronogramas.all()
 
-        # IMPORTANT: Sanitize HTML fields before marking as safe to prevent XSS
-        # This ensures any unsanitized HTML in the database is cleaned before rendering
-        sanitize_edital_fields(edital)
-        # Mark sanitized HTML as safe for rendering using helper function
+        # Mark HTML fields as safe for rendering (values are sanitized on write)
         mark_edital_fields_safe(edital)
 
         # Calculate if edital was recently updated (within last 24 hours)
@@ -955,26 +861,21 @@ def edital_create(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedir
         if request.method == 'POST':
             form = EditalForm(request.POST)
             if form.is_valid():
-                edital = form.save(commit=False)
-                # Track who created this edital
-                edital.created_by = request.user
-                edital.updated_by = request.user
-                # Sanitize all text fields using helper function
-                sanitize_edital_fields(edital)
-                edital.save()
-                
-                # Create history entry
                 from .models import EditalHistory
-                EditalHistory.objects.create(
-                    edital=edital,
-                    edital_titulo=edital.titulo,
-                    user=request.user,
-                    action='create',
-                    changes_summary={'titulo': edital.titulo}
-                )
-                
-                # Invalidate cache for index pages (clear all index cache keys)
-                _clear_index_cache()
+                with transaction.atomic():
+                    edital = form.save(commit=False)
+                    edital.created_by = request.user
+                    edital.updated_by = request.user
+                    sanitize_edital_fields(edital)
+                    edital.save()
+                    EditalHistory.objects.create(
+                        edital=edital,
+                        edital_titulo=edital.titulo,
+                        user=request.user,
+                        action='create',
+                        changes_summary={'titulo': edital.titulo}
+                    )
+                    transaction.on_commit(_clear_index_cache)
                 
                 logger.info(
                     f"edital criado com sucesso - ID: {edital.pk}, "
@@ -1049,25 +950,20 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
                     if old_value != new_value:
                         changes[field] = {'old': old_value[:200], 'new': new_value[:200]}
             
-            # Now save the form (this updates form.instance with new values)
-            edital = form.save(commit=False)
-            edital.updated_by = request.user
-            # Sanitize all text fields using helper function
-            sanitize_edital_fields(edital)
-            edital.save()
-            
-            # Create history entry
-            if changes:
-                EditalHistory.objects.create(
-                    edital=edital,
-                    edital_titulo=edital.titulo,
-                    user=request.user,
-                    action='update',
-                    changes_summary=changes
-                )
-            
-            # Invalidate cache for index pages (clear all index cache keys)
-            _clear_index_cache()
+            with transaction.atomic():
+                edital = form.save(commit=False)
+                edital.updated_by = request.user
+                sanitize_edital_fields(edital)
+                edital.save()
+                if changes:
+                    EditalHistory.objects.create(
+                        edital=edital,
+                        edital_titulo=edital.titulo,
+                        user=request.user,
+                        action='update',
+                        changes_summary=changes
+                    )
+                transaction.on_commit(_clear_index_cache)
             
             logger.info(
                 f"edital atualizado com sucesso - ID: {edital.pk}, "
@@ -1121,19 +1017,17 @@ def edital_delete(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
         try:
             # Create history entry before deletion (preserve title)
             from .models import EditalHistory
-            EditalHistory.objects.create(
-                edital=edital,
-                edital_titulo=edital.titulo,  # Preserve title before deletion
-                user=request.user,
-                action='delete',
-                changes_summary={'titulo': edital.titulo}
-            )
-            
-            titulo_edital = edital.titulo
-            edital.delete()
-            
-            # Invalidate cache for index pages (clear all index cache keys)
-            _clear_index_cache()
+            with transaction.atomic():
+                EditalHistory.objects.create(
+                    edital=edital,
+                    edital_titulo=edital.titulo,
+                    user=request.user,
+                    action='delete',
+                    changes_summary={'titulo': edital.titulo}
+                )
+                titulo_edital = edital.titulo
+                edital.delete()
+                transaction.on_commit(_clear_index_cache)
             
             logger.info(
                 f"edital deletado com sucesso - ID: {pk}, "

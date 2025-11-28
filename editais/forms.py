@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
@@ -6,13 +6,46 @@ from django.contrib.auth.models import User
 from .models import Edital
 
 
-class UserRegistrationForm(UserCreationForm):
+class TailwindFormMixin:
+    """
+    Aplica classes padrão do Tailwind aos campos do formulário para evitar repetição.
+    """
+    input_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+    textarea_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+    select_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+    date_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+
+    def apply_tailwind_styles(self) -> None:
+        for field in self.fields.values():
+            base_class = self._get_base_class(field.widget)
+            if not base_class:
+                continue
+            existing = field.widget.attrs.get('class', '').strip()
+            if existing:
+                field.widget.attrs['class'] = f"{base_class} {existing}".strip()
+            else:
+                field.widget.attrs['class'] = base_class
+
+    def _get_base_class(self, widget: forms.Widget) -> Optional[str]:
+        if isinstance(widget, forms.CheckboxInput):
+            return None
+        if isinstance(widget, forms.Textarea):
+            return self.textarea_class
+        if isinstance(widget, (forms.Select, forms.SelectMultiple)):
+            return self.select_class
+        if isinstance(widget, (forms.DateInput, forms.DateTimeInput, forms.TimeInput)):
+            return self.date_class
+        return self.input_class
+
+
+class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
     """Form for user registration"""
+    input_class = 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent'
+    date_class = input_class
     email = forms.EmailField(
         required=True,
         label='E-mail',
         widget=forms.EmailInput(attrs={
-            'class': 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent',
             'placeholder': 'seu@email.com',
             'autocomplete': 'email'
         })
@@ -22,7 +55,6 @@ class UserRegistrationForm(UserCreationForm):
         required=True,
         label='Nome',
         widget=forms.TextInput(attrs={
-            'class': 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent',
             'placeholder': 'Seu nome',
             'autocomplete': 'given-name'
         })
@@ -32,7 +64,6 @@ class UserRegistrationForm(UserCreationForm):
         required=False,
         label='Sobrenome',
         widget=forms.TextInput(attrs={
-            'class': 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent',
             'placeholder': 'Seu sobrenome',
             'autocomplete': 'family-name'
         })
@@ -43,7 +74,6 @@ class UserRegistrationForm(UserCreationForm):
         fields = ('username', 'email', 'first_name', 'last_name', 'password1', 'password2')
         widgets = {
             'username': forms.TextInput(attrs={
-                'class': 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent',
                 'placeholder': 'nomeusuario',
                 'autocomplete': 'username'
             }),
@@ -55,15 +85,15 @@ class UserRegistrationForm(UserCreationForm):
         self.fields['password1'].label = 'Senha'
         self.fields['password2'].label = 'Confirmar senha'
         self.fields['password1'].widget.attrs.update({
-            'class': 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent',
             'placeholder': '••••••••',
             'autocomplete': 'new-password'
         })
         self.fields['password2'].widget.attrs.update({
-            'class': 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent',
             'placeholder': '••••••••',
             'autocomplete': 'new-password'
         })
+        # Aplicar classes Tailwind depois de definir placeholders/autocomplete
+        self.apply_tailwind_styles()
 
     def clean_email(self) -> str:
         email = self.cleaned_data.get('email')
@@ -81,7 +111,7 @@ class UserRegistrationForm(UserCreationForm):
         return user
 
 
-class EditalForm(forms.ModelForm):
+class EditalForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = Edital
         fields = [
@@ -93,23 +123,22 @@ class EditalForm(forms.ModelForm):
             'itens_essenciais_observacoes', 'detalhes_unirv'
         ]
         widgets = {
-            'titulo': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'required': True}),
-            'url': forms.URLInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'required': True}),
-            'numero_edital': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'}),
-            'entidade_principal': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'}),
-            'status': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'}),
-            'start_date': forms.DateInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'type': 'date'}),
-            'analise': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 12, 'placeholder': 'Análise do Edital'}),
-            'objetivo': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 4}),
-            'etapas': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 4}),
-            'recursos': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
-            'itens_financiaveis': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
-            'criterios_elegibilidade': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
-            'criterios_avaliacao': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
-            'itens_essenciais_observacoes': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
-            'detalhes_unirv': forms.Textarea(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent', 'rows': 3}),
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'analise': forms.Textarea(attrs={'rows': 12, 'placeholder': 'Análise do Edital'}),
+            'objetivo': forms.Textarea(attrs={'rows': 4}),
+            'etapas': forms.Textarea(attrs={'rows': 4}),
+            'recursos': forms.Textarea(attrs={'rows': 3}),
+            'itens_financiaveis': forms.Textarea(attrs={'rows': 3}),
+            'criterios_elegibilidade': forms.Textarea(attrs={'rows': 3}),
+            'criterios_avaliacao': forms.Textarea(attrs={'rows': 3}),
+            'itens_essenciais_observacoes': forms.Textarea(attrs={'rows': 3}),
+            'detalhes_unirv': forms.Textarea(attrs={'rows': 3}),
         }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.apply_tailwind_styles()
 
     def clean(self) -> Dict[str, Any]:
         """Validação de datas: end_date deve ser posterior a start_date"""

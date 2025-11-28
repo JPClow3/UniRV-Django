@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -175,8 +176,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Tailwind CSS configuration
 TAILWIND_APP_NAME = 'theme'
 
-# NPM binary path (Windows may need npm.cmd)
-NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"  # For Windows
+# NPM binary path (auto-detected with overrides for portability)
+NPM_BIN_PATH = (
+    os.environ.get('NPM_BIN_PATH')
+    or shutil.which('npm')
+    or shutil.which('npm.cmd')
+    or 'npm'
+)
 
 # Static files finders
 STATICFILES_FINDERS = [
@@ -363,7 +369,10 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
 # Logging configuration (FEAT-013)
-# Enhanced with rotation, structured logging, and security event logging
+# Default to console logging; optional file handlers enabled via env vars
+LOG_TO_FILE = os.environ.get('DJANGO_LOG_TO_FILE', '').lower() == 'true'
+LOG_DIR = Path(os.environ.get('DJANGO_LOG_DIR', BASE_DIR / 'logs'))
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -382,27 +391,6 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'structured',
         },
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'security_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'security.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 10,
-            'formatter': 'verbose',
-        },
-        'performance_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs' / 'performance.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
     },
     'root': {
         'handlers': ['console'],
@@ -410,29 +398,56 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
         'editais': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': False,
         },
         'django.security': {
-            'handlers': ['security_file', 'console'],
+            'handlers': ['console'],
             'level': 'WARNING',
             'propagate': False,
         },
         'django.db.backends': {
-            'handlers': ['performance_file'] if not DEBUG else ['console'],
+            'handlers': ['console'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
     },
 }
 
-# Create logs directory if it doesn't exist
-logs_dir = BASE_DIR / 'logs'
-if not logs_dir.exists():
-    os.makedirs(logs_dir, exist_ok=True)
+if LOG_TO_FILE:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    LOGGING['handlers'].update({
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'django.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'security_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'security.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'performance_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'performance.log',
+            'maxBytes': 10 * 1024 * 1024,  # 10MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    })
+    LOGGING['loggers']['django']['handlers'].append('file')
+    LOGGING['loggers']['editais']['handlers'].append('file')
+    LOGGING['loggers']['django.security']['handlers'] = ['security_file', 'console']
+    LOGGING['loggers']['django.db.backends']['handlers'] = (
+        ['performance_file'] if not DEBUG else ['console']
+    )

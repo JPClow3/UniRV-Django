@@ -55,3 +55,12 @@ def is_deadline_soon(date):
     days = days_until(date)
     return days is not None and 0 <= days <= 7
 
+
+@register.filter
+def is_transparent_header(url_name):
+    """
+    Indica se o cabeçalho deve usar o tema transparente/gradiente.
+    """
+    if not url_name:
+        return False
+    return url_name in {'edital_detail', 'edital_detail_slug'}

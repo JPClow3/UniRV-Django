@@ -4,6 +4,18 @@
     const editaisGrid = document.querySelector('.editais-grid');
     const paginationContainer = document.querySelector('.pagination-container');
     const searchInput = document.querySelector('.search-input, .search-input-enhanced');
+    const skeletonTemplate = document.getElementById('edital-skeleton-template');
+    const templateSkeletonMarkup = skeletonTemplate ? skeletonTemplate.innerHTML.trim() : null;
+    const fallbackSkeletonMarkup = `
+        <article class="skeleton-card" role="listitem" aria-hidden="true">
+            <div class="skeleton skeleton-badge"></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text" style="width: 60%;"></div>
+            <div class="skeleton skeleton-button"></div>
+        </article>
+    `;
 
     if (!searchForm || !editaisGrid) return;
 
@@ -22,18 +34,10 @@
         editaisGrid.classList.add('loading');
         const skeletonCount = 6;
         const skeletonCards = [];
+        const skeletonMarkup = templateSkeletonMarkup || fallbackSkeletonMarkup;
 
         for (let i = 0; i < skeletonCount; i++) {
-            skeletonCards.push(`
-                <article class="skeleton-card" role="listitem" aria-hidden="true">
-                    <div class="skeleton skeleton-badge"></div>
-                    <div class="skeleton skeleton-title"></div>
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text"></div>
-                    <div class="skeleton skeleton-text" style="width: 60%;"></div>
-                    <div class="skeleton skeleton-button"></div>
-                </article>
-            `);
+            skeletonCards.push(skeletonMarkup);
         }
 
         editaisGrid.innerHTML = skeletonCards.join('');
@@ -236,6 +240,19 @@
     const filterSelects = document.querySelectorAll('select[name="tipo"], select[name="status"], select[name="edital"]');
     filterSelects.forEach(select => {
         select.addEventListener('change', function() {
+            // Sync filter values to search form's hidden inputs
+            if (searchForm) {
+                const fieldName = this.name;
+                let hiddenInput = searchForm.querySelector(`input[name="${fieldName}"]`);
+                if (!hiddenInput) {
+                    hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = fieldName;
+                    searchForm.appendChild(hiddenInput);
+                }
+                hiddenInput.value = this.value;
+            }
+            
             const wrapper = this.closest('.search-input-wrapper') || this.closest('form');
             if (wrapper) {
                 wrapper.classList.add('searching');
