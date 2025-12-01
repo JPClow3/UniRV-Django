@@ -423,49 +423,52 @@ class EditalHistory(models.Model):
 
 class Project(models.Model):
     """
-    Modelo que representa um projeto submetido a um edital.
+    Modelo que representa uma startup incubada no AgroHub.
     
-    Um projeto é uma submissão de um usuário (proponente) para um edital específico,
-    contendo informações sobre o projeto, status de avaliação e nota.
+    Uma startup é uma empresa em processo de incubação na Ypetec, parte do AgroHub.
+    Contém informações sobre a startup, seu status no processo de incubação e nota.
     
     Attributes:
-        name: Nome do projeto
-        edital: Edital relacionado (ForeignKey)
-        proponente: Usuário que submeteu o projeto (ForeignKey)
-        submitted_on: Data de submissão
-        status: Status atual (Em Avaliação, Aprovado, Reprovado, Pendente)
-        note: Nota/score do projeto (opcional)
+        name: Nome da startup
+        edital: Edital relacionado (ForeignKey, opcional - pode ser None para startups sem edital)
+        proponente: Usuário responsável pela startup (ForeignKey)
+        submitted_on: Data de entrada na incubadora
+        status: Status atual no processo de incubação (Pré-Incubação, Incubação, Graduada, Suspensa)
+        note: Nota/score da startup (opcional)
         data_criacao: Data de criação do registro
         data_atualizacao: Data da última atualização
     """
     STATUS_CHOICES = [
-        ('em_avaliacao', 'Em Avaliação'),
-        ('aprovado', 'Aprovado'),
-        ('reprovado', 'Reprovado'),
-        ('pendente', 'Pendente'),
+        ('pre_incubacao', 'Pré-Incubação'),
+        ('incubacao', 'Incubação'),
+        ('graduada', 'Graduada'),
+        ('suspensa', 'Suspensa'),
     ]
     
-    name = models.CharField(max_length=200, verbose_name='Nome do Projeto')
+    name = models.CharField(max_length=200, verbose_name='Nome da Startup')
     edital = models.ForeignKey(
         Edital,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='projetos',
-        verbose_name='Edital'
+        verbose_name='Edital',
+        null=True,
+        blank=True,
+        help_text='Edital relacionado (opcional - startups podem não ter edital)'
     )
     proponente = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='projetos_submetidos',
-        verbose_name='Proponente'
+        verbose_name='Responsável'
     )
     submitted_on = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Data de Submissão'
+        verbose_name='Data de Entrada'
     )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default='pendente',
+        default='pre_incubacao',
         verbose_name='Status'
     )
     note = models.DecimalField(
@@ -481,8 +484,8 @@ class Project(models.Model):
     
     class Meta:
         ordering = ['-submitted_on']
-        verbose_name = 'Projeto'
-        verbose_name_plural = 'Projetos'
+        verbose_name = 'Startup'
+        verbose_name_plural = 'Startups'
         indexes = [
             models.Index(fields=['-submitted_on'], name='idx_project_submitted'),
             models.Index(fields=['status'], name='idx_project_status'),

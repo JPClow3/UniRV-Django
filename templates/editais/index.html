@@ -268,49 +268,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Prevent filter details from closing on large screens
-(function() {
-    const filterDetails = document.querySelector('.filter-details');
-    if (!filterDetails) return;
-    
-    function handleToggle(e) {
-        // On large screens (lg breakpoint = 1024px), prevent closing
-        if (window.innerWidth >= 1024) {
-            e.preventDefault();
-            // Force it to stay open
-            filterDetails.setAttribute('open', '');
-        }
-    }
-    
-    // Listen for toggle events
-    filterDetails.addEventListener('toggle', handleToggle);
-    
-    // Also prevent click on summary on large screens
-    const summary = filterDetails.querySelector('summary');
-    if (summary) {
-        summary.addEventListener('click', function(e) {
-            if (window.innerWidth >= 1024) {
-                e.preventDefault();
-                filterDetails.setAttribute('open', '');
-            }
-        });
-    }
-    
-    // Ensure it's open on large screens on load
-    if (window.innerWidth >= 1024) {
-        filterDetails.setAttribute('open', '');
-    }
-    
-    // Handle window resize
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            if (window.innerWidth >= 1024) {
-                filterDetails.setAttribute('open', '');
-            }
-        }, 100);
-    });
-})();
+// Filter details behavior is handled by CSS media queries (see styles.css)
+// The summary is non-interactive on large screens (lg:pointer-events-none)
 </script>
 {% endblock %}

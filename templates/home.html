@@ -10,16 +10,15 @@
 {% block content %}
 <div>
   <!-- Hero Section -->
-  <!-- Hero Section -->
 <section class="relative bg-cover bg-center py-20 md:py-32 lg:py-48" style="background-image: url('{% static 'img/agrohub-hero.webp' %}');" aria-label="Seção principal">
     <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue/90 to-unirvBlue/70"></div>
     <div class="container relative z-10 text-center mx-auto px-4 sm:px-6 lg:px-8">
       <div class="max-w-4xl mx-auto">
         <h1 class="text-white mb-6 text-4xl md:text-5xl leading-tight font-bold tracking-tight">
-          Inovação e Sustentabilidade no Coração do Agro
+          Centro de Inovação, Pesquisa Aplicada e Pós-Graduação
         </h1>
         <p class="text-lg md:text-xl text-white/90 mb-10 leading-relaxed max-w-3xl mx-auto">
-          O AgroHub UniRV é o centro de inovação e tecnologia da Universidade de Rio Verde, criado para conectar pesquisa, startups, indústria e produtores rurais. Impulsionando o Agro 4.0 com soluções digitais, automação e sustentabilidade.
+          O AgroHub UniRV é o centro de inovação da Universidade de Rio Verde, projetado para conectar academia, empresas, startups, produtores e poder público em soluções tecnológicas para o agronegócio. Com infraestrutura de ponta, aceleramos a transformação digital do campo (IA, IoT, automação), fomentamos empreendedorismo e transferimos conhecimento para o mercado, posicionando Rio Verde como polo de referência em inovação agropecuária.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-secondary hover:bg-opacity-90 transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
@@ -34,243 +33,398 @@
   </section>
 
   <!-- Stats Section -->
-<section class="bg-white py-16 border-b w-full full-bleed">
+<section class="bg-gradient-to-br from-gray-50 via-white to-gray-50 py-16 border-b border-gray-200/50 w-full full-bleed shadow-sm">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-        <div class="bg-white rounded-2xl shadow-md p-8 text-center border border-gray-100 hover:shadow-lg transition-all">
-          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">3</div>
-          <div class="text-gray-600 text-sm md:text-base font-medium">Fases de Expansão</div>
+        <div class="relative bg-gradient-to-br from-white to-blue-50/30 rounded-2xl shadow-lg p-8 text-center border-2 border-blue-100/50 hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-blue-100/20 rounded-full -mr-10 -mt-10 blur-xl"></div>
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold relative z-10">3</div>
+          <div class="text-gray-700 text-sm md:text-base font-semibold relative z-10">Fases de Expansão</div>
+          <div class="text-gray-600 text-xs mt-2 relative z-10">Centro, Smart Farm e Condomínio</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-md p-8 text-center border border-gray-100 hover:shadow-lg transition-all">
-          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">12+</div>
-          <div class="text-gray-600 text-sm md:text-base font-medium">Startups Incubadas</div>
+        <div class="relative bg-gradient-to-br from-white to-green-50/30 rounded-2xl shadow-lg p-8 text-center border-2 border-green-100/50 hover:shadow-xl hover:border-green-200 transition-all duration-300 hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-green-100/20 rounded-full -mr-10 -mt-10 blur-xl"></div>
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold relative z-10">12+</div>
+          <div class="text-gray-700 text-sm md:text-base font-semibold relative z-10">Startups Incubadas</div>
+          <div class="text-gray-600 text-xs mt-2 relative z-10">Na Incubadora YpeTech</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-md p-8 text-center border border-gray-100 hover:shadow-lg transition-all">
-          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">40ha</div>
-          <div class="text-gray-600 text-sm md:text-base font-medium">Smart Farm</div>
+        <div class="relative bg-gradient-to-br from-white to-amber-50/30 rounded-2xl shadow-lg p-8 text-center border-2 border-amber-100/50 hover:shadow-xl hover:border-amber-200 transition-all duration-300 hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-amber-100/20 rounded-full -mr-10 -mt-10 blur-xl"></div>
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold relative z-10">40ha</div>
+          <div class="text-gray-700 text-sm md:text-base font-semibold relative z-10">Smart Farm</div>
+          <div class="text-gray-600 text-xs mt-2 relative z-10">16ha irrigados</div>
         </div>
-        <div class="bg-white rounded-2xl shadow-md p-8 text-center border border-gray-100 hover:shadow-lg transition-all">
-          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold">R$ 10M+</div>
-          <div class="text-gray-600 text-sm md:text-base font-medium">Investimento Captado</div>
+        <div class="relative bg-gradient-to-br from-white to-purple-50/30 rounded-2xl shadow-lg p-8 text-center border-2 border-purple-100/50 hover:shadow-xl hover:border-purple-200 transition-all duration-300 hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-20 h-20 bg-purple-100/20 rounded-full -mr-10 -mt-10 blur-xl"></div>
+          <div class="text-secondary mb-3 text-3xl md:text-4xl font-bold relative z-10">R$ 10M+</div>
+          <div class="text-gray-700 text-sm md:text-base font-semibold relative z-10">Investimento Captado</div>
+          <div class="text-gray-600 text-xs mt-2 relative z-10">Em projetos e startups</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Features Section -->
+  <!-- Four Pillars Section -->
+<section class="py-20 bg-gradient-to-br from-gray-50 to-white w-full full-bleed">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-unirvBlue mb-6 section-title text-3xl md:text-4xl font-bold">Pilares do AgroHub</h2>
+        <p class="text-gray-600 text-lg leading-relaxed">
+          Os quatro eixos que impulsionam a inovação no agronegócio goiano
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <!-- Inovação e Pesquisa - Blue gradient -->
+        <div class="relative bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-blue-200/50 hover:border-blue-300 overflow-hidden group">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-blue-200/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          <div class="relative z-10">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <i class="fas fa-flask text-white text-2xl"></i>
+            </div>
+            <h3 class="text-gray-900 mb-4 text-lg font-bold">Inovação e Pesquisa</h3>
+            <p class="text-gray-700 text-sm leading-relaxed">Desenvolvimento de tecnologias aplicadas à agricultura, pecuária e indústria, com base científica e visão sustentável.</p>
+          </div>
+        </div>
+        
+        <!-- Transformação Digital - Purple/Blue gradient -->
+        <div class="relative bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-purple-200/50 hover:border-purple-300 overflow-hidden group">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-purple-200/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          <div class="relative z-10">
+            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <i class="fas fa-digital-tachograph text-white text-2xl"></i>
+            </div>
+            <h3 class="text-gray-900 mb-4 text-lg font-bold">Transformação Digital</h3>
+            <p class="text-gray-700 text-sm leading-relaxed">Uso de IA, IoT e automação para impulsionar o Agro 4.0, conectando dados, sensores e análises inteligentes no campo.</p>
+          </div>
+        </div>
+        
+        <!-- Empreendedorismo - Green gradient -->
+        <div class="relative bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-green-200/50 hover:border-green-300 overflow-hidden group">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-green-200/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          <div class="relative z-10">
+            <div class="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <i class="fas fa-lightbulb text-white text-2xl"></i>
+            </div>
+            <h3 class="text-gray-900 mb-4 text-lg font-bold">Empreendedorismo</h3>
+            <p class="text-gray-700 text-sm leading-relaxed">Fomento a startups e parcerias com empresas do setor para acelerar ideias e gerar impacto real na economia local.</p>
+          </div>
+        </div>
+        
+        <!-- Sustentabilidade - Green/Earth tone gradient -->
+        <div class="relative bg-gradient-to-br from-amber-50 via-green-50 to-lime-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-amber-200/50 hover:border-amber-300 overflow-hidden group">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-amber-200/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          <div class="relative z-10">
+            <div class="w-20 h-20 bg-gradient-to-br from-amber-600 to-green-700 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <i class="fas fa-leaf text-white text-2xl"></i>
+            </div>
+            <h3 class="text-gray-900 mb-4 text-lg font-bold">Sustentabilidade</h3>
+            <p class="text-gray-700 text-sm leading-relaxed">Compromisso com práticas sustentáveis, redução de impacto ambiental e incentivo a uma agricultura mais verde.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mission/Vision Section -->
+<section class="py-20 bg-gradient-to-br from-white via-blue-50/20 to-white w-full full-bleed relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.05),transparent_50%)]"></div>
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-unirvBlue mb-6 text-3xl md:text-4xl font-bold">Nossa Missão</h2>
+          <p class="text-gray-700 text-lg md:text-xl leading-relaxed mb-8">
+            Traduzir pesquisa em produtos e serviços sustentáveis, formar recursos humanos especializados e atrair investimentos, posicionando Rio Verde como polo de referência em inovação agropecuária.
+          </p>
+        </div>
+        <div class="bg-gradient-to-br from-unirvBlue/10 via-blue-50/50 to-agrohubBlue/10 rounded-3xl p-8 md:p-12 border-2 border-unirvBlue/20 shadow-xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-blue-200/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+          <div class="relative z-10">
+          <h3 class="text-unirvBlue mb-6 text-2xl font-bold text-center">Hélice Quádrupla do Desenvolvimento</h3>
+          <p class="text-gray-700 text-base leading-relaxed mb-6 text-center">
+            O AgroHub UniRV atua como ponto de encontro entre os quatro atores fundamentais do ecossistema de inovação:
+          </p>
+          <div class="grid md:grid-cols-2 gap-6 mt-8">
+            <div class="flex items-start gap-4 bg-white/60 rounded-xl p-4 hover:bg-white/80 transition-all duration-300 hover:shadow-md">
+              <div class="w-14 h-14 bg-gradient-to-br from-unirvBlue to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                <i class="fas fa-graduation-cap text-white text-xl"></i>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-bold mb-2">Academia</h4>
+                <p class="text-gray-700 text-sm">Universidade de Rio Verde, pesquisadores, estudantes e programas de pós-graduação</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 bg-white/60 rounded-xl p-4 hover:bg-white/80 transition-all duration-300 hover:shadow-md">
+              <div class="w-14 h-14 bg-gradient-to-br from-unirvBlue to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                <i class="fas fa-industry text-white text-xl"></i>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-bold mb-2">Setor Produtivo</h4>
+                <p class="text-gray-700 text-sm">Empresas, cooperativas, produtores rurais e fornecedores do agronegócio</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 bg-white/60 rounded-xl p-4 hover:bg-white/80 transition-all duration-300 hover:shadow-md">
+              <div class="w-14 h-14 bg-gradient-to-br from-unirvBlue to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                <i class="fas fa-landmark text-white text-xl"></i>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-bold mb-2">Governo</h4>
+                <p class="text-gray-700 text-sm">Poder público municipal, estadual e federal, incluindo FAPEG e FINEP</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4 bg-white/60 rounded-xl p-4 hover:bg-white/80 transition-all duration-300 hover:shadow-md">
+              <div class="w-14 h-14 bg-gradient-to-br from-unirvBlue to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                <i class="fas fa-users text-white text-xl"></i>
+              </div>
+              <div>
+                <h4 class="text-gray-900 font-bold mb-2">Sociedade Civil</h4>
+                <p class="text-gray-700 text-sm">Comunidade, organizações e entidades representativas do setor</p>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Infrastructure Section -->
 <section class="py-20 bg-gray-50 w-full full-bleed">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center max-w-3xl mx-auto mb-16">
-        <h2 class="text-unirvBlue mb-6 section-title text-3xl md:text-4xl">O Ecossistema AgroHub</h2>
+        <h2 class="text-unirvBlue mb-6 section-title text-3xl md:text-4xl font-bold">Nossa Infraestrutura</h2>
         <p class="text-gray-600 text-lg leading-relaxed">
-          Uma estrutura completa integrando a Hélice Quádrupla: academia, setor produtivo, governo e sociedade civil.
+          Infraestrutura de ponta com laboratórios de P&D, incubadora, espaços de coworking e campos experimentais, 
+          estruturada em três fases de expansão para impulsionar a transformação digital do agronegócio.
         </p>
       </div>
 
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
-          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="relative bg-gradient-to-br from-white to-blue-50/40 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-200 overflow-hidden group hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-blue-100/20 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+          <div class="w-18 h-18 bg-gradient-to-br from-secondary to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 relative z-10">
             <i class="fas fa-rocket text-white text-2xl"></i>
           </div>
-          <h3 class="text-gray-900 mb-4 text-lg font-semibold">Incubadora Ypetec</h3>
-          <p class="text-gray-600 text-sm leading-relaxed">Ambiente colaborativo para desenvolvimento de startups do setor agro e suporte à inovação.</p>
+          <h3 class="text-gray-900 mb-4 text-lg font-bold relative z-10">Incubadora YpeTech</h3>
+          <p class="text-gray-700 text-sm leading-relaxed relative z-10">Incubadora de empresas da UniRV, parte do AgroHub. Ambiente colaborativo para desenvolvimento de startups do setor agro, com suporte à inovação e acesso a recursos especializados.</p>
         </div>
-        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
-          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="relative bg-gradient-to-br from-white to-purple-50/40 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-purple-100/50 hover:border-purple-200 overflow-hidden group hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-purple-100/20 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+          <div class="w-18 h-18 bg-gradient-to-br from-secondary to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 relative z-10">
             <i class="fas fa-microchip text-white text-2xl"></i>
           </div>
-          <h3 class="text-gray-900 mb-4 text-lg font-semibold">FabLab & InovaLab</h3>
-          <p class="text-gray-600 text-sm leading-relaxed">Laboratórios de ponta para prototipagem, monitoramento em tempo real e experimentação.</p>
+          <h3 class="text-gray-900 mb-4 text-lg font-bold relative z-10">FabLab & InovaLab</h3>
+          <p class="text-gray-700 text-sm leading-relaxed relative z-10">Laboratórios de P&D e prototipagem rápida. Equipados com impressoras 3D, plotters, ferramentas de fabricação digital e espaços de coworking para construção de projetos das startups.</p>
         </div>
-        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
-          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+        <div class="relative bg-gradient-to-br from-white to-green-50/40 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-green-100/50 hover:border-green-200 overflow-hidden group hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-green-100/20 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+          <div class="w-18 h-18 bg-gradient-to-br from-secondary to-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 relative z-10">
             <i class="fas fa-tractor text-white text-2xl"></i>
           </div>
-          <h3 class="text-gray-900 mb-4 text-lg font-semibold">Smart Farm</h3>
-          <p class="text-gray-600 text-sm leading-relaxed">Fazenda inteligente com 40 hectares para testar tecnologias diretamente no campo.</p>
+          <h3 class="text-gray-900 mb-4 text-lg font-bold relative z-10">Smart Farm</h3>
+          <p class="text-gray-700 text-sm leading-relaxed relative z-10">Fazenda inteligente com 40 hectares (16ha irrigados) para testar tecnologias diretamente no campo. Integra IA, IoT, drones, maquinários autônomos e monitoramento em tempo real.</p>
         </div>
-        <div class="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
-          <div class="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-            <i class="fas fa-file-signature text-white text-2xl"></i>
+        <div class="relative bg-gradient-to-br from-white to-amber-50/40 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-amber-100/50 hover:border-amber-200 overflow-hidden group hover:-translate-y-1">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-amber-100/20 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+          <div class="w-18 h-18 bg-gradient-to-br from-secondary to-amber-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 relative z-10">
+            <i class="fas fa-building text-white text-2xl"></i>
           </div>
-          <h3 class="text-gray-900 mb-4 text-lg font-semibold">Fomento à Inovação</h3>
-          <p class="text-gray-600 text-sm leading-relaxed">Acesso a editais de incentivo como o de R$ 1 milhão para startups tecnológicas.</p>
+          <h3 class="text-gray-900 mb-4 text-lg font-bold relative z-10">Espaços de Coworking</h3>
+          <p class="text-gray-700 text-sm leading-relaxed relative z-10">Ambientes colaborativos modernos para pesquisadores, estudantes, startups e empresas trabalharem juntos em projetos de inovação para o agronegócio.</p>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Process Section -->
-<section class="py-20 bg-white w-full full-bleed">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center max-w-3xl mx-auto mb-16">
-        <h2 class="text-gray-900 mb-6 text-3xl md:text-4xl font-bold">Como Funciona</h2>
-        <p class="text-gray-600 text-lg leading-relaxed">
-          Processo simples e transparente em 4 etapas
-        </p>
-      </div>
-
-      <div class="max-w-6xl mx-auto">
-        <!-- Desktop Flow -->
-        <div class="hidden lg:block">
-          <div class="relative">
-            <!-- Connecting Line -->
-            <div class="absolute top-10 left-[12.5%] right-[12.5%] h-1 bg-gradient-to-r from-blue-200 via-blue-300 to-blue-200"></div>
-            
-            <div class="grid grid-cols-4 gap-4 relative">
-              <div class="flex flex-col items-center">
-                <!-- Circle with Number -->
-                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white" aria-label="Etapa 1">
-                  <span class="text-white font-bold text-3xl">1</span>
-                </div>
-                <!-- Card Content -->
-                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border border-gray-100 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <i class="fas fa-file-alt text-white text-xl"></i>
-                  </div>
-                  <h3 class="text-gray-900 mb-3 text-base font-semibold">Leia o Edital</h3>
-                  <p class="text-gray-600 text-sm leading-relaxed">Tome conhecimento dos requisitos e prazos</p>
-                </div>
+      <div class="mt-16 bg-gradient-to-br from-unirvBlue/5 via-blue-50/50 to-agrohubBlue/5 rounded-3xl p-8 md:p-12 border-2 border-unirvBlue/20 shadow-xl">
+        <h3 class="text-unirvBlue mb-8 md:mb-12 text-2xl md:text-3xl font-bold text-center">Três Fases de Expansão</h3>
+        
+        <!-- Desktop Timeline -->
+        <div class="hidden lg:block relative max-w-6xl mx-auto">
+          <!-- Connecting Line -->
+          <div class="absolute top-20 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-400"></div>
+          
+          <!-- Progress Line (completed up to between Fase 1 and 2) -->
+          <div class="absolute top-20 left-0 w-1/2 h-1 bg-gradient-to-r from-green-500 to-green-400"></div>
+          
+          <!-- "Estamos aqui" Pointer -->
+          <div class="absolute top-16 left-1/2 transform -translate-x-1/2 z-20">
+            <div class="flex flex-col items-center">
+              <div class="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
+                Estamos aqui
               </div>
-              <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
-                  <span class="text-white font-bold text-3xl">2</span>
-                </div>
-                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border border-gray-100 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <i class="fas fa-users text-white text-xl"></i>
-                  </div>
-                  <h3 class="text-gray-900 mb-3 text-base font-semibold">Preencha Formulários</h3>
-                  <p class="text-gray-600 text-sm leading-relaxed">Complete as etapas de inscrição online</p>
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
-                  <span class="text-white font-bold text-3xl">3</span>
-                </div>
-                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border border-gray-100 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <i class="fas fa-check-circle text-white text-xl"></i>
-                  </div>
-                  <h3 class="text-gray-900 mb-3 text-base font-semibold">Envie Documentos</h3>
-                  <p class="text-gray-600 text-sm leading-relaxed">Submeta a documentação necessária</p>
-                </div>
-              </div>
-              <div class="flex flex-col items-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center mb-6 shadow-xl hover:shadow-2xl transition-all hover:scale-105 relative z-10 border-4 border-white">
-                  <span class="text-white font-bold text-3xl">4</span>
-                </div>
-                <div class="bg-white rounded-2xl shadow-md p-6 text-center hover:shadow-xl transition-all border border-gray-100 min-h-[180px] flex flex-col">
-                  <div class="w-12 h-12 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <i class="fas fa-trophy text-white text-xl"></i>
-                  </div>
-                  <h3 class="text-gray-900 mb-3 text-base font-semibold">Aguarde Avaliação</h3>
-                  <p class="text-gray-600 text-sm leading-relaxed">Acompanhe o processo de seleção</p>
-                </div>
-              </div>
+              <div class="w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-green-500"></div>
             </div>
           </div>
-        </div>
-
-        <!-- Mobile/Tablet Flow -->
-        <div class="lg:hidden space-y-6">
-          <div class="relative">
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-all">
-              <div class="flex items-start gap-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+          
+          <div class="grid grid-cols-3 gap-8 relative z-10">
+            <!-- Fase 1 - Completed -->
+            <div class="flex flex-col items-center">
+              <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-xl border-4 border-white relative z-10">
+                <i class="fas fa-check text-white text-2xl"></i>
+              </div>
+              <div class="bg-white rounded-2xl p-6 shadow-lg border-2 border-green-200 hover:shadow-xl transition-all min-h-[200px] flex flex-col">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
                   <span class="text-white font-bold text-2xl">1</span>
                 </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-3">
-                    <i class="fas fa-file-alt text-blue-600 text-lg"></i>
-                    <h3 class="text-gray-900 text-base font-semibold">Leia o Edital</h3>
-                  </div>
-                  <p class="text-gray-600 text-sm leading-relaxed">Tome conhecimento dos requisitos e prazos</p>
+                <h4 class="text-gray-900 font-bold mb-3 text-center text-lg">Fase 1</h4>
+                <p class="text-gray-700 text-sm text-center leading-relaxed">Estruturação do Centro, Incubadora YpeTech, FabLab, espaços de coworking e suporte à inovação.</p>
+                <div class="mt-4 flex justify-center">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i> Concluída
+                  </span>
                 </div>
               </div>
             </div>
-            <div class="flex justify-center py-3">
-              <i class="fas fa-arrow-down text-blue-300 text-xl"></i>
-            </div>
-          </div>
-          <div class="relative">
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-all">
-              <div class="flex items-start gap-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+            
+            <!-- Fase 2 - In Progress -->
+            <div class="flex flex-col items-center">
+              <div class="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-6 shadow-xl border-4 border-white relative z-10 animate-pulse">
+                <i class="fas fa-spinner fa-spin text-white text-2xl"></i>
+              </div>
+              <div class="bg-white rounded-2xl p-6 shadow-lg border-2 border-yellow-300 hover:shadow-xl transition-all min-h-[200px] flex flex-col">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
                   <span class="text-white font-bold text-2xl">2</span>
                 </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-3">
-                    <i class="fas fa-users text-blue-600 text-lg"></i>
-                    <h3 class="text-gray-900 text-base font-semibold">Preencha Formulários</h3>
-                  </div>
-                  <p class="text-gray-600 text-sm leading-relaxed">Complete as etapas de inscrição online</p>
+                <h4 class="text-gray-900 font-bold mb-3 text-center text-lg">Fase 2</h4>
+                <p class="text-gray-700 text-sm text-center leading-relaxed">Implementação da Smart Farm com tecnologias avançadas para experimentação e monitoramento em tempo real.</p>
+                <div class="mt-4 flex justify-center">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <i class="fas fa-hourglass-half mr-1"></i> Em andamento
+                  </span>
                 </div>
               </div>
             </div>
-            <div class="flex justify-center py-3">
-              <i class="fas fa-arrow-down text-blue-300 text-xl"></i>
-            </div>
-          </div>
-          <div class="relative">
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-all">
-              <div class="flex items-start gap-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+            
+            <!-- Fase 3 - Planned -->
+            <div class="flex flex-col items-center">
+              <div class="w-20 h-20 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center mb-6 shadow-xl border-4 border-white relative z-10">
+                <span class="text-white font-bold text-3xl">3</span>
+              </div>
+              <div class="bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-200 hover:shadow-xl transition-all min-h-[200px] flex flex-col opacity-75">
+                <div class="w-16 h-16 bg-gradient-to-br from-gray-300 to-gray-400 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md">
                   <span class="text-white font-bold text-2xl">3</span>
                 </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-3">
-                    <i class="fas fa-check-circle text-blue-600 text-lg"></i>
-                    <h3 class="text-gray-900 text-base font-semibold">Envie Documentos</h3>
-                  </div>
-                  <p class="text-gray-600 text-sm leading-relaxed">Submeta a documentação necessária</p>
-                </div>
-              </div>
-            </div>
-            <div class="flex justify-center py-3">
-              <i class="fas fa-arrow-down text-blue-300 text-xl"></i>
-            </div>
-          </div>
-          <div class="relative">
-            <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition-all">
-              <div class="flex items-start gap-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-unirvBlue to-agrohubBlue rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                  <span class="text-white font-bold text-2xl">4</span>
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-3">
-                    <i class="fas fa-trophy text-blue-600 text-lg"></i>
-                    <h3 class="text-gray-900 text-base font-semibold">Aguarde Avaliação</h3>
-                  </div>
-                  <p class="text-gray-600 text-sm leading-relaxed">Acompanhe o processo de seleção</p>
+                <h4 class="text-gray-900 font-bold mb-3 text-center text-lg">Fase 3</h4>
+                <p class="text-gray-700 text-sm text-center leading-relaxed">Expansão e criação de condomínio de empresas, atraindo grandes companhias do setor.</p>
+                <div class="mt-4 flex justify-center">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    <i class="fas fa-clock mr-1"></i> Planejada
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="text-center mt-12">
-        <a href="{% url 'ambientes_inovacao' %}" class="bg-secondary hover:bg-opacity-90 rounded-xl px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium text-white">
-          Conheça os Ambientes de Inovação →
-        </a>
+        
+        <!-- Mobile/Tablet Timeline -->
+        <div class="lg:hidden space-y-8 max-w-2xl mx-auto">
+          <!-- Fase 1 -->
+          <div class="relative">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                  <i class="fas fa-check text-white text-xl"></i>
+                </div>
+              </div>
+              <div class="flex-1 bg-white rounded-2xl p-6 shadow-lg border-2 border-green-200">
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">1</span>
+                  </span>
+                  <h4 class="text-gray-900 font-bold text-lg">Fase 1</h4>
+                  <span class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check-circle mr-1"></i> Concluída
+                  </span>
+                </div>
+                <p class="text-gray-700 text-sm leading-relaxed">Estruturação do Centro, Incubadora YpeTech, FabLab, espaços de coworking e suporte à inovação.</p>
+              </div>
+            </div>
+            <div class="flex justify-center py-2">
+              <i class="fas fa-arrow-down text-green-400 text-xl"></i>
+            </div>
+          </div>
+          
+          <!-- "Estamos aqui" indicator for mobile -->
+          <div class="text-center py-2">
+            <div class="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+              <i class="fas fa-map-marker-alt"></i>
+              Estamos aqui
+            </div>
+          </div>
+          
+          <!-- Fase 2 -->
+          <div class="relative">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg border-4 border-white animate-pulse">
+                  <i class="fas fa-spinner fa-spin text-white text-xl"></i>
+                </div>
+              </div>
+              <div class="flex-1 bg-white rounded-2xl p-6 shadow-lg border-2 border-yellow-300">
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">2</span>
+                  </span>
+                  <h4 class="text-gray-900 font-bold text-lg">Fase 2</h4>
+                  <span class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    <i class="fas fa-hourglass-half mr-1"></i> Em andamento
+                  </span>
+                </div>
+                <p class="text-gray-700 text-sm leading-relaxed">Implementação da Smart Farm com tecnologias avançadas para experimentação e monitoramento em tempo real.</p>
+              </div>
+            </div>
+            <div class="flex justify-center py-2">
+              <i class="fas fa-arrow-down text-gray-300 text-xl"></i>
+            </div>
+          </div>
+          
+          <!-- Fase 3 -->
+          <div class="relative">
+            <div class="flex items-start gap-4">
+              <div class="flex-shrink-0">
+                <div class="w-16 h-16 bg-gradient-to-br from-gray-300 to-gray-400 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                  <span class="text-white font-bold text-xl">3</span>
+                </div>
+              </div>
+              <div class="flex-1 bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-200 opacity-75">
+                <div class="flex items-center gap-3 mb-3">
+                  <span class="w-12 h-12 bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">3</span>
+                  </span>
+                  <h4 class="text-gray-900 font-bold text-lg">Fase 3</h4>
+                  <span class="ml-auto inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    <i class="fas fa-clock mr-1"></i> Planejada
+                  </span>
+                </div>
+                <p class="text-gray-700 text-sm leading-relaxed">Expansão e criação de condomínio de empresas, atraindo grandes companhias do setor.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
+
 
   <!-- CTA Section -->
 <section class="bg-gradient-to-br from-unirvBlue via-unirvBlue to-agrohubBlue text-white py-24 w-full full-bleed">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-white mb-6 text-3xl md:text-4xl font-bold">Pronto para começar?</h2>
-      <p class="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
-        Consulte os editais abertos e dê o primeiro passo para transformar sua ideia em realidade.
+      <p class="text-lg md:text-xl text-white/90 mb-6 max-w-2xl mx-auto leading-relaxed">
+        Consulte os editais abertos e dê o primeiro passo para transformar sua ideia em realidade. 
+        Aproveite oportunidades como o Edital de Incentivo à Pesquisa e Inovação de R$ 1 milhão para startups tecnológicas.
+      </p>
+      <p class="text-base text-white/80 mb-10 max-w-2xl mx-auto">
+        Participe do ecossistema de inovação do AgroHub e transforme sua startup em uma solução de impacto para o agronegócio.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
         <a href="{% url 'editais_index' %}" class="w-full sm:w-auto bg-white text-unirvBlue hover:bg-blue-50 rounded-xl px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all inline-flex items-center justify-center font-medium">
           Ver Editais Abertos
         </a>
-        <a href="{% url 'projetos_aprovados' %}" class="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-xl px-8 py-3 text-base inline-flex items-center justify-center font-medium transition-all">
-          Projetos Aprovados
+        <a href="{% url 'dashboard_projetos' %}" class="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-xl px-8 py-3 text-base inline-flex items-center justify-center font-medium transition-all">
+          Startups Incubadas
+        </a>
+        <a href="{% url 'ambientes_inovacao' %}" class="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-xl px-8 py-3 text-base inline-flex items-center justify-center font-medium transition-all">
+          Incubação
         </a>
       </div>
     </div>

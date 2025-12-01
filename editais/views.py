@@ -5,9 +5,10 @@ from typing import Optional, Union
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import connection, transaction
 from django.db.models import Q, Count, Avg
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
@@ -175,7 +176,7 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
             'editais_ativos': Edital.objects.filter(status='aberto').count(),
             'projetos_submetidos': Project.objects.count(),
             'avaliacoes_pendentes': Project.objects.filter(
-                status__in=['pendente', 'em_avaliacao']
+                status__in=['pre_incubacao', 'incubacao']
             ).count(),
         }
     return render(request, 'dashboard/home.html', context)
@@ -267,9 +268,8 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         return render(request, 'dashboard/editais.html', context)
 
 
-@login_required
 def dashboard_projetos(request: HttpRequest) -> HttpResponse:
-    """Dashboard projetos page"""
+    """Dashboard projetos page - Public startup showcase"""
     try:
         # Get filter parameters
         search_query = request.GET.get('search', '').strip()
@@ -278,10 +278,8 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         sort_by = request.GET.get('sort', 'submitted_on_desc').strip()
         
         # Base queryset with optimized select_related
-        # IMPORTANT: Filter out projects with missing relationships at queryset level
-        # to ensure stats match displayed projects
+        # Note: edital is now optional, so we don't filter it out
         projects = Project.objects.select_related('edital', 'proponente').filter(
-            edital__isnull=False,
             proponente__isnull=False
         )
         
@@ -289,7 +287,7 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         if search_query:
             projects = projects.filter(name__icontains=search_query)
         
-        # Apply edital filter
+        # Apply edital filter (optional - can filter by edital or show all)
         if edital_filter:
             try:
                 edital_id = int(edital_filter)
@@ -299,21 +297,23 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
                 pass
         
         # Calculate stats from base queryset BEFORE applying status filter
-        # Stats are calculated on the same filtered queryset that will be displayed
-        # (excluding projects with missing relationships) to ensure accuracy
         stats_base = projects
         stats = stats_base.aggregate(
             total=Count('id'),
-            em_avaliacao=Count('id', filter=Q(status='em_avaliacao')),
-            aprovados=Count('id', filter=Q(status='aprovado')),
+            pre_incubacao=Count('id', filter=Q(status='pre_incubacao')),
+            incubacao=Count('id', filter=Q(status='incubacao')),
+            graduada=Count('id', filter=Q(status='graduada')),
+            suspensa=Count('id', filter=Q(status='suspensa')),
         )
         
         # Apply status filter (map display names to model values)
         status_mapping = {
-            'em avaliação': 'em_avaliacao',
-            'aprovado': 'aprovado',
-            'reprovado': 'reprovado',
-            'pendente': 'pendente',
+            'pré-incubação': 'pre_incubacao',
+            'pre-incubacao': 'pre_incubacao',
+            'incubação': 'incubacao',
+            'incubacao': 'incubacao',
+            'graduada': 'graduada',
+            'suspensa': 'suspensa',
         }
         if status_filter:
             status_value = status_mapping.get(status_filter.lower(), status_filter.lower())
@@ -336,13 +336,14 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         # Get available editais for dropdown (all editais, ordered by most recent)
         available_editais = Edital.objects.all().order_by('-data_atualizacao')
         
-        # Calculate approval rate based on stats
+        # Calculate graduation rate (startups that graduated)
         total_projects = stats['total'] or 0
         if total_projects > 0:
-            approval_rate = round((stats['aprovados'] / total_projects) * 100)
-            stats['approval_rate'] = f"{approval_rate}%"
+            graduadas = stats['graduada'] or 0
+            graduation_rate = round((graduadas / total_projects) * 100)
+            stats['graduation_rate'] = f"{graduation_rate}%"
         else:
-            stats['approval_rate'] = "0%"
+            stats['graduation_rate'] = "0%"
         
         recent_update_cutoff = timezone.now() - timedelta(days=2)
 
@@ -375,9 +376,11 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
             'sort_by': 'submitted_on_desc',
             'stats': {
                 'total': 0,
-                'em_avaliacao': 0,
-                'aprovados': 0,
-                'approval_rate': '0%',
+                'pre_incubacao': 0,
+                'incubacao': 0,
+                'graduada': 0,
+                'suspensa': 0,
+                'graduation_rate': '0%',
             },
             'available_editais': Edital.objects.none(),
             'recent_update_cutoff': timezone.now() - timedelta(days=2),
@@ -391,15 +394,16 @@ def dashboard_avaliacoes(request: HttpRequest) -> HttpResponse:
     if not request.user.is_staff:
         return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
     
-    # Get projects that need evaluation
+    # Get startups that need evaluation (in pre-incubation or incubation)
     projects = Project.objects.select_related('edital', 'proponente').filter(
-        status__in=['em_avaliacao', 'pendente']
+        status__in=['pre_incubacao', 'incubacao']
     ).order_by('-submitted_on')
     
     # Calculate statistics
-    total = Project.objects.filter(status__in=['em_avaliacao', 'pendente']).count()
-    pendentes = Project.objects.filter(status='pendente').count()
-    concluidas = Project.objects.filter(status='aprovado').count()
+    total = Project.objects.filter(status__in=['pre_incubacao', 'incubacao']).count()
+    pre_incubacao = Project.objects.filter(status='pre_incubacao').count()
+    em_incubacao = Project.objects.filter(status='incubacao').count()
+    graduadas = Project.objects.filter(status='graduada').count()
     
     # Calculate average note (only for projects with notes)
     # Note: note is a DecimalField, so we only check for isnull, not empty string
@@ -412,8 +416,9 @@ def dashboard_avaliacoes(request: HttpRequest) -> HttpResponse:
     context = {
         'evaluations': projects,
         'total': total,
-        'pendentes': pendentes,
-        'concluidas': concluidas,
+        'pre_incubacao': pre_incubacao,
+        'em_incubacao': em_incubacao,
+        'graduadas': graduadas,
         'nota_media': nota_media,
     }
     return render(request, 'dashboard/avaliacoes.html', context)
@@ -459,27 +464,31 @@ def dashboard_relatorios(request: HttpRequest) -> HttpResponse:
     
     # Calculate statistics
     total_projetos = Project.objects.count()
-    projetos_aprovados = Project.objects.filter(status='aprovado').count()
+    startups_incubacao = Project.objects.filter(status='incubacao').count()
+    startups_graduadas = Project.objects.filter(status='graduada').count()
     
-    # Calculate approval rate, handling division by zero
-    taxa_aprovacao = 0
+    # Calculate graduation rate, handling division by zero
+    taxa_graduacao = 0
     if total_projetos > 0:
-        taxa_aprovacao = round((projetos_aprovados / total_projetos) * 100)
+        taxa_graduacao = round((startups_graduadas / total_projetos) * 100)
     
     usuarios_ativos = User.objects.filter(projetos_submetidos__isnull=False).distinct().count()
     editais_ativos = Edital.objects.filter(status='aberto').count()
     
     context = {
         'total_projetos': total_projetos,
-        'taxa_aprovacao': taxa_aprovacao,
+        'taxa_graduacao': taxa_graduacao,
+        'startups_incubacao': startups_incubacao,
+        'startups_graduadas': startups_graduadas,
         'usuarios_ativos': usuarios_ativos,
         'editais_ativos': editais_ativos,
     }
     
     return render(request, 'dashboard/relatorios.html', context)
 @login_required
+@staff_member_required
 def dashboard_submeter_projeto(request: HttpRequest) -> HttpResponse:
-    """Dashboard submeter projeto page"""
+    """Dashboard submeter projeto page - Staff only: Add new startups to the incubator"""
     return render(request, 'dashboard/submeter_projeto.html')
 
 

@@ -1,6 +1,6 @@
 {% extends 'dashboard/base.html' %}
 
-{% block title %}Submeter Projeto - Dashboard AgroHub{% endblock %}
+{% block title %}Adicionar Startup - Dashboard AgroHub{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
@@ -12,9 +12,9 @@
         Voltar
       </a>
       <div>
-        <h1 class="text-gray-900 text-2xl font-semibold">Submeter Projeto</h1>
+        <h1 class="text-gray-900 text-2xl font-semibold">Adicionar Startup</h1>
         <p class="text-gray-600">
-          Preencha os dados do seu projeto para avaliação
+          Cadastre uma nova startup na incubadora Ypetec
         </p>
       </div>
     </div>
@@ -28,8 +28,8 @@
   <!-- Info Alert -->
   <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
     <p class="text-blue-900">
-      <strong>Importante:</strong> Certifique-se de preencher todos os campos obrigatórios 
-      e anexar os documentos necessários antes de submeter seu projeto.
+      <strong>Acesso Restrito:</strong> Esta funcionalidade é exclusiva para administradores. 
+      Certifique-se de preencher todos os campos obrigatórios ao cadastrar uma nova startup na incubadora.
     </p>
   </div>
 
@@ -38,15 +38,15 @@
     <!-- Seleção de Edital -->
     <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
       <div>
-        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Edital</h3>
+        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Edital (Opcional)</h3>
         <p class="text-gray-600">
-          Selecione o edital para o qual deseja submeter o projeto
+          Selecione o edital relacionado, se aplicável. Startups podem não ter edital associado.
         </p>
       </div>
 
       <div class="space-y-2">
-        <label for="edital" class="text-sm font-medium text-gray-700">Edital *</label>
-        <select id="edital" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+        <label for="edital" class="text-sm font-medium text-gray-700">Edital</label>
+        <select id="edital" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
           <option value="">Selecione um edital</option>
           <option value="001-2024">Edital 001/2024 - Fluxo Contínuo Pré-Incubação</option>
           <option value="002-2024">Edital 002/2024 - Fomento Incubação 2024</option>
@@ -58,14 +58,14 @@
     <!-- Dados do Projeto -->
     <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
       <div>
-        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Dados do Projeto</h3>
+        <h3 class="text-gray-900 mb-1 text-lg font-semibold">Dados da Startup</h3>
         <p class="text-gray-600">
-          Informações básicas sobre o seu projeto
+          Informações básicas sobre a startup
         </p>
       </div>
 
       <div class="space-y-2">
-        <label for="nomeProjeto" class="text-sm font-medium text-gray-700">Nome do Projeto *</label>
+        <label for="nomeProjeto" class="text-sm font-medium text-gray-700">Nome da Startup *</label>
         <input type="text" id="nomeProjeto" placeholder="Ex: AgroTech Solutions" required class="w-full px-3 py-2 border border-gray-300 rounded-lg">
       </div>
 
@@ -84,13 +84,13 @@
 
       <div class="space-y-2">
         <label for="resumo" class="text-sm font-medium text-gray-700">Resumo Executivo *</label>
-        <textarea id="resumo" placeholder="Descreva de forma resumida o seu projeto, problema que resolve e solução proposta..." rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
+        <textarea id="resumo" placeholder="Descreva de forma resumida a startup, problema que resolve e solução proposta..." rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
         <p class="text-xs text-gray-500">Máximo 500 caracteres</p>
       </div>
 
       <div class="space-y-2">
         <label for="descricao" class="text-sm font-medium text-gray-700">Descrição Detalhada *</label>
-        <textarea id="descricao" placeholder="Descreva detalhadamente seu projeto, incluindo objetivos, metodologia, mercado-alvo, diferenciais competitivos..." rows="8" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
+        <textarea id="descricao" placeholder="Descreva detalhadamente a startup, incluindo objetivos, metodologia, mercado-alvo, diferenciais competitivos..." rows="8" required class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"></textarea>
       </div>
     </div>
 
@@ -138,9 +138,9 @@
       <a href="{% url 'dashboard_projetos' %}" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center justify-center">
         Cancelar
       </a>
-      <button type="submit" class="size-lg bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
-        <i class="fas fa-paper-plane w-4 h-4"></i>
-        Submeter Projeto
+      <button type="submit" class="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
+        <i class="fas fa-save w-4 h-4"></i>
+        Cadastrar Startup
       </button>
     </div>
   </form>
