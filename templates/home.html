@@ -2,7 +2,11 @@
 
 {% load static %}
 
+
+
 {% block title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}
+
+
 
 {% block extra_head %}
 
@@ -10,35 +14,23 @@
 
 <style>
 
-    /* --- Glassmorphism & Utilities --- */
+    /* --- Glassmorphism Styles --- */
 
     .glass-card {
 
-        background: rgba(255, 255, 255, 0.85); /* Slightly more opaque for readability */
+        background: rgba(255, 255, 255, 0.9); /* Mais opacidade para leitura */
 
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(16px);
 
-        -webkit-backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(16px);
 
-        border: 1px solid rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.5);
 
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
-
-    }
-
-    
-
-    .glass-card-dark {
-
-        background: rgba(10, 37, 88, 0.85);
-
-        backdrop-filter: blur(12px);
-
-        -webkit-backdrop-filter: blur(12px);
-
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
 
     }
+
+
 
     .text-gradient {
 
@@ -52,7 +44,9 @@
 
     }
 
-    /* --- Timeline --- */
+
+
+    /* --- Timeline Styles --- */
 
     .timeline-line {
 
@@ -84,7 +78,7 @@
 
         width: 2px;
 
-        height: 0%; /* GSAP animates this */
+        height: 0%; /* GSAP anima isso */
 
         background: linear-gradient(to bottom, #10b981, #059669);
 
@@ -92,7 +86,9 @@
 
     }
 
-    /* --- Orbit Animation (Pure CSS Fallback / Base) --- */
+
+
+    /* --- Orbit Animation --- */
 
     .orbit-container {
 
@@ -102,9 +98,7 @@
 
         height: 100%;
 
-        border-radius: 50%;
-
-        animation: spin 30s linear infinite;
+        animation: spin 40s linear infinite;
 
     }
 
@@ -114,23 +108,23 @@
 
         position: absolute;
 
-        top: 50%;
-
-        left: 50%;
-
         transform-origin: center;
 
-        /* Counter-rotate to keep icons upright */
-
-        animation: counter-spin 30s linear infinite;
+        animation: counter-spin 40s linear infinite; /* Mantém ícones em pé */
 
     }
+
+
 
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
     @keyframes counter-spin { 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
 
-    /* Hide GSAP elements initially to prevent FOUC, but show if JS disabled */
+
+
+    /* --- GSAP Initial States --- */
+
+    /* Oculta apenas se JS estiver ativado para evitar tela branca se JS falhar */
 
     .js-enabled .gsap-fade-up, 
 
@@ -140,7 +134,9 @@
 
         opacity: 0;
 
-        visibility: hidden; /* Changed from opacity only for better layout stability */
+        visibility: hidden;
+
+        transform: translateY(20px);
 
     }
 
@@ -148,41 +144,53 @@
 
 <script>
 
+    // Marca que JS está ativo para aplicar ocultação inicial
+
     document.documentElement.classList.add('js-enabled');
 
 </script>
 
 {% endblock %}
 
+
+
 {% block content %}
 
-<div class="overflow-x-hidden bg-gray-50">
+<div class="overflow-x-hidden bg-gray-50 w-full">
 
-  <section class="relative min-h-[85vh] flex items-center pt-20 pb-32 lg:pb-48 overflow-hidden" aria-label="Seção principal">
+
+
+  <section class="relative flex flex-col justify-center pt-32 pb-64 md:pt-20 md:pb-48 lg:min-h-[90vh] overflow-hidden" aria-label="Seção principal">
 
     
 
-    <div class="absolute inset-0 z-0 select-none">
+    <div class="absolute inset-0 z-0 select-none h-[120%] -top-[10%]">
 
-        <img src="{% static 'img/agrohub-hero.webp' %}" alt="" class="w-full h-full object-cover object-center scale-110" id="hero-bg">
+        <img src="{% static 'img/agrohub-hero.webp' %}" alt="" class="w-full h-full object-cover object-center" id="hero-bg">
 
-        <div class="absolute inset-0 bg-gradient-to-r from-unirvBlue/95 via-unirvBlue/80 to-unirvBlue/40"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-unirvBlue/95 via-unirvBlue/85 to-unirvBlue/60"></div>
 
     </div>
+
+
 
     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
 
-        <div class="absolute top-20 right-0 w-[500px] h-[500px] bg-blue-500/20 rounded-full blur-[100px] mix-blend-overlay animate-pulse"></div>
+        <div class="absolute top-20 right-0 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-blue-500/30 rounded-full blur-[80px] mix-blend-overlay animate-pulse"></div>
 
-        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-green-500/20 rounded-full blur-[80px] mix-blend-overlay"></div>
+        <div class="absolute bottom-0 left-0 w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-green-500/30 rounded-full blur-[80px] mix-blend-overlay"></div>
 
     </div>
 
+
+
     <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div class="max-w-4xl">
+      <div class="max-w-4xl mx-auto md:mx-0 text-center md:text-left">
 
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white mb-8 gsap-fade-up">
+        
+
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white mb-8 gsap-fade-up mx-auto md:mx-0">
 
             <span class="relative flex h-3 w-3">
 
@@ -192,43 +200,43 @@
 
             </span>
 
-            <span class="text-xs md:text-sm font-bold tracking-wide uppercase">Centro de Inovação e Tecnologia</span>
+            <span class="text-xs md:text-sm font-bold tracking-wide uppercase">NIT - Núcleo de Inovação</span>
 
         </div>
 
         
 
-        <h1 class="text-white mb-6 text-4xl md:text-6xl lg:text-7xl leading-[1.1] font-extrabold tracking-tight gsap-fade-up">
+        <h1 class="text-white mb-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight font-extrabold tracking-tight gsap-fade-up">
 
-          Transformando o Agro <br class="hidden md:block">
+          O Futuro do Agro <br class="hidden md:block">
 
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">com Inteligência.</span>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-300">Começa Aqui.</span>
 
         </h1>
 
         
 
-        <p class="text-lg md:text-xl text-gray-200 mb-10 leading-relaxed max-w-2xl gsap-fade-up">
+        <p class="text-lg md:text-xl text-blue-50 mb-10 leading-relaxed max-w-2xl mx-auto md:mx-0 gsap-fade-up">
 
-          O ponto de encontro entre pesquisa acadêmica, startups e a força do setor produtivo. Conectamos Rio Verde ao futuro do campo.
+          Conectamos academia, startups e setor produtivo para transformar Rio Verde em um polo global de tecnologia agropecuária.
 
         </p>
 
         
 
-        <div class="flex flex-col sm:flex-row gap-4 gsap-fade-up">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start gsap-fade-up">
 
-          <a href="{% url 'editais_index' %}" class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-green-600 rounded-full overflow-hidden transition-all duration-300 hover:bg-green-700 shadow-xl hover:shadow-green-500/30 hover:-translate-y-1">
+          <a href="{% url 'editais_index' %}" class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-unirvBlue bg-white rounded-full overflow-hidden transition-all duration-300 hover:bg-blue-50 shadow-xl hover:shadow-white/20 hover:-translate-y-1">
 
             <span class="relative z-10 flex items-center gap-2">
 
-                Explorar Editais <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                Ver Editais Abertos <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
 
             </span>
 
           </a>
 
-          <a href="{% url 'ambientes_inovacao' %}" class="inline-flex items-center justify-center px-8 py-4 border border-white/30 backdrop-blur-sm text-base font-bold rounded-full text-white hover:bg-white/10 transition-all duration-300">
+          <a href="{% url 'ambientes_inovacao' %}" class="inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 backdrop-blur-sm text-base font-bold rounded-full text-white hover:bg-white/10 transition-all duration-300">
 
             Nossa Estrutura
 
@@ -242,63 +250,73 @@
 
   </section>
 
-  <section class="relative z-20 px-4 sm:px-6 lg:px-8 -mt-24 md:-mt-32">
 
-    <div class="container mx-auto">
 
-      <div class="glass-card rounded-3xl p-8 md:p-12">
+  <section class="relative z-20 px-4 sm:px-6 lg:px-8 -mt-40 md:-mt-32">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 divide-y sm:divide-y-0 sm:divide-x divide-gray-200/50">
+    <div class="container mx-auto max-w-7xl">
+
+      <div class="glass-card rounded-3xl p-6 md:p-10">
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4 md:gap-12 divide-x-0 md:divide-x divide-gray-200/50">
 
           
 
-          <div class="text-center sm:text-left px-4 pt-4 sm:pt-0 gsap-stat-item">
+          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
 
-            <div class="text-4xl md:text-5xl font-black text-unirvBlue mb-2 flex justify-center sm:justify-start items-baseline gap-1">
+            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
 
               <span class="counter" data-target="3">0</span>
 
             </div>
 
-            <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Fases de Expansão</p>
+            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Fases de Expansão</p>
 
           </div>
 
-          <div class="text-center sm:text-left px-4 pt-8 sm:pt-0 gsap-stat-item">
 
-            <div class="text-4xl md:text-5xl font-black text-unirvBlue mb-2 flex justify-center sm:justify-start items-baseline gap-1">
+
+          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
+
+            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
 
               <span class="counter" data-target="12">0</span><span>+</span>
 
             </div>
 
-            <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Startups Aceleradas</p>
+            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Startups Incubadas</p>
 
           </div>
 
-          <div class="text-center sm:text-left px-4 pt-8 sm:pt-0 gsap-stat-item">
 
-            <div class="text-4xl md:text-5xl font-black text-unirvBlue mb-2 flex justify-center sm:justify-start items-baseline gap-1">
 
-              <span class="counter" data-target="40">0</span><span class="text-2xl text-gray-400">ha</span>
+          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
+
+            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
+
+              <span class="counter" data-target="40">0</span><span class="text-xl md:text-2xl text-gray-400">ha</span>
 
             </div>
 
-            <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Smart Farm</p>
+            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Smart Farm</p>
 
           </div>
 
-          <div class="text-center sm:text-left px-4 pt-8 sm:pt-0 gsap-stat-item">
 
-            <div class="text-4xl md:text-5xl font-black text-unirvBlue mb-2 flex justify-center sm:justify-start items-baseline gap-1">
 
-              <span class="text-2xl text-gray-400">R$</span><span class="counter" data-target="10">0</span><span>M+</span>
+          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
+
+            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
+
+              <span class="text-xl md:text-2xl text-gray-400">R$</span><span class="counter" data-target="10">0</span><span>M+</span>
 
             </div>
 
-            <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Investimento Captado</p>
+            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Investimento</p>
 
           </div>
+
+
 
         </div>
 
@@ -308,89 +326,95 @@
 
   </section>
 
-  <section class="py-24 bg-gray-50 relative overflow-hidden">
 
-    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl mix-blend-multiply"></div>
 
-    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-green-200/40 rounded-full blur-3xl mix-blend-multiply"></div>
+  <section class="py-20 md:py-32 bg-gray-50 relative overflow-hidden">
+
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-3xl mix-blend-multiply opacity-70 pointer-events-none"></div>
+
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-green-100/50 rounded-full blur-3xl mix-blend-multiply opacity-70 pointer-events-none"></div>
+
+
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
       <div class="text-center max-w-3xl mx-auto mb-16 gsap-fade-up">
 
-        <h2 class="text-unirvBlue font-bold tracking-widest text-sm uppercase mb-3">Nossos Fundamentos</h2>
+        <h2 class="text-unirvBlue font-bold tracking-widest text-sm uppercase mb-3">Estratégia</h2>
 
-        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Os Pilares do AgroHub</h3>
+        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Pilares do AgroHub</h3>
 
         <p class="text-gray-600 text-lg">
 
-          Uma abordagem sistêmica para garantir que a inovação chegue onde ela é mais necessária: no campo.
+            Quatro eixos fundamentais que sustentam nossa missão de inovar no campo.
 
         </p>
 
       </div>
 
+
+
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group gsap-pillar-card">
+        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
 
-          <div class="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+          <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
 
-            <i class="fas fa-flask text-blue-600 group-hover:text-white text-xl"></i>
+            <i class="fas fa-flask text-xl"></i>
 
           </div>
 
-          <h4 class="text-lg font-bold text-gray-900 mb-3">Pesquisa & Inovação</h4>
+          <h4 class="text-lg font-bold text-gray-900 mb-3">Inovação e Pesquisa</h4>
 
-          <p class="text-gray-600 text-sm leading-relaxed">Desenvolvimento de tecnologia com rigor científico e validação em campo.</p>
+          <p class="text-gray-600 text-sm leading-relaxed">Ciência aplicada para resolver dores reais do produtor.</p>
 
         </div>
 
         
 
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group gsap-pillar-card">
+        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
 
-          <div class="w-14 h-14 bg-purple-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-600 transition-colors duration-300">
+          <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
 
-            <i class="fas fa-digital-tachograph text-purple-600 group-hover:text-white text-xl"></i>
+            <i class="fas fa-digital-tachograph text-xl"></i>
 
           </div>
 
           <h4 class="text-lg font-bold text-gray-900 mb-3">Transformação Digital</h4>
 
-          <p class="text-gray-600 text-sm leading-relaxed">IoT, Drones e IA integrados para decisões baseadas em dados.</p>
+          <p class="text-gray-600 text-sm leading-relaxed">IoT, Sensores e IA para um campo mais conectado.</p>
 
         </div>
 
         
 
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group gsap-pillar-card">
+        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
 
-          <div class="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-green-600 transition-colors duration-300">
+          <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-6 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all duration-300">
 
-            <i class="fas fa-rocket text-green-600 group-hover:text-white text-xl"></i>
+            <i class="fas fa-rocket text-xl"></i>
 
           </div>
 
           <h4 class="text-lg font-bold text-gray-900 mb-3">Empreendedorismo</h4>
 
-          <p class="text-gray-600 text-sm leading-relaxed">Suporte para startups e novos modelos de negócio no agro.</p>
+          <p class="text-gray-600 text-sm leading-relaxed">Incubação de startups e novos modelos de negócio.</p>
 
         </div>
 
         
 
-        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group gsap-pillar-card">
+        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
 
-          <div class="w-14 h-14 bg-amber-50 rounded-xl flex items-center justify-center mb-6 group-hover:bg-amber-600 transition-colors duration-300">
+          <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-6 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
 
-            <i class="fas fa-leaf text-amber-600 group-hover:text-white text-xl"></i>
+            <i class="fas fa-leaf text-xl"></i>
 
           </div>
 
           <h4 class="text-lg font-bold text-gray-900 mb-3">Sustentabilidade</h4>
 
-          <p class="text-gray-600 text-sm leading-relaxed">Soluções que respeitam o meio ambiente e aumentam a eficiência.</p>
+          <p class="text-gray-600 text-sm leading-relaxed">Eficiência produtiva com respeito ao meio ambiente.</p>
 
         </div>
 
@@ -400,11 +424,13 @@
 
   </section>
 
+
+
   <section class="py-24 bg-white overflow-hidden">
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-24">
+      <div class="flex flex-col lg:flex-row items-center gap-16">
 
         
 
@@ -412,15 +438,15 @@
 
             <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
 
-                A Hélice Quádrupla <br>
+                Ecossistema de <br>
 
-                <span class="text-gradient">do Desenvolvimento</span>
+                <span class="text-gradient">Hélice Quádrupla</span>
 
             </h2>
 
             <p class="text-gray-600 text-lg mb-8 leading-relaxed">
 
-                Nossa força vem da união. O AgroHub UniRV é o ecossistema onde Academia, Mercado, Governo e Sociedade colaboram ativamente.
+                O AgroHub UniRV é o ponto de convergência onde a mágica acontece. Unimos quatro forças vitais para acelerar o desenvolvimento.
 
             </p>
 
@@ -428,75 +454,35 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
 
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50 transition-colors">
 
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fas fa-graduation-cap"></i></div>
 
-                        <i class="fas fa-graduation-cap"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h4 class="font-bold text-gray-900">Academia</h4>
-
-                        <p class="text-xs text-gray-500 mt-1">Pesquisa & Ensino</p>
-
-                    </div>
+                    <span class="font-bold text-gray-800">Academia</span>
 
                 </div>
 
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-green-50 transition-colors">
 
-                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><i class="fas fa-tractor"></i></div>
 
-                        <i class="fas fa-tractor"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h4 class="font-bold text-gray-900">Setor Produtivo</h4>
-
-                        <p class="text-xs text-gray-500 mt-1">Empresas & Produtores</p>
-
-                    </div>
+                    <span class="font-bold text-gray-800">Setor Produtivo</span>
 
                 </div>
 
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-purple-50 transition-colors">
 
-                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fas fa-landmark"></i></div>
 
-                        <i class="fas fa-landmark"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h4 class="font-bold text-gray-900">Governo</h4>
-
-                        <p class="text-xs text-gray-500 mt-1">Fomento & Políticas</p>
-
-                    </div>
+                    <span class="font-bold text-gray-800">Governo</span>
 
                 </div>
 
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-amber-50 transition-colors">
 
-                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fas fa-users"></i></div>
 
-                        <i class="fas fa-users"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h4 class="font-bold text-gray-900">Sociedade</h4>
-
-                        <p class="text-xs text-gray-500 mt-1">Impacto Social</p>
-
-                    </div>
+                    <span class="font-bold text-gray-800">Sociedade Civil</span>
 
                 </div>
 
@@ -508,51 +494,51 @@
 
         <div class="lg:w-1/2 order-1 lg:order-2 w-full max-w-md mx-auto gsap-scale-up">
 
-            <div class="relative w-full aspect-square md:w-[450px] md:h-[450px] mx-auto">
+            <div class="relative w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] mx-auto">
+
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100 rounded-full blur-3xl opacity-60 animate-pulse"></div>
 
                 
 
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100 rounded-full opacity-50 blur-3xl animate-pulse"></div>
+                <div class="absolute inset-8 border border-dashed border-gray-300 rounded-full opacity-50"></div>
 
-                
 
-                <div class="absolute inset-4 border border-dashed border-gray-200 rounded-full"></div>
-
-                <div class="absolute inset-20 border border-gray-100 rounded-full"></div>
 
                 <div class="orbit-container absolute inset-0">
 
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-blue-600 z-10 border border-gray-100 orbit-item" style="top: 0; left: 50%;">
+                    <div class="orbit-item" style="top: 0; left: 50%;">
 
-                        <i class="fas fa-graduation-cap text-2xl"></i>
-
-                    </div>
-
-                    <div class="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-green-600 z-10 border border-gray-100 orbit-item" style="top: 50%; left: 100%;">
-
-                        <i class="fas fa-tractor text-2xl"></i>
+                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-blue-600 border border-gray-100"><i class="fas fa-graduation-cap text-xl"></i></div>
 
                     </div>
 
-                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-purple-600 z-10 border border-gray-100 orbit-item" style="top: 100%; left: 50%;">
+                    <div class="orbit-item" style="top: 50%; left: 100%;">
 
-                        <i class="fas fa-landmark text-2xl"></i>
+                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-green-600 border border-gray-100"><i class="fas fa-tractor text-xl"></i></div>
 
                     </div>
 
-                    <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-amber-600 z-10 border border-gray-100 orbit-item" style="top: 50%; left: 0;">
+                    <div class="orbit-item" style="top: 100%; left: 50%;">
 
-                        <i class="fas fa-users text-2xl"></i>
+                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-purple-600 border border-gray-100"><i class="fas fa-landmark text-xl"></i></div>
+
+                    </div>
+
+                    <div class="orbit-item" style="top: 50%; left: 0;">
+
+                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-amber-600 border border-gray-100"><i class="fas fa-users text-xl"></i></div>
 
                     </div>
 
                 </div>
 
+
+
                 <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
 
-                    <div class="w-32 h-32 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white relative">
+                    <div class="w-24 h-24 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white ring-1 ring-gray-100">
 
-                        <img src="{% static 'img/Logo.svg' %}" alt="Logo" class="w-20">
+                        <img src="{% static 'img/Logo.svg' %}" alt="UniRV" class="w-14">
 
                     </div>
 
@@ -562,17 +548,21 @@
 
         </div>
 
+
+
       </div>
 
     </div>
 
   </section>
 
+
+
   <section class="py-24 bg-gray-50 relative">
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div class="text-center mb-16 gsap-fade-up">
+      <div class="text-center mb-20 gsap-fade-up">
 
         <h2 class="text-unirvBlue font-bold tracking-widest text-sm uppercase mb-3">Cronograma</h2>
 
@@ -580,37 +570,41 @@
 
       </div>
 
+
+
       <div class="relative max-w-5xl mx-auto">
 
         
 
-        <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gray-200 top-0 bottom-0 z-0"></div>
+        <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200 top-0 bottom-0 rounded-full"></div>
 
-        <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-0.5 bg-green-500 top-0 z-0" id="timeline-bar" style="height: 0%"></div>
+        <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-1 bg-green-500 top-0 rounded-full" id="timeline-bar" style="height: 0%"></div>
 
-        <div class="space-y-12 md:space-y-24 relative z-10">
+
+
+        <div class="space-y-12 md:space-y-24 relative">
 
             
 
             <div class="flex flex-col md:flex-row items-center timeline-item">
 
-                <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-4 md:mt-0">
+                <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-6 md:mt-0">
 
-                    <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
 
-                        <span class="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full mb-3">CONCLUÍDA</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">CONCLUÍDA</span>
 
-                        <h4 class="text-xl font-bold text-gray-900 mb-2">Estruturação Inicial</h4>
+                        <h4 class="text-xl font-bold text-gray-900">Estruturação</h4>
 
-                        <p class="text-gray-600 text-sm">Implementação do Centro de Inovação, Incubadora YpeTech, FabLab e espaços de coworking.</p>
+                        <p class="text-gray-600 text-sm mt-2">Inauguração do Centro, Incubadora YpeTech e FabLab.</p>
 
                     </div>
 
                 </div>
 
-                <div class="md:w-auto order-1 md:order-2 flex-shrink-0">
+                <div class="md:w-auto order-1 md:order-2 flex-shrink-0 z-10">
 
-                    <div class="w-12 h-12 bg-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white relative z-10">
+                    <div class="w-12 h-12 bg-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white">
 
                         <i class="fas fa-check"></i>
 
@@ -618,17 +612,19 @@
 
                 </div>
 
-                <div class="md:w-1/2 md:pl-12 order-3 md:order-3 hidden md:block"></div>
+                <div class="md:w-1/2 order-3 md:order-3 hidden md:block"></div>
 
             </div>
 
+
+
             <div class="flex flex-col md:flex-row items-center timeline-item">
 
-                <div class="md:w-1/2 md:pr-12 order-3 md:order-1 hidden md:block"></div>
+                <div class="md:w-1/2 order-3 md:order-1 hidden md:block"></div>
 
-                <div class="md:w-auto order-1 md:order-2 flex-shrink-0">
+                <div class="md:w-auto order-1 md:order-2 flex-shrink-0 z-10">
 
-                    <div class="w-12 h-12 bg-white rounded-full border-4 border-amber-400 shadow-lg flex items-center justify-center text-amber-500 relative z-10">
+                    <div class="w-12 h-12 bg-white rounded-full border-4 border-amber-400 shadow-lg flex items-center justify-center text-amber-500">
 
                         <i class="fas fa-sync fa-spin"></i>
 
@@ -636,15 +632,15 @@
 
                 </div>
 
-                <div class="md:w-1/2 md:pl-12 md:text-left order-2 md:order-3 mt-4 md:mt-0">
+                <div class="md:w-1/2 md:pl-12 md:text-left order-2 md:order-3 mt-6 md:mt-0">
 
-                    <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition-shadow">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
 
-                        <span class="inline-block px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full mb-3">EM ANDAMENTO</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-2">EM ANDAMENTO</span>
 
-                        <h4 class="text-xl font-bold text-gray-900 mb-2">Smart Farm</h4>
+                        <h4 class="text-xl font-bold text-gray-900">Smart Farm</h4>
 
-                        <p class="text-gray-600 text-sm">Implementação de tecnologias avançadas, IoT e monitoramento em tempo real nos 16ha irrigados.</p>
+                        <p class="text-gray-600 text-sm mt-2">Implementação de campos experimentais conectados com IoT e IA.</p>
 
                     </div>
 
@@ -652,25 +648,27 @@
 
             </div>
 
-            <div class="flex flex-col md:flex-row items-center timeline-item opacity-75">
 
-                <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-4 md:mt-0">
 
-                    <div class="bg-white p-6 rounded-2xl shadow-md border border-gray-100 border-dashed">
+            <div class="flex flex-col md:flex-row items-center timeline-item opacity-60">
 
-                        <span class="inline-block px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full mb-3">FUTURO</span>
+                <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-6 md:mt-0">
 
-                        <h4 class="text-xl font-bold text-gray-900 mb-2">Condomínio de Empresas</h4>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-dashed">
 
-                        <p class="text-gray-600 text-sm">Expansão física e atração de grandes companhias do setor para instalação no ecossistema.</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mb-2">FUTURO</span>
+
+                        <h4 class="text-xl font-bold text-gray-900">Condomínio Tech</h4>
+
+                        <p class="text-gray-600 text-sm mt-2">Expansão para receber grandes empresas do setor agro.</p>
 
                     </div>
 
                 </div>
 
-                <div class="md:w-auto order-1 md:order-2 flex-shrink-0">
+                <div class="md:w-auto order-1 md:order-2 flex-shrink-0 z-10">
 
-                    <div class="w-12 h-12 bg-gray-200 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-gray-500 relative z-10">
+                    <div class="w-12 h-12 bg-gray-200 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-gray-500">
 
                         <span class="font-bold">3</span>
 
@@ -678,9 +676,11 @@
 
                 </div>
 
-                <div class="md:w-1/2 md:pl-12 order-3 md:order-3 hidden md:block"></div>
+                <div class="md:w-1/2 order-3 md:order-3 hidden md:block"></div>
 
             </div>
+
+
 
         </div>
 
@@ -690,19 +690,23 @@
 
   </section>
 
-  <section class="relative py-24 w-full full-bleed overflow-hidden bg-unirvBlue">
+
+
+  <section class="relative py-24 w-full bg-unirvBlue overflow-hidden">
 
     <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue via-blue-900 to-black opacity-90"></div>
 
-    <div class="absolute -right-24 -bottom-48 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute -right-32 -bottom-32 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[100px]"></div>
+
+
 
     <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
-      <h2 class="text-white mb-6 text-3xl md:text-5xl font-bold tracking-tight">Pronto para inovar?</h2>
+      <h2 class="text-white mb-6 text-3xl md:text-4xl font-bold">Pronto para inovar?</h2>
 
-      <p class="text-lg md:text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+      <p class="text-lg text-blue-100 mb-10 max-w-2xl mx-auto">
 
-        Acesse editais abertos ou cadastre sua startup para fazer parte do maior hub de inovação do agronegócio goiano.
+        Participe dos nossos editais ou traga sua startup para o ecossistema.
 
       </p>
 
@@ -710,13 +714,13 @@
 
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
 
-        <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-8 py-4 bg-white text-unirvBlue hover:bg-blue-50 rounded-full text-base font-bold shadow-lg transition-transform hover:-translate-y-1">
+        <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-8 py-3 bg-white text-unirvBlue hover:bg-blue-50 rounded-full text-base font-bold shadow-lg transition-transform hover:-translate-y-1">
 
-          Ver Oportunidades
+          Acessar Editais
 
         </a>
 
-        <a href="{% url 'register' %}" class="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white/20 text-white hover:bg-white/10 rounded-full text-base font-bold transition-all">
+        <a href="{% url 'register' %}" class="inline-flex items-center justify-center px-8 py-3 bg-transparent border-2 border-white/20 text-white hover:bg-white/10 rounded-full text-base font-bold transition-all">
 
           Criar Conta
 
@@ -728,9 +732,13 @@
 
   </section>
 
+
+
 </div>
 
 {% endblock %}
+
+
 
 {% block extra_js %}
 
@@ -738,39 +746,41 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
+
+
 <script>
 
     document.addEventListener("DOMContentLoaded", (event) => {
 
-        // Safe check for GSAP
+        // Verifica se GSAP carregou corretamente
 
         if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
 
             gsap.registerPlugin(ScrollTrigger);
 
-            // Make elements visible before animating (reverses the CSS hiding)
+
+
+            // Função para revelar elementos (tira o hidden do CSS)
 
             const revealElements = () => {
 
-                const hiddenElements = document.querySelectorAll('.gsap-fade-up, .gsap-fade-right, .gsap-scale-up');
+                document.querySelectorAll('.gsap-fade-up, .gsap-fade-right, .gsap-scale-up')
 
-                hiddenElements.forEach(el => el.style.visibility = 'visible');
+                    .forEach(el => {
+
+                        el.style.visibility = 'visible';
+
+                    });
 
             };
 
             
 
-            // 1. Hero Entrance
+            // 1. Hero Animation
 
-            const heroTimeline = gsap.timeline({
+            const heroTl = gsap.timeline({ onStart: revealElements });
 
-                onStart: revealElements
-
-            });
-
-            
-
-            heroTimeline.to(".gsap-fade-up", {
+            heroTl.to(".gsap-fade-up", {
 
                 opacity: 1,
 
@@ -778,15 +788,15 @@
 
                 duration: 0.8,
 
-                stagger: 0.15,
+                stagger: 0.1,
 
-                ease: "power3.out",
-
-                visibility: 'visible' // Ensure visibility
+                ease: "power3.out"
 
             });
 
-            // 2. Parallax Background
+
+
+            // 2. Parallax
 
             gsap.to("#hero-bg", {
 
@@ -802,13 +812,15 @@
 
                 },
 
-                y: 150,
+                y: 100,
 
                 ease: "none"
 
             });
 
-            // 3. Stats Counter
+
+
+            // 3. Counters
 
             gsap.utils.toArray(".counter").forEach(counter => {
 
@@ -842,7 +854,9 @@
 
             });
 
-            // 4. Pillars Stagger
+
+
+            // 4. Pillars
 
             gsap.from(".gsap-pillar-card", {
 
@@ -850,23 +864,23 @@
 
                     trigger: ".gsap-pillar-card",
 
-                    start: "top 80%"
+                    start: "top 85%"
 
                 },
 
-                y: 40,
+                y: 30,
 
                 opacity: 0,
 
-                duration: 0.8,
+                duration: 0.6,
 
-                stagger: 0.15,
-
-                ease: "back.out(1.2)"
+                stagger: 0.1
 
             });
 
-            // 5. Helice Animation
+
+
+            // 5. Helice
 
             gsap.to(".gsap-fade-right", {
 
@@ -874,7 +888,7 @@
 
                     trigger: ".gsap-fade-right",
 
-                    start: "top 75%"
+                    start: "top 80%"
 
                 },
 
@@ -882,11 +896,13 @@
 
                 x: 0,
 
-                duration: 1,
+                duration: 0.8,
 
-                visibility: 'visible'
+                onStart: () => { document.querySelector('.gsap-fade-right').style.visibility = 'visible'; }
 
             });
+
+
 
             gsap.to(".gsap-scale-up", {
 
@@ -894,7 +910,7 @@
 
                     trigger: ".gsap-scale-up",
 
-                    start: "top 75%"
+                    start: "top 80%"
 
                 },
 
@@ -902,21 +918,23 @@
 
                 scale: 1,
 
-                duration: 1,
+                duration: 0.8,
 
-                ease: "elastic.out(1, 0.75)",
+                ease: "back.out(1.2)",
 
-                visibility: 'visible'
+                onStart: () => { document.querySelector('.gsap-scale-up').style.visibility = 'visible'; }
 
             });
 
-            // 6. Timeline Progress
+
+
+            // 6. Timeline
 
             gsap.to("#timeline-bar", {
 
                 scrollTrigger: {
 
-                    trigger: ".timeline-item", // Trigger when first item hits
+                    trigger: ".timeline-item",
 
                     start: "top 70%",
 
@@ -934,8 +952,6 @@
 
             
 
-            // Timeline Items Fade In
-
             gsap.utils.toArray(".timeline-item").forEach(item => {
 
                 gsap.from(item, {
@@ -950,21 +966,21 @@
 
                     opacity: 0,
 
-                    y: 30,
+                    y: 20,
 
-                    duration: 0.6,
-
-                    ease: "power2.out"
+                    duration: 0.5
 
                 });
 
             });
 
+
+
         } else {
 
-            console.warn("GSAP not loaded. Fallback to default CSS.");
+            // Fallback: GSAP falhou, mostra tudo imediatamente
 
-            // Fallback: make everything visible immediately
+            console.warn("GSAP não carregou. Usando CSS padrão.");
 
             document.querySelectorAll('.gsap-fade-up, .gsap-fade-right, .gsap-scale-up').forEach(el => {
 
