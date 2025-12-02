@@ -46,7 +46,7 @@ jobs:
         run: |
           python manage.py migrate --noinput
         env:
-          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
           DJANGO_DEBUG: 'True'
           ALLOWED_HOSTS: 'localhost,127.0.0.1'
 
@@ -54,7 +54,7 @@ jobs:
         run: |
           python manage.py collectstatic --noinput
         env:
-          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
           DJANGO_DEBUG: 'True'
           ALLOWED_HOSTS: 'localhost,127.0.0.1'
 
@@ -62,7 +62,7 @@ jobs:
         run: |
           npx @lhci/cli autorun --config=.lighthouserc.js
         env:
-          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
           DJANGO_DEBUG: 'True'
           ALLOWED_HOSTS: 'localhost,127.0.0.1'
           # Optional: Override thresholds via environment variables
