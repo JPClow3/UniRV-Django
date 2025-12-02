@@ -24,10 +24,7 @@ jobs:
 
       - name: Set environment variables
         run: |
-          SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}"
-          if [ -z "$SECRET_KEY" ]; then
-            SECRET_KEY="dummy-secret-key-for-ci"
-          fi
+          SECRET_KEY="${SECRET_KEY:-dummy-secret-key-for-ci}"
           echo "SECRET_KEY=$SECRET_KEY" >> $GITHUB_ENV
           echo "Environment variables set:"
           echo "  SECRET_KEY: ${SECRET_KEY:0:10}..."

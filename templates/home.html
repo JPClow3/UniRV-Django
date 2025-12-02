@@ -4,90 +4,7 @@
 
 {% block title %}AgroHub UniRV - Conceito Visual Moderno{% endblock %}
 
-
-
-{% block extra_head %}
-<style>
-  body { font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
-  
-  .reveal-up { opacity: 0; transform: translateY(30px); }
-  
-  .glass-nav {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-  }
-  
-  /* --- ANIMAÇÕES DA HÉLICE QUÁDRUPLA --- */
-  .orbit-container { position: relative; width: 400px; height: 400px; max-width: 100%; }
-  .orbit-ring {
-    position: absolute; 
-    border: 1px dashed rgba(255, 255, 255, 0.2); 
-    border-radius: 50%;
-    top: 50%; left: 50%; 
-    transform: translate(-50%, -50%);
-  }
-  
-  .ring-1 { width: 100%; height: 100%; animation: spin 25s linear infinite; border-color: rgba(118, 184, 42, 0.3); }
-  .ring-2 { width: 80%; height: 80%; animation: spin 20s linear infinite reverse; border-color: rgba(39, 52, 139, 0.4); }
-  .ring-3 { width: 60%; height: 60%; animation: spin 15s linear infinite; border-color: rgba(234, 179, 8, 0.4); }
-  .ring-4 { width: 40%; height: 40%; animation: spin 10s linear infinite reverse; border-color: rgba(168, 85, 247, 0.4); }
-  
-  @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-  
-  /* Ícones Flutuantes Aumentados */
-  .floating-icon {
-    position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
-    background: white; 
-    border-radius: 50%; 
-    box-shadow: 0 0 20px rgba(255,255,255,0.3);
-    color: #27348b; 
-    width: 40px; height: 40px; font-size: 18px;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 20;
-  }
-  
-  /* --- TIMELINE CUSTOMIZADA --- */
-  /* Desktop: Linha Horizontal */
-  @media (min-width: 768px) {
-    .timeline-line-bg {
-      position: absolute; top: 40px; left: 0; width: 100%; height: 4px; background: #e2e8f0; z-index: 0;
-    }
-    .timeline-line-progress {
-      position: absolute; top: 40px; left: 0; height: 4px; 
-      background: linear-gradient(90deg, #76b82a, #27348b); 
-      z-index: 0; width: 0%; transition: width 1.5s ease-out;
-    }
-  }
-  
-  /* Mobile: Linha Vertical */
-  @media (max-width: 767px) {
-    .timeline-wrapper {
-      position: relative;
-      padding-left: 2rem;
-      border-left: 4px solid #e2e8f0;
-      margin-left: 1rem;
-    }
-    .timeline-item { margin-bottom: 3rem; }
-    .timeline-icon-mobile {
-      position: absolute; left: -2.3rem; top: 0;
-    }
-  }
-  
-  /* Helper para alinhamento dos pilares */
-  .pillar-card { opacity: 0; display: flex; flex-direction: column; height: 100%; }
-  
-  /* Scroll Indicator Animation - Slower bounce */
-  @keyframes slow-bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-  .animate-slow-bounce {
-    animation: slow-bounce 2s ease-in-out infinite;
-  }
-</style>
-{% endblock %}
-
+{% block page_id %}home{% endblock %}
 
 
 {% block content %}
@@ -95,8 +12,15 @@
   <!-- HERO SECTION -->
   <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
     <div class="hero-bg absolute inset-0 z-0 scale-110">
-      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');" role="img" aria-label="Campo agrícola com tecnologia moderna"></div>
-      <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(39, 52, 139, 0.95), rgba(39, 52, 139, 0.8), rgba(39, 52, 139, 0.4));"></div>
+      <div
+        class="absolute inset-0 bg-cover bg-center"
+        style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');"
+        role="img"
+        aria-label="Campo agrícola com tecnologia moderna"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-unirvBlue/95 via-unirvBlue/80 to-unirvBlue/40"
+      ></div>
     </div>
 
     <div class="container relative z-10 px-6 pt-20">
@@ -367,82 +291,4 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<!-- GSAP loaded asynchronously for better performance -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
-<script>
-  document.addEventListener("DOMContentLoaded", (event) => {
-    gsap.registerPlugin(ScrollTrigger);
-
-    // 1. Navigation Glass Effect
-    window.addEventListener('scroll', () => {
-      const nav = document.querySelector('.site-header');
-      if (!nav) return;
-      if (window.scrollY > 50) {
-        nav.classList.add('glass-nav', 'text-gray-800', 'shadow-sm');
-        nav.classList.remove('bg-transparent', 'text-white');
-      } else {
-        nav.classList.remove('glass-nav', 'text-gray-800', 'shadow-sm');
-        nav.classList.add('bg-transparent', 'text-white');
-      }
-    });
-
-    // 2. Reveal Animations
-    gsap.utils.toArray('.reveal-up').forEach((elem) => {
-      gsap.to(elem, {
-        scrollTrigger: { trigger: elem, start: "top 90%" },
-        y: 0, opacity: 1, duration: 1, ease: "power3.out"
-      });
-    });
-
-    // 3. Pillars Stagger
-    gsap.to(".pillar-card", {
-      scrollTrigger: { 
-        trigger: "#pillars-section", 
-        start: "top 75%" 
-      },
-      opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "back.out(1.7)"
-    });
-
-    // 4. Parallax
-    gsap.to(".hero-bg", {
-      scrollTrigger: { trigger: "header", start: "top top", end: "bottom top", scrub: true },
-      y: 150, scale: 1.2, ease: "none"
-    });
-
-    // 5. Counters
-    gsap.utils.toArray(".counter").forEach(counter => {
-      const target = parseInt(counter.getAttribute("data-target")) || 0;
-      const obj = { value: 0 };
-      gsap.to(obj, {
-        value: target,
-        duration: 2.5,
-        snap: { value: 1 },
-        scrollTrigger: { trigger: counter, start: "top 85%" },
-        ease: "power1.inOut",
-        onUpdate: () => {
-          counter.innerText = Math.round(obj.value);
-        }
-      });
-    });
-
-    // 6. Timeline Progress Line
-    gsap.to("#progress-line", {
-      width: "50%",
-      duration: 2,
-      scrollTrigger: { trigger: "#progress-line", start: "top 80%" }
-    });
-
-    // 7. Hero Button Navigation
-    document.querySelectorAll('.hero-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const url = btn.getAttribute('data-url');
-        if (url) {
-          window.location.href = url;
-        }
-      });
-    });
-  });
-</script>
-{% endblock %}
+{% block extra_js %}{% endblock %}

@@ -41,27 +41,27 @@
           <div class="w-px h-6 bg-gray-200 mr-2"></div>
 
           {% if user.is_staff %}
-            <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_home' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_home' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-chart-line w-4 h-4"></i>
               <span>Dashboard</span>
             </a>
-            <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_usuarios' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_usuarios' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-users w-4 h-4"></i>
               <span>Usuários</span>
             </a>
-            <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_editais' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_editais' or request.resolver_match.url_name == 'dashboard_novo_edital' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-file-alt w-4 h-4"></i>
               <span>Editais</span>
             </a>
-            <a href="{% url 'dashboard_projetos' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_projetos' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <a href="{% url 'dashboard_projetos' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_projetos' or request.resolver_match.url_name == 'dashboard_submeter_projeto' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-folder-open w-4 h-4"></i>
               <span>Projetos</span>
             </a>
-            <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_avaliacoes' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_avaliacoes' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-clipboard-check w-4 h-4"></i>
               <span>Avaliações</span>
             </a>
-            <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_relatorios' %}bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-md{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+            <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_relatorios' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-chart-bar w-4 h-4"></i>
               <span>Relatórios</span>
             </a>
@@ -91,27 +91,27 @@
                 Portal AgroHub
               </a>
               {% if user.is_staff %}
-                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_home' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-chart-line w-4 h-4"></i>
                   Dashboard
                 </a>
-                <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_usuarios' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-users w-4 h-4"></i>
                   Usuários
                 </a>
-                <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_editais' or request.resolver_match.url_name == 'dashboard_novo_edital' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-file-alt w-4 h-4"></i>
                   Editais
                 </a>
-                <a href="{% url 'dashboard_projetos' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard_projetos' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_projetos' or request.resolver_match.url_name == 'dashboard_submeter_projeto' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-folder-open w-4 h-4"></i>
                   Projetos
                 </a>
-                <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_avaliacoes' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-clipboard-check w-4 h-4"></i>
                   Avaliações
                 </a>
-                <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_relatorios' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-chart-bar w-4 h-4"></i>
                   Relatórios
                 </a>

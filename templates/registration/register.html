@@ -4,48 +4,45 @@
 {% block title %}Registrar - AgroHub UniRV{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
-  <div class="w-full max-w-md">
+<div class="auth-layout">
+  <div class="auth-inner">
     <!-- Back Button -->
-    <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 transition-colors group">
+    <a href="{% url 'home' %}" class="auth-back-link mb-6">
       <i class="fas fa-arrow-left w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
       <span class="font-medium">Voltar para o site</span>
     </a>
 
-    <!-- Logo -->
-    <div class="text-center mb-8">
-      <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-3 mb-2">
-        <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-12 h-12" width="48" height="48" loading="lazy" />
-      </a>
-      <h1 class="text-blue-600 mt-2 text-2xl font-bold">AgroHub UniRV</h1>
-      <p class="text-gray-600">Criar Conta</p>
-    </div>
-
-    <!-- Registration Card -->
-    <div class="bg-white rounded-3xl shadow-md p-10 border-0">
-      <div class="mb-8">
-        <h2 class="text-gray-900 text-2xl mb-2 font-semibold">Criar Nova Conta</h2>
-        <p class="text-gray-600">Preencha os dados para se cadastrar</p>
+    <!-- Card -->
+    <div class="auth-card">
+      <!-- Logo / Heading -->
+      <div class="text-center mb-8">
+        <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/90 flex items-center justify-center shadow-md">
+            <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10" width="40" height="40" loading="lazy" />
+          </div>
+        </a>
+        <h1 class="auth-title">AgroHub UniRV</h1>
+        <p class="auth-muted">Criar uma nova conta para acessar o ecossistema</p>
       </div>
 
       {% if form.errors %}
-        <div class="alert bg-red-50 border-red-200 mb-6">
-          <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-          <div class="text-red-900">
-            {% if form.non_field_errors %}
-              {{ form.non_field_errors }}
-            {% else %}
-              Por favor, corrija os erros abaixo.
-            {% endif %}
-          </div>
+      <div class="mb-6 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 flex gap-3">
+        <i class="fas fa-exclamation-circle text-red-600 mt-0.5"></i>
+        <div class="text-sm text-red-900">
+          {% if form.non_field_errors %}
+            {{ form.non_field_errors }}
+          {% else %}
+            Por favor, corrija os erros abaixo.
+          {% endif %}
         </div>
+      </div>
       {% endif %}
 
       <form method="post" class="space-y-6">
         {% csrf_token %}
         
         <div class="space-y-2">
-          <label for="id_first_name" class="text-gray-700 font-medium">Nome *</label>
+          <label for="id_first_name" class="auth-label">Nome *</label>
           <input
             id="id_first_name"
             name="first_name"
@@ -53,32 +50,32 @@
             placeholder="Seu nome"
             required
             autocomplete="given-name"
-            class="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            class="auth-input"
             value="{{ form.first_name.value|default:'' }}"
           >
           {% if form.first_name.errors %}
-            <div class="text-red-600 text-sm">{{ form.first_name.errors }}</div>
+            <div class="text-red-500 text-xs">{{ form.first_name.errors }}</div>
           {% endif %}
         </div>
 
         <div class="space-y-2">
-          <label for="id_last_name" class="text-gray-700 font-medium">Sobrenome</label>
+          <label for="id_last_name" class="auth-label">Sobrenome</label>
           <input
             id="id_last_name"
             name="last_name"
             type="text"
             placeholder="Seu sobrenome"
             autocomplete="family-name"
-            class="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            class="auth-input"
             value="{{ form.last_name.value|default:'' }}"
           >
           {% if form.last_name.errors %}
-            <div class="text-red-600 text-sm">{{ form.last_name.errors }}</div>
+            <div class="text-red-500 text-xs">{{ form.last_name.errors }}</div>
           {% endif %}
         </div>
 
         <div class="space-y-2">
-          <label for="id_username" class="text-gray-700 font-medium">Nome de usuário *</label>
+          <label for="id_username" class="auth-label">Nome de usuário *</label>
           <input
             id="id_username"
             name="username"
@@ -86,17 +83,17 @@
             placeholder="nomeusuario"
             required
             autocomplete="username"
-            class="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            class="auth-input"
             value="{{ form.username.value|default:'' }}"
           >
           {% if form.username.errors %}
-            <div class="text-red-600 text-sm">{{ form.username.errors }}</div>
+            <div class="text-red-500 text-xs">{{ form.username.errors }}</div>
           {% endif %}
-          <small class="text-gray-500 text-xs">Apenas letras, números e @/./+/-/_</small>
+          <small class="text-xs text-gray-200 md:text-gray-500 block mt-1">Apenas letras, números e @/./+/-/_</small>
         </div>
 
         <div class="space-y-2">
-          <label for="id_email" class="text-gray-700 font-medium">E-mail *</label>
+          <label for="id_email" class="auth-label">E-mail *</label>
           <div class="relative">
             <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
             <input
@@ -106,17 +103,17 @@
               placeholder="seu@email.com"
               required
               autocomplete="email"
-              class="pl-10 h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              class="auth-input pl-10"
               value="{{ form.email.value|default:'' }}"
             >
           </div>
           {% if form.email.errors %}
-            <div class="text-red-600 text-sm">{{ form.email.errors }}</div>
+            <div class="text-red-500 text-xs">{{ form.email.errors }}</div>
           {% endif %}
         </div>
 
         <div class="space-y-2">
-          <label for="id_password1" class="text-gray-700 font-medium">Senha *</label>
+          <label for="id_password1" class="auth-label">Senha *</label>
           <div class="relative">
             <input
               id="id_password1"
@@ -125,11 +122,11 @@
               placeholder="••••••••"
               required
               autocomplete="new-password"
-              class="h-11 w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              class="auth-input pr-10"
             >
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-100 md:hover:text-gray-700"
                 data-password-toggle="id_password1"
                 aria-pressed="false"
                 aria-label="Mostrar ou ocultar senha"
@@ -138,15 +135,15 @@
               </button>
           </div>
           {% if form.password1.errors %}
-            <div class="text-red-600 text-sm">{{ form.password1.errors }}</div>
+            <div class="text-red-500 text-xs">{{ form.password1.errors }}</div>
           {% endif %}
-          <small class="text-gray-500 text-xs">
+          <small class="text-xs text-gray-200 md:text-gray-500 block mt-1">
             Sua senha deve conter pelo menos 8 caracteres e não pode ser muito comum.
           </small>
         </div>
 
         <div class="space-y-2">
-          <label for="id_password2" class="text-gray-700 font-medium">Confirmar Senha *</label>
+          <label for="id_password2" class="auth-label">Confirmar Senha *</label>
           <div class="relative">
             <input
               id="id_password2"
@@ -155,11 +152,11 @@
               placeholder="••••••••"
               required
               autocomplete="new-password"
-              class="h-11 w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              class="auth-input pr-10"
             >
               <button
                 type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-100 md:hover:text-gray-700"
                 data-password-toggle="id_password2"
                 aria-pressed="false"
                 aria-label="Mostrar ou ocultar confirmação de senha"
@@ -168,23 +165,23 @@
               </button>
           </div>
           {% if form.password2.errors %}
-            <div class="text-red-600 text-sm">{{ form.password2.errors }}</div>
+            <div class="text-red-500 text-xs">{{ form.password2.errors }}</div>
           {% endif %}
         </div>
 
         <button
           type="submit"
-          class="w-full h-11 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all text-white font-medium flex items-center justify-center gap-2"
+          class="auth-gradient-cta"
         >
           <i class="fas fa-user-plus"></i>
           Criar Conta
         </button>
       </form>
 
-      <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-        <p class="text-gray-600 text-sm">
+      <div class="mt-8 pt-6 border-t border-white/10 md:border-gray-200 text-center">
+        <p class="text-xs md:text-sm text-gray-200 md:text-gray-600">
           Já tem uma conta?
-          <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+          <a href="{% url 'login' %}" class="text-blue-100 md:text-blue-600 hover:text-blue-300 md:hover:text-blue-700 font-semibold">
             Fazer Login
           </a>
         </p>

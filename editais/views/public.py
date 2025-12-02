@@ -83,6 +83,7 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
     default_context = {
         'startups': Project.objects.none(),
         'category_filter': '',
+        'search_query': '',
         'stats': {
             'total_active': 0,
             'graduadas': 0,
@@ -91,8 +92,9 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
     }
     
     try:
-        # Get filter parameter
+        # Get filter parameters
         category_filter = request.GET.get('category', '').strip()
+        search_query = request.GET.get('search', '').strip()
         
         # Base queryset - optimized with select_related and only() to limit fields loaded
         # This reduces memory usage and speeds up queries significantly
@@ -104,6 +106,12 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
             'edital__id', 'edital__titulo', 'edital__slug',
             'proponente__id', 'proponente__first_name', 'proponente__last_name'
         )
+        
+        # Apply search filter if provided
+        if search_query:
+            base_queryset = base_queryset.filter(
+                Q(name__icontains=search_query) | Q(description__icontains=search_query)
+            )
         
         # Calculate stats from base queryset BEFORE applying category filter
         # Use a more efficient count query - only count IDs, don't load full objects
@@ -133,6 +141,7 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         context = {
             'startups': startups,
             'category_filter': category_filter,
+            'search_query': search_query,
             'stats': {
                 'total_active': stats.get('total_active') or 0,
                 'graduadas': stats.get('graduadas') or 0,

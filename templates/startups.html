@@ -3,78 +3,17 @@
 
 {% block title %}Startups - AgroHub UniRV{% endblock %}
 
-{% block extra_head %}
-<style>
-  body { font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
-  
-  /* Glassmorphism Navigation */
-  .glass-nav {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-  }
-
-  /* Card Styles & Glassmorphism */
-  .startup-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(12px);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(229, 231, 235, 0.5);
-  }
-  
-  .startup-card:hover {
-    transform: translateY(-8px);
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 20px 40px -5px rgba(39, 52, 139, 0.15);
-    border-color: rgba(118, 184, 42, 0.3);
-  }
-
-  /* Filter Pills */
-  .filter-btn { transition: all 0.3s ease; }
-  .filter-btn.active {
-    background-color: #76b82a;
-    color: white;
-    border-color: #76b82a;
-    box-shadow: 0 4px 15px rgba(118, 184, 42, 0.3);
-    transform: translateY(-1px);
-  }
-
-  /* Badge de Fase */
-  .phase-badge {
-    position: absolute; top: 1rem; right: 1rem;
-    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-    padding: 0.35rem 0.85rem; border-radius: 9999px; letter-spacing: 0.05em;
-    z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  }
-
-  /* Padrão de Fundo */
-  .bg-grid-pattern {
-    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-    background-size: 30px 30px;
-  }
-  
-  /* Animations Helper */
-  .reveal-hero { opacity: 0; transform: translateY(30px); }
-
-  /* Blob Animation */
-  @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
-  }
-  
-  .animate-blob {
-    animation: blob 7s infinite;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION: O Ecossistema -->
   <section class="relative pt-32 pb-20 bg-unirvBlue overflow-hidden">
     <!-- Elementos de Fundo Animados -->
+    <!-- Z-Index Hierarchy Documentation:
+         - Blobs: z-0 (background layer)
+         - Content: z-10 (foreground layer)
+         - NOTE: If adding modals or dropdowns in the future, ensure they use z-50 or higher
+         - CAUTION: mix-blend-overlay on blobs can affect text readability on certain backgrounds
+         - Consider testing text contrast when adding new interactive elements above z-10 -->
     <div class="absolute inset-0 z-0 overflow-hidden">
       <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue via-blue-900 to-[#1a237e] opacity-95"></div>
       <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob"></div>
@@ -126,29 +65,63 @@
     
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       
-      <!-- Dynamic Filters -->
-      <div class="flex flex-wrap justify-center items-center gap-3 mb-16" id="portfolio-filters">
-        <a href="{% url 'startups_showcase' %}" class="filter-btn {% if not category_filter or category_filter == 'all' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-bold text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm">
-          Todos
-        </a>
-        <a href="{% url 'startups_showcase' %}?category=agtech" class="filter-btn {% if category_filter == 'agtech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2">
-          <i class="fas fa-leaf text-xs"></i> AgTech
-        </a>
-        <a href="{% url 'startups_showcase' %}?category=biotech" class="filter-btn {% if category_filter == 'biotech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2">
-          <i class="fas fa-dna text-xs"></i> BioTech
-        </a>
-        <a href="{% url 'startups_showcase' %}?category=iot" class="filter-btn {% if category_filter == 'iot' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2">
-          <i class="fas fa-wifi text-xs"></i> IoT & Hardware
-        </a>
-        <a href="{% url 'startups_showcase' %}?category=edtech" class="filter-btn {% if category_filter == 'edtech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2">
-          <i class="fas fa-graduation-cap text-xs"></i> EdTech
-        </a>
+      <!-- Search and Filters Container -->
+      <div class="mb-16">
+        <!-- Search Input -->
+        <div class="mb-6 max-w-md mx-auto">
+          <form method="GET" action="{% url 'startups_showcase' %}" class="relative">
+            {% if category_filter %}<input type="hidden" name="category" value="{{ category_filter }}">{% endif %}
+            <div class="relative">
+              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+              <input 
+                type="text" 
+                name="search" 
+                value="{{ search_query|default:'' }}"
+                placeholder="Buscar startups (ex: AgroSense, IoT...)" 
+                class="w-full pl-12 pr-4 py-3 rounded-full border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm transition-all"
+                aria-label="Buscar startups"
+              />
+              {% if search_query %}
+              <a href="{% url 'startups_showcase' %}{% if category_filter %}?category={{ category_filter }}{% endif %}" 
+                 class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                 aria-label="Limpar busca">
+                <i class="fas fa-times"></i>
+              </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+
+        <!-- Dynamic Filters - Horizontal Scrollable on Mobile -->
+        <div class="flex md:flex-wrap md:justify-center md:items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0" id="portfolio-filters" style="scrollbar-width: none; -ms-overflow-style: none;">
+          <style>
+            #portfolio-filters::-webkit-scrollbar { display: none; }
+            #portfolio-filters { -webkit-overflow-scrolling: touch; }
+          </style>
+          <a href="{% url 'startups_showcase' %}{% if search_query %}?search={{ search_query|urlencode }}{% endif %}" class="filter-btn {% if not category_filter or category_filter == 'all' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-bold text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex-shrink-0 whitespace-nowrap">
+            Todos
+          </a>
+          <a href="{% url 'startups_showcase' %}?category=agtech{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="filter-btn {% if category_filter == 'agtech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+            <i class="fas fa-leaf text-xs"></i> AgTech
+          </a>
+          <a href="{% url 'startups_showcase' %}?category=biotech{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="filter-btn {% if category_filter == 'biotech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+            <i class="fas fa-dna text-xs"></i> BioTech
+          </a>
+          <a href="{% url 'startups_showcase' %}?category=iot{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="filter-btn {% if category_filter == 'iot' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+            <i class="fas fa-wifi text-xs"></i> IoT & Hardware
+          </a>
+          <a href="{% url 'startups_showcase' %}?category=edtech{% if search_query %}&search={{ search_query|urlencode }}{% endif %}" class="filter-btn {% if category_filter == 'edtech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 flex-shrink-0 whitespace-nowrap">
+            <i class="fas fa-graduation-cap text-xs"></i> EdTech
+          </a>
+        </div>
       </div>
 
       <!-- Startups Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="startups-grid">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]" id="startups-grid">
         {% for startup in startups %}
-        <div class="startup-card group rounded-3xl p-8 h-full flex flex-col" data-category="{{ startup.category }}">
+        {# TODO: Update href when startup detail view/URL is created. For now, placeholder "#".
+             Example: href="{% url 'startup_detail' startup.id %}" or href="{% url 'startup_detail' startup.slug %}" #}
+        <a href="#" class="startup-card group rounded-3xl p-8 h-full flex flex-col cursor-pointer block no-underline" data-category="{{ startup.category }}" aria-label="Ver detalhes de {{ startup.name }}">
           <span class="phase-badge {{ startup.get_phase_badge_class }}">
             {% if startup.status == 'pre_incubacao' %}
               <i class="fas fa-lightbulb mr-1"></i> Ideação
@@ -166,6 +139,13 @@
           </span>
           
           <div class="flex items-start justify-between mb-6">
+            {# TODO: When Project model has a logo field (ImageField), replace emoji with:
+                 {% if startup.logo %}
+                   <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-16 h-16 rounded-2xl object-cover" />
+                 {% else %}
+                   <div class="...">{{ startup.name|slice:":2"|upper }}</div>
+                 {% endif %}
+                 For now, using category-based emoji icons as fallback. #}
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
               {% if startup.category == 'agtech' %}from-green-50 to-emerald-100 border border-green-100
               {% elif startup.category == 'biotech' %}from-purple-50 to-fuchsia-100 border border-purple-100
@@ -209,11 +189,11 @@
                 </div>
               {% endif %}
             </div>
-            <a href="#" class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-unirvBlue hover:text-white transition-all group-hover:translate-x-1">
+            <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-unirvBlue group-hover:text-white transition-all group-hover:translate-x-1 pointer-events-none">
               <i class="fas fa-arrow-right"></i>
-            </a>
+            </div>
           </div>
-        </div>
+        </a>
         {% empty %}
         <!-- Empty state will be shown below -->
         {% endfor %}
@@ -226,8 +206,18 @@
           <i class="fas fa-search"></i>
         </div>
         <h3 class="text-gray-900 font-bold text-xl mb-2">Nenhuma startup encontrada</h3>
-        <p class="text-gray-500 max-w-xs mx-auto mb-6">Não encontramos startups nesta categoria no momento.</p>
-        <a href="{% url 'startups_showcase' %}" class="text-unirvBlue font-bold hover:underline">Limpar Filtros</a>
+        <p class="text-gray-500 max-w-xs mx-auto mb-6">
+          {% if search_query %}
+            Não encontramos startups correspondentes à busca "{{ search_query }}".
+          {% elif category_filter %}
+            Não encontramos startups nesta categoria no momento.
+          {% else %}
+            Não encontramos startups no momento.
+          {% endif %}
+        </p>
+        <a href="{% url 'startups_showcase' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-unirvBlue text-white font-bold rounded-full hover:bg-blue-700 transition-colors">
+          <i class="fas fa-redo"></i> Limpar Filtros
+        </a>
       </div>
       {% endif %}
 
@@ -320,6 +310,34 @@
         }
       );
     });
+
+    // 5. Search form auto-submit with debouncing
+    const searchInput = document.querySelector('input[name="search"]');
+    const searchForm = searchInput?.closest('form');
+    let searchTimeout = null;
+    const SEARCH_DELAY = 500;
+
+    if (searchInput && searchForm) {
+      searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        
+        searchTimeout = setTimeout(() => {
+          // Only submit if there are 3+ characters or the field is empty (to clear search)
+          if (this.value.length >= 3 || this.value.length === 0) {
+            searchForm.submit();
+          }
+        }, SEARCH_DELAY);
+      });
+
+      // Submit on Enter key
+      searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          clearTimeout(searchTimeout);
+          searchForm.submit();
+        }
+      });
+    }
   });
 </script>
 {% endblock %}

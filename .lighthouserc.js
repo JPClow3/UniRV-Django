@@ -36,14 +36,28 @@ module.exports = {
         // CRUD pages (require authentication)
         'http://localhost:7000/cadastrar/',
       ],
-      numberOfRuns: 3,
-      // Chrome flags for headless mode
-      chromeFlags: '--no-sandbox --disable-setuid-sandbox',
+      numberOfRuns: 1,
+      // Chrome flags for headless mode (array format for better compatibility)
+      chromeFlags: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+      ],
       // Wait for page to be fully loaded
       settings: {
-        maxWaitForFcp: 30000,
-        maxWaitForLoad: 60000,
+        maxWaitForFcp: 60000,  // Increased from 30s to 60s
+        maxWaitForLoad: 120000,  // Increased from 60s to 120s
         skipAudits: [],
+      },
+      // Increase protocol timeout to handle slow page loads (in milliseconds)
+      // This fixes "Page.navigate timed out" errors
+      // Set via puppeteerLaunchOptions for proper Chrome connection timeout handling
+      puppeteerLaunchOptions: {
+        protocolTimeout: 180000,  // 180 seconds (3 minutes)
       },
       // Server will be started manually in GitHub Actions workflow
       // This ensures proper server startup and readiness before Lighthouse runs

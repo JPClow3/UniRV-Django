@@ -4,30 +4,45 @@ Usage:
   For URL names: {% include 'components/empty_state.html' with icon='fa-folder-open' title='Title' description='Description' action_url_name='url_name' action_text='Button Text' %}
   For direct URLs: {% include 'components/empty_state.html' with icon='fa-folder-open' title='Title' description='Description' action_url='/path' action_text='Button Text' %}
 {% endcomment %}
-<div class="empty-state bg-white rounded-xl border border-gray-200 p-12 text-center">
-  <div class="empty-state-icon mb-4">
-    <i class="fas {{ icon|default:'fa-folder-open' }} text-6xl text-gray-300"></i>
-  </div>
-  <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ title|default:'Nenhum item encontrado' }}</h3>
-  {% if description %}
-  <p class="text-gray-600 mb-6 max-w-md mx-auto">{{ description }}</p>
-  {% endif %}
-  {% if action_url_name or action_url %}
-    {% if action_text %}
-    <div class="flex flex-col sm:flex-row justify-center gap-3">
-      {% if action_url_name %}
-      <a href="{% url action_url_name %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
-        <i class="fas fa-plus"></i>
-        {{ action_text }}
-      </a>
-      {% elif action_url %}
-      <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
-        <i class="fas fa-plus"></i>
-        {{ action_text }}
-      </a>
-      {% endif %}
+<div class="empty-state glass-card-solid text-center py-10 px-6 md:px-10 relative overflow-hidden">
+  <!-- Soft blobs in background -->
+  <div class="pointer-events-none absolute -top-10 -right-10 w-40 h-40 bg-agrohubGreen/10 rounded-full blur-3xl"></div>
+  <div class="pointer-events-none absolute -bottom-16 -left-10 w-48 h-48 bg-unirvBlue/15 rounded-full blur-3xl"></div>
+
+  <div class="relative z-10">
+    <div class="empty-state-icon mb-4">
+      <i class="fas {{ icon|default:'fa-folder-open' }} text-5xl md:text-6xl text-gray-300"></i>
     </div>
+    <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+      {{ title|default:'Nenhum item encontrado' }}
+    </h3>
+    {% if description %}
+    <p class="text-gray-600 mb-6 max-w-md mx-auto text-sm md:text-base">
+      {{ description }}
+    </p>
+    {% else %}
+    <p class="text-gray-600 mb-6 max-w-md mx-auto text-sm md:text-base">
+      Nada aqui ainda, mas estamos prontos para inovar com você.
+    </p>
     {% endif %}
-  {% endif %}
+
+    {% if action_url_name or action_url %}
+      {% if action_text %}
+      <div class="flex flex-col sm:flex-row justify-center gap-3">
+        {% if action_url_name %}
+        <a href="{% url action_url_name %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
+          <i class="fas fa-plus"></i>
+          {{ action_text }}
+        </a>
+        {% elif action_url %}
+        <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
+          <i class="fas fa-plus"></i>
+          {{ action_text }}
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
 </div>
 

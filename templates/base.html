@@ -23,13 +23,13 @@
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}{% endblock %}" />
-    <meta name="twitter:description" content="{% block twitter_description %}{% block meta_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}{% endblock %}" />
+    <meta name="twitter:title" content="{% block twitter_title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}" />
+    <meta name="twitter:description" content="{% block twitter_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}" />
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta
       property="og:title"
-      content="{% block og_title %}{% block title_og %}AgroHub UniRV{% endblock %}{% endblock %}"
+      content="{% block og_title %}AgroHub UniRV{% endblock %}"
     />
     <meta
       property="og:description"
@@ -109,6 +109,7 @@
   {% with current_url|is_transparent_header as transparent_header %}
   <body
     class="min-h-screen flex flex-col bg-gray-50 {% if transparent_header %}page-detail{% endif %}"
+    data-page="{% block page_id %}{% endblock %}"
   >
     <!-- Skip to main content link for accessibility -->
     <a href="#main-content" class="skip-link"
@@ -122,6 +123,12 @@
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
         style="height: 4px; z-index: 1"
       ></div>
+      {% with
+        is_home=current_url == 'home'
+        is_ambientes=current_url == 'ambientes_inovacao'
+        is_editais=current_url == 'editais_index' or current_url == 'edital_detail' or current_url == 'edital_detail_slug' or current_url == 'edital_create' or current_url == 'edital_update' or current_url == 'edital_delete'
+        is_startups=current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos'
+      %}
       <nav class="relative z-10 site-nav">
         <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
           <!-- Logo -->
@@ -145,25 +152,25 @@
           <div class="hidden md:flex items-center gap-6 flex-shrink-0 ml-auto whitespace-nowrap flex-nowrap">
             <a
               href="{% url 'home' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'home' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_home %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Início
             </a>
             <a
               href="{% url 'ambientes_inovacao' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_ambientes %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Ambientes de Inovação
             </a>
             <a
               href="{% url 'editais_index' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'editais_index' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_editais %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Editais
             </a>
             <a
               href="{% url 'startups_showcase' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'startups_showcase' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_startups %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Startups
             </a>
@@ -214,28 +221,28 @@
             <li>
               <a
                 href="{% url 'home' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'home' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if is_home %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Início</a
               >
             </li>
             <li>
               <a
                 href="{% url 'ambientes_inovacao' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if is_ambientes %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Ambientes de Inovação</a
               >
             </li>
             <li>
               <a
                 href="{% url 'editais_index' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'editais_index' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if is_editais %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Editais</a
               >
             </li>
             <li>
               <a
                 href="{% url 'startups_showcase' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'startups_showcase' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if is_startups %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Startups</a
               >
             </li>
@@ -272,6 +279,7 @@
           </ul>
         </div>
       </nav>
+      {% endwith %}
     </header>
 
     <main class="flex-1 w-full" style="width: 100%; margin: 0; padding: 0">
@@ -436,7 +444,12 @@
     </footer>
 
 
+    <!-- Global animation libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+
     {% compress js %}
+    <script src="{% static 'js/animations.js' %}" defer></script>
     <script src="{% static 'js/main.js' %}" defer></script>
     {% endcompress %}
     {% block extra_js %}{% endblock %}

@@ -97,10 +97,10 @@
     {% endif %}
   </div>
 
-  <!-- Editais Table -->
-  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="table-responsive overflow-x-auto">
-      <table class="w-full" role="table" aria-label="Tabela de editais">
+  <!-- Editais Table (Desktop) -->
+  <div class="hidden md:block">
+    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-100 bg-white">
+      <table class="hidden md:table min-w-full divide-y divide-gray-200" role="table" aria-label="Tabela de editais">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Número</th>
@@ -178,6 +178,78 @@
         </tbody>
       </table>
     </div>
+  </div>
+
+  <!-- Editais Cards (Mobile) -->
+  <div class="md:hidden space-y-4">
+    {% for edital in editais %}
+      <article class="project-card bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+        <div class="flex items-start justify-between mb-3 gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              {% if edital.numero_edital %}
+                <span class="text-[11px] font-mono text-gray-500">#{{ edital.numero_edital }}</span>
+              {% endif %}
+            </div>
+            <h3 class="text-sm font-semibold text-gray-900 leading-snug mb-1 line-clamp-2">
+              {{ edital.titulo }}
+            </h3>
+            <div class="flex flex-wrap items-center gap-2 mt-1">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-700">
+                {% if edital.end_date %}Fomento{% else %}Fluxo Contínuo{% endif %}
+              </span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium
+                {% if edital.status == 'aberto' %}bg-green-100 text-green-700
+                {% elif edital.status == 'draft' %}bg-gray-100 text-gray-700
+                {% else %}bg-red-100 text-red-700{% endif %}">
+                {{ edital.get_status_display }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-xs text-gray-600 space-y-1 mb-3">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-calendar-alt text-gray-400"></i>
+            <span>
+              Publicação:
+              {% if edital.start_date %}
+                <span class="font-medium text-gray-900">{{ edital.start_date|date:"d/m/Y" }}</span>
+              {% else %}
+                <span class="text-gray-400">—</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="fas fa-clock text-gray-400"></i>
+            <span>
+              Fechamento:
+              {% if edital.end_date %}
+                <span class="font-medium text-gray-900">{{ edital.end_date|date:"d/m/Y" }}</span>
+              {% else %}
+                <span class="text-gray-400">Sem prazo</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+          <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center gap-2 text-xs font-semibold text-unirvBlue hover:text-agrohubBlue">
+            <i class="fas fa-eye text-[11px]"></i>
+            Ver detalhes
+          </a>
+          <div class="flex items-center gap-1">
+            <a href="{% url 'edital_update' edital.pk %}" class="p-1.5 rounded-lg text-xs text-gray-500 hover:text-unirvBlue hover:bg-gray-100" aria-label="Editar edital">
+              <i class="fas fa-edit"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <div class="px-2">
+        {% include 'components/empty_state.html' with icon='fa-file-alt' title='Sem editais cadastrados' description='Crie um novo edital ou ajuste os filtros para visualizar registros existentes.' action_url_name='edital_create' action_text='Novo Edital' %}
+      </div>
+    {% endfor %}
   </div>
 </div>
 

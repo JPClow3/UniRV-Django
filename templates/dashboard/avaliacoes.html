@@ -76,9 +76,9 @@
   </div>
 
   <!-- Avaliacoes Table -->
-  <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-    <div class="table-responsive overflow-x-auto">
-      <table class="w-full" role="table" aria-label="Tabela de avaliações">
+  <div class="hidden md:block">
+    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-100 bg-white">
+      <table class="hidden md:table min-w-full divide-y divide-gray-200" role="table" aria-label="Tabela de avaliações">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Projeto</th>
@@ -158,6 +158,101 @@
         </tbody>
       </table>
     </div>
+  </div>
+
+  <!-- Avaliacoes Cards (Mobile) -->
+  <div class="md:hidden space-y-4">
+    {% for evaluation in evaluations %}
+    <article class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+      <div class="flex items-start justify-between gap-3 mb-2">
+        <div class="flex-1 min-w-0">
+          <h3 class="text-base font-semibold text-gray-900 leading-tight line-clamp-2">
+            {{ evaluation.name }}
+          </h3>
+          <p class="text-xs text-gray-500 line-clamp-1">
+            {{ evaluation.edital.titulo|truncatewords:6 }}
+          </p>
+        </div>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+          {% if evaluation.status == 'aprovado' %}bg-green-100 text-green-700
+          {% elif evaluation.status == 'reprovado' %}bg-red-100 text-red-700
+          {% elif evaluation.status == 'em_avaliacao' %}bg-blue-100 text-blue-700
+          {% else %}bg-orange-100 text-orange-700{% endif %}">
+          {{ evaluation.get_status_display }}
+        </span>
+      </div>
+
+      <dl class="text-sm text-gray-600 space-y-2 mb-4">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-user text-gray-400"></i>
+          <div>
+            <dt class="sr-only">Proponente</dt>
+            <dd>{{ evaluation.proponente.get_full_name|default:evaluation.proponente.username }}</dd>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fas fa-calendar-alt text-gray-400"></i>
+          <div>
+            <dt class="sr-only">Prazo</dt>
+            <dd>Prazo: {{ evaluation.submitted_on|date:"d/m/Y" }}</dd>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fas fa-hourglass-half text-gray-400"></i>
+          <div>
+            <dt class="sr-only">Tempo restante</dt>
+            <dd>
+              {% if evaluation.status == 'pendente' %}
+                {% if evaluation.edital.end_date %}
+                  {% with days_left=evaluation.edital.days_until_deadline %}
+                    {% if days_left is not None and days_left > 0 %}
+                      {{ days_left }} dia{{ days_left|pluralize }}
+                    {% elif days_left is not None %}
+                      Vencido
+                    {% else %}
+                      Sem prazo
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  Sem prazo
+                {% endif %}
+              {% else %}
+                {{ evaluation.get_status_display }}
+              {% endif %}
+            </dd>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fas fa-star text-yellow-500"></i>
+          <div>
+            <dt class="sr-only">Nota</dt>
+            <dd>
+              {% if evaluation.note %}
+                <span class="font-semibold text-gray-900">{{ evaluation.note }}</span>
+              {% else %}
+                <span class="text-gray-400">Sem nota</span>
+              {% endif %}
+            </dd>
+          </div>
+        </div>
+      </dl>
+
+      <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+        <button class="p-2 rounded-lg transition-colors opacity-50 cursor-not-allowed" title="Em breve" aria-label="Visualizar Projeto (em breve)" disabled>
+          <i class="fas fa-eye text-gray-400"></i>
+        </button>
+        {% if not user.is_staff and evaluation.status == 'pendente' %}
+        <button type="button" class="avaliar-btn bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-3 py-1 text-sm transition-all" data-id="{{ evaluation.id }}" data-projeto="{{ evaluation.name }}" data-edital="{{ evaluation.edital.titulo }}">
+          Avaliar
+        </button>
+        {% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="bg-white rounded-xl border border-gray-200 p-6 text-center">
+      {% include 'components/empty_state.html' with icon='fa-clipboard-list' title='Nenhuma avaliação encontrada' description='Não há avaliações pendentes ou concluídas no momento.' %}
+    </div>
+    {% endfor %}
   </div>
 </div>
 

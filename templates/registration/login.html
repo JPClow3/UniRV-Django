@@ -4,41 +4,38 @@
 {% block title %}Login - AgroHub UniRV{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
-  <div class="w-full max-w-md">
+<div class="auth-layout">
+  <div class="auth-inner">
     <!-- Back Button -->
-    <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 transition-colors group">
+    <a href="{% url 'home' %}" class="auth-back-link mb-6">
       <i class="fas fa-arrow-left w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
       <span class="font-medium">Voltar para o site</span>
     </a>
 
-    <!-- Logo -->
-    <div class="text-center mb-8">
-      <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-3 mb-2">
-        <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-12 h-12" width="48" height="48" loading="lazy" />
-      </a>
-      <h1 class="text-blue-600 mt-2 text-2xl font-bold">AgroHub UniRV</h1>
-      <p class="text-gray-600">Sistema de Gestão de Editais</p>
-    </div>
-
-    <!-- Login Card -->
-    <div class="bg-white rounded-3xl shadow-md p-10 border-0">
-      <div class="mb-8">
-        <h2 class="text-gray-900 text-2xl mb-2 font-semibold">Acessar Sistema</h2>
-        <p class="text-gray-600">Entre com suas credenciais</p>
+    <!-- Card -->
+    <div class="auth-card">
+      <!-- Logo / Heading -->
+      <div class="text-center mb-8">
+        <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-3 mb-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/90 flex items-center justify-center shadow-md">
+            <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10" width="40" height="40" loading="lazy" />
+          </div>
+        </a>
+        <h1 class="auth-title">AgroHub UniRV</h1>
+        <p class="auth-muted">Acesso ao painel de gestão de editais</p>
       </div>
 
       {% if form.errors %}
-        <div class="alert bg-red-50 border-red-200 mb-6">
-          <i class="fas fa-exclamation-circle text-red-600 mr-3"></i>
-          <div class="text-red-900">
-            {% if form.non_field_errors %}
-              {{ form.non_field_errors }}
-            {% else %}
-              E-mail ou senha inválidos. Tente novamente.
-            {% endif %}
-          </div>
+      <div class="mb-6 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 flex gap-3">
+        <i class="fas fa-exclamation-circle text-red-600 mt-0.5"></i>
+        <div class="text-sm text-red-900">
+          {% if form.non_field_errors %}
+            {{ form.non_field_errors }}
+          {% else %}
+            E-mail ou senha inválidos. Tente novamente.
+          {% endif %}
         </div>
+      </div>
       {% endif %}
 
       <form method="post" class="space-y-6">
@@ -46,7 +43,7 @@
         <input type="hidden" name="next" value="{{ request.GET.next|default:'/' }}">
         
         <div class="space-y-2">
-          <label for="id_username" class="text-gray-700 font-medium">Usuário ou E-mail</label>
+          <label for="id_username" class="auth-label">Usuário ou E-mail</label>
           <input
             id="id_username"
             name="username"
@@ -54,13 +51,13 @@
             placeholder="seu_usuario ou email@exemplo.com"
             required
             autocomplete="username"
-            class="h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+            class="auth-input"
             value="{{ form.username.value|default:'' }}"
           >
         </div>
 
         <div class="space-y-2">
-          <label for="id_password" class="text-gray-700 font-medium">Senha</label>
+          <label for="id_password" class="auth-label">Senha</label>
           <div class="relative">
             <input
               id="id_password"
@@ -69,11 +66,11 @@
               placeholder="••••••••"
               required
               autocomplete="current-password"
-              class="h-11 w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              class="auth-input pr-10"
             >
             <button
               type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-100 md:hover:text-gray-700"
               data-password-toggle="id_password"
               aria-pressed="false"
               aria-label="Mostrar ou ocultar senha"
@@ -83,33 +80,33 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-between text-sm">
+        <div class="flex items-center justify-between text-xs md:text-sm">
           <label class="flex items-center gap-2 cursor-pointer">
             <input 
               type="checkbox" 
               name="remember_me"
-              class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              class="rounded border-gray-300 text-unirvBlue focus:ring-unirvBlue"
             >
-            <span class="text-gray-600">Lembrar-me</span>
+            <span class="text-gray-200 md:text-gray-600">Lembrar-me</span>
           </label>
-          <a href="{% url 'password_reset' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+          <a href="{% url 'password_reset' %}" class="text-blue-100 md:text-blue-600 hover:text-blue-300 md:hover:text-blue-700 font-medium">
             Esqueceu a senha?
           </a>
         </div>
 
         <button
           type="submit"
-          class="w-full h-11 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all text-white font-medium flex items-center justify-center gap-2"
+          class="auth-gradient-cta"
         >
           <i class="fas fa-sign-in-alt"></i>
           Entrar
         </button>
       </form>
 
-      <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-        <p class="text-gray-600 text-sm">
+      <div class="mt-8 pt-6 border-t border-white/10 md:border-gray-200 text-center">
+        <p class="text-xs md:text-sm text-gray-200 md:text-gray-600">
           Não tem uma conta?
-          <a href="{% url 'register' %}" class="text-blue-600 hover:text-blue-700 font-medium">
+          <a href="{% url 'register' %}" class="text-blue-100 md:text-blue-600 hover:text-blue-300 md:hover:text-blue-700 font-semibold">
             Criar conta
           </a>
         </p>
