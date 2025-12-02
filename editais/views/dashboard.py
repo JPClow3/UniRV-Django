@@ -9,7 +9,6 @@ from datetime import timedelta
 from typing import Union
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import Q, Count, Avg

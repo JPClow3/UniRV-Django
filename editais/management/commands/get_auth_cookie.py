@@ -5,7 +5,6 @@ This command logs in as a superuser and outputs the session cookie
 that can be used by Lighthouse CI to authenticate requests.
 """
 
-import os
 import sys
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model

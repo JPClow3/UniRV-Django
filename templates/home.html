@@ -90,7 +90,7 @@
   <!-- HERO SECTION -->
   <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
     <div class="hero-bg absolute inset-0 z-0 scale-110">
-      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');"></div>
+      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');" role="img" aria-label="Campo agrícola com tecnologia moderna"></div>
       <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(39, 52, 139, 0.95), rgba(39, 52, 139, 0.8), rgba(39, 52, 139, 0.4));"></div>
     </div>
 
@@ -276,7 +276,7 @@
             </div>
             <!-- Logo Central -->
             <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 animate-pulse">
-              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV" class="w-16 h-16" />
+              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV" class="w-16 h-16" width="64" height="64" loading="lazy" />
             </div>
           </div>
         </div>
@@ -352,8 +352,9 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<!-- GSAP loaded asynchronously for better performance -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", (event) => {
     gsap.registerPlugin(ScrollTrigger);

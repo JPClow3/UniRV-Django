@@ -8,12 +8,9 @@ import logging
 from typing import Union
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.db import transaction
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
-
-from ..constants import EVALUATION_PROJECT_STATUSES
 from ..decorators import rate_limit, staff_required
 from ..forms import EditalForm
 from ..models import Edital

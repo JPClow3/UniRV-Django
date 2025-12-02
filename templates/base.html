@@ -18,6 +18,13 @@
     />
     <meta name="author" content="UniRV - Universidade de Rio Verde" />
     <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1e40af" />
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}{% endblock %}" />
+    <meta name="twitter:description" content="{% block twitter_description %}{% block meta_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}{% endblock %}" />
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta
@@ -36,15 +43,51 @@
     <meta property="og:site_name" content="AgroHub UniRV" />
     {% load static tailwind_tags compress editais_filters %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
+    
+    <!-- Resource Hints for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    
+    <!-- Google Fonts with font-display swap for better performance -->
     <link
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
+    
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AgroHub UniRV",
+      "url": "{{ request.build_absolute_uri|slice:":-1" }}{% url 'home' %}",
+      "logo": "{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}",
+      "description": "Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+55-62-98172-9376",
+        "contactType": "customer service",
+        "email": "agrohub@unirv.edu.br"
+      },
+      "sameAs": [
+        "https://www.unirv.edu.br"
+      ]
+    }
+    </script>
+    
     {% tailwind_css %}
     <!-- Font Awesome: Loaded asynchronously to prevent render blocking -->
     <link
@@ -86,7 +129,15 @@
             class="flex items-center flex-shrink-0 mr-auto"
             aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia"
           >
-            <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-28 h-28 flex-shrink-0" />
+            <img 
+              src="{% static 'img/Logo.svg' %}" 
+              alt="AgroHub UniRV Logo" 
+              class="w-28 h-28 flex-shrink-0" 
+              width="112" 
+              height="112" 
+              fetchpriority="high"
+              loading="eager"
+            />
           </a>
 
           <!-- Desktop Navigation -->
@@ -128,8 +179,9 @@
                 type="submit"
                 class="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm cursor-pointer"
                 title="Sair"
+                aria-label="Sair da conta"
               >
-                <i class="fas fa-sign-out-alt"></i>
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
               </button>
             </form>
             {% else %}
@@ -242,6 +294,7 @@
           </div>
           <script>
             // Convert Django messages to toast notifications (T046 - Complete integration)
+            // Deferred execution to avoid blocking page render
             (function () {
               // Wait for showToast function to be available
               function processMessages() {
@@ -280,11 +333,23 @@
                 });
               }
 
-              // Process messages when DOM is ready
+              // Process messages when DOM is ready (deferred)
               if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", processMessages);
+                document.addEventListener("DOMContentLoaded", function() {
+                  // Use requestIdleCallback if available, otherwise setTimeout
+                  if (window.requestIdleCallback) {
+                    requestIdleCallback(processMessages, { timeout: 2000 });
+                  } else {
+                    setTimeout(processMessages, 0);
+                  }
+                });
               } else {
-                processMessages();
+                // Use requestIdleCallback if available, otherwise setTimeout
+                if (window.requestIdleCallback) {
+                  requestIdleCallback(processMessages, { timeout: 2000 });
+                } else {
+                  setTimeout(processMessages, 0);
+                }
               }
             })();
           </script>
@@ -301,7 +366,14 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div class="md:col-span-2">
             <div class="flex items-center gap-3 mb-6">
-              <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-12 h-12" />
+              <img 
+                src="{% static 'img/Logo.svg' %}" 
+                alt="AgroHub UniRV Logo" 
+                class="w-12 h-12" 
+                width="48" 
+                height="48" 
+                loading="lazy"
+              />
               <div>
                 <div class="font-bold text-xl">AgroHub UniRV</div>
                 <div class="text-sm text-gray-300">
@@ -425,7 +497,7 @@
 
 
     {% compress js %}
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
     {% endcompress %}
     {% block extra_js %}{% endblock %}
   </body>

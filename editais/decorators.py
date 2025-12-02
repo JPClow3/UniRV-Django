@@ -51,21 +51,18 @@ def get_client_ip(request: HttpRequest) -> str:
     Returns:
         str: Client IP address (validated) or 'unknown' if invalid
     """
-    import re
-    
-    # IP address validation pattern
-    ip_pattern = re.compile(
-        r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|'  # IPv4
-        r'^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|'  # IPv6 full
-        r'^::1$|'  # IPv6 localhost
-        r'^::ffff:(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'  # IPv4-mapped IPv6
-    )
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_ipv46_address
     
     def is_valid_ip(ip: str) -> bool:
-        """Validate IP address format."""
+        """Validate IP address format using Django's validator."""
         if not ip:
             return False
-        return bool(ip_pattern.match(ip.strip()))
+        try:
+            validate_ipv46_address(ip.strip())
+            return True
+        except ValidationError:
+            return False
     
     # Primary source: REMOTE_ADDR (most reliable, can't be spoofed)
     remote_addr = request.META.get('REMOTE_ADDR', '').strip()

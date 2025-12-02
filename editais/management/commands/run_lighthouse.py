@@ -19,13 +19,10 @@ import subprocess
 import signal
 import time
 import logging
-import json
 import tempfile
 from pathlib import Path
 from django.core.management.base import BaseCommand
-from django.core.management import call_command
 from django.conf import settings
-from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.test import Client
 
@@ -128,12 +125,6 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS('Authentication cookie obtained'))
                 else:
                     self.stdout.write(self.style.WARNING('Failed to get auth cookie, some pages may fail'))
-            elif all_pages and not no_auth:
-                # Even if URLs don't explicitly require auth, get cookie for --all-pages
-                self.stdout.write(self.style.SUCCESS('Getting authentication cookie for all pages...'))
-                auth_cookie = self._get_auth_cookie()
-                if auth_cookie:
-                    self.stdout.write(self.style.SUCCESS('Authentication cookie obtained'))
 
             # Start Django server if needed
             if not no_server:
@@ -214,6 +205,7 @@ class Command(BaseCommand):
                     time.sleep(1)  # Give server a moment to fully start
                     return True
             except Exception:
+                # Connection errors are expected while waiting for the server to start.
                 pass
             time.sleep(0.5)
         
@@ -334,15 +326,6 @@ class Command(BaseCommand):
         # Create temporary config file with custom URLs and auth
         config_file = tempfile.NamedTemporaryFile(mode='w', suffix='.js', delete=False)
         try:
-            # Read base config
-            base_config_path = os.path.join(base_dir, '.lighthouserc.js')
-            base_config = {}
-            if os.path.exists(base_config_path):
-                with open(base_config_path, 'r') as f:
-                    base_config_content = f.read()
-                    # Simple extraction of base config (we'll merge it)
-                    base_config = {'ci': {'assert': {}, 'upload': {}, 'server': {}}}
-            
             # Build URLs list - normalize relative URLs to full URLs
             base_url = f'http://localhost:{port}'
             
@@ -538,6 +521,8 @@ class Command(BaseCommand):
                 if os.path.exists(config_file.name):
                     os.unlink(config_file.name)
             except Exception:
+                # Log cleanup failure but do not raise, as this is non-critical.
+                # On Windows, file handles may still be locked, which is safe to ignore.
                 pass
 
     def _print_summary(self, success, output_dir, urls):

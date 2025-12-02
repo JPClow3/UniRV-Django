@@ -37,9 +37,17 @@ module.exports = {
         'http://localhost:7000/cadastrar/',
       ],
       numberOfRuns: 3,
+      // Chrome flags for headless mode
+      chromeFlags: '--no-sandbox --disable-setuid-sandbox',
+      // Wait for page to be fully loaded
+      settings: {
+        maxWaitForFcp: 30000,
+        maxWaitForLoad: 60000,
+        skipAudits: [],
+      },
       // Server will be started manually in CI/CD, or by management command
       // Uncomment below for direct lhci autorun usage:
-      // startServerCommand: 'python manage.py runserver',
+      // startServerCommand: 'python manage.py runserver 127.0.0.1:7000',
       // startServerReadyPattern: 'Starting development server',
       // startServerReadyTimeout: 30000,
       // Authentication cookie will be added automatically by run_lighthouse command

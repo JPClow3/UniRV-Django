@@ -124,12 +124,11 @@ def determine_edital_status(
             # Outros statuses viram aberto
             return 'aberto'
         
-        # Se ainda não começou (start_date > today)
-        if start_date > today:
-            # Se não está programado ou draft, programa
-            if current_status not in ['draft', 'programado', 'fechado']:
-                return 'programado'
-            return current_status
+        # Se ainda não começou (start_date > today) - this is always true here
+        # Se não está programado ou draft, programa
+        if current_status not in ['draft', 'programado', 'fechado']:
+            return 'programado'
+        return current_status
     
     # Caso 3: Não tem start_date mas tem end_date
     elif not start_date and end_date:

@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from .models import Edital
 from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES
-from .utils import determine_edital_status, sanitize_edital_fields, clear_index_cache
+from .utils import sanitize_edital_fields, clear_index_cache
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User

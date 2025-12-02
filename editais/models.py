@@ -215,10 +215,6 @@ class Edital(models.Model):
             try:
                 with transaction.atomic():
                     super().save(*args, **kwargs)
-                    # Ensure slug is set after save (double-check)
-                    if not self.slug:
-                        self.slug = self._generate_unique_slug()
-                        super().save(*args, **kwargs)
                 break
             except ValidationError:
                 # Re-raise validation errors
