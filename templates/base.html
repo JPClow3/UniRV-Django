@@ -47,15 +47,13 @@
     <!-- Resource Hints for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     
-    <!-- Google Fonts with font-display swap for better performance -->
+    <!-- Google Fonts: Load asynchronously with font-display swap -->
     <link
+      rel="preload"
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
       <link
@@ -63,8 +61,11 @@
         rel="stylesheet"
       />
     </noscript>
+    <script>
+      // Polyfill for browsers that don't support onload on link tags
+      !function(e){"use strict";var t=function(t,n,o){var i,r=e.document,a=r.createElement("link");if(o)i=o;else{var l=(r.body||r.getElementsByTagName("head")[0]).childNodes;i=l[l.length-1]}var d=r.styleSheets;a.rel="stylesheet",a.href=t,a.media="only x",function e(t){if(r.body)return t();setTimeout(function(){e(t)})}(function(){i.parentNode.insertBefore(a,o?i:i.nextSibling)});var f=function(e){for(var t=a.href,n=d.length;n--;)if(d[n].href===t)return e();setTimeout(function(){f(e)})};return a.addEventListener&&a.addEventListener("load",function(){this.media=o||"all"}),a.onloadcssdefined=f,f(function(){a.media!==o&&(a.media=o||"all")}),a};"undefined"!=typeof exports?exports.loadCSS=t:e.loadCSS=t}("undefined"!=typeof global?global:this);
+    </script>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
     
     <!-- Structured Data (JSON-LD) for SEO -->
@@ -91,10 +92,10 @@
     {% tailwind_css %}
     <!-- Font Awesome: Loaded asynchronously to prevent render blocking -->
     <link
-      rel="stylesheet"
+      rel="preload"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-      media="print"
-      onload="this.media='all'"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
       <link
@@ -292,67 +293,6 @@
             </div>
             {% endfor %}
           </div>
-          <script>
-            // Convert Django messages to toast notifications (T046 - Complete integration)
-            // Deferred execution to avoid blocking page render
-            (function () {
-              // Wait for showToast function to be available
-              function processMessages() {
-                const messages = document.querySelectorAll(".messages .alert");
-                if (messages.length === 0) return;
-
-                // If showToast is not available yet, wait a bit
-                if (typeof showToast !== "function") {
-                  setTimeout(processMessages, 100);
-                  return;
-                }
-
-                messages.forEach(function (messageEl) {
-                  const messageText = messageEl.textContent.trim();
-                  const messageTag =
-                    messageEl.getAttribute("data-message-tag") || "info";
-
-                  // Map Django message tags to toast types
-                  // Django default tags: debug, info, success, warning, error
-                  let toastType = "success";
-                  if (messageTag === "error" || messageTag === "danger") {
-                    toastType = "error";
-                  } else if (messageTag === "warning") {
-                    toastType = "warning";
-                  } else if (messageTag === "info" || messageTag === "debug") {
-                    toastType = "info";
-                  } else if (messageTag === "success") {
-                    toastType = "success";
-                  }
-
-                  // Show toast notification
-                  showToast(messageText, toastType);
-
-                  // Mark message as processed to avoid duplicates
-                  messageEl.setAttribute("data-processed", "true");
-                });
-              }
-
-              // Process messages when DOM is ready (deferred)
-              if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", function() {
-                  // Use requestIdleCallback if available, otherwise setTimeout
-                  if (window.requestIdleCallback) {
-                    requestIdleCallback(processMessages, { timeout: 2000 });
-                  } else {
-                    setTimeout(processMessages, 0);
-                  }
-                });
-              } else {
-                // Use requestIdleCallback if available, otherwise setTimeout
-                if (window.requestIdleCallback) {
-                  requestIdleCallback(processMessages, { timeout: 2000 });
-                } else {
-                  setTimeout(processMessages, 0);
-                }
-              }
-            })();
-          </script>
           {% endif %} {% block content %}{% endblock %}
         </div>
       </div>

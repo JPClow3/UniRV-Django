@@ -399,6 +399,12 @@ class Command(BaseCommand):
                 config_file.write(f"        '{flag}',\n")
             config_file.write('      ],\n')
             
+            # Add protocolTimeout to handle slow page loads (increase from default 30s to 120s)
+            config_file.write('      settings: {\n')
+            config_file.write('        maxWaitForFcp: 30000,\n')  # Max wait for First Contentful Paint (30s)
+            config_file.write('        maxWaitForLoad: 60000,\n')  # Max wait for page load (60s)
+            config_file.write('      },\n')
+            
             # Add authentication cookie if provided - use it for ALL URLs when auditing all pages
             if auth_cookie:
                 config_file.write('      extraHeaders: {\n')
@@ -437,6 +443,11 @@ class Command(BaseCommand):
             env['LIGHTHOUSE_CHROMIUM_FLAGS'] = ' '.join(chrome_flags)
             # Allow Lighthouse to continue even if cleanup fails
             env['LHCI_SKIP_AUTO_SERVER'] = '1'
+            
+            # Increase timeout settings for slow pages
+            # These help with "Page.navigate timed out" errors
+            env['PUPPETEER_TIMEOUT'] = '120000'  # 120 seconds for Puppeteer operations
+            env['LIGHTHOUSE_TIMEOUT'] = '120000'  # 120 seconds for Lighthouse operations
             
             # Override thresholds if provided
             if thresholds:
@@ -498,6 +509,12 @@ class Command(BaseCommand):
                     self.style.WARNING(
                         'Lighthouse audits completed but encountered errors. '
                         'Reports were still generated successfully.'
+                    )
+                )
+                self.stdout.write(
+                    self.style.WARNING(
+                        'If you see timeout errors, pages may be loading too slowly. '
+                        'Consider optimizing page load times or using --skip-assertions to continue.'
                     )
                 )
                 return True

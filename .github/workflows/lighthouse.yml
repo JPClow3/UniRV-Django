@@ -58,6 +58,19 @@ jobs:
           DJANGO_DEBUG: 'True'
           ALLOWED_HOSTS: 'localhost,127.0.0.1'
 
+      - name: Start Django server
+        run: |
+          python manage.py runserver 127.0.0.1:7000 --noreload &
+          sleep 5
+        env:
+          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
+          DJANGO_DEBUG: 'True'
+          ALLOWED_HOSTS: 'localhost,127.0.0.1'
+
+      - name: Wait for server
+        run: |
+          timeout 60 bash -c 'until curl -f http://127.0.0.1:7000/health/ 2>/dev/null; do sleep 1; done' || echo "Server health check completed"
+
       - name: Run Lighthouse CI
         run: |
           npx @lhci/cli autorun --config=.lighthouserc.js

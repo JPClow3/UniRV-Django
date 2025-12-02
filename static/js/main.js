@@ -1331,3 +1331,69 @@ window.showConfirmDialog = showConfirmDialog;
         });
     });
 })();
+
+// ========================================
+// DJANGO MESSAGES TO TOAST NOTIFICATIONS
+// ========================================
+// Convert Django messages to toast notifications (T046 - Complete integration)
+// Deferred execution to avoid blocking page render
+(function () {
+    // Wait for showToast function to be available
+    function processMessages() {
+        const messages = document.querySelectorAll(".messages .alert");
+        if (messages.length === 0) return;
+
+        // If showToast is not available yet, wait a bit
+        if (typeof showToast !== "function") {
+            setTimeout(processMessages, 100);
+            return;
+        }
+
+        messages.forEach(function (messageEl) {
+            // Skip if already processed
+            if (messageEl.getAttribute("data-processed") === "true") return;
+
+            const messageText = messageEl.textContent.trim();
+            const messageTag =
+                messageEl.getAttribute("data-message-tag") || "info";
+
+            // Map Django message tags to toast types
+            // Django default tags: debug, info, success, warning, error
+            let toastType = "success";
+            if (messageTag === "error" || messageTag === "danger") {
+                toastType = "error";
+            } else if (messageTag === "warning") {
+                toastType = "warning";
+            } else if (messageTag === "info" || messageTag === "debug") {
+                toastType = "info";
+            } else if (messageTag === "success") {
+                toastType = "success";
+            }
+
+            // Show toast notification
+            showToast(messageText, toastType);
+
+            // Mark message as processed to avoid duplicates
+            messageEl.setAttribute("data-processed", "true");
+        });
+    }
+
+    // Process messages when DOM is ready (deferred)
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function() {
+            // Use requestIdleCallback if available, otherwise setTimeout
+            if (window.requestIdleCallback) {
+                requestIdleCallback(processMessages, { timeout: 2000 });
+            } else {
+                setTimeout(processMessages, 0);
+            }
+        });
+    } else {
+        // Use requestIdleCallback if available, otherwise setTimeout
+        if (window.requestIdleCallback) {
+            requestIdleCallback(processMessages, { timeout: 2000 });
+        } else {
+            setTimeout(processMessages, 0);
+        }
+    }
+})();
