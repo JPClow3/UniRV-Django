@@ -1,0 +1,292 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_DEBUG: 'True'
+      ALLOWED_HOSTS: 'localhost,127.0.0.1'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}"
+          if [ -z "$SECRET_KEY" ]; then
+            SECRET_KEY="dummy-secret-key-for-ci"
+          fi
+          echo "SECRET_KEY=$SECRET_KEY" >> $GITHUB_ENV
+          echo "Environment variables set:"
+          echo "  SECRET_KEY: ${SECRET_KEY:0:10}..."
+          echo "  DJANGO_DEBUG: $DJANGO_DEBUG"
+          echo "  ALLOWED_HOSTS: $ALLOWED_HOSTS"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: theme/static_src/package.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd theme/static_src
+          npm ci
+
+      - name: Run database migrations
+        run: |
+          echo "Running database migrations..."
+          python manage.py migrate --noinput
+          echo "Migrations completed successfully"
+          echo "Verifying migrations..."
+          python manage.py showmigrations --list | head -20 || echo "Migration list check completed"
+          
+      - name: Verify database schema
+        run: |
+          echo "Verifying database schema..."
+          python manage.py check --database default || echo "Database check completed with warnings"
+          python manage.py check || echo "Django system check completed"
+          python << 'EOF'
+          import os
+          import django
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'UniRV_Django.settings')
+          django.setup()
+          from django.db import connection
+          try:
+              with connection.cursor() as cursor:
+                  cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
+                  tables = [row[0] for row in cursor.fetchall()]
+                  print(f'Database has {len(tables)} tables')
+                  if tables:
+                      print(f'Sample tables: {tables[:10]}')
+          except Exception as e:
+              print(f'Schema check error: {e}')
+          EOF
+          echo "Schema verification completed"
+
+      - name: Collect static files
+        run: |
+          echo "Collecting static files..."
+          python manage.py collectstatic --noinput
+          echo "Static files collected successfully"
+
+      - name: Start Django server with logging
+        run: |
+          echo "Starting Django server on port 7000..."
+          echo "Environment check:"
+          echo "  SECRET_KEY: ${SECRET_KEY:0:10}..."
+          echo "  DJANGO_DEBUG: $DJANGO_DEBUG"
+          echo "  ALLOWED_HOSTS: $ALLOWED_HOSTS"
+          python manage.py runserver 127.0.0.1:7000 --noreload > /tmp/django-server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Server PID: $SERVER_PID"
+          echo $SERVER_PID > /tmp/django-server.pid
+          sleep 15
+          echo "Server startup wait completed"
+
+      - name: Verify server is running
+        run: |
+          if ! ps -p $(cat /tmp/django-server.pid 2>/dev/null || echo "0") > /dev/null 2>&1; then
+            echo "ERROR: Server process is not running!"
+            echo "=== Server Logs ==="
+            cat /tmp/django-server.log 2>/dev/null || echo "No logs found"
+            exit 1
+          fi
+          echo "Server process is running (PID: $(cat /tmp/django-server.pid))"
+
+      - name: Test server endpoints and show diagnostics
+        run: |
+          echo "=== Testing Server Endpoints ==="
+          
+          # Test health endpoint
+          echo "Testing /health/ endpoint..."
+          HEALTH_CODE=$(curl -s -o /tmp/health-response.txt -w "%{http_code}" http://127.0.0.1:7000/health/ 2>/dev/null || echo "000")
+          echo "Health endpoint: HTTP $HEALTH_CODE"
+          if [ "$HEALTH_CODE" = "200" ]; then
+            echo "Health check response:"
+            cat /tmp/health-response.txt | head -10
+            echo ""
+          else
+            echo "Health check failed. Response:"
+            cat /tmp/health-response.txt 2>/dev/null || echo "No response"
+            echo ""
+          fi
+          
+          # Test root URL
+          echo "Testing root URL (/)..."
+          ROOT_CODE=$(curl -s -o /tmp/root-response.txt -w "%{http_code}" http://127.0.0.1:7000/ 2>/dev/null || echo "000")
+          echo "Root URL: HTTP $ROOT_CODE"
+          
+          if [ "$ROOT_CODE" = "500" ]; then
+            echo "ERROR: Root URL returns 500. Showing error details:"
+            echo "=== Error Response (first 100 lines) ==="
+            head -100 /tmp/root-response.txt
+            echo ""
+            echo "=== Server Logs (last 100 lines) ==="
+            tail -100 /tmp/django-server.log 2>/dev/null || echo "No server logs found"
+            echo ""
+            echo "=== Recent Django Errors ==="
+            grep -i "error\|exception\|traceback" /tmp/django-server.log | tail -50 || echo "No errors found in logs"
+            echo ""
+            echo "=== Testing other endpoints ==="
+            for endpoint in "/login/" "/register/" "/editais/"; do
+              CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:7000$endpoint" 2>/dev/null || echo "000")
+              echo "  $endpoint: HTTP $CODE"
+            done
+            exit 1
+          elif [ "$ROOT_CODE" = "200" ]; then
+            echo "Root URL is working correctly!"
+          else
+            echo "Warning: Root URL returned HTTP $ROOT_CODE"
+          fi
+          
+          # Wait for server to be fully ready
+          echo "Waiting for server to stabilize..."
+          sleep 5
+          
+          # Final verification
+          FINAL_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7000/ 2>/dev/null || echo "000")
+          if [ "$FINAL_CODE" = "200" ] || [ "$FINAL_CODE" = "302" ]; then
+            echo "Server is ready and responding correctly!"
+            exit 0
+          else
+            echo "ERROR: Server verification failed. Final status: HTTP $FINAL_CODE"
+            echo "=== Server Logs ==="
+            tail -50 /tmp/django-server.log 2>/dev/null
+            exit 1
+          fi
+
+      - name: Run Lighthouse CI
+        run: |
+          echo "Starting Lighthouse CI tests..."
+          echo "Server should be running on http://127.0.0.1:7000"
+          echo "Server PID: $(cat /tmp/django-server.pid 2>/dev/null || echo 'unknown')"
+          npx @lhci/cli autorun --config=.lighthouserc.js
+        continue-on-error: false
+        env:
+          # Optional: Override thresholds via environment variables
+          LHCI_PERFORMANCE_THRESHOLD: ${{ env.LHCI_PERFORMANCE_THRESHOLD || '0.80' }}
+          LHCI_ACCESSIBILITY_THRESHOLD: ${{ env.LHCI_ACCESSIBILITY_THRESHOLD || '0.90' }}
+          LHCI_BEST_PRACTICES_THRESHOLD: ${{ env.LHCI_BEST_PRACTICES_THRESHOLD || '0.90' }}
+          LHCI_SEO_THRESHOLD: ${{ env.LHCI_SEO_THRESHOLD || '0.90' }}
+
+      - name: Show server logs on failure
+        if: failure()
+        run: |
+          echo "=== Server Logs (last 200 lines) ==="
+          tail -200 /tmp/django-server.log 2>/dev/null || echo "No server logs found"
+          echo ""
+          echo "=== Server Status ==="
+          if [ -f /tmp/django-server.pid ]; then
+            PID=$(cat /tmp/django-server.pid)
+            if ps -p $PID > /dev/null 2>&1; then
+              echo "Server process $PID is still running"
+            else
+              echo "Server process $PID is not running"
+            fi
+          fi
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: lighthouse_reports/
+          retention-days: 7
+          
+      - name: Upload server logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: django-server-logs
+          path: /tmp/django-server.log
+          retention-days: 1
+          if-no-files-found: ignore
+          
+      - name: Cleanup server process
+        if: always()
+        run: |
+          if [ -f /tmp/django-server.pid ]; then
+            PID=$(cat /tmp/django-server.pid)
+            if ps -p $PID > /dev/null 2>&1; then
+              echo "Stopping server process $PID..."
+              kill $PID || true
+              sleep 2
+              if ps -p $PID > /dev/null 2>&1; then
+                echo "Force killing server process $PID..."
+                kill -9 $PID || true
+              fi
+            fi
+          fi
+          echo "Cleanup completed"
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Try to read lighthouse results
+            const reportsDir = 'lighthouse_reports';
+            if (fs.existsSync(reportsDir)) {
+              const files = fs.readdirSync(reportsDir);
+              const jsonFiles = files.filter(f => f.endsWith('.json'));
+              
+              if (jsonFiles.length > 0) {
+                // Read the first JSON report
+                const reportPath = path.join(reportsDir, jsonFiles[0]);
+                const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+                
+                // Extract scores
+                const categories = report.categories || {};
+                const performance = Math.round((categories.performance?.score || 0) * 100);
+                const accessibility = Math.round((categories.accessibility?.score || 0) * 100);
+                const bestPractices = Math.round((categories['best-practices']?.score || 0) * 100);
+                const seo = Math.round((categories.seo?.score || 0) * 100);
+                
+                const comment = `## Lighthouse CI Results
+                
+                | Category | Score |
+                |----------|-------|
+                | Performance | ${performance} |
+                | Accessibility | ${accessibility} |
+                | Best Practices | ${bestPractices} |
+                | SEO | ${seo} |
+                
+                Full reports are available in the workflow artifacts.`;
+                
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            }
+

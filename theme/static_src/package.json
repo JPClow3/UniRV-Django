@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@lhci/cli": "^0.12.0",
     "@tailwindcss/postcss": "^4.1.16",
 
     "cross-env": "^10.1.0",

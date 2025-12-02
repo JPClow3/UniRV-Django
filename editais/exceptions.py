@@ -1,16 +1,9 @@
 """
 Exceções customizadas para o aplicativo Editais.
-
-Este módulo define exceções específicas do domínio para melhor
-tratamento de erros e logging.
 """
 
 
-class EditalException(Exception):
-    """Exceção base para erros relacionados a editais."""
-
-
-class EditalNotFoundError(EditalException):
+class EditalNotFoundError(Exception):
     """Exceção levantada quando um edital não é encontrado."""
     
     def __init__(self, identifier, message=None):

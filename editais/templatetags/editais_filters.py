@@ -3,31 +3,11 @@ Template tags customizados para o app editais.
 """
 
 from django import template
+from django.utils.html import escape
 from urllib.parse import urlencode
+import re
 
 register = template.Library()
-
-
-@register.simple_tag
-def preserve_filters(request, **kwargs):
-    """
-    Preserva todos os parâmetros de filtro da URL atual, permitindo sobrescrever alguns.
-    
-    Uso:
-        {% preserve_filters request page=2 %}
-        {% preserve_filters request search='' %}  # Remove search
-    """
-    params = request.GET.copy()
-    
-    # Atualizar ou remover parâmetros
-    for key, value in kwargs.items():
-        if value is None or value == '':
-            # Remover parâmetro se valor for None ou vazio
-            params.pop(key, None)
-        else:
-            params[key] = value
-    
-    return urlencode(params)
 
 
 @register.filter
@@ -64,3 +44,43 @@ def is_transparent_header(url_name):
     if not url_name:
         return False
     return url_name in {'edital_detail', 'edital_detail_slug'}
+
+
+@register.filter
+def escape_attrs(attrs_string):
+    """
+    Safely escape HTML attributes string to prevent XSS attacks.
+    
+    This filter takes a string of HTML attributes (e.g., 'target="_blank" rel="noopener"')
+    and escapes special characters in attribute values while preserving the structure.
+    
+    Usage in templates:
+        {% include "components/button.html" with attrs='target="_blank" rel="noopener"'|escape_attrs %}
+    
+    Note: This filter should be used when passing user-generated or untrusted data
+    to the attrs parameter. For hardcoded strings, it's optional but recommended.
+    """
+    if not attrs_string:
+        return ''
+    
+    # Pattern to match attribute="value" or attribute='value' or attribute=value
+    # Handles: attr="value", attr='value', attr=value, and attributes with spaces in values
+    attr_pattern = r'(\w+)=(["\'])([^"\']*)\2|(\w+)=([^\s>]+)'
+    
+    def escape_attr_value(match):
+        if match.group(1):  # Matched quoted attribute
+            attr_name = match.group(1)
+            quote = match.group(2)
+            attr_value = match.group(3)
+            escaped_value = escape(attr_value)
+            return f'{attr_name}={quote}{escaped_value}{quote}'
+        else:  # Matched unquoted attribute
+            attr_name = match.group(4)
+            attr_value = match.group(5)
+            escaped_value = escape(attr_value)
+            return f'{attr_name}="{escaped_value}"'
+    
+    # Replace all attribute values with escaped versions
+    escaped = re.sub(attr_pattern, escape_attr_value, attrs_string)
+    
+    return escaped

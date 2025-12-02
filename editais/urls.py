@@ -26,6 +26,7 @@ urlpatterns = [
     path('editais/', views.index, name='editais_index'),
     path('ambientes-inovacao/', views.ambientes_inovacao, name='ambientes_inovacao'),
     path('projetos-aprovados/', views.projetos_aprovados, name='projetos_aprovados'),
+    path('startups/', views.startups_showcase, name='startups_showcase'),
     path('edital/', RedirectView.as_view(pattern_name='editais_index', permanent=False)),
     
     path('edital/<slug:slug>/', views.edital_detail, name='edital_detail_slug'),

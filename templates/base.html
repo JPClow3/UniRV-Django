@@ -18,6 +18,13 @@
     />
     <meta name="author" content="UniRV - Universidade de Rio Verde" />
     <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1e40af" />
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}{% endblock %}" />
+    <meta name="twitter:description" content="{% block twitter_description %}{% block meta_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}{% endblock %}" />
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta
@@ -36,22 +43,59 @@
     <meta property="og:site_name" content="AgroHub UniRV" />
     {% load static tailwind_tags compress editais_filters %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
+    
+    <!-- Resource Hints for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Google Fonts: Load asynchronously with font-display swap -->
     <link
+      rel="preload"
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+    <script>
+      // Polyfill for browsers that don't support onload on link tags
+      !function(e){"use strict";var t=function(t,n,o){var i,r=e.document,a=r.createElement("link");if(o)i=o;else{var l=(r.body||r.getElementsByTagName("head")[0]).childNodes;i=l[l.length-1]}var d=r.styleSheets;a.rel="stylesheet",a.href=t,a.media="only x",function e(t){if(r.body)return t();setTimeout(function(){e(t)})}(function(){i.parentNode.insertBefore(a,o?i:i.nextSibling)});var f=function(e){for(var t=a.href,n=d.length;n--;)if(d[n].href===t)return e();setTimeout(function(){f(e)})};return a.addEventListener&&a.addEventListener("load",function(){this.media=o||"all"}),a.onloadcssdefined=f,f(function(){a.media!==o&&(a.media=o||"all")}),a};"undefined"!=typeof exports?exports.loadCSS=t:e.loadCSS=t}("undefined"!=typeof global?global:this);
+    </script>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
+    
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "AgroHub UniRV",
+      "url": "{{ request.build_absolute_uri|slice:":-1" }}{% url 'home' %}",
+      "logo": "{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}",
+      "description": "Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+55-62-98172-9376",
+        "contactType": "customer service",
+        "email": "agrohub@unirv.edu.br"
+      },
+      "sameAs": [
+        "https://www.unirv.edu.br"
+      ]
+    }
+    </script>
+    
     {% tailwind_css %}
     <!-- Font Awesome: Loaded asynchronously to prevent render blocking -->
     <link
-      rel="stylesheet"
+      rel="preload"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-      media="print"
-      onload="this.media='all'"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
     <noscript>
       <link
@@ -72,14 +116,12 @@
     >
 
     <header
-      class="site-header {% if transparent_header %}bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white{% else %}bg-white{% endif %} shadow-sm sticky top-0 z-50 {% if not transparent_header %}border-b border-gray-200{% endif %} relative w-full full-bleed"
+      class="site-header bg-transparent text-white shadow-sm sticky top-0 z-50 relative w-full full-bleed"
     >
-      {% if not transparent_header %}
       <div
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
         style="height: 4px; z-index: 1"
       ></div>
-      {% endif %}
       <nav class="relative z-10 site-nav">
         <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
           <!-- Logo -->
@@ -88,39 +130,47 @@
             class="flex items-center flex-shrink-0 mr-auto"
             aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia"
           >
-            <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-12 h-12 flex-shrink-0" />
+            <img 
+              src="{% static 'img/Logo.svg' %}" 
+              alt="AgroHub UniRV Logo" 
+              class="w-28 h-28 flex-shrink-0" 
+              width="112" 
+              height="112" 
+              fetchpriority="high"
+              loading="eager"
+            />
           </a>
 
           <!-- Desktop Navigation -->
           <div class="hidden md:flex items-center gap-6 flex-shrink-0 ml-auto whitespace-nowrap flex-nowrap">
             <a
               href="{% url 'home' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if transparent_header %}text-white/80 hover:text-white{% elif current_url == 'home' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'home' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Início
             </a>
             <a
               href="{% url 'ambientes_inovacao' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if transparent_header %}text-white/80 hover:text-white{% elif current_url == 'ambientes_inovacao' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Ambientes de Inovação
             </a>
             <a
               href="{% url 'editais_index' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if transparent_header %}text-white/80 hover:text-white{% elif current_url == 'editais_index' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'editais_index' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Editais
             </a>
             <a
-              href="{% url 'dashboard_projetos' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if transparent_header %}text-white/80 hover:text-white{% elif current_url == 'dashboard_projetos' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              href="{% url 'startups_showcase' %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'startups_showcase' %}text-unirvBlue{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Startups
             </a>
             {% if user.is_authenticated %}
             <a
               href="{% url 'dashboard_home' %}"
-              class="nav-cta {% if transparent_header %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
+              class="nav-cta"
             >
               DASHBOARD
             </a>
@@ -128,16 +178,17 @@
               {% csrf_token %}
               <button
                 type="submit"
-                class="{% if transparent_header %}text-white/80 hover:text-white{% else %}text-gray-600 hover:text-red-600{% endif %} transition-colors font-medium text-sm cursor-pointer"
+                class="text-gray-600 hover:text-red-600 transition-colors font-medium text-sm cursor-pointer"
                 title="Sair"
+                aria-label="Sair da conta"
               >
-                <i class="fas fa-sign-out-alt"></i>
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
               </button>
             </form>
             {% else %}
             <a
               href="{% url 'login' %}"
-              class="nav-cta {% if transparent_header %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
+              class="nav-cta"
             >
               LOGIN
             </a>
@@ -163,28 +214,28 @@
             <li>
               <a
                 href="{% url 'home' %}"
-                class="nav-link block px-4 py-2 {% if transparent_header %}text-white/90 hover:text-white hover:bg-white/10{% elif current_url == 'home' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'home' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Início</a
               >
             </li>
             <li>
               <a
                 href="{% url 'ambientes_inovacao' %}"
-                class="nav-link block px-4 py-2 {% if transparent_header %}text-white/90 hover:text-white hover:bg-white/10{% elif current_url == 'ambientes_inovacao' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Ambientes de Inovação</a
               >
             </li>
             <li>
               <a
                 href="{% url 'editais_index' %}"
-                class="nav-link block px-4 py-2 {% if transparent_header %}text-white/90 hover:text-white hover:bg-white/10{% elif current_url == 'editais_index' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'editais_index' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Editais</a
               >
             </li>
             <li>
               <a
-                href="{% url 'dashboard_projetos' %}"
-                class="nav-link block px-4 py-2 {% if transparent_header %}text-white/90 hover:text-white hover:bg-white/10{% elif current_url == 'dashboard_projetos' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                href="{% url 'startups_showcase' %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'startups_showcase' %}text-unirvBlue bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Startups</a
               >
             </li>
@@ -192,7 +243,7 @@
             <li>
               <a
                 href="{% url 'dashboard_home' %}"
-                class="nav-cta block mx-4 mt-4 text-center {% if transparent_header %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
+                class="nav-cta block mx-4 mt-4 text-center"
               >
                 Dashboard
               </a>
@@ -202,7 +253,7 @@
                 {% csrf_token %}
                 <button
                   type="submit"
-                  class="w-full text-left px-4 py-2 {% if transparent_header %}text-red-300 hover:text-red-200 hover:bg-white/10{% else %}text-red-600 hover:bg-red-50{% endif %} font-medium cursor-pointer"
+                  class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium cursor-pointer"
                 >
                   <i class="fas fa-sign-out-alt mr-2"></i>Sair
                 </button>
@@ -212,7 +263,7 @@
             <li>
               <a
                 href="{% url 'login' %}"
-                class="nav-cta block mx-4 mt-4 text-center {% if transparent_header %}bg-white text-unirvBlue hover:bg-white/90{% endif %}"
+                class="nav-cta block mx-4 mt-4 text-center"
               >
                 Login
               </a>
@@ -242,54 +293,6 @@
             </div>
             {% endfor %}
           </div>
-          <script>
-            // Convert Django messages to toast notifications (T046 - Complete integration)
-            (function () {
-              // Wait for showToast function to be available
-              function processMessages() {
-                const messages = document.querySelectorAll(".messages .alert");
-                if (messages.length === 0) return;
-
-                // If showToast is not available yet, wait a bit
-                if (typeof showToast !== "function") {
-                  setTimeout(processMessages, 100);
-                  return;
-                }
-
-                messages.forEach(function (messageEl) {
-                  const messageText = messageEl.textContent.trim();
-                  const messageTag =
-                    messageEl.getAttribute("data-message-tag") || "info";
-
-                  // Map Django message tags to toast types
-                  // Django default tags: debug, info, success, warning, error
-                  let toastType = "success";
-                  if (messageTag === "error" || messageTag === "danger") {
-                    toastType = "error";
-                  } else if (messageTag === "warning") {
-                    toastType = "warning";
-                  } else if (messageTag === "info" || messageTag === "debug") {
-                    toastType = "info";
-                  } else if (messageTag === "success") {
-                    toastType = "success";
-                  }
-
-                  // Show toast notification
-                  showToast(messageText, toastType);
-
-                  // Mark message as processed to avoid duplicates
-                  messageEl.setAttribute("data-processed", "true");
-                });
-              }
-
-              // Process messages when DOM is ready
-              if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", processMessages);
-              } else {
-                processMessages();
-              }
-            })();
-          </script>
           {% endif %} {% block content %}{% endblock %}
         </div>
       </div>
@@ -303,7 +306,14 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div class="md:col-span-2">
             <div class="flex items-center gap-3 mb-6">
-              <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-12 h-12" />
+              <img 
+                src="{% static 'img/Logo.svg' %}" 
+                alt="AgroHub UniRV Logo" 
+                class="w-12 h-12" 
+                width="48" 
+                height="48" 
+                loading="lazy"
+              />
               <div>
                 <div class="font-bold text-xl">AgroHub UniRV</div>
                 <div class="text-sm text-gray-300">
@@ -356,7 +366,7 @@
               </li>
               <li>
                 <a
-                  href="{% url 'dashboard_projetos' %}"
+                  href="{% url 'startups_showcase' %}"
                   class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
@@ -427,7 +437,7 @@
 
 
     {% compress js %}
-    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
     {% endcompress %}
     {% block extra_js %}{% endblock %}
   </body>

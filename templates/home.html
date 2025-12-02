@@ -2,246 +2,159 @@
 
 {% load static %}
 
-
-
-{% block title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}
+{% block title %}AgroHub UniRV - Conceito Visual Moderno{% endblock %}
 
 
 
 {% block extra_head %}
-
-<link rel="preload" as="image" href="{% static 'img/agrohub-hero.webp' %}" fetchpriority="high">
-
 <style>
-
-    /* --- Glassmorphism Styles --- */
-
-    .glass-card {
-
-        background: rgba(255, 255, 255, 0.9); /* Mais opacidade para leitura */
-
-        backdrop-filter: blur(16px);
-
-        -webkit-backdrop-filter: blur(16px);
-
-        border: 1px solid rgba(255, 255, 255, 0.5);
-
-        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
-
+  body { font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
+  
+  .reveal-up { opacity: 0; transform: translateY(30px); }
+  
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  /* --- ANIMAÇÕES DA HÉLICE QUÁDRUPLA --- */
+  .orbit-container { position: relative; width: 400px; height: 400px; max-width: 100%; }
+  .orbit-ring {
+    position: absolute; 
+    border: 1px dashed rgba(255, 255, 255, 0.2); 
+    border-radius: 50%;
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%);
+  }
+  
+  .ring-1 { width: 100%; height: 100%; animation: spin 25s linear infinite; border-color: rgba(118, 184, 42, 0.3); }
+  .ring-2 { width: 80%; height: 80%; animation: spin 20s linear infinite reverse; border-color: rgba(39, 52, 139, 0.4); }
+  .ring-3 { width: 60%; height: 60%; animation: spin 15s linear infinite; border-color: rgba(234, 179, 8, 0.4); }
+  .ring-4 { width: 40%; height: 40%; animation: spin 10s linear infinite reverse; border-color: rgba(168, 85, 247, 0.4); }
+  
+  @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+  
+  /* Ícones Flutuantes Aumentados */
+  .floating-icon {
+    position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%);
+    background: white; 
+    border-radius: 50%; 
+    box-shadow: 0 0 20px rgba(255,255,255,0.3);
+    color: #27348b; 
+    width: 40px; height: 40px; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 20;
+  }
+  
+  /* --- TIMELINE CUSTOMIZADA --- */
+  /* Desktop: Linha Horizontal */
+  @media (min-width: 768px) {
+    .timeline-line-bg {
+      position: absolute; top: 40px; left: 0; width: 100%; height: 4px; background: #e2e8f0; z-index: 0;
     }
-
-
-
-    .text-gradient {
-
-        background-clip: text;
-
-        -webkit-background-clip: text;
-
-        -webkit-text-fill-color: transparent;
-
-        background-image: linear-gradient(to right, #10b981, #0ea5e9);
-
+    .timeline-line-progress {
+      position: absolute; top: 40px; left: 0; height: 4px; 
+      background: linear-gradient(90deg, #76b82a, #27348b); 
+      z-index: 0; width: 0%; transition: width 1.5s ease-out;
     }
-
-
-
-    /* --- Timeline Styles --- */
-
-    .timeline-line {
-
-        position: absolute;
-
-        left: 50%;
-
-        transform: translateX(-50%);
-
-        width: 2px;
-
-        height: 100%;
-
-        background-color: #e5e7eb;
-
-        z-index: 0;
-
+  }
+  
+  /* Mobile: Linha Vertical */
+  @media (max-width: 767px) {
+    .timeline-wrapper {
+      position: relative;
+      padding-left: 2rem;
+      border-left: 4px solid #e2e8f0;
+      margin-left: 1rem;
     }
-
-    
-
-    .timeline-progress {
-
-        position: absolute;
-
-        left: 50%;
-
-        transform: translateX(-50%);
-
-        width: 2px;
-
-        height: 0%; /* GSAP anima isso */
-
-        background: linear-gradient(to bottom, #10b981, #059669);
-
-        z-index: 1;
-
+    .timeline-item { margin-bottom: 3rem; }
+    .timeline-icon-mobile {
+      position: absolute; left: -2.3rem; top: 0;
     }
-
-
-
-    /* --- Orbit Animation --- */
-
-    .orbit-container {
-
-        position: relative;
-
-        width: 100%;
-
-        height: 100%;
-
-        animation: spin 40s linear infinite;
-
-    }
-
-    
-
-    .orbit-item {
-
-        position: absolute;
-
-        transform-origin: center;
-
-        animation: counter-spin 40s linear infinite; /* Mantém ícones em pé */
-
-    }
-
-
-
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    @keyframes counter-spin { 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
-
-
-
-    /* --- GSAP Initial States --- */
-
-    /* Oculta apenas se JS estiver ativado para evitar tela branca se JS falhar */
-
-    .js-enabled .gsap-fade-up, 
-
-    .js-enabled .gsap-scale-up, 
-
-    .js-enabled .gsap-fade-right {
-
-        opacity: 0;
-
-        visibility: hidden;
-
-        transform: translateY(20px);
-
-    }
-
+  }
+  
+  /* Helper para alinhamento dos pilares */
+  .pillar-card { opacity: 0; display: flex; flex-direction: column; height: 100%; }
+  
+  /* Scroll Indicator Animation - Slower bounce */
+  @keyframes slow-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-slow-bounce {
+    animation: slow-bounce 2s ease-in-out infinite;
+  }
 </style>
-
-<script>
-
-    // Marca que JS está ativo para aplicar ocultação inicial
-
-    document.documentElement.classList.add('js-enabled');
-
-</script>
-
 {% endblock %}
 
 
 
 {% block content %}
-
-<div class="overflow-x-hidden bg-gray-50 w-full">
-
-
-
-  <section class="relative flex flex-col justify-center pt-32 pb-64 md:pt-20 md:pb-48 lg:min-h-[90vh] overflow-hidden" aria-label="Seção principal">
-
-    
-
-    <div class="absolute inset-0 z-0 select-none h-[120%] -top-[10%]">
-
-        <img src="{% static 'img/agrohub-hero.webp' %}" alt="" class="w-full h-full object-cover object-center" id="hero-bg">
-
-        <div class="absolute inset-0 bg-gradient-to-r from-unirvBlue/95 via-unirvBlue/85 to-unirvBlue/60"></div>
-
+<div class="bg-gray-50 text-gray-800">
+  <!-- HERO SECTION -->
+  <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div class="hero-bg absolute inset-0 z-0 scale-110">
+      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');" role="img" aria-label="Campo agrícola com tecnologia moderna"></div>
+      <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(39, 52, 139, 0.95), rgba(39, 52, 139, 0.8), rgba(39, 52, 139, 0.4));"></div>
     </div>
 
-
-
-    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-
-        <div class="absolute top-20 right-0 w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-blue-500/30 rounded-full blur-[80px] mix-blend-overlay animate-pulse"></div>
-
-        <div class="absolute bottom-0 left-0 w-[300px] h-[300px] md:w-[400px] md:h-[400px] bg-green-500/30 rounded-full blur-[80px] mix-blend-overlay"></div>
-
-    </div>
-
-
-
-    <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="max-w-4xl mx-auto md:mx-0 text-center md:text-left">
-
-        
-
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white mb-8 gsap-fade-up mx-auto md:mx-0">
-
-            <span class="relative flex h-3 w-3">
-
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-
-            </span>
-
-            <span class="text-xs md:text-sm font-bold tracking-wide uppercase">NIT - Núcleo de Inovação</span>
-
+    <div class="container relative z-10 px-6 pt-20">
+      <div class="max-w-4xl">
+        <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
+          <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
+          Centro de Inovação UniRV
         </div>
-
-        
-
-        <h1 class="text-white mb-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight font-extrabold tracking-tight gsap-fade-up">
-
-          O Futuro do Agro <br class="hidden md:block">
-
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-300">Começa Aqui.</span>
-
+        <h1 class="reveal-up text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
+          O Futuro do <br/>
+          <span class="text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #34d399, #5eead4);">
+            Agronegócio
+          </span> Começa Aqui.
         </h1>
-
-        
-
-        <p class="text-lg md:text-xl text-blue-50 mb-10 leading-relaxed max-w-2xl mx-auto md:mx-0 gsap-fade-up">
-
-          Conectamos academia, startups e setor produtivo para transformar Rio Verde em um polo global de tecnologia agropecuária.
-
+        <p class="reveal-up text-lg md:text-xl text-gray-200 mb-10 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
+          Conectamos academia, startups e o setor produtivo para acelerar a transformação digital do campo.
         </p>
+        <div class="reveal-up flex flex-col sm:flex-row gap-4">
+          <button data-url="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
+            Ver Editais Abertos <i class="fas fa-arrow-right"></i>
+          </button>
+          <button data-url="{% url 'ambientes_inovacao' %}" class="hero-btn px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3">
+            <i class="fas fa-play-circle"></i> Conhecer Infraestrutura
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-24 left-1/2 -translate-x-1/2 text-white z-10 pointer-events-none flex flex-col items-center">
+      <span class="text-xs uppercase tracking-widest mb-2 opacity-70">Role para baixo</span>
+      <i class="fas fa-chevron-down opacity-70 text-2xl animate-slow-bounce"></i>
+    </div>
+  </header>
 
-        
-
-        <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start gsap-fade-up">
-
-          <a href="{% url 'editais_index' %}" class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-unirvBlue bg-white rounded-full overflow-hidden transition-all duration-300 hover:bg-blue-50 shadow-xl hover:shadow-white/20 hover:-translate-y-1">
-
-            <span class="relative z-10 flex items-center gap-2">
-
-                Ver Editais Abertos <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-
-            </span>
-
-          </a>
-
-          <a href="{% url 'ambientes_inovacao' %}" class="inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 backdrop-blur-sm text-base font-bold rounded-full text-white hover:bg-white/10 transition-all duration-300">
-
-            Nossa Estrutura
-
-          </a>
-
+  <!-- STATS OVERLAP SECTION -->
+  <section class="relative z-20 -mt-20 pb-20 px-6">
+    <div class="container mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <!-- Stat Cards -->
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-agrohubGreen transform hover:-translate-y-2 transition-all duration-300 group">
+          <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span class="counter" data-target="12">0</span><span>+</span></div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Startups</p>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-agrohubGreen w-0 group-hover:w-full transition-all duration-700"></div></div>
+        </div>
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-blue-400 transform hover:-translate-y-2 transition-all duration-300 group">
+          <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span>R$</span><span class="counter" data-target="10">0</span><span>M</span></div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Investimento</p>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-blue-400 w-0 group-hover:w-full transition-all duration-700"></div></div>
+        </div>
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-yellow-400 transform hover:-translate-y-2 transition-all duration-300 group">
+          <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span class="counter" data-target="40">0</span><span>ha</span></div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Smart Farm</p>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-yellow-400 w-0 group-hover:w-full transition-all duration-700"></div></div>
+        </div>
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-purple-500 transform hover:-translate-y-2 transition-all duration-300 group">
+          <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span class="counter" data-target="3">0</span></div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Fases</p>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-purple-500 w-0 group-hover:w-full transition-all duration-700"></div></div>
         </div>
 
       </div>
@@ -250,74 +163,46 @@
 
   </section>
 
-
-
-  <section class="relative z-20 px-4 sm:px-6 lg:px-8 -mt-40 md:-mt-32">
-
-    <div class="container mx-auto max-w-7xl">
-
-      <div class="glass-card rounded-3xl p-6 md:p-10">
-
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4 md:gap-12 divide-x-0 md:divide-x divide-gray-200/50">
-
-          
-
-          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
-
-            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
-
-              <span class="counter" data-target="3">0</span>
-
-            </div>
-
-            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Fases de Expansão</p>
-
+  <!-- PILLARS SECTION -->
+  <section id="pillars-section" class="py-20 bg-gray-50 relative overflow-hidden">
+    <div class="container mx-auto px-6 relative z-10">
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="text-agrohubGreen font-bold tracking-widest uppercase text-sm">Nossos Fundamentos</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-unirvBlue mt-2 mb-4">Pilares da Inovação</h2>
+      </div>
+      <!-- Grid com items-stretch para garantir mesma altura -->
+      <div class="grid md:grid-cols-4 gap-6 items-stretch">
+        <!-- Card 1 -->
+        <div class="pillar-card bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group hover:-translate-y-2 text-center">
+          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-unirvBlue text-3xl mb-6 mx-auto group-hover:bg-unirvBlue group-hover:text-white transition-colors duration-300">
+            <i class="fas fa-microscope"></i>
           </div>
-
-
-
-          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
-
-            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
-
-              <span class="counter" data-target="12">0</span><span>+</span>
-
-            </div>
-
-            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Startups Incubadas</p>
-
+          <h3 class="font-bold text-lg text-gray-900 mb-3 group-hover:text-unirvBlue transition-colors">Pesquisa Aplicada</h3>
+          <p class="text-sm text-gray-500 grow">Conexão direta entre laboratório e campo para resolver dores reais.</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="pillar-card bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group hover:-translate-y-2 text-center">
+          <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-agrohubGreen text-3xl mb-6 mx-auto group-hover:bg-agrohubGreen group-hover:text-white transition-colors duration-300">
+            <i class="fas fa-wifi"></i>
           </div>
-
-
-
-          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
-
-            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
-
-              <span class="counter" data-target="40">0</span><span class="text-xl md:text-2xl text-gray-400">ha</span>
-
-            </div>
-
-            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Smart Farm</p>
-
+          <h3 class="font-bold text-lg text-gray-900 mb-3 group-hover:text-agrohubGreen transition-colors">Digitalização</h3>
+          <p class="text-sm text-gray-500 grow">IoT, Drones e Big Data integrados para o Agro 4.0.</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="pillar-card bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group hover:-translate-y-2 text-center">
+          <div class="w-16 h-16 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-600 text-3xl mb-6 mx-auto group-hover:bg-yellow-500 group-hover:text-white transition-colors duration-300">
+            <i class="fas fa-lightbulb"></i>
           </div>
-
-
-
-          <div class="text-center md:text-left px-2 md:px-4 gsap-stat-item">
-
-            <div class="text-3xl md:text-5xl font-black text-unirvBlue mb-1 md:mb-2 flex justify-center md:justify-start items-baseline gap-1">
-
-              <span class="text-xl md:text-2xl text-gray-400">R$</span><span class="counter" data-target="10">0</span><span>M+</span>
-
-            </div>
-
-            <p class="text-xs md:text-sm text-gray-500 font-bold uppercase tracking-wider">Investimento</p>
-
+          <h3 class="font-bold text-lg text-gray-900 mb-3 group-hover:text-yellow-600 transition-colors">Empreendedorismo</h3>
+          <p class="text-sm text-gray-500 grow">Incubação de startups e cultura de inovação aberta.</p>
+        </div>
+        <!-- Card 4 -->
+        <div class="pillar-card bg-white p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-300 group hover:-translate-y-2 text-center">
+          <div class="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 text-3xl mb-6 mx-auto group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
+            <i class="fas fa-leaf"></i>
           </div>
-
-
-
+          <h3 class="font-bold text-lg text-gray-900 mb-3 group-hover:text-teal-600 transition-colors">Sustentabilidade</h3>
+          <p class="text-sm text-gray-500 grow">Tecnologia para produzir mais com menos impacto ambiental.</p>
         </div>
 
       </div>
@@ -326,358 +211,148 @@
 
   </section>
 
-
-
-  <section class="py-20 md:py-32 bg-gray-50 relative overflow-hidden">
-
-    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-3xl mix-blend-multiply opacity-70 pointer-events-none"></div>
-
-    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-green-100/50 rounded-full blur-3xl mix-blend-multiply opacity-70 pointer-events-none"></div>
-
-
-
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
-      <div class="text-center max-w-3xl mx-auto mb-16 gsap-fade-up">
-
-        <h2 class="text-unirvBlue font-bold tracking-widest text-sm uppercase mb-3">Estratégia</h2>
-
-        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Pilares do AgroHub</h3>
-
-        <p class="text-gray-600 text-lg">
-
-            Quatro eixos fundamentais que sustentam nossa missão de inovar no campo.
-
-        </p>
-
+  <!-- MISSION / HELIX SECTION -->
+  <section class="py-24 bg-unirvBlue text-white overflow-hidden relative">
+    <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom right, #27348b, #1a237e);"></div>
+    <div class="container mx-auto px-6 relative z-10">
+      <div class="flex flex-col md:flex-row items-center gap-16">
+        <!-- LISTA -->
+        <div class="md:w-1/2">
+          <h2 class="text-agrohubGreen font-bold tracking-wider uppercase text-sm mb-2">Ecossistema</h2>
+          <h3 class="text-4xl md:text-5xl font-extrabold mb-8">A Hélice Quádrupla</h3>
+          <p class="text-gray-300 text-lg mb-10 leading-relaxed">
+            Unimos as quatro forças fundamentais da inovação em um único ecossistema colaborativo.
+          </p>
+          <ul class="space-y-6">
+            <!-- Item 1: Academia -->
+            <li class="flex items-center gap-5 group">
+              <div class="w-12 h-12 rounded-full bg-agrohubGreen/20 border border-agrohubGreen flex items-center justify-center text-agrohubGreen group-hover:bg-agrohubGreen group-hover:text-white transition-all">
+                <i class="fas fa-graduation-cap text-lg"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-lg">Academia (UniRV)</h4>
+                <p class="text-sm text-gray-400">Pesquisa e Capital Intelectual</p>
+              </div>
+            </li>
+            <!-- Item 2: Setor Produtivo -->
+            <li class="flex items-center gap-5 group">
+              <div class="w-12 h-12 rounded-full bg-blue-400/20 border border-blue-400 flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-white transition-all">
+                <i class="fas fa-tractor text-lg"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-lg">Setor Produtivo</h4>
+                <p class="text-sm text-gray-400">Empresas e Produtores</p>
+              </div>
+            </li>
+            <!-- Item 3: Governo -->
+            <li class="flex items-center gap-5 group">
+              <div class="w-12 h-12 rounded-full bg-yellow-400/20 border border-yellow-400 flex items-center justify-center text-yellow-400 group-hover:bg-yellow-400 group-hover:text-white transition-all">
+                <i class="fas fa-landmark text-lg"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-lg">Governo</h4>
+                <p class="text-sm text-gray-400">Fomento e Políticas Públicas</p>
+              </div>
+            </li>
+            <!-- Item 4: Sociedade -->
+            <li class="flex items-center gap-5 group">
+              <div class="w-12 h-12 rounded-full bg-purple-400/20 border border-purple-400 flex items-center justify-center text-purple-400 group-hover:bg-purple-400 group-hover:text-white transition-all">
+                <i class="fas fa-users text-lg"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-lg">Sociedade Civil</h4>
+                <p class="text-sm text-gray-400">Comunidade e Impacto Social</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <!-- ORBITA -->
+        <div class="md:w-1/2 flex justify-center mt-12 md:mt-0">
+          <div class="orbit-container">
+            <!-- Anel 1: Academia -->
+            <div class="orbit-ring ring-1">
+              <div class="floating-icon"><i class="fas fa-graduation-cap"></i></div>
+            </div>
+            <!-- Anel 2: Indústria -->
+            <div class="orbit-ring ring-2">
+              <div class="floating-icon"><i class="fas fa-tractor"></i></div>
+            </div>
+            <!-- Anel 3: Governo -->
+            <div class="orbit-ring ring-3">
+              <div class="floating-icon"><i class="fas fa-landmark"></i></div>
+            </div>
+            <!-- Anel 4: Sociedade -->
+            <div class="orbit-ring ring-4">
+              <div class="floating-icon"><i class="fas fa-users"></i></div>
+            </div>
+            <!-- Logo Central -->
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 animate-pulse">
+              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV" class="w-16 h-16" width="64" height="64" loading="lazy" />
+            </div>
+          </div>
+        </div>
       </div>
-
-
-
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
-
-          <div class="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-
-            <i class="fas fa-flask text-xl"></i>
-
-          </div>
-
-          <h4 class="text-lg font-bold text-gray-900 mb-3">Inovação e Pesquisa</h4>
-
-          <p class="text-gray-600 text-sm leading-relaxed">Ciência aplicada para resolver dores reais do produtor.</p>
-
-        </div>
-
-        
-
-        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
-
-          <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
-
-            <i class="fas fa-digital-tachograph text-xl"></i>
-
-          </div>
-
-          <h4 class="text-lg font-bold text-gray-900 mb-3">Transformação Digital</h4>
-
-          <p class="text-gray-600 text-sm leading-relaxed">IoT, Sensores e IA para um campo mais conectado.</p>
-
-        </div>
-
-        
-
-        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
-
-          <div class="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-6 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all duration-300">
-
-            <i class="fas fa-rocket text-xl"></i>
-
-          </div>
-
-          <h4 class="text-lg font-bold text-gray-900 mb-3">Empreendedorismo</h4>
-
-          <p class="text-gray-600 text-sm leading-relaxed">Incubação de startups e novos modelos de negócio.</p>
-
-        </div>
-
-        
-
-        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl border border-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group gsap-pillar-card">
-
-          <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mb-6 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-
-            <i class="fas fa-leaf text-xl"></i>
-
-          </div>
-
-          <h4 class="text-lg font-bold text-gray-900 mb-3">Sustentabilidade</h4>
-
-          <p class="text-gray-600 text-sm leading-relaxed">Eficiência produtiva com respeito ao meio ambiente.</p>
-
-        </div>
-
-      </div>
-
     </div>
-
   </section>
 
-
-
-  <section class="py-24 bg-white overflow-hidden">
-
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="flex flex-col lg:flex-row items-center gap-16">
-
-        
-
-        <div class="lg:w-1/2 order-2 lg:order-1 gsap-fade-right">
-
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-
-                Ecossistema de <br>
-
-                <span class="text-gradient">Hélice Quádrupla</span>
-
-            </h2>
-
-            <p class="text-gray-600 text-lg mb-8 leading-relaxed">
-
-                O AgroHub UniRV é o ponto de convergência onde a mágica acontece. Unimos quatro forças vitais para acelerar o desenvolvimento.
-
-            </p>
-
-            
-
-            <div class="grid sm:grid-cols-2 gap-4">
-
-                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50 transition-colors">
-
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fas fa-graduation-cap"></i></div>
-
-                    <span class="font-bold text-gray-800">Academia</span>
-
-                </div>
-
-                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-green-50 transition-colors">
-
-                    <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><i class="fas fa-tractor"></i></div>
-
-                    <span class="font-bold text-gray-800">Setor Produtivo</span>
-
-                </div>
-
-                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-purple-50 transition-colors">
-
-                    <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fas fa-landmark"></i></div>
-
-                    <span class="font-bold text-gray-800">Governo</span>
-
-                </div>
-
-                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-amber-50 transition-colors">
-
-                    <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fas fa-users"></i></div>
-
-                    <span class="font-bold text-gray-800">Sociedade Civil</span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        
-
-        <div class="lg:w-1/2 order-1 lg:order-2 w-full max-w-md mx-auto gsap-scale-up">
-
-            <div class="relative w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] mx-auto">
-
-                <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100 rounded-full blur-3xl opacity-60 animate-pulse"></div>
-
-                
-
-                <div class="absolute inset-8 border border-dashed border-gray-300 rounded-full opacity-50"></div>
-
-
-
-                <div class="orbit-container absolute inset-0">
-
-                    <div class="orbit-item" style="top: 0; left: 50%;">
-
-                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-blue-600 border border-gray-100"><i class="fas fa-graduation-cap text-xl"></i></div>
-
-                    </div>
-
-                    <div class="orbit-item" style="top: 50%; left: 100%;">
-
-                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-green-600 border border-gray-100"><i class="fas fa-tractor text-xl"></i></div>
-
-                    </div>
-
-                    <div class="orbit-item" style="top: 100%; left: 50%;">
-
-                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-purple-600 border border-gray-100"><i class="fas fa-landmark text-xl"></i></div>
-
-                    </div>
-
-                    <div class="orbit-item" style="top: 50%; left: 0;">
-
-                        <div class="w-14 h-14 bg-white shadow-lg rounded-xl flex items-center justify-center text-amber-600 border border-gray-100"><i class="fas fa-users text-xl"></i></div>
-
-                    </div>
-
-                </div>
-
-
-
-                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-
-                    <div class="w-24 h-24 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white ring-1 ring-gray-100">
-
-                        <img src="{% static 'img/Logo.svg' %}" alt="UniRV" class="w-14">
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
+  <!-- TIMELINE SECTION -->
+  <section class="py-24 bg-white">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-20">
+        <h2 class="text-3xl font-extrabold text-unirvBlue">Expansão Programada</h2>
+        <p class="text-gray-500 mt-2">Nossa jornada de crescimento em 3 fases estratégicas</p>
       </div>
-
-    </div>
-
-  </section>
-
-
-
-  <section class="py-24 bg-gray-50 relative">
-
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="text-center mb-20 gsap-fade-up">
-
-        <h2 class="text-unirvBlue font-bold tracking-widest text-sm uppercase mb-3">Cronograma</h2>
-
-        <h3 class="text-3xl md:text-4xl font-bold text-gray-900">Fases de Expansão</h3>
-
-      </div>
-
-
-
-      <div class="relative max-w-5xl mx-auto">
-
-        
-
-        <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gray-200 top-0 bottom-0 rounded-full"></div>
-
-        <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-1 bg-green-500 top-0 rounded-full" id="timeline-bar" style="height: 0%"></div>
-
-
-
-        <div class="space-y-12 md:space-y-24 relative">
-
-            
-
-            <div class="flex flex-col md:flex-row items-center timeline-item">
-
-                <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-6 md:mt-0">
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">CONCLUÍDA</span>
-
-                        <h4 class="text-xl font-bold text-gray-900">Estruturação</h4>
-
-                        <p class="text-gray-600 text-sm mt-2">Inauguração do Centro, Incubadora YpeTech e FabLab.</p>
-
-                    </div>
-
-                </div>
-
-                <div class="md:w-auto order-1 md:order-2 flex-shrink-0 z-10">
-
-                    <div class="w-12 h-12 bg-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white">
-
-                        <i class="fas fa-check"></i>
-
-                    </div>
-
-                </div>
-
-                <div class="md:w-1/2 order-3 md:order-3 hidden md:block"></div>
-
+      <!-- Wrapper para responsividade -->
+      <div class="relative max-w-5xl mx-auto timeline-wrapper md:block flex flex-col">
+        <!-- Desktop Line Background -->
+        <div class="hidden md:block timeline-line-bg"></div>
+        <!-- Desktop Progress Line -->
+        <div id="progress-line" class="hidden md:block timeline-line-progress"></div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative z-10">
+          <!-- Fase 1 -->
+          <div class="timeline-item flex flex-col items-start md:items-center group relative">
+            <div class="timeline-icon-mobile md:static w-14 h-14 md:w-20 md:h-20 bg-agrohubGreen border-4 border-white text-white rounded-full flex items-center justify-center font-bold text-xl md:text-3xl shadow-lg z-10 transition-transform transform group-hover:scale-110">
+              <i class="fas fa-check"></i>
             </div>
-
-
-
-            <div class="flex flex-col md:flex-row items-center timeline-item">
-
-                <div class="md:w-1/2 order-3 md:order-1 hidden md:block"></div>
-
-                <div class="md:w-auto order-1 md:order-2 flex-shrink-0 z-10">
-
-                    <div class="w-12 h-12 bg-white rounded-full border-4 border-amber-400 shadow-lg flex items-center justify-center text-amber-500">
-
-                        <i class="fas fa-sync fa-spin"></i>
-
-                    </div>
-
-                </div>
-
-                <div class="md:w-1/2 md:pl-12 md:text-left order-2 md:order-3 mt-6 md:mt-0">
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-2">EM ANDAMENTO</span>
-
-                        <h4 class="text-xl font-bold text-gray-900">Smart Farm</h4>
-
-                        <p class="text-gray-600 text-sm mt-2">Implementação de campos experimentais conectados com IoT e IA.</p>
-
-                    </div>
-
-                </div>
-
+            <div class="mt-2 md:mt-8 bg-white border border-gray-100 p-6 rounded-xl shadow-md w-full md:text-center hover:shadow-xl transition-all relative">
+              <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rotate-45 border-t border-l border-gray-100"></div>
+              <h3 class="font-bold text-unirvBlue text-lg">Fase 1: Fundação</h3>
+              <p class="text-sm text-gray-500 mt-2">Estruturação da Incubadora YpeTech, FabLab e espaços de coworking.</p>
+              <div class="mt-4">
+                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">100% Concluído</span>
+              </div>
             </div>
-
-
-
-            <div class="flex flex-col md:flex-row items-center timeline-item opacity-60">
-
-                <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-6 md:mt-0">
-
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-dashed">
-
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mb-2">FUTURO</span>
-
-                        <h4 class="text-xl font-bold text-gray-900">Condomínio Tech</h4>
-
-                        <p class="text-gray-600 text-sm mt-2">Expansão para receber grandes empresas do setor agro.</p>
-
-                    </div>
-
-                </div>
-
-                <div class="md:w-auto order-1 md:order-2 flex-shrink-0 z-10">
-
-                    <div class="w-12 h-12 bg-gray-200 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-gray-500">
-
-                        <span class="font-bold">3</span>
-
-                    </div>
-
-                </div>
-
-                <div class="md:w-1/2 order-3 md:order-3 hidden md:block"></div>
-
+          </div>
+          <!-- Fase 2 (Atual) -->
+          <div class="timeline-item flex flex-col items-start md:items-center group relative">
+            <div class="timeline-icon-mobile md:static w-14 h-14 md:w-20 md:h-20 bg-unirvBlue border-4 border-white text-white rounded-full flex items-center justify-center font-bold text-xl md:text-3xl shadow-xl z-10 transition-transform transform group-hover:scale-110 relative">
+              2
+              <div class="absolute -inset-2 rounded-full border border-unirvBlue opacity-30 animate-ping"></div>
+            </div>
+            <div class="mt-2 md:mt-8 bg-white border-t-4 border-unirvBlue p-6 rounded-xl shadow-xl w-full md:text-center transform md:scale-105 relative z-20">
+              <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rotate-45"></div>
+              <div class="absolute -top-3 right-4 md:-top-10 md:left-1/2 md:right-auto md:-translate-x-1/2 bg-agrohubGreen text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wide shadow-sm">
+                Fase Atual
+              </div>
+              <h3 class="font-bold text-unirvBlue text-lg mt-2 md:mt-0">Fase 2: Smart Farm</h3>
+              <p class="text-sm text-gray-500 mt-2">Implementação de campos experimentais, sensores IoT e irrigação inteligente.</p>
+              <div class="mt-4">
+                <span class="px-3 py-1 bg-blue-100 text-unirvBlue text-xs font-bold rounded-full">Em Andamento</span>
+              </div>
+            </div>
+          </div>
+          <!-- Fase 3 -->
+          <div class="timeline-item flex flex-col items-start md:items-center group opacity-60 hover:opacity-100 transition-opacity relative">
+            <div class="timeline-icon-mobile md:static w-14 h-14 md:w-20 md:h-20 bg-gray-200 border-4 border-white text-gray-500 rounded-full flex items-center justify-center font-bold text-xl md:text-3xl shadow-lg z-10">
+              3
+            </div>
+            <div class="mt-2 md:mt-8 bg-gray-50 border border-gray-100 p-6 rounded-xl shadow-sm w-full md:text-center relative">
+              <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-gray-50 rotate-45 border-t border-l border-gray-100"></div>
+              <h3 class="font-bold text-gray-700 text-lg">Fase 3: Condomínio</h3>
+              <p class="text-sm text-gray-500 mt-2">Atração de grandes empresas e construção do complexo industrial agro.</p>
+              <div class="mt-4">
+                <span class="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">Planejado</span>
+              </div>
             </div>
 
 
@@ -689,313 +364,85 @@
     </div>
 
   </section>
-
-
-
-  <section class="relative py-24 w-full bg-unirvBlue overflow-hidden">
-
-    <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue via-blue-900 to-black opacity-90"></div>
-
-    <div class="absolute -right-32 -bottom-32 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-[100px]"></div>
-
-
-
-    <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 text-center">
-
-      <h2 class="text-white mb-6 text-3xl md:text-4xl font-bold">Pronto para inovar?</h2>
-
-      <p class="text-lg text-blue-100 mb-10 max-w-2xl mx-auto">
-
-        Participe dos nossos editais ou traga sua startup para o ecossistema.
-
-      </p>
-
-      
-
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-
-        <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center px-8 py-3 bg-white text-unirvBlue hover:bg-blue-50 rounded-full text-base font-bold shadow-lg transition-transform hover:-translate-y-1">
-
-          Acessar Editais
-
-        </a>
-
-        <a href="{% url 'register' %}" class="inline-flex items-center justify-center px-8 py-3 bg-transparent border-2 border-white/20 text-white hover:bg-white/10 rounded-full text-base font-bold transition-all">
-
-          Criar Conta
-
-        </a>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-
 </div>
-
 {% endblock %}
 
-
-
 {% block extra_js %}
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
-
-
+<!-- GSAP loaded asynchronously for better performance -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
 <script>
-
-    document.addEventListener("DOMContentLoaded", (event) => {
-
-        // Verifica se GSAP carregou corretamente
-
-        if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-
-            gsap.registerPlugin(ScrollTrigger);
-
-
-
-            // Função para revelar elementos (tira o hidden do CSS)
-
-            const revealElements = () => {
-
-                document.querySelectorAll('.gsap-fade-up, .gsap-fade-right, .gsap-scale-up')
-
-                    .forEach(el => {
-
-                        el.style.visibility = 'visible';
-
-                    });
-
-            };
-
-            
-
-            // 1. Hero Animation
-
-            const heroTl = gsap.timeline({ onStart: revealElements });
-
-            heroTl.to(".gsap-fade-up", {
-
-                opacity: 1,
-
-                y: 0,
-
-                duration: 0.8,
-
-                stagger: 0.1,
-
-                ease: "power3.out"
-
-            });
-
-
-
-            // 2. Parallax
-
-            gsap.to("#hero-bg", {
-
-                scrollTrigger: {
-
-                    trigger: "body",
-
-                    start: "top top",
-
-                    end: "bottom top",
-
-                    scrub: true
-
-                },
-
-                y: 100,
-
-                ease: "none"
-
-            });
-
-
-
-            // 3. Counters
-
-            gsap.utils.toArray(".counter").forEach(counter => {
-
-                const target = counter.getAttribute("data-target");
-
-                ScrollTrigger.create({
-
-                    trigger: counter,
-
-                    start: "top 85%",
-
-                    once: true,
-
-                    onEnter: () => {
-
-                        gsap.to(counter, {
-
-                            innerHTML: target,
-
-                            duration: 2,
-
-                            snap: { innerHTML: 1 },
-
-                            ease: "power2.out"
-
-                        });
-
-                    }
-
-                });
-
-            });
-
-
-
-            // 4. Pillars
-
-            gsap.from(".gsap-pillar-card", {
-
-                scrollTrigger: {
-
-                    trigger: ".gsap-pillar-card",
-
-                    start: "top 85%"
-
-                },
-
-                y: 30,
-
-                opacity: 0,
-
-                duration: 0.6,
-
-                stagger: 0.1
-
-            });
-
-
-
-            // 5. Helice
-
-            gsap.to(".gsap-fade-right", {
-
-                scrollTrigger: {
-
-                    trigger: ".gsap-fade-right",
-
-                    start: "top 80%"
-
-                },
-
-                opacity: 1,
-
-                x: 0,
-
-                duration: 0.8,
-
-                onStart: () => { document.querySelector('.gsap-fade-right').style.visibility = 'visible'; }
-
-            });
-
-
-
-            gsap.to(".gsap-scale-up", {
-
-                scrollTrigger: {
-
-                    trigger: ".gsap-scale-up",
-
-                    start: "top 80%"
-
-                },
-
-                opacity: 1,
-
-                scale: 1,
-
-                duration: 0.8,
-
-                ease: "back.out(1.2)",
-
-                onStart: () => { document.querySelector('.gsap-scale-up').style.visibility = 'visible'; }
-
-            });
-
-
-
-            // 6. Timeline
-
-            gsap.to("#timeline-bar", {
-
-                scrollTrigger: {
-
-                    trigger: ".timeline-item",
-
-                    start: "top 70%",
-
-                    end: "bottom 70%",
-
-                    scrub: 0.5
-
-                },
-
-                height: "100%",
-
-                ease: "none"
-
-            });
-
-            
-
-            gsap.utils.toArray(".timeline-item").forEach(item => {
-
-                gsap.from(item, {
-
-                    scrollTrigger: {
-
-                        trigger: item,
-
-                        start: "top 85%"
-
-                    },
-
-                    opacity: 0,
-
-                    y: 20,
-
-                    duration: 0.5
-
-                });
-
-            });
-
-
-
-        } else {
-
-            // Fallback: GSAP falhou, mostra tudo imediatamente
-
-            console.warn("GSAP não carregou. Usando CSS padrão.");
-
-            document.querySelectorAll('.gsap-fade-up, .gsap-fade-right, .gsap-scale-up').forEach(el => {
-
-                el.style.opacity = 1;
-
-                el.style.visibility = 'visible';
-
-                el.style.transform = 'none';
-
-            });
-
-        }
-
+  document.addEventListener("DOMContentLoaded", (event) => {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // 1. Navigation Glass Effect
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.site-header');
+      if (!nav) return;
+      if (window.scrollY > 50) {
+        nav.classList.add('glass-nav', 'text-gray-800', 'shadow-sm');
+        nav.classList.remove('bg-transparent', 'text-white');
+      } else {
+        nav.classList.remove('glass-nav', 'text-gray-800', 'shadow-sm');
+        nav.classList.add('bg-transparent', 'text-white');
+      }
     });
 
-</script>
+    // 2. Reveal Animations
+    gsap.utils.toArray('.reveal-up').forEach((elem) => {
+      gsap.to(elem, {
+        scrollTrigger: { trigger: elem, start: "top 90%" },
+        y: 0, opacity: 1, duration: 1, ease: "power3.out"
+      });
+    });
 
+    // 3. Pillars Stagger
+    gsap.to(".pillar-card", {
+      scrollTrigger: { 
+        trigger: "#pillars-section", 
+        start: "top 75%" 
+      },
+      opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "back.out(1.7)"
+    });
+
+    // 4. Parallax
+    gsap.to(".hero-bg", {
+      scrollTrigger: { trigger: "header", start: "top top", end: "bottom top", scrub: true },
+      y: 150, scale: 1.2, ease: "none"
+    });
+
+    // 5. Counters
+    gsap.utils.toArray(".counter").forEach(counter => {
+      const target = parseInt(counter.getAttribute("data-target")) || 0;
+      const obj = { value: 0 };
+      gsap.to(obj, {
+        value: target,
+        duration: 2.5,
+        snap: { value: 1 },
+        scrollTrigger: { trigger: counter, start: "top 85%" },
+        ease: "power1.inOut",
+        onUpdate: () => {
+          counter.innerText = Math.round(obj.value);
+        }
+      });
+    });
+
+    // 6. Timeline Progress Line
+    gsap.to("#progress-line", {
+      width: "50%",
+      duration: 2,
+      scrollTrigger: { trigger: "#progress-line", start: "top 80%" }
+    });
+
+    // 7. Hero Button Navigation
+    document.querySelectorAll('.hero-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        if (url) {
+          window.location.href = url;
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

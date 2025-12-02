@@ -5,15 +5,20 @@ Este módulo contém a lógica de negócio extraída das views,
 seguindo o princípio de separação de responsabilidades.
 """
 
-from typing import Dict, List
+from typing import TYPE_CHECKING
 from datetime import timedelta
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.db import transaction
 from django.utils import timezone
 
 from .models import Edital
-from .constants import DEADLINE_WARNING_DAYS
-from .utils import determine_edital_status
+from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES
+from .utils import sanitize_edital_fields, clear_index_cache
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import User
+    from django.forms import ModelForm
 
 
 class EditalService:
@@ -33,12 +38,10 @@ class EditalService:
         today = timezone.now().date()
         deadline = today + timedelta(days=days)
         
-        return Edital.objects.select_related(
-            'created_by', 'updated_by'
-        ).filter(
+        return Edital.objects.with_related().filter(
             end_date__gte=today,
             end_date__lte=deadline,
-            status__in=['aberto', 'em_andamento']
+            status__in=OPEN_EDITAL_STATUSES
         ).order_by('end_date')
     
     @staticmethod
@@ -56,7 +59,7 @@ class EditalService:
         
         return Edital.objects.filter(
             data_criacao__gte=cutoff_date
-        ).select_related('created_by', 'updated_by').order_by('-data_criacao')
+        ).with_related().order_by('-data_criacao')
     
     @staticmethod
     def get_recent_activities(days: int = 7) -> QuerySet:
@@ -73,41 +76,49 @@ class EditalService:
         
         return Edital.objects.filter(
             Q(data_criacao__gte=cutoff_date) | Q(data_atualizacao__gte=cutoff_date)
-        ).select_related('created_by', 'updated_by').order_by('-data_atualizacao')
+        ).with_related().order_by('-data_atualizacao')
     
     @staticmethod
-    def update_status_by_dates() -> Dict[str, int]:
+    def create_edital(form: 'ModelForm', user: 'User') -> Edital:
         """
-        Atualiza o status dos editais baseado nas datas.
+        Cria um novo edital a partir de um formulário válido.
         
-        Esta lógica também está no método save() do modelo Edital,
-        mas é útil para atualizações em lote via management command.
+        Este método centraliza a lógica de criação de editais, incluindo:
+        - Sanitização de campos HTML
+        - Criação de histórico
+        - Invalidação de cache
         
+        Args:
+            form: Formulário EditalForm válido
+            user: Usuário que está criando o edital
+            
         Returns:
-            dict com contagem de editais atualizados por status
+            Edital: Instância do edital criado
+            
+        Raises:
+            ValueError: Se o formulário não for válido
         """
-        today = timezone.now().date()
-        now = timezone.now()
-        updated_count = {'fechado': 0, 'programado': 0, 'aberto': 0}
-        to_update: List[Edital] = []
-
-        queryset = Edital.objects.exclude(status='draft').only('id', 'status', 'start_date', 'end_date')
-        for edital in queryset:
-            new_status = determine_edital_status(
-                current_status=edital.status,
-                start_date=edital.start_date,
-                end_date=edital.end_date,
-                today=today,
+        if not form.is_valid():
+            raise ValueError("Form must be valid before creating edital")
+        
+        from .models import EditalHistory
+        
+        with transaction.atomic():
+            edital = form.save(commit=False)
+            edital.created_by = user
+            edital.updated_by = user
+            sanitize_edital_fields(edital)
+            edital.save()
+            
+            EditalHistory.objects.create(
+                edital=edital,
+                edital_titulo=edital.titulo,
+                user=user,
+                action='create',
+                changes_summary={'titulo': edital.titulo}
             )
-            if new_status != edital.status:
-                edital.status = new_status
-                edital.data_atualizacao = now
-                to_update.append(edital)
-                if new_status in updated_count:
-                    updated_count[new_status] += 1
-
-        if to_update:
-            Edital.objects.bulk_update(to_update, ['status', 'data_atualizacao'])
-
-        return updated_count
+            
+            transaction.on_commit(clear_index_cache)
+        
+        return edital
 

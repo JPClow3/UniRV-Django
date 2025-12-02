@@ -8,35 +8,87 @@ from functools import wraps
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, HttpRequest
+from django.shortcuts import render
 
 from .constants import RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW
 
 logger = logging.getLogger(__name__)
 
 
+def staff_required(view_func: Callable) -> Callable:
+    """
+    Decorator que verifica se o usuário é staff.
+    Retorna 403 se o usuário não for staff.
+    
+    Args:
+        view_func: Função da view a ser decorada
+        
+    Returns:
+        Função decorada que verifica permissão de staff
+    """
+    @wraps(view_func)
+    def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
+        if not request.user.is_staff:
+            logger.warning(
+                f"Unauthorized staff access attempt - user: {request.user.username}, "
+                f"IP: {request.META.get('REMOTE_ADDR')}, view: {view_func.__name__}"
+            )
+            return render(request, '403.html', {'message': 'Acesso negado'}, status=403)
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 def get_client_ip(request: HttpRequest) -> str:
     """
-    Get the real client IP address, handling proxies and load balancers.
+    Get the real client IP address, handling proxies and load balancers securely.
     
-    Checks X-Forwarded-For header first (common for proxies), then falls back
-    to REMOTE_ADDR. Returns 'unknown' if neither is available.
+    SECURITY: Only trusts X-Forwarded-For header if behind a trusted proxy.
+    Validates IP format to prevent spoofing attacks.
     
     Args:
         request: Django HttpRequest object
         
     Returns:
-        str: Client IP address
+        str: Client IP address (validated) or 'unknown' if invalid
     """
-    # Check X-Forwarded-For header (set by proxies/load balancers)
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        # X-Forwarded-For can contain multiple IPs; the first is the client
-        ip = x_forwarded_for.split(',')[0].strip()
-        if ip:
-            return ip
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_ipv46_address
     
-    # Fallback to REMOTE_ADDR
-    return request.META.get('REMOTE_ADDR', 'unknown')
+    def is_valid_ip(ip: str) -> bool:
+        """Validate IP address format using Django's validator."""
+        if not ip:
+            return False
+        try:
+            validate_ipv46_address(ip.strip())
+            return True
+        except ValidationError:
+            return False
+    
+    # Primary source: REMOTE_ADDR (most reliable, can't be spoofed)
+    remote_addr = request.META.get('REMOTE_ADDR', '').strip()
+    
+    # Only trust X-Forwarded-For if we're behind a trusted proxy
+    # Check if USE_X_FORWARDED_HOST is set (indicates trusted proxy)
+    trust_proxy = getattr(settings, 'USE_X_FORWARDED_HOST', False) or getattr(settings, 'SECURE_PROXY_SSL_HEADER', None) is not None
+    
+    if trust_proxy:
+        # Behind trusted proxy: check X-Forwarded-For header
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR', '').strip()
+        if x_forwarded_for:
+            # X-Forwarded-For can contain multiple IPs; the first is the client
+            ip = x_forwarded_for.split(',')[0].strip()
+            if is_valid_ip(ip):
+                return ip
+            else:
+                logger.warning(f"Invalid IP in X-Forwarded-For header: {ip}")
+    
+    # Fallback to REMOTE_ADDR (always use if valid)
+    if remote_addr and is_valid_ip(remote_addr):
+        return remote_addr
+    
+    # If both sources are invalid, return 'unknown'
+    logger.warning(f"Could not determine valid client IP. REMOTE_ADDR={remote_addr}")
+    return 'unknown'
 
 
 def rate_limit(key: str = 'ip', rate: int = RATE_LIMIT_REQUESTS, window: int = RATE_LIMIT_WINDOW, method: Optional[str] = 'POST') -> Callable[[Callable], Callable]:

@@ -3,6 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db import IntegrityError, transaction
 from .models import Edital
 
 
@@ -97,8 +98,10 @@ class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
 
     def clean_email(self) -> str:
         email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise ValidationError('Este e-mail já está cadastrado.')
+        if email:
+            # Check if email exists (race condition handled in save() via IntegrityError)
+            if User.objects.filter(email=email).exists():
+                raise ValidationError('Este e-mail já está cadastrado.')
         return email
 
     def save(self, commit: bool = True) -> User:
@@ -107,7 +110,16 @@ class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data.get('last_name', '')
         if commit:
-            user.save()
+            try:
+                with transaction.atomic():
+                    user.save()
+            except IntegrityError as e:
+                # Handle race condition: if email was registered between check and save
+                if 'email' in str(e).lower() or 'unique' in str(e).lower():
+                    raise ValidationError({
+                        'email': 'Este e-mail já está cadastrado. Por favor, tente novamente.'
+                    })
+                raise
         return user
 
 
