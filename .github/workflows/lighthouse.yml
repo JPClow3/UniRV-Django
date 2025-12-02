@@ -14,10 +14,21 @@ on:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    env:
+      DJANGO_DEBUG: 'True'
+      ALLOWED_HOSTS: 'localhost,127.0.0.1'
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          SECRET_KEY="${{ secrets.DJANGO_SECRET_KEY }}"
+          if [ -z "$SECRET_KEY" ]; then
+            SECRET_KEY="dummy-secret-key-for-ci"
+          fi
+          echo "SECRET_KEY=$SECRET_KEY" >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,27 +56,15 @@ jobs:
       - name: Run database migrations
         run: |
           python manage.py migrate --noinput
-        env:
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
-          DJANGO_DEBUG: 'True'
-          ALLOWED_HOSTS: 'localhost,127.0.0.1'
 
       - name: Collect static files
         run: |
           python manage.py collectstatic --noinput
-        env:
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
-          DJANGO_DEBUG: 'True'
-          ALLOWED_HOSTS: 'localhost,127.0.0.1'
 
       - name: Start Django server
         run: |
           python manage.py runserver 127.0.0.1:7000 --noreload &
           sleep 5
-        env:
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
-          DJANGO_DEBUG: 'True'
-          ALLOWED_HOSTS: 'localhost,127.0.0.1'
 
       - name: Wait for server
         run: |
@@ -75,9 +74,6 @@ jobs:
         run: |
           npx @lhci/cli autorun --config=.lighthouserc.js
         env:
-          SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY || 'dummy-secret-key-for-ci' }}
-          DJANGO_DEBUG: 'True'
-          ALLOWED_HOSTS: 'localhost,127.0.0.1'
           # Optional: Override thresholds via environment variables
           LHCI_PERFORMANCE_THRESHOLD: ${{ env.LHCI_PERFORMANCE_THRESHOLD || '0.80' }}
           LHCI_ACCESSIBILITY_THRESHOLD: ${{ env.LHCI_ACCESSIBILITY_THRESHOLD || '0.90' }}
