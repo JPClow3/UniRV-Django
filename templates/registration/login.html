@@ -43,7 +43,7 @@
         <input type="hidden" name="next" value="{{ request.GET.next|default:'/' }}">
         
         <div class="space-y-2">
-          <label for="id_username" class="auth-label">Usuário ou E-mail</label>
+          <label for="id_username" class="auth-label block mb-2">Usuário ou E-mail</label>
           <input
             id="id_username"
             name="username"
@@ -51,14 +51,14 @@
             placeholder="seu_usuario ou email@exemplo.com"
             required
             autocomplete="username"
-            class="auth-input"
+            class="auth-input w-full"
             value="{{ form.username.value|default:'' }}"
           >
         </div>
 
         <div class="space-y-2">
-          <label for="id_password" class="auth-label">Senha</label>
-          <div class="relative">
+          <label for="id_password" class="auth-label block mb-2">Senha</label>
+          <div class="relative w-full">
             <input
               id="id_password"
               name="password"
@@ -66,11 +66,11 @@
               placeholder="••••••••"
               required
               autocomplete="current-password"
-              class="auth-input pr-10"
+              class="auth-input w-full pr-12"
             >
             <button
               type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-100 md:hover:text-gray-700"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 focus:outline-none focus:ring-2 focus:ring-unirvBlue rounded"
               data-password-toggle="id_password"
               aria-pressed="false"
               aria-label="Mostrar ou ocultar senha"
@@ -96,7 +96,7 @@
 
         <button
           type="submit"
-          class="auth-gradient-cta"
+          class="auth-gradient-cta w-full"
         >
           <i class="fas fa-sign-in-alt"></i>
           Entrar

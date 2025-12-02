@@ -107,8 +107,9 @@
   </head>
   {% with current_url=request.resolver_match.url_name|default:"" transparent_header=request.resolver_match.url_name|is_transparent_header %}
   <body
-    class="min-h-screen flex flex-col bg-gray-50{% if transparent_header %} page-detail{% endif %}"
+    class="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden{% if transparent_header %} page-detail{% endif %}"
     data-page="{% block page_id %}{% endblock %}"
+    style="overflow-x: hidden;"
   >
     <!-- Skip to main content link for accessibility -->
     <a href="#main-content" class="skip-link"
@@ -116,7 +117,7 @@
     >
 
     <header
-      class="site-header bg-transparent text-white shadow-sm sticky top-0 z-50 relative w-full full-bleed"
+      class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 relative w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
       <div
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
@@ -145,25 +146,25 @@
           <div class="hidden md:flex items-center gap-6 flex-shrink-0 ml-auto whitespace-nowrap flex-nowrap">
             <a
               href="{% url 'home' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'home' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'home' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Início
             </a>
             <a
               href="{% url 'ambientes_inovacao' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Ambientes de Inovação
             </a>
             <a
               href="{% url 'editais_index' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Editais
             </a>
             <a
               href="{% url 'startups_showcase' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Startups
             </a>

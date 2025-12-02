@@ -23,36 +23,38 @@
       <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
     </div>
 
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-      <!-- Badge -->
-      <div class="reveal-hero inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-green-300 text-xs font-bold uppercase tracking-widest mb-6">
-        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-        Incubadora YpeTech
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="max-w-4xl">
+        <!-- Badge -->
+        <div class="reveal-hero inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-green-300 text-xs font-bold uppercase tracking-widest mb-6">
+          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+          Incubadora YpeTech
+        </div>
+        
+        <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+          Nossas <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300" style="text-shadow: none;">Startups</span>
+        </h1>
+        
+        <p class="reveal-hero text-lg md:text-xl text-white max-w-2xl mb-12 leading-relaxed border-l-4 border-agrohubGreen pl-6" style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);">
+          Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado.
+        </p>
       </div>
-      
-      <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
-        Nossas <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300">Startups</span>
-      </h1>
-      
-      <p class="reveal-hero text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-12 leading-relaxed">
-        Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado.
-      </p>
 
       <!-- Stats Bar (Glassmorphism) -->
       <div class="reveal-hero inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl">
         <div class="text-center px-4 border-r border-white/10 last:border-0">
           <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.total_active }}">0</div>
-          <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest font-medium">Startups Ativas</div>
+          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Startups Ativas</div>
         </div>
         <div class="text-center px-4 border-r border-white/10 last:border-0">
           <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.graduadas }}">0</div>
-          <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest font-medium">Graduadas</div>
+          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Graduadas</div>
         </div>
         <div class="text-center px-4">
           <div class="text-3xl md:text-4xl font-bold text-white mb-1 flex items-center justify-center gap-1">
             <span class="text-lg text-green-400 align-top">R$</span><span class="counter" data-target="{{ stats.total_valuation }}">0</span><span>M+</span>
           </div>
-          <div class="text-[10px] md:text-xs text-gray-300 uppercase tracking-widest font-medium">Valuation Total</div>
+          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Valuation Total</div>
         </div>
       </div>
     </div>

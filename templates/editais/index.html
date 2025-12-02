@@ -145,19 +145,19 @@
                 </span>
                 
                 <!-- Icon Area & Type Badge -->
-                <div class="flex items-start justify-between mb-6">
+                <div class="flex items-start justify-between mb-4">
                   <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
                     {% if edital.end_date %}from-blue-50 to-indigo-100 border border-blue-100
                     {% else %}from-purple-50 to-fuchsia-100 border border-purple-100{% endif %}
-                    flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300">
+                    flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300 flex-shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
                     {% if edital.end_date %}
-                      <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}"></i>
+                      <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
                     {% else %}
-                      <i class="fas fa-sync-alt text-purple-600"></i>
+                      <i class="fas fa-sync-alt text-purple-600" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
                     {% endif %}
                   </div>
                   {% if edital.numero_edital %}
-                  <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold uppercase tracking-wide">
+                  <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold uppercase tracking-wide ml-2 flex-shrink-0">
                     Edital {{ edital.numero_edital }}
                   </span>
                   {% endif %}
@@ -165,7 +165,7 @@
                 
                 <!-- Content -->
                 <div class="mb-6 flex-grow">
-                  <h3 class="font-extrabold text-2xl text-gray-900 group-hover:text-unirvBlue transition-colors mb-2">{{ edital.titulo }}</h3>
+                  <h3 class="font-extrabold text-2xl text-gray-900 group-hover:text-unirvBlue transition-colors mb-3 leading-tight">{{ edital.titulo }}</h3>
                   <p class="text-xs font-bold 
                     {% if edital.end_date %}text-blue-600
                     {% else %}text-purple-600{% endif %}

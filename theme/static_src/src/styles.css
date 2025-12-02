@@ -67,6 +67,17 @@ body {
     padding-right: 0 !important;
   }
 
+  /* Prevent horizontal scrollbar */
+  html {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
   /* Page detail styles - minimal styles for detail pages */
   body.page-detail {
     background-color: #f0f2f5;
@@ -955,6 +966,24 @@ body {
     width: 120px;
   }
 
+  /* Edital Card improvements */
+  .edital-card {
+    position: relative;
+  }
+
+  .edital-card .fas,
+  .edital-card i {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .edital-card h3 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
   /* Loading spinner */
   .loading-spinner {
     border: 3px solid #f3f3f3;
@@ -1107,6 +1136,36 @@ body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Glassmorphism header styles */
+  .site-header {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.1);
+  }
+
+  /* Enhanced glassmorphism for detail pages where header overlaps content */
+  .site-header.header-transparent {
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+  }
+
+  /* Ensure text contrast on glassmorphism header */
+  .site-header .nav-link {
+    color: #1e293b !important;
+  }
+
+  .site-header .nav-link:hover {
+    color: var(--color-green) !important;
+  }
+
+  .site-header.header-transparent .nav-link {
+    color: #1e293b !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
   }
 
   /* Home page custom blocks */
@@ -1388,34 +1447,34 @@ body {
     left: 50%;
     border-radius: 50%;
     border: 1px dashed rgba(255, 255, 255, 0.2);
-    transform: translate(-50%, -50%);
+    transform-origin: 50% 50%;
   }
 
   .ring-1 {
     width: 100%;
     height: 100%;
-    animation: spin 25s linear infinite;
+    animation: orbit-spin-1 25s linear infinite;
     border-color: rgba(118, 184, 42, 0.3);
   }
 
   .ring-2 {
     width: 80%;
     height: 80%;
-    animation: spin 20s linear infinite reverse;
+    animation: orbit-spin-2 20s linear infinite reverse;
     border-color: rgba(39, 52, 139, 0.4);
   }
 
   .ring-3 {
     width: 60%;
     height: 60%;
-    animation: spin 15s linear infinite;
+    animation: orbit-spin-3 15s linear infinite;
     border-color: rgba(234, 179, 8, 0.4);
   }
 
   .ring-4 {
     width: 40%;
     height: 40%;
-    animation: spin 10s linear infinite reverse;
+    animation: orbit-spin-4 10s linear infinite reverse;
     border-color: rgba(168, 85, 247, 0.4);
   }
 
@@ -1433,6 +1492,7 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
+    transform-origin: center center;
   }
 
   .orbit-core {
@@ -1650,13 +1710,15 @@ body {
   }
 
   .auth-input {
-    @apply h-12 w-full px-4 py-2 rounded-xl border border-gray-300 bg-white/80
+    @apply h-12 w-full px-4 py-3 rounded-xl border border-gray-300 bg-white/90
     focus:outline-none focus:ring-2 focus:ring-unirvBlue focus:border-transparent
-    text-gray-900 placeholder:text-gray-400;
+    text-gray-900 placeholder:text-gray-400 text-base;
+    box-sizing: border-box;
   }
 
   .auth-label {
-    @apply text-gray-100 md:text-gray-800 font-medium text-sm;
+    @apply text-gray-100 md:text-gray-800 font-semibold text-sm mb-2;
+    display: block;
   }
 
   .auth-muted {
@@ -1675,7 +1737,9 @@ body {
   .auth-gradient-cta {
     @apply w-full h-12 rounded-full bg-gradient-to-r from-agrohubGreen to-unirvBlue
     text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-blue-700
-    transition-all flex items-center justify-center gap-2;
+    transition-all flex items-center justify-center gap-2 text-base;
+    min-height: 48px;
+    box-sizing: border-box;
   }
 
   /* Background blobs utility for sections */
@@ -1756,8 +1820,48 @@ body {
   }
 
   @keyframes spin {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
     to {
       transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  /* Orbit ring animations - rotate around center point */
+  @keyframes orbit-spin-1 {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @keyframes orbit-spin-2 {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(-360deg);
+    }
+  }
+
+  @keyframes orbit-spin-3 {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @keyframes orbit-spin-4 {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(-360deg);
     }
   }
 

@@ -17,7 +17,6 @@ module.exports = {
         'http://localhost:7000/ambientes-inovacao/',
         'http://localhost:7000/projetos-aprovados/',
         'http://localhost:7000/startups/',
-        'http://localhost:7000/health/',
         'http://localhost:7000/password-reset/',
         'http://localhost:7000/password-reset/done/',
         'http://localhost:7000/password-reset-complete/',
