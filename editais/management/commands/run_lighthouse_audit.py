@@ -104,9 +104,9 @@ class Command(BaseCommand):
                     categories,
                     auth_cookie
                 )
-                self.stdout.write(self.style.SUCCESS('  ✓ Completed\n'))
+                self.stdout.write(self.style.SUCCESS('  [OK] Completed\n'))
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  ✗ Error: {str(e)}\n'))
+                self.stdout.write(self.style.ERROR(f'  [ERROR] {str(e)}\n'))
 
         self.stdout.write(
             self.style.SUCCESS(f'\nAll audits completed. Reports saved to: {output_dir}')
@@ -235,30 +235,33 @@ class Command(BaseCommand):
         else:
             cmd = ['lighthouse', url]
         
-        # Use custom temp directory to avoid Windows permission issues
-        import tempfile
-        temp_dir = output_dir / 'temp'
-        temp_dir.mkdir(exist_ok=True)
+        # Build command with authentication
+        import os
+        env = os.environ.copy()
         
         cmd.extend([
             '--output=json,html',
             f'--output-path={output_dir / safe_name}',
             '--quiet',
-            f'--chrome-flags=--headless --user-data-dir={temp_dir}',
+            '--chrome-flags=--headless --no-sandbox --disable-dev-shm-usage',
             '--only-categories=' + ','.join(categories),
             '--no-enable-error-reporting',
         ])
         
         # Add authentication cookie if available
         if auth_cookie:
-            cmd.append(f'--extra-headers={{\"Cookie\": \"{auth_cookie}\"}}')
+            # Use extra-headers for cookies
+            import json as json_lib
+            headers = {"Cookie": auth_cookie}
+            cmd.append(f'--extra-headers={json_lib.dumps(headers)}')
         
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=120,
-            shell=True  # Use shell on Windows
+            shell=True,  # Use shell on Windows
+            env=env
         )
         
         if result.returncode != 0:
