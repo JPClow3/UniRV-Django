@@ -46,11 +46,11 @@ module.exports = {
         skipAudits: [],
       },
       // Server will be managed automatically by Lighthouse CI
-      // Environment variables (DJANGO_SECRET_KEY, DJANGO_DEBUG, ALLOWED_HOSTS) are inherited from the process
+      // Environment variables (SECRET_KEY, DJANGO_DEBUG, ALLOWED_HOSTS) are inherited from the process
       // Note: Migrations and collectstatic should be run before Lighthouse starts (handled in CI workflow)
       startServerCommand: 'python manage.py runserver 127.0.0.1:7000 --noreload',
-      // Match Django's runserver output (case-insensitive, matches "Starting development server" or similar)
-      startServerReadyPattern: '(?i)(starting development server|development server is running|quit the server)',
+      // Match Django's runserver output - Django outputs "Starting development server at http://127.0.0.1:7000/" to stderr
+      startServerReadyPattern: 'Starting development server',
       startServerReadyTimeout: 60000,
       // Authentication cookie will be added automatically by run_lighthouse command
       // For manual usage, add: extraHeaders: { 'Cookie': 'sessionid=...' }
