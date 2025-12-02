@@ -225,15 +225,11 @@ class Command(BaseCommand):
             # Try lighthouse directly first
             subprocess.run(['lighthouse', '--version'], capture_output=True, shell=True, timeout=2)
             lighthouse_cmd = 'lighthouse'
-        except:
+            cmd = ['lighthouse', url]
+        except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.SubprocessError):
             # Fallback to npx
             lighthouse_cmd = 'npx'
-            if lighthouse_cmd == 'npx':
-                cmd = ['npx', '--yes', 'lighthouse', url]
-            else:
-                cmd = ['lighthouse', url]
-        else:
-            cmd = ['lighthouse', url]
+            cmd = ['npx', '--yes', 'lighthouse', url]
         
         # Build command with authentication
         import os

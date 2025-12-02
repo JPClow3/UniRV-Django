@@ -27,6 +27,15 @@
   --radius-xl: 12px;
   --radius-2xl: 16px;
   --radius-full: 999px;
+  
+  /* Z-index scale for consistent layering */
+  --z-base: 0;
+  --z-dropdown: 10;
+  --z-sticky: 50;
+  --z-modal: 100;
+  --z-popover: 200;
+  --z-tooltip: 300;
+  --z-skip-link: 10000;
 }
 /* Global typography */
 body {
@@ -35,6 +44,30 @@ body {
 }
 
 @layer components {
+  /* =========================================
+     FIXED ORBIT SECTION - KEYFRAMES
+     ========================================= */
+  /* 1. UNIQUE KEYFRAMES (Renamed to force cache refresh) */
+  @keyframes orbit-spin-right {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes orbit-spin-left {
+    from { transform: rotate(360deg); }
+    to   { transform: rotate(0deg); }
+  }
+
+  @keyframes icon-counter-spin-right {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  @keyframes icon-counter-spin-left {
+    from { transform: translate(-50%, -50%) rotate(360deg); }
+    to   { transform: translate(-50%, -50%) rotate(0deg); }
+  }
+
   /* Skip link for accessibility - hidden until focused */
   .skip-link {
     position: absolute;
@@ -56,25 +89,25 @@ body {
   }
 
   /* Full-bleed utility for full-width sections */
+  /* Using calc-based approach to prevent scrollbar issues on Windows/Linux */
   .full-bleed {
-    width: 100vw !important;
-    max-width: 100vw !important;
+    width: 100%;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    max-width: 100vw;
     position: relative;
-    left: calc(-50vw + 50%) !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
 
-  /* Prevent horizontal scrollbar */
+  /* Prevent horizontal scrollbar - using clip instead of hidden to preserve sticky positioning */
   html {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
   }
 
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
   }
 
@@ -85,19 +118,7 @@ body {
 
   /* Mobile Menu Toggle */
   .mobile-menu-toggle {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    width: 40px;
-    height: 40px;
-    padding: 8px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: background 0.2s ease;
+    @apply flex flex-col justify-center items-center gap-1 w-10 h-10 p-2 bg-transparent border-none cursor-pointer rounded-lg transition-colors duration-200;
   }
 
   .mobile-menu-toggle:hover {
@@ -246,19 +267,10 @@ body {
   }
 
   .nav-cta {
-    padding: 10px 24px;
+    @apply px-6 py-2.5 rounded-full font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out no-underline inline-flex items-center justify-center;
     background-color: var(--color-secondary);
     color: white;
-    border-radius: 9999px;
-    font-weight: 500;
-    font-size: 14px;
-    white-space: nowrap;
-    transition: all 0.3s ease;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .nav-cta:hover {
@@ -269,20 +281,11 @@ body {
   }
 
   .page-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+    @apply flex flex-wrap gap-5 mt-4 pt-4 border-t border-gray-200;
   }
 
   .page-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: #374151;
+    @apply flex items-center gap-2 text-sm text-gray-700;
   }
 
   .page-meta-item strong {
@@ -376,33 +379,20 @@ body {
   }
 
   .history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    @apply flex flex-col gap-4;
   }
 
   .history-item {
-    background: white;
-    padding: 16px;
-    border-radius: 8px;
-    border-left: 4px solid #6c757d;
+    @apply bg-white p-4 rounded-lg border-l-4 border-gray-600;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .history-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
+    @apply flex items-center gap-3 mb-3 flex-wrap;
   }
 
   .history-action {
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
+    @apply px-3 py-1 rounded-full text-xs font-semibold uppercase;
   }
 
   .history-action.history-create {
@@ -438,12 +428,7 @@ body {
   }
 
   .history-change-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 14px;
-    flex-wrap: wrap;
+    @apply flex items-center gap-2 mb-2 text-sm flex-wrap;
   }
 
   .history-change-item .old-value {
@@ -661,25 +646,13 @@ body {
 
   /* Back to Top Button */
   .back-to-top {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    @apply fixed bottom-8 right-8 w-12 h-12 rounded-full border-none cursor-pointer flex items-center justify-center text-lg transition-all duration-300 ease-in-out;
     background: linear-gradient(135deg, var(--color-unirvBlue), var(--color-agrohubBlue));
     color: white;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
     box-shadow: 0 4px 12px rgba(10, 37, 88, 0.3);
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px);
-    transition: all 0.3s ease;
     z-index: 1000;
   }
 
@@ -791,13 +764,13 @@ body {
   .styled-form-modern textarea {
     @apply w-full px-4 py-3 border border-gray-300 rounded-xl transition-all bg-gray-50 focus:bg-white;
   }
-  .styled-form-modern input[type="text"]:focus,
-  .styled-form-modern input[type="url"]:focus,
-  .styled-form-modern input[type="date"]:focus,
-  .styled-form-modern input[type="email"]:focus,
-  .styled-form-modern input[type="number"]:focus,
-  .styled-form-modern select:focus,
-  .styled-form-modern textarea:focus {
+  .styled-form-modern input[type="text"]:focus-visible,
+  .styled-form-modern input[type="url"]:focus-visible,
+  .styled-form-modern input[type="date"]:focus-visible,
+  .styled-form-modern input[type="email"]:focus-visible,
+  .styled-form-modern input[type="number"]:focus-visible,
+  .styled-form-modern select:focus-visible,
+  .styled-form-modern textarea:focus-visible {
     border-color: var(--color-green);
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
     outline: none;
@@ -848,8 +821,7 @@ body {
 
   /* Project Cards */
   .project-card {
-    transition: all 0.2s ease;
-    cursor: default;
+    @apply transition-all duration-200 ease-in-out cursor-default;
   }
 
   .project-card:hover {
@@ -991,10 +963,10 @@ body {
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    animation: spin 1s linear infinite;
+    animation: spin-loader 1s linear infinite;
   }
 
-  @keyframes spin {
+  @keyframes spin-loader {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
@@ -1092,7 +1064,8 @@ body {
 
   /* Print Styles */
   @media print {
-    header, footer, nav, .btn, button, .no-print {
+    /* Removed 'button' from global selector to preserve informative buttons (like status badges) */
+    header, footer, nav, .btn, .no-print {
       display: none !important;
     }
     body {
@@ -1297,27 +1270,18 @@ body {
   }
 
   .stat-card {
-    background: white;
-    border-radius: 1.5rem;
-    padding: 2.5rem;
+    @apply bg-white rounded-[1.5rem] p-10 border-b-4 transition-all duration-300 ease-in-out;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
-    border-bottom-width: 4px;
-    border-bottom-style: solid;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .stat-card:hover {
-    transform: translateY(-6px);
+    @apply -translate-y-1.5;
     box-shadow: 0 25px 55px rgba(15, 23, 42, 0.15);
   }
 
   .stat-value {
-    font-size: 2.5rem;
-    font-weight: 800;
+    @apply text-4xl font-extrabold flex items-baseline gap-0.5;
     color: var(--color-unirvBlue);
-    display: flex;
-    align-items: baseline;
-    gap: 0.2rem;
   }
 
   .stat-label {
@@ -1365,22 +1329,12 @@ body {
   }
 
   .pillar-card {
-    background: white;
-    border-radius: 1.5rem;
-    padding: 2rem;
-    border: 1px solid rgba(15, 23, 42, 0.05);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 1rem;
-    min-height: 100%;
+    @apply bg-white rounded-[1.5rem] p-8 border border-slate-900/5 flex flex-col items-center text-center gap-4 min-h-full transition-all duration-300 ease-in-out;
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
   .pillar-card:hover {
-    transform: translateY(-6px);
+    @apply -translate-y-1.5;
     box-shadow: 0 25px 55px rgba(15, 23, 42, 0.12);
   }
 
@@ -1435,53 +1389,91 @@ body {
     color: var(--color-unirvBlue);
   }
 
+  /* =========================================
+     FIXED ORBIT SECTION
+     ========================================= */
+
+  /* 2. MAIN CONTAINER */
   .orbit-container {
     position: relative;
     width: min(400px, 80vw);
     aspect-ratio: 1 / 1;
+    /* Optimization: Promotes this element to a GPU layer */
+    will-change: transform; 
   }
 
+  /* 3. THE RINGS */
   .orbit-ring {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    /* Centers the ring perfectly without using transform */
+    inset: 0;
+    margin: auto;
     border-radius: 50%;
     border: 1px dashed rgba(255, 255, 255, 0.2);
-    transform-origin: 50% 50%;
+    transform-origin: center center;
+    /* IMPORTANT: 'transform: none' was removed from here */
   }
 
+  /* Ring 1 (Academia) - Spins Clockwise */
   .ring-1 {
     width: 100%;
     height: 100%;
-    animation: orbit-spin-1 25s linear infinite;
     border-color: rgba(118, 184, 42, 0.3);
+    animation: orbit-spin-right 25s linear infinite;
+  }
+  /* Icon 1 - Counter-Spins Left */
+  .ring-1 .floating-icon {
+    animation: icon-counter-spin-left 25s linear infinite;
   }
 
+  /* Ring 2 (Industria) - Spins Counter-Clockwise */
   .ring-2 {
     width: 80%;
     height: 80%;
-    animation: orbit-spin-2 20s linear infinite reverse;
     border-color: rgba(39, 52, 139, 0.4);
+    animation: orbit-spin-left 20s linear infinite;
+  }
+  /* Icon 2 - Counter-Spins Right */
+  .ring-2 .floating-icon {
+    animation: icon-counter-spin-right 20s linear infinite;
   }
 
+  /* Ring 3 (Governo) - Spins Clockwise */
   .ring-3 {
     width: 60%;
     height: 60%;
-    animation: orbit-spin-3 15s linear infinite;
     border-color: rgba(234, 179, 8, 0.4);
+    animation: orbit-spin-right 15s linear infinite;
+  }
+  /* Icon 3 - Counter-Spins Left */
+  .ring-3 .floating-icon {
+    animation: icon-counter-spin-left 15s linear infinite;
   }
 
+  /* Ring 4 (Sociedade) - Spins Counter-Clockwise */
   .ring-4 {
     width: 40%;
     height: 40%;
-    animation: orbit-spin-4 10s linear infinite reverse;
     border-color: rgba(168, 85, 247, 0.4);
+    animation: orbit-spin-left 10s linear infinite;
+  }
+  /* Icon 4 - Counter-Spins Right */
+  .ring-4 .floating-icon {
+    animation: icon-counter-spin-right 10s linear infinite;
   }
 
+  /* Pause on hover */
+  .orbit-container:hover .orbit-ring,
+  .orbit-container:hover .floating-icon {
+    animation-play-state: paused;
+  }
+
+  /* 4. FLOATING ICONS (Positioning) */
   .floating-icon {
     position: absolute;
     top: 0;
     left: 50%;
+    /* This sets the starting position. The animation then takes over. */
     transform: translate(-50%, -50%);
     width: 3rem;
     height: 3rem;
@@ -1492,9 +1484,23 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
-    transform-origin: center center;
+    z-index: 20; /* Ensure icons are above rings */
   }
 
+  /* Icon Hover Effects */
+  .floating-icon:hover {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+    z-index: 30;
+  }
+  
+  /* Color Specific Hovers */
+  .orbit-icon-academia:hover { background: var(--color-agrohubGreen); color: white; }
+  .orbit-icon-industria:hover { background: var(--color-unirvBlue); color: white; }
+  .orbit-icon-governo:hover { background: #eab308; color: white; }
+  .orbit-icon-sociedade:hover { background: #a855f7; color: white; }
+
+  /* 5. CORE LOGO */
   .orbit-core {
     position: absolute;
     top: 50%;
@@ -1508,6 +1514,7 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 60px rgba(255, 255, 255, 0.35);
+    z-index: 10;
   }
 
   .home-timeline {
@@ -1590,17 +1597,13 @@ body {
   }
 
   .timeline-card {
-    background: white;
-    border-radius: 1.2rem;
-    padding: 1.5rem;
-    border: 1px solid rgba(15, 23, 42, 0.06);
+    @apply bg-white rounded-[1.2rem] p-6 border border-slate-900/6 relative;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
-    position: relative;
   }
 
   .timeline-card.active {
-    border-top: 4px solid var(--color-agrohubBlue);
-    transform: translateY(-0.5rem);
+    @apply border-t-4 -translate-y-2;
+    border-top-color: var(--color-agrohubBlue);
   }
 
   .timeline-card.muted {
@@ -1706,7 +1709,7 @@ body {
   }
 
   .auth-card {
-    @apply glass-card-solid p-8 md:p-10;
+    @apply rounded-3xl border border-gray-100 bg-white/90 backdrop-blur-xl shadow-xl p-8 md:p-10;
   }
 
   .auth-input {
@@ -1727,7 +1730,7 @@ body {
 
   .auth-back-link {
     @apply inline-flex items-center gap-2 text-gray-200 md:text-gray-600 hover:text-green-300
-    md:hover:text-unirvBlue transition-colors group;
+    md:hover:text-unirvBlue transition-colors;
   }
 
   .auth-title {
@@ -1816,52 +1819,6 @@ body {
     }
     100% {
       transform: translate(0px, 0px) scale(1);
-    }
-  }
-
-  @keyframes spin {
-    from {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    to {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-
-  /* Orbit ring animations - rotate around center point */
-  @keyframes orbit-spin-1 {
-    from {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    to {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-
-  @keyframes orbit-spin-2 {
-    from {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    to {
-      transform: translate(-50%, -50%) rotate(-360deg);
-    }
-  }
-
-  @keyframes orbit-spin-3 {
-    from {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    to {
-      transform: translate(-50%, -50%) rotate(360deg);
-    }
-  }
-
-  @keyframes orbit-spin-4 {
-    from {
-      transform: translate(-50%, -50%) rotate(0deg);
-    }
-    to {
-      transform: translate(-50%, -50%) rotate(-360deg);
     }
   }
 

@@ -226,11 +226,19 @@ else:
     COMPRESS_OFFLINE = False
 
 # WhiteNoise: serve compressed static files
-STORAGES = {
-    'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
-    },
-}
+# Use non-manifest storage during tests to avoid requiring collected static files
+if TESTING:
+    STORAGES = {
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
+    }
+else:
+    STORAGES = {
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 
 # Static files caching headers
 # Set cache headers for both development and production

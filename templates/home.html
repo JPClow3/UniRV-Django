@@ -192,26 +192,50 @@
         </div>
         <!-- ORBITA -->
         <div class="md:w-1/2 flex justify-center mt-12 md:mt-0">
-          <div class="orbit-container">
+          <div class="orbit-container" role="img" aria-label="Representação visual da Hélice Quádrupla: quatro elementos orbitando ao redor do AgroHub UniRV">
             <!-- Anel 1: Academia -->
-            <div class="orbit-ring ring-1">
-              <div class="floating-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div class="orbit-ring ring-1" aria-label="Órbita da Academia">
+              <div class="floating-icon orbit-icon-academia" 
+                   role="img" 
+                   aria-label="Academia - Pesquisa e Capital Intelectual"
+                   data-tooltip="Academia (UniRV)"
+                   tabindex="0">
+                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
+              </div>
             </div>
             <!-- Anel 2: Indústria -->
-            <div class="orbit-ring ring-2">
-              <div class="floating-icon"><i class="fas fa-tractor"></i></div>
+            <div class="orbit-ring ring-2" aria-label="Órbita do Setor Produtivo">
+              <div class="floating-icon orbit-icon-industria" 
+                   role="img" 
+                   aria-label="Setor Produtivo - Empresas e Produtores"
+                   data-tooltip="Setor Produtivo"
+                   tabindex="0">
+                <i class="fas fa-tractor" aria-hidden="true"></i>
+              </div>
             </div>
             <!-- Anel 3: Governo -->
-            <div class="orbit-ring ring-3">
-              <div class="floating-icon"><i class="fas fa-landmark"></i></div>
+            <div class="orbit-ring ring-3" aria-label="Órbita do Governo">
+              <div class="floating-icon orbit-icon-governo" 
+                   role="img" 
+                   aria-label="Governo - Fomento e Políticas Públicas"
+                   data-tooltip="Governo"
+                   tabindex="0">
+                <i class="fas fa-landmark" aria-hidden="true"></i>
+              </div>
             </div>
             <!-- Anel 4: Sociedade -->
-            <div class="orbit-ring ring-4">
-              <div class="floating-icon"><i class="fas fa-users"></i></div>
+            <div class="orbit-ring ring-4" aria-label="Órbita da Sociedade Civil">
+              <div class="floating-icon orbit-icon-sociedade" 
+                   role="img" 
+                   aria-label="Sociedade Civil - Comunidade e Impacto Social"
+                   data-tooltip="Sociedade Civil"
+                   tabindex="0">
+                <i class="fas fa-users" aria-hidden="true"></i>
+              </div>
             </div>
             <!-- Logo Central -->
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 animate-pulse">
-              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV" class="w-16 h-16" width="64" height="64" loading="lazy" />
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 orbit-core" role="img" aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia">
+              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV - Logo do Centro de Inovação" class="w-16 h-16" width="64" height="64" loading="lazy" />
             </div>
           </div>
         </div>

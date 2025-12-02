@@ -18,13 +18,15 @@ def main():
             # Limpar staticfiles antes de coletar
             staticfiles_dir = settings.STATIC_ROOT
             if staticfiles_dir and os.path.exists(staticfiles_dir):
-                print(f"\n[INFO] Limpando diretorio {staticfiles_dir}...")
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Limpando diretorio {staticfiles_dir}...")
                 try:
                     shutil.rmtree(str(staticfiles_dir))
-                    print(f"[OK] Diretorio limpo com sucesso\n")
+                    logger.info(f"Diretorio limpo com sucesso")
                 except Exception as e:
-                    print(f"[AVISO] Nao foi possivel limpar {staticfiles_dir}: {e}")
-                    print("        Continuando com collectstatic mesmo assim...\n")
+                    logger.warning(f"Nao foi possivel limpar {staticfiles_dir}: {e}")
+                    logger.warning("Continuando com collectstatic mesmo assim...")
         
     except ImportError as exc:
         raise ImportError(

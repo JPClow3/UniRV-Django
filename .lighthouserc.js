@@ -86,11 +86,13 @@ module.exports = {
             minScore: parseFloat(process.env.LHCI_BEST_PRACTICES_THRESHOLD || '0.90'),
           },
         ],
-        // SEO thresholds (0-100)
+        // SEO thresholds (0-100) - apply only to non-admin URLs
+        // Admin pages don't need SEO checks, so we exclude them using matchingUrlPattern
         'categories:seo': [
           'error',
           {
             minScore: parseFloat(process.env.LHCI_SEO_THRESHOLD || '0.90'),
+            matchingUrlPattern: '^(?!.*/admin/).*$', // Negative lookahead: exclude URLs containing /admin/
           },
         ],
         // Performance metrics - warn if these are slow

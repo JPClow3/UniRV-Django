@@ -40,19 +40,19 @@
         </p>
       </div>
 
-      <!-- Stats Bar (Glassmorphism) -->
-      <div class="reveal-hero inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl">
+      <!-- Stats Bar (Glassmorphism) - Fixed min-height to prevent layout shifts -->
+      <div class="reveal-hero inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl" style="min-height: 120px;">
         <div class="text-center px-4 border-r border-white/10 last:border-0">
-          <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.total_active }}">0</div>
+          <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.total_active }}" style="min-width: 3ch; display: inline-block; text-align: center;">{{ stats.total_active }}</div>
           <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Startups Ativas</div>
         </div>
         <div class="text-center px-4 border-r border-white/10 last:border-0">
-          <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.graduadas }}">0</div>
+          <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.graduadas }}" style="min-width: 3ch; display: inline-block; text-align: center;">{{ stats.graduadas }}</div>
           <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Graduadas</div>
         </div>
         <div class="text-center px-4">
           <div class="text-3xl md:text-4xl font-bold text-white mb-1 flex items-center justify-center gap-1">
-            <span class="text-lg text-green-400 align-top">R$</span><span class="counter" data-target="{{ stats.total_valuation }}">0</span><span>M+</span>
+            <span class="text-lg text-green-400 align-top">R$</span><span class="counter" data-target="{{ stats.total_valuation }}" style="min-width: 4ch; display: inline-block; text-align: center;">{{ stats.total_valuation }}</span><span>M+</span>
           </div>
           <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Valuation Total</div>
         </div>
@@ -118,8 +118,8 @@
         </div>
       </div>
 
-      <!-- Startups Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]" id="startups-grid">
+      <!-- Startups Grid - Reserve space to prevent layout shifts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]" id="startups-grid" style="content-visibility: auto;">
         {% for startup in startups %}
         {# TODO: Update href when startup detail view/URL is created. For now, placeholder "#".
              Example: href="{% url 'startup_detail' startup.id %}" or href="{% url 'startup_detail' startup.slug %}" #}
@@ -154,7 +154,7 @@
               {% elif startup.category == 'iot' %}from-blue-50 to-indigo-100 border border-blue-100
               {% elif startup.category == 'edtech' %}from-sky-50 to-blue-100 border border-sky-100
               {% else %}from-gray-50 to-gray-100 border border-gray-100{% endif %}
-              flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300">
+              flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300" style="width: 64px; height: 64px; flex-shrink: 0;">
               {% if startup.category == 'agtech' %}🌿
               {% elif startup.category == 'biotech' %}🧬
               {% elif startup.category == 'iot' %}📡
@@ -261,15 +261,40 @@
   document.addEventListener("DOMContentLoaded", (event) => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // 1. Hero Animations
+    // 1. Hero Animations - Use transform instead of y to prevent layout shifts
     gsap.from(".reveal-hero", {
-      y: 40, opacity: 0, duration: 1.2, stagger: 0.15, ease: "power3.out"
+      transform: "translateY(40px)",
+      opacity: 0,
+      duration: 1.2,
+      stagger: 0.15,
+      ease: "power3.out"
     });
 
-    // 2. Counters
+    // 2. Counters - Animate without causing layout shifts
+    // Counters are pre-rendered with target values, so we can safely animate
+    // Fixed width prevents layout shifts during number changes
     gsap.utils.toArray(".counter").forEach(counter => {
       const target = parseInt(counter.getAttribute("data-target")) || 0;
-      const obj = { value: 0 };
+      const initialValue = parseInt(counter.innerText) || 0;
+      
+      // Store original width to prevent layout shifts
+      const computedStyle = window.getComputedStyle(counter);
+      const currentWidth = counter.offsetWidth;
+      
+      // Ensure min-width is set to accommodate the largest number
+      if (!counter.style.minWidth) {
+        // Estimate max width: add 2-3 characters for larger numbers
+        const maxWidth = Math.max(currentWidth, (target.toString().length + 2) * 12);
+        counter.style.minWidth = maxWidth + 'px';
+      }
+      
+      // Only animate if we need to count up from a lower value
+      if (initialValue >= target) {
+        return; // Already at or above target
+      }
+      
+      // Animate counter value - fixed width prevents layout shifts
+      const obj = { value: initialValue };
       gsap.to(obj, {
         value: target,
         duration: 2.5,
@@ -283,25 +308,35 @@
     });
 
     // 3. Filter Logic & Animations
+    // Use transform (translateY) and opacity only to prevent layout shifts
     function animateCards(elements) {
       gsap.fromTo(elements, 
-        { y: 50, opacity: 0, scale: 0.95 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", clearProps: "transform" }
+        { transform: "translateY(50px) scale(0.95)", opacity: 0 },
+        { transform: "translateY(0) scale(1)", opacity: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", clearProps: "transform" }
       );
     }
 
     const allCards = document.querySelectorAll('.startup-card');
     if (allCards.length > 0) {
+      // Reserve space first to prevent layout shifts
+      allCards.forEach(card => {
+        card.style.minHeight = card.offsetHeight + 'px';
+      });
       animateCards(allCards);
     }
 
-    // 4. Card reveal on scroll
+    // 4. Card reveal on scroll - use transform only, reserve space
     gsap.utils.toArray('.startup-card').forEach((card, index) => {
+      // Reserve space for the card to prevent layout shifts
+      if (!card.style.minHeight) {
+        card.style.minHeight = card.offsetHeight + 'px';
+      }
+      
       gsap.fromTo(card,
-        { opacity: 0, y: 30 },
+        { transform: "translateY(30px)", opacity: 0 },
         {
+          transform: "translateY(0)",
           opacity: 1,
-          y: 0,
           duration: 0.6,
           delay: index * 0.1,
           scrollTrigger: {
