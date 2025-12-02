@@ -122,12 +122,6 @@
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
         style="height: 4px; z-index: 1"
       ></div>
-      {% with
-        is_home=current_url == 'home'
-        is_ambientes=current_url == 'ambientes_inovacao'
-        is_editais=current_url == 'editais_index' or current_url|startswith:'edital_'
-        is_startups=current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos'
-      %}
       <nav class="relative z-10 site-nav">
         <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
           <!-- Logo -->
@@ -151,25 +145,25 @@
           <div class="hidden md:flex items-center gap-6 flex-shrink-0 ml-auto whitespace-nowrap flex-nowrap">
             <a
               href="{% url 'home' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_home %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'home' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Início
             </a>
             <a
               href="{% url 'ambientes_inovacao' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_ambientes %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Ambientes de Inovação
             </a>
             <a
               href="{% url 'editais_index' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_editais %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Editais
             </a>
             <a
               href="{% url 'startups_showcase' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if is_startups %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:text-green-600{% endif %}"
             >
               Startups
             </a>
@@ -220,28 +214,28 @@
             <li>
               <a
                 href="{% url 'home' %}"
-                class="nav-link block px-4 py-2 {% if is_home %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'home' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Início</a
               >
             </li>
             <li>
               <a
                 href="{% url 'ambientes_inovacao' %}"
-                class="nav-link block px-4 py-2 {% if is_ambientes %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Ambientes de Inovação</a
               >
             </li>
             <li>
               <a
                 href="{% url 'editais_index' %}"
-                class="nav-link block px-4 py-2 {% if is_editais %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Editais</a
               >
             </li>
             <li>
               <a
                 href="{% url 'startups_showcase' %}"
-                class="nav-link block px-4 py-2 {% if is_startups %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Startups</a
               >
             </li>
@@ -278,7 +272,6 @@
           </ul>
         </div>
       </nav>
-      {% endwith %}
     </header>
 
     <main class="flex-1 w-full" style="width: 100%; margin: 0; padding: 0">
