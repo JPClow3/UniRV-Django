@@ -14,33 +14,33 @@
   {% if type == 'secondary' %}
     {% with color_classes="bg-agrohubBlue text-white border-transparent hover:bg-blue-700 focus:ring-agrohubBlue shadow-sm hover:shadow" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% elif type == 'outline' %}
     {% with color_classes="bg-transparent text-unirvBlue border-2 border-unirvBlue hover:bg-unirvBlue hover:text-white focus:ring-unirvBlue" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% elif type == 'danger' %}
     {% with color_classes="bg-red-600 text-white border-transparent hover:bg-red-700 focus:ring-red-600 shadow-sm hover:shadow" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% else %} {# Primary #}
     {% with color_classes="bg-unirvBlue text-white border-transparent hover:bg-blue-900 focus:ring-unirvBlue shadow-md hover:shadow-lg" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}" {{ attrs|safe }}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% endif %}

@@ -1,16 +1,13 @@
 """
-Views module for editais app.
+Views package for editais app.
 
-This module has been split into separate files for better organization:
-- views/public.py: Public-facing views
-- views/dashboard.py: Dashboard views
-- views/editais_crud.py: CRUD operations
-
-All views are re-exported here for backward compatibility with existing URL configurations.
+This package contains all views organized by functionality:
+- public: Public-facing views (home, index, detail, etc.)
+- dashboard: Dashboard views for authenticated users
+- editais_crud: CRUD operations for editais
 """
 
-# Import all views from the new structure
-from .views.public import (
+from .public import (
     home,
     ambientes_inovacao,
     projetos_aprovados,
@@ -23,7 +20,7 @@ from .views.public import (
     health_check,
     build_search_query,
 )
-from .views.dashboard import (
+from .dashboard import (
     dashboard_home,
     dashboard_editais,
     dashboard_projetos,
@@ -34,7 +31,7 @@ from .views.dashboard import (
     dashboard_novo_edital,
     admin_dashboard,
 )
-from .views.editais_crud import (
+from .editais_crud import (
     edital_create,
     edital_update,
     edital_delete,
@@ -68,3 +65,4 @@ __all__ = [
     'edital_update',
     'edital_delete',
 ]
+

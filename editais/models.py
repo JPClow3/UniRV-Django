@@ -2,45 +2,70 @@ import re
 import time
 from typing import Optional, Any
 from django.contrib.auth.models import User
-from django.db import models, IntegrityError
+from django.db import models, IntegrityError, transaction
 from django.urls import reverse
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .utils import determine_edital_status
+from .constants import SLUG_GENERATION_MAX_RETRIES
+
+
+class EditalQuerySet(models.QuerySet):
+    """Custom QuerySet for Edital model with common query patterns."""
+    
+    def with_related(self):
+        """Add select_related for created_by and updated_by to optimize queries."""
+        return self.select_related('created_by', 'updated_by')
+    
+    def with_prefetch(self):
+        """Add prefetch_related for valores and cronogramas to optimize queries."""
+        return self.prefetch_related('valores', 'cronogramas')
+    
+    def with_full_prefetch(self):
+        """Add all common prefetch_related for detail views."""
+        return self.prefetch_related('valores', 'cronogramas', 'history')
+    
+    def active(self):
+        """Filter editais that are not drafts."""
+        return self.exclude(status='draft')
+
+
+class EditalManager(models.Manager):
+    """Custom manager for Edital model."""
+    
+    def get_queryset(self):
+        """Return custom QuerySet."""
+        return EditalQuerySet(self.model, using=self._db)
+    
+    def with_related(self):
+        """Add select_related for created_by and updated_by."""
+        return self.get_queryset().with_related()
+    
+    def with_prefetch(self):
+        """Add prefetch_related for valores and cronogramas."""
+        return self.get_queryset().with_prefetch()
+    
+    def with_full_prefetch(self):
+        """Add all common prefetch_related for detail views."""
+        return self.get_queryset().with_full_prefetch()
+    
+    def active(self):
+        """Filter editais that are not drafts."""
+        return self.get_queryset().active()
 
 
 class Edital(models.Model):
     """
     Modelo que representa um edital de fomento.
     
-    Um edital é uma oportunidade de financiamento que possui informações
-    sobre título, datas, status, valores, cronograma e conteúdo detalhado.
+    Um edital é uma oportunidade de financiamento com informações sobre
+    título, datas, status, valores, cronograma e conteúdo detalhado.
     
-    Attributes:
-        numero_edital: Número identificador do edital
-        titulo: Título do edital (obrigatório)
-        slug: URL-friendly version do título (gerado automaticamente)
-        url: URL do edital original
-        entidade_principal: Entidade responsável pelo edital
-        status: Status atual (draft, aberto, fechado, etc.)
-        start_date: Data de abertura
-        end_date: Data de encerramento
-        data_criacao: Data de criação do registro
-        data_atualizacao: Data da última atualização
-        created_by: Usuário que criou o edital
-        updated_by: Usuário que atualizou o edital pela última vez
-        
     Properties:
         days_until_deadline: Dias restantes até o prazo
         is_deadline_imminent: True se prazo está próximo (7 dias)
-        
-    Methods:
-        can_edit(user): Verifica se usuário pode editar
-        get_absolute_url(): Retorna URL do edital
-        is_open(): Verifica se está aberto
-        is_closed(): Verifica se está fechado
     """
     STATUS_CHOICES = [
         ('draft', 'Rascunho'),
@@ -89,6 +114,8 @@ class Edital(models.Model):
     criterios_avaliacao = models.TextField(blank=True)
     itens_essenciais_observacoes = models.TextField(blank=True)
     detalhes_unirv = models.TextField(blank=True)
+
+    objects = EditalManager()
 
     class Meta:
         ordering = ['-data_atualizacao']
@@ -182,14 +209,16 @@ class Edital(models.Model):
         )
         
         # Handle race condition for slug uniqueness (retry if IntegrityError)
-        max_retries = 3
+        # Wrap in transaction to ensure atomicity
+        max_retries = SLUG_GENERATION_MAX_RETRIES
         for attempt in range(max_retries):
             try:
-                super().save(*args, **kwargs)
-                # Ensure slug is set after save (double-check)
-                if not self.slug:
-                    self.slug = self._generate_unique_slug()
+                with transaction.atomic():
                     super().save(*args, **kwargs)
+                    # Ensure slug is set after save (double-check)
+                    if not self.slug:
+                        self.slug = self._generate_unique_slug()
+                        super().save(*args, **kwargs)
                 break
             except ValidationError:
                 # Re-raise validation errors
@@ -203,20 +232,6 @@ class Edital(models.Model):
                         continue
                 # Re-raise other exceptions
                 raise
-
-    def get_summary(self) -> str:
-        """Return a short summary for list views"""
-        if self.objetivo:
-            return self.objetivo[:200] + '...' if len(self.objetivo) > 200 else self.objetivo
-        return ''
-
-    def is_open(self) -> bool:
-        """Check if edital is currently open"""
-        return self.status == 'aberto'
-
-    def is_closed(self) -> bool:
-        """Check if edital is closed"""
-        return self.status == 'fechado'
 
     @property
     def days_until_deadline(self):
@@ -243,21 +258,7 @@ class Edital(models.Model):
         if days is None:
             return False
         return 0 <= days <= 7
-    
-    def can_edit(self, user: Optional[User]) -> bool:
-        """
-        Verifica se o usuário pode editar este edital.
-        
-        Args:
-            user: Instância de User do Django
-            
-        Returns:
-            bool: True se o usuário pode editar, False caso contrário
-        """
-        if not user or not user.is_authenticated:
-            return False
-        return user.is_staff or user == self.created_by
-    
+
     def __str__(self):
         return self.titulo
     
@@ -445,7 +446,28 @@ class Project(models.Model):
         ('suspensa', 'Suspensa'),
     ]
     
+    CATEGORY_CHOICES = [
+        ('agtech', 'AgTech'),
+        ('biotech', 'BioTech'),
+        ('iot', 'IoT & Hardware'),
+        ('edtech', 'EdTech'),
+        ('other', 'Outro'),
+    ]
+    
     name = models.CharField(max_length=200, verbose_name='Nome da Startup')
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Descrição',
+        help_text='Descrição da startup e sua solução'
+    )
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='other',
+        verbose_name='Categoria',
+        help_text='Categoria da startup'
+    )
     edital = models.ForeignKey(
         Edital,
         on_delete=models.SET_NULL,
@@ -491,7 +513,28 @@ class Project(models.Model):
             models.Index(fields=['status'], name='idx_project_status'),
             models.Index(fields=['edital', 'status'], name='idx_project_edital_status'),
             models.Index(fields=['proponente'], name='idx_project_proponente'),
+            models.Index(fields=['category'], name='idx_project_category'),
         ]
+    
+    def get_phase_display(self):
+        """Map status to phase for display"""
+        phase_mapping = {
+            'pre_incubacao': 'Ideação',
+            'incubacao': 'MVP' if not self.note or self.note < 7 else 'Tração',
+            'graduada': 'Escala',
+            'suspensa': 'Suspensa',
+        }
+        return phase_mapping.get(self.status, 'Ideação')
+    
+    def get_phase_badge_class(self):
+        """Get CSS classes for phase badge"""
+        phase_classes = {
+            'pre_incubacao': 'bg-purple-100 text-purple-700 border-purple-200',
+            'incubacao': 'bg-yellow-100 text-yellow-700 border-yellow-200' if not self.note or self.note < 7 else 'bg-green-100 text-green-700 border-green-200',
+            'graduada': 'bg-blue-100 text-blue-700 border-blue-200',
+            'suspensa': 'bg-gray-100 text-gray-700 border-gray-200',
+        }
+        return phase_classes.get(self.status, 'bg-gray-100 text-gray-700 border-gray-200')
     
     def __str__(self):
         edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''

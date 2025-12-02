@@ -39,7 +39,7 @@
     border-radius: 50%; 
     box-shadow: 0 0 20px rgba(255,255,255,0.3);
     color: #27348b; 
-    width: 48px; height: 48px; font-size: 20px;
+    width: 40px; height: 40px; font-size: 18px;
     display: flex; align-items: center; justify-content: center;
     z-index: 20;
   }
@@ -73,6 +73,15 @@
   
   /* Helper para alinhamento dos pilares */
   .pillar-card { opacity: 0; display: flex; flex-direction: column; height: 100%; }
+  
+  /* Scroll Indicator Animation - Slower bounce */
+  @keyframes slow-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-slow-bounce {
+    animation: slow-bounce 2s ease-in-out infinite;
+  }
 </style>
 {% endblock %}
 
@@ -81,9 +90,10 @@
   <!-- HERO SECTION -->
   <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
     <div class="hero-bg absolute inset-0 z-0 scale-110">
-      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{% static 'img/agrohub-hero.webp' %}');"></div>
-      <div class="absolute inset-0 bg-gradient-to-r from-unirvBlue/95 via-unirvBlue/80 to-unirvBlue/40"></div>
+      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');"></div>
+      <div class="absolute inset-0" style="background: linear-gradient(to right, rgba(39, 52, 139, 0.95), rgba(39, 52, 139, 0.8), rgba(39, 52, 139, 0.4));"></div>
     </div>
+
     <div class="container relative z-10 px-6 pt-20">
       <div class="max-w-4xl">
         <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
@@ -92,7 +102,7 @@
         </div>
         <h1 class="reveal-up text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
           O Futuro do <br/>
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300">
+          <span class="text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #34d399, #5eead4);">
             Agronegócio
           </span> Começa Aqui.
         </h1>
@@ -100,19 +110,19 @@
           Conectamos academia, startups e o setor produtivo para acelerar a transformação digital do campo.
         </p>
         <div class="reveal-up flex flex-col sm:flex-row gap-4">
-          <a href="{% url 'editais_index' %}" class="bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
+          <button data-url="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
             Ver Editais Abertos <i class="fas fa-arrow-right"></i>
-          </a>
-          <a href="{% url 'ambientes_inovacao' %}" class="px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3">
+          </button>
+          <button data-url="{% url 'ambientes_inovacao' %}" class="hero-btn px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3">
             <i class="fas fa-play-circle"></i> Conhecer Infraestrutura
-          </a>
+          </button>
         </div>
       </div>
     </div>
     <!-- Scroll Indicator -->
-    <div class="absolute bottom-24 left-1/2 -translate-x-1/2 text-white animate-bounce z-0 pointer-events-none">
-      <span class="text-xs uppercase tracking-widest mb-2 block opacity-70">Role para baixo</span>
-      <i class="fas fa-chevron-down opacity-70 text-2xl"></i>
+    <div class="absolute bottom-24 left-1/2 -translate-x-1/2 text-white z-10 pointer-events-none flex flex-col items-center">
+      <span class="text-xs uppercase tracking-widest mb-2 opacity-70">Role para baixo</span>
+      <i class="fas fa-chevron-down opacity-70 text-2xl animate-slow-bounce"></i>
     </div>
   </header>
 
@@ -192,7 +202,7 @@
 
   <!-- MISSION / HELIX SECTION -->
   <section class="py-24 bg-unirvBlue text-white overflow-hidden relative">
-    <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue to-darkBlue z-0"></div>
+    <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom right, #27348b, #1a237e);"></div>
     <div class="container mx-auto px-6 relative z-10">
       <div class="flex flex-col md:flex-row items-center gap-16">
         <!-- LISTA -->
@@ -266,7 +276,7 @@
             </div>
             <!-- Logo Central -->
             <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 animate-pulse">
-              <i class="fas fa-leaf text-5xl text-unirvBlue"></i>
+              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV" class="w-16 h-16" />
             </div>
           </div>
         </div>
@@ -386,18 +396,35 @@
 
     // 5. Counters
     gsap.utils.toArray(".counter").forEach(counter => {
-      const target = counter.getAttribute("data-target");
-      gsap.to(counter, {
-        innerText: target, duration: 2.5, snap: { innerText: 1 },
+      const target = parseInt(counter.getAttribute("data-target")) || 0;
+      const obj = { value: 0 };
+      gsap.to(obj, {
+        value: target,
+        duration: 2.5,
+        snap: { value: 1 },
         scrollTrigger: { trigger: counter, start: "top 85%" },
-        ease: "power1.inOut"
+        ease: "power1.inOut",
+        onUpdate: () => {
+          counter.innerText = Math.round(obj.value);
+        }
       });
     });
 
     // 6. Timeline Progress Line
     gsap.to("#progress-line", {
       width: "50%",
-      scrollTrigger: { trigger: "#progress-line", start: "top 80%", duration: 2 }
+      duration: 2,
+      scrollTrigger: { trigger: "#progress-line", start: "top 80%" }
+    });
+
+    // 7. Hero Button Navigation
+    document.querySelectorAll('.hero-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        if (url) {
+          window.location.href = url;
+        }
+      });
     });
   });
 </script>

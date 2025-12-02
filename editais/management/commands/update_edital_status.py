@@ -15,6 +15,7 @@ from django.core.cache import cache
 from django.db.models import Q
 from editais.models import Edital
 from editais.services import EditalService
+from editais.constants import DRAFT_STATUSES
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class Command(BaseCommand):
             editais_to_schedule = Edital.objects.filter(
                 start_date__gt=today
             ).exclude(
-                status__in=['draft', 'programado']
+                status__in=DRAFT_STATUSES
             )
             for edital in editais_to_schedule:
                 self.stdout.write(
@@ -119,7 +120,7 @@ class Command(BaseCommand):
             editais_to_schedule = Edital.objects.filter(
                 start_date__gt=today
             ).exclude(
-                status__in=['draft', 'programado']
+                status__in=DRAFT_STATUSES
             )
             for edital in editais_to_schedule:
                 try:
@@ -185,9 +186,9 @@ class Command(BaseCommand):
         # Invalidate cache if any editais were updated
         if updated_count > 0 and not dry_run:
             try:
-                # Import cache clearing function from views
-                from editais.views import _clear_index_cache
-                _clear_index_cache()
+                # Import cache clearing function from utils
+                from editais.utils import clear_index_cache
+                clear_index_cache()
                 if verbose:
                     self.stdout.write(self.style.SUCCESS("  Cache invalidado com sucesso."))
             except Exception as e:

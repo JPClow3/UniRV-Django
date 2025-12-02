@@ -1094,6 +1094,16 @@
     }
   }
 
+  /* Navigation link consistency - ensure same rendering regardless of state */
+  .site-header .nav-link {
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    letter-spacing: 0 !important;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   /* Home page custom blocks */
   .site-header.glass-nav {
     background: rgba(255, 255, 255, 0.92) !important;

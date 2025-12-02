@@ -179,9 +179,9 @@ class UpdateEditalStatusCommandTest(TestCase):
     def test_cache_invalidation_on_update(self):
         """Testa que o cache é invalidado quando editais são atualizados."""
         from unittest.mock import patch
-        from editais.views import _clear_index_cache
+        from editais.utils import clear_index_cache
         
-        with patch('editais.views._clear_index_cache') as mock_clear_cache:
+        with patch('editais.utils.clear_index_cache') as mock_clear_cache:
             call_command('update_edital_status')
             
             # Verificar que cache foi invalidado (se houve atualizações)
@@ -192,9 +192,9 @@ class UpdateEditalStatusCommandTest(TestCase):
     def test_cache_not_invalidated_on_dry_run(self):
         """Testa que o cache não é invalidado em modo dry-run."""
         from unittest.mock import patch
-        from editais.views import _clear_index_cache
+        from editais.utils import clear_index_cache
         
-        with patch('editais.views._clear_index_cache') as mock_clear_cache:
+        with patch('editais.utils.clear_index_cache') as mock_clear_cache:
             call_command('update_edital_status', '--dry-run')
             
             # Em dry-run, cache não deve ser invalidado
@@ -204,7 +204,7 @@ class UpdateEditalStatusCommandTest(TestCase):
         """Testa que a invalidação de cache mostra mensagem em modo verbose."""
         from unittest.mock import patch
         
-        with patch('editais.views._clear_index_cache'):
+        with patch('editais.utils.clear_index_cache'):
             out = StringIO()
             call_command('update_edital_status', '--verbose', stdout=out)
             
@@ -474,7 +474,7 @@ class UpdateEditalStatusCommandTest(TestCase):
             edital.refresh_from_db()
         
         # Simular erro na invalidação de cache
-        with patch('editais.views._clear_index_cache', side_effect=Exception("Erro de cache")):
+        with patch('editais.utils.clear_index_cache', side_effect=Exception("Erro de cache")):
             out = StringIO()
             # Comando não deve levantar exceção
             try:

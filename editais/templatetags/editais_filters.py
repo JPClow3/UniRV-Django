@@ -8,28 +8,6 @@ from urllib.parse import urlencode
 register = template.Library()
 
 
-@register.simple_tag
-def preserve_filters(request, **kwargs):
-    """
-    Preserva todos os parâmetros de filtro da URL atual, permitindo sobrescrever alguns.
-    
-    Uso:
-        {% preserve_filters request page=2 %}
-        {% preserve_filters request search='' %}  # Remove search
-    """
-    params = request.GET.copy()
-    
-    # Atualizar ou remover parâmetros
-    for key, value in kwargs.items():
-        if value is None or value == '':
-            # Remover parâmetro se valor for None ou vazio
-            params.pop(key, None)
-        else:
-            params[key] = value
-    
-    return urlencode(params)
-
-
 @register.filter
 def days_until(date):
     """

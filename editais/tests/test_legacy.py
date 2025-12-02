@@ -105,6 +105,12 @@ class EditalSearchAndFilterTest(TestCase):
     
     def setUp(self):
         """Criar editais de teste para busca e filtros."""
+        from django.utils import timezone
+        from datetime import timedelta
+        # Ensure editais have far future data_atualizacao to appear first in results
+        # This ensures they're always on the first page even when other tests create editais
+        # Use 1 year in the future to ensure they're always the most recent
+        future_time = timezone.now() + timedelta(days=365)
         self.edital1 = Edital.objects.create(
             titulo="Edital de Inovação Tecnológica",
             url="https://example.com/1",
@@ -113,6 +119,8 @@ class EditalSearchAndFilterTest(TestCase):
             numero_edital="001/2025",
             objetivo="Fomentar inovação tecnológica"
         )
+        self.edital1.data_atualizacao = future_time
+        self.edital1.save(update_fields=['data_atualizacao'])
         self.edital2 = Edital.objects.create(
             titulo="Programa de Pesquisa em Agricultura",
             url="https://example.com/2",
@@ -121,6 +129,8 @@ class EditalSearchAndFilterTest(TestCase):
             numero_edital="002/2025",
             objetivo="Pesquisa agrícola sustentável"
         )
+        self.edital2.data_atualizacao = future_time
+        self.edital2.save(update_fields=['data_atualizacao'])
         self.edital3 = Edital.objects.create(
             titulo="Chamada para Startups",
             url="https://example.com/3",
@@ -129,6 +139,8 @@ class EditalSearchAndFilterTest(TestCase):
             numero_edital="003/2025",
             objetivo="Aceleração de startups"
         )
+        self.edital3.data_atualizacao = future_time
+        self.edital3.save(update_fields=['data_atualizacao'])
 
     def test_search_by_title(self):
         """Testa busca por título."""

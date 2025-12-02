@@ -269,6 +269,111 @@ python manage.py update_edital_status
 
 ---
 
+## 🔍 Lighthouse CI - Performance Audits
+
+O projeto inclui integração com Lighthouse CI para auditorias automatizadas de performance, acessibilidade, SEO e boas práticas.
+
+### Executar Auditorias Localmente
+
+#### Pré-requisitos
+
+Certifique-se de ter instalado as dependências npm:
+
+```bash
+cd theme/static_src
+npm install
+```
+
+#### Usando o Management Command (Recomendado)
+
+O comando Django gerencia automaticamente o servidor e executa as auditorias:
+
+```bash
+# Executar auditorias em todas as URLs configuradas
+python manage.py run_lighthouse
+
+# Auditar TODAS as páginas (incluindo páginas protegidas com autenticação)
+python manage.py run_lighthouse --all-pages
+
+# Auditar URLs específicas
+python manage.py run_lighthouse --url /editais/ --url /login/
+
+# Especificar diretório de saída
+python manage.py run_lighthouse --output-dir ./custom_reports
+
+# Ajustar thresholds
+python manage.py run_lighthouse --thresholds performance=0.85,accessibility=0.95
+
+# Usar servidor já em execução
+python manage.py run_lighthouse --no-server
+
+# Pular autenticação (apenas páginas públicas)
+python manage.py run_lighthouse --no-auth
+```
+
+**Opções disponíveis:**
+
+- `--all-pages`: Auditar todas as páginas incluindo páginas protegidas (dashboard, admin, etc.). Usa superuser automaticamente
+- `--url`: URL específica para auditar (pode ser usado múltiplas vezes)
+- `--output-dir`: Diretório para salvar os relatórios (padrão: `./lighthouse_reports`)
+- `--thresholds`: Sobrescrever thresholds no formato `performance=0.85,accessibility=0.90`
+- `--port`: Porta para executar o servidor Django (padrão: 7000)
+- `--no-server`: Não iniciar servidor Django (assume que já está rodando)
+- `--no-auth`: Pular autenticação (apenas páginas públicas serão auditadas)
+
+#### Usando Lighthouse CI diretamente
+
+```bash
+cd theme/static_src
+npx @lhci/cli autorun
+```
+
+### Configuração
+
+A configuração do Lighthouse CI está em `.lighthouserc.js` na raiz do projeto. Você pode:
+
+- **Ajustar URLs auditadas**: Edite o array `url` em `ci.collect`
+- **Modificar thresholds**: Edite os valores em `ci.assert.assertions`
+- **Configurar via variáveis de ambiente**:
+  - `LHCI_PERFORMANCE_THRESHOLD`: Threshold de performance (padrão: 0.80)
+  - `LHCI_ACCESSIBILITY_THRESHOLD`: Threshold de acessibilidade (padrão: 0.90)
+  - `LHCI_BEST_PRACTICES_THRESHOLD`: Threshold de boas práticas (padrão: 0.90)
+  - `LHCI_SEO_THRESHOLD`: Threshold de SEO (padrão: 0.90)
+
+### Thresholds Padrão
+
+- **Performance**: 80+
+- **Acessibilidade**: 90+
+- **Boas Práticas**: 90+
+- **SEO**: 90+
+
+### CI/CD Integration
+
+O Lighthouse CI é executado automaticamente via GitHub Actions em:
+
+- Pull requests para `main` ou `master`
+- Pushes para `main` ou `master`
+- Manualmente via `workflow_dispatch`
+
+Os relatórios são:
+- Salvos como artifacts do workflow
+- Comentados automaticamente em Pull Requests com os scores
+- Falham o build se os thresholds não forem atingidos
+
+### URLs Auditadas
+
+Por padrão, as seguintes URLs são auditadas:
+
+- `/` (home)
+- `/editais/` (index)
+- `/login/`
+- `/register/`
+- `/dashboard/home/`
+- `/dashboard/editais/`
+- `/health/` (health check)
+
+---
+
 ## 🧪 Testes
 
 ### Executar Testes
