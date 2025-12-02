@@ -84,3 +84,16 @@ def escape_attrs(attrs_string):
     escaped = re.sub(attr_pattern, escape_attr_value, attrs_string)
     
     return escaped
+
+
+@register.filter
+def startswith(value, arg):
+    """
+    Check if a string starts with the given prefix.
+    
+    Usage in templates:
+        {% if current_url|startswith:'edital_' %}
+    """
+    if not value:
+        return False
+    return str(value).startswith(str(arg))

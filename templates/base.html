@@ -105,8 +105,7 @@
     </noscript>
     {% block extra_head %}{% endblock %}
   </head>
-  {% with request.resolver_match.url_name as current_url %}
-  {% with current_url|is_transparent_header as transparent_header %}
+  {% with current_url=request.resolver_match.url_name transparent_header=request.resolver_match.url_name|is_transparent_header %}
   <body
     class="min-h-screen flex flex-col bg-gray-50 {% if transparent_header %}page-detail{% endif %}"
     data-page="{% block page_id %}{% endblock %}"
@@ -126,7 +125,7 @@
       {% with
         is_home=current_url == 'home'
         is_ambientes=current_url == 'ambientes_inovacao'
-        is_editais=current_url == 'editais_index' or current_url == 'edital_detail' or current_url == 'edital_detail_slug' or current_url == 'edital_create' or current_url == 'edital_update' or current_url == 'edital_delete'
+        is_editais=current_url == 'editais_index' or current_url|startswith:'edital_'
         is_startups=current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos'
       %}
       <nav class="relative z-10 site-nav">
@@ -453,7 +452,6 @@
     <script src="{% static 'js/main.js' %}" defer></script>
     {% endcompress %}
     {% block extra_js %}{% endblock %}
+    {% endwith %}
   </body>
-  {% endwith %}
-  {% endwith %}
-</html>
+  </html>

@@ -36,7 +36,7 @@ module.exports = {
         // CRUD pages (require authentication)
         'http://localhost:7000/cadastrar/',
       ],
-      numberOfRuns: 1,
+      numberOfRuns: parseInt(process.env.LHCI_NUMBER_OF_RUNS || '3', 10),
       // Chrome flags for headless mode (array format for better compatibility)
       chromeFlags: [
         '--no-sandbox',
