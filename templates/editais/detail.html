@@ -11,10 +11,6 @@
 {% block og_description %}{{ edital.objetivo|truncatewords:25|striptags }}{% endblock %}
 
 {% block content %}
-    {% if user.is_authenticated %}
-        {% csrf_token %}
-    {% endif %}
-
 <!-- Hero Header -->
 <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
   <div class="container relative z-10 px-6 pt-12">
