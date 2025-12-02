@@ -63,12 +63,44 @@ jobs:
 
       - name: Start Django server
         run: |
-          python manage.py runserver 127.0.0.1:7000 --noreload &
-          sleep 5
+          python manage.py runserver 127.0.0.1:7000 --noreload > /tmp/django-server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Server PID: $SERVER_PID"
+          sleep 10
 
-      - name: Wait for server
+      - name: Wait for server and check status
         run: |
-          timeout 60 bash -c 'until curl -f http://127.0.0.1:7000/health/ 2>/dev/null; do sleep 1; done' || echo "Server health check completed"
+          echo "Waiting for server to be ready..."
+          for i in {1..30}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7000/health/ 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Server is ready! Health check passed (HTTP $HTTP_CODE)."
+              curl -s http://127.0.0.1:7000/health/ | head -5
+              echo ""
+              echo "Testing root URL..."
+              ROOT_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7000/ 2>/dev/null || echo "000")
+              echo "Root URL returned HTTP $ROOT_CODE"
+              if [ "$ROOT_CODE" != "200" ] && [ "$ROOT_CODE" != "000" ]; then
+                echo "Warning: Root URL returned $ROOT_CODE, but continuing..."
+              fi
+              exit 0
+            fi
+            echo "Attempt $i/30: Server returned HTTP $HTTP_CODE, waiting..."
+            sleep 2
+          done
+          echo "Server health check failed after 60 seconds. Showing diagnostics:"
+          echo "=== Server Logs (last 50 lines) ==="
+          tail -50 /tmp/django-server.log 2>/dev/null || echo "No server logs found"
+          echo ""
+          echo "=== Server Process Check ==="
+          ps aux | grep -E "[r]unserver" || echo "No runserver process found"
+          echo ""
+          echo "=== Port Check ==="
+          netstat -tlnp 2>/dev/null | grep 7000 || ss -tlnp 2>/dev/null | grep 7000 || echo "Port 7000 not listening"
+          echo ""
+          echo "=== Test Health Endpoint ==="
+          curl -v http://127.0.0.1:7000/health/ 2>&1 | head -20
+          exit 1
 
       - name: Run Lighthouse CI
         run: |
