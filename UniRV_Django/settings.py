@@ -29,6 +29,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-pro
 # Em desenvolvimento, padrão é True. Em produção, definir DJANGO_DEBUG=False explicitamente
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
+# Detect if we're running tests
+# Django sets sys.argv[1] to 'test' when running tests
+# Also check for 'pytest' or 'unittest' in command line
+TESTING = (
+    len(sys.argv) > 1 and (
+        sys.argv[1] == 'test' or 
+        'pytest' in sys.argv[0] or 
+        'unittest' in sys.argv[0] or
+        'test' in sys.argv
+    )
+)
+
 # Security: explicit ALLOWED_HOSTS
 # Parsear e validar ALLOWED_HOSTS antes de usar
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
@@ -77,12 +89,14 @@ except ImportError:
     # Compressor not installed, skip it
     pass
 
-# Add django_browser_reload only in DEBUG mode
-if DEBUG:
+# Add django_browser_reload only in DEBUG mode and not during testing
+# TESTING mode disables django_browser_reload to avoid namespace issues in test environment
+if DEBUG and not TESTING:
     INSTALLED_APPS += ['django_browser_reload']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',  # Add gzip compression for HTML responses
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -92,9 +106,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Add django_browser_reload middleware only in DEBUG mode
+# Add django_browser_reload middleware only in DEBUG mode and not during testing
 # Should be after any middleware that encodes the response (like GZipMiddleware)
-if DEBUG:
+if DEBUG and not TESTING:
     MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
     INTERNAL_IPS = [
         "127.0.0.1",
@@ -194,9 +208,6 @@ STATICFILES_FINDERS = [
 if HAS_COMPRESSOR:
     STATICFILES_FINDERS.append('compressor.finders.CompressorFinder')
 
-# Testing flag (needed before compressor settings)
-TESTING = 'test' in sys.argv
-
 # Django Compressor settings for minification (only if compressor is installed)
 if HAS_COMPRESSOR:
     # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
@@ -204,14 +215,21 @@ if HAS_COMPRESSOR:
     # COMPRESS_URL should match the format used by {% static %} tag (with leading slash)
     COMPRESS_URL = '/static/' if not STATIC_URL.startswith('/') else STATIC_URL
     
-    # Disable compression in tests and development to avoid file not found errors
-    if TESTING or DEBUG:
+    # Enable compression for Lighthouse testing even in DEBUG mode
+    # Set COMPRESS_ENABLED=true environment variable to enable compression in development
+    compress_enabled_env = os.environ.get('COMPRESS_ENABLED', '').lower() == 'true'
+    if TESTING:
         COMPRESS_ENABLED = False
         COMPRESS_OFFLINE = False
-    else:
-        # In production: pre-compress during collectstatic for better performance
+    elif compress_enabled_env or not DEBUG:
+        # Enable compression if explicitly requested or in production
         COMPRESS_ENABLED = True
         COMPRESS_OFFLINE = True
+    else:
+        # Default: disable in development to avoid file not found errors
+        # But allow runtime compression (not offline) for testing
+        COMPRESS_ENABLED = True  # Enable runtime compression
+        COMPRESS_OFFLINE = False  # Don't require offline compression in dev
     
     COMPRESS_CSS_FILTERS = [
         'compressor.filters.css_default.CssAbsoluteFilter',
@@ -243,10 +261,23 @@ else:
 # Static files caching headers
 # Set cache headers for both development and production
 # Development: 1 hour cache for testing, Production: 1 year
+# For Lighthouse testing, use longer cache even in development
+# Note: CompressedManifestStaticFilesStorage automatically adds cache headers
+# To test with longer cache in development, set: WHITENOISE_MAX_AGE=31536000
 if DEBUG:
-    WHITENOISE_MAX_AGE = 3600  # 1 hour in seconds for development
+    # Allow override via environment variable for Lighthouse testing
+    whitenoise_max_age_env = os.environ.get('WHITENOISE_MAX_AGE', '')
+    if whitenoise_max_age_env:
+        WHITENOISE_MAX_AGE = int(whitenoise_max_age_env)
+    else:
+        WHITENOISE_MAX_AGE = 3600  # 1 hour in seconds for development
 else:
     WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds for production
+
+# WhiteNoise compression settings
+WHITENOISE_USE_FINDERS = True  # Use staticfiles finders for better performance
+WHITENOISE_AUTOREFRESH = DEBUG  # Auto-refresh in development mode
+WHITENOISE_MANIFEST_STRICT = False  # Don't fail if manifest file is missing (useful in dev)
 
 # Cache configuration
 # Try Redis first, fallback to LocMemCache for development

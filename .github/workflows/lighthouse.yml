@@ -177,11 +177,27 @@ jobs:
             exit 1
           fi
 
+      - name: Get authentication cookie for protected pages
+        run: |
+          echo "Getting authentication cookie for Lighthouse CI..."
+          AUTH_COOKIE=$(python manage.py get_auth_cookie 2>/dev/null || echo "")
+          if [ -n "$AUTH_COOKIE" ]; then
+            echo "AUTH_COOKIE=$AUTH_COOKIE" >> $GITHUB_ENV
+            echo "Authentication cookie obtained successfully"
+          else
+            echo "Warning: Could not get authentication cookie. Some protected pages may fail."
+          fi
+
       - name: Run Lighthouse CI
         run: |
           echo "Starting Lighthouse CI tests..."
           echo "Server should be running on http://127.0.0.1:7000"
           echo "Server PID: $(cat /tmp/django-server.pid 2>/dev/null || echo 'unknown')"
+          if [ -n "$AUTH_COOKIE" ]; then
+            echo "Using authentication cookie for Lighthouse CI"
+          else
+            echo "Warning: No authentication cookie available. Some protected pages may fail."
+          fi
           npx @lhci/cli autorun --config=.lighthouserc.js
         continue-on-error: false
         env:
@@ -190,6 +206,8 @@ jobs:
           LHCI_ACCESSIBILITY_THRESHOLD: ${{ env.LHCI_ACCESSIBILITY_THRESHOLD || '0.90' }}
           LHCI_BEST_PRACTICES_THRESHOLD: ${{ env.LHCI_BEST_PRACTICES_THRESHOLD || '0.90' }}
           LHCI_SEO_THRESHOLD: ${{ env.LHCI_SEO_THRESHOLD || '0.90' }}
+          # Pass authentication cookie to Lighthouse CI
+          AUTH_COOKIE: ${{ env.AUTH_COOKIE }}
 
       - name: Show server logs on failure
         if: failure()

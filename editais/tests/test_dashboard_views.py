@@ -212,28 +212,6 @@ class DashboardRelatoriosViewTest(TestCase):
         self.assertTemplateUsed(response, "dashboard/relatorios.html")
 
 
-class DashboardPublicacoesViewTest(TestCase):
-    """Tests for dashboard publicacoes view"""
-
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser", password="testpass123"
-        )
-
-
-class DashboardNovoEditalViewTest(TestCase):
-    """Tests for dashboard novo edital view"""
-
-    def setUp(self):
-        self.client = Client()
-        self.staff_user = User.objects.create_user(
-            username="staff", password="testpass123", is_staff=True
-        )
-        self.regular_user = User.objects.create_user(
-            username="regular", password="testpass123", is_staff=False
-        )
-
 class DashboardSubmeterProjetoViewTest(TestCase):
     """Tests for dashboard submeter projeto view"""
 

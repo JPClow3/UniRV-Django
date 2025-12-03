@@ -5,10 +5,9 @@
  * budgets/thresholds that must be met for the audits to pass.
  */
 
-module.exports = {
-  ci: {
-    collect: {
-      url: [
+// Build collect configuration with optional authentication
+const collectConfig = {
+  url: [
         // Public pages
         'http://localhost:7000/',
         'http://localhost:7000/editais/',
@@ -60,9 +59,20 @@ module.exports = {
       },
       // Server will be started manually in GitHub Actions workflow
       // This ensures proper server startup and readiness before Lighthouse runs
-      // Authentication cookie will be added automatically by run_lighthouse command
-      // For manual usage, add: extraHeaders: { 'Cookie': 'sessionid=...' }
-    },
+      // Authentication cookie will be added via extraHeaders if AUTH_COOKIE env var is set
+      // This prevents redirects and allows testing of protected pages
+};
+
+// Add authentication cookie if provided via environment variable
+if (process.env.AUTH_COOKIE) {
+  collectConfig.extraHeaders = {
+    'Cookie': process.env.AUTH_COOKIE
+  };
+}
+
+module.exports = {
+  ci: {
+    collect: collectConfig,
     assert: {
       assertions: {
         // Performance thresholds (0-100)

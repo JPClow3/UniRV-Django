@@ -38,7 +38,7 @@
             <div class="mb-4">
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Ideação</span>
             </div>
-            <h3 class="text-unirvBlue mb-3 group-hover:text-blue-700 transition-colors text-2xl font-bold leading-tight">InovaLab</h3>
+            <h2 class="text-unirvBlue mb-3 group-hover:text-blue-700 transition-colors text-2xl font-bold leading-tight">InovaLab</h2>
             <p class="text-gray-600 text-base mb-6 leading-relaxed flex-grow">
               Espaço colaborativo focado em ideação e modelagem de negócios. O lugar perfeito para transformar suas ideias em projetos concretos através de workshops e mentorias.
             </p>
@@ -76,7 +76,7 @@
             <div class="mb-4">
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Prototipagem</span>
             </div>
-            <h3 class="text-unirvBlue mb-3 group-hover:text-blue-700 transition-colors text-2xl font-bold leading-tight">FabLab</h3>
+            <h2 class="text-unirvBlue mb-3 group-hover:text-blue-700 transition-colors text-2xl font-bold leading-tight">FabLab</h2>
             <p class="text-gray-600 text-base mb-6 leading-relaxed flex-grow">
               Laboratório de fabricação digital equipado com impressoras 3D, cortadoras a laser e ferramentas para prototipagem rápida de produtos físicos.
             </p>
@@ -114,7 +114,7 @@
             <div class="mb-4">
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Incubação</span>
             </div>
-            <h3 class="text-unirvBlue mb-3 group-hover:text-blue-700 transition-colors text-2xl font-bold leading-tight">YpeTec</h3>
+            <h2 class="text-unirvBlue mb-3 group-hover:text-blue-700 transition-colors text-2xl font-bold leading-tight">YpeTec</h2>
             <p class="text-gray-600 text-base mb-6 leading-relaxed flex-grow">
               A Incubadora de Empresas da UniRV, parte do AgroHub. Oferece suporte completo para o desenvolvimento de startups, desde o plano de negócios até a entrada no mercado.
             </p>
@@ -169,34 +169,35 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", (event) => {
-    gsap.registerPlugin(ScrollTrigger);
+    // Wait for GSAP to be loaded from base.html (loaded with defer)
+    if (typeof gsap !== 'undefined') {
+      gsap.registerPlugin(ScrollTrigger);
 
-    // Reveal animations for header elements
-    gsap.utils.toArray('.reveal-up').forEach((elem) => {
-      gsap.to(elem, {
-        scrollTrigger: { trigger: elem, start: "top 90%" },
-        y: 0, opacity: 1, duration: 1, ease: "power3.out"
+      // Reveal animations for header elements
+      gsap.utils.toArray('.reveal-up').forEach((elem) => {
+        gsap.to(elem, {
+          scrollTrigger: { trigger: elem, start: "top 90%" },
+          y: 0, opacity: 1, duration: 1, ease: "power3.out"
+        });
       });
-    });
 
-    // Stagger animation for environment cards
-    gsap.utils.toArray('.environment-card').forEach((card, index) => {
-      gsap.from(card, {
-        scrollTrigger: { 
-          trigger: card, 
-          start: "top 85%" 
-        },
-        opacity: 0,
-        y: 30,
-        duration: 0.8,
-        delay: index * 0.1,
-        ease: "power3.out"
+      // Stagger animation for environment cards
+      gsap.utils.toArray('.environment-card').forEach((card, index) => {
+        gsap.from(card, {
+          scrollTrigger: { 
+            trigger: card, 
+            start: "top 85%" 
+          },
+          opacity: 0,
+          y: 30,
+          duration: 0.8,
+          delay: index * 0.1,
+          ease: "power3.out"
+        });
       });
-    });
+    }
   });
 </script>
 {% endblock %}

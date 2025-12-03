@@ -7,6 +7,20 @@
 {% block page_id %}home{% endblock %}
 
 
+{% block extra_head %}
+  <!-- Preconnect to Unsplash for faster image loading -->
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
+  <!-- Preload LCP hero image with high priority to improve LCP metric -->
+  <link
+    rel="preload"
+    as="image"
+    href="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop"
+    fetchpriority="high"
+    crossorigin="anonymous"
+  />
+{% endblock %}
+
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION -->
@@ -91,7 +105,7 @@
   <section id="pillars-section" class="py-20 bg-gray-50 relative overflow-hidden">
     <div class="container mx-auto px-6 relative z-10">
       <div class="text-center max-w-2xl mx-auto mb-16">
-        <span class="text-agrohubGreen font-bold tracking-widest uppercase text-sm">Nossos Fundamentos</span>
+        <span class="text-green-700 font-bold tracking-widest uppercase text-sm">Nossos Fundamentos</span>
         <h2 class="text-3xl md:text-4xl font-extrabold text-unirvBlue mt-2 mb-4">Pilares da Inovação</h2>
       </div>
       <!-- Grid com items-stretch para garantir mesma altura -->
@@ -279,7 +293,7 @@
             </div>
             <div class="mt-2 md:mt-8 bg-white border-t-4 border-unirvBlue p-6 rounded-xl shadow-xl w-full md:text-center transform md:scale-105 relative z-20">
               <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rotate-45"></div>
-              <div class="absolute -top-3 right-4 md:-top-10 md:left-1/2 md:right-auto md:-translate-x-1/2 bg-agrohubGreen text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wide shadow-sm">
+              <div class="absolute -top-3 right-4 md:-top-10 md:left-1/2 md:right-auto md:-translate-x-1/2 bg-green-700 text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full tracking-wide shadow-sm">
                 Fase Atual
               </div>
               <h3 class="font-bold text-unirvBlue text-lg mt-2 md:mt-0">Fase 2: Smart Farm</h3>
@@ -296,10 +310,10 @@
             </div>
             <div class="mt-2 md:mt-8 bg-gray-50 border border-gray-100 p-6 rounded-xl shadow-sm w-full md:text-center relative">
               <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-gray-50 rotate-45 border-t border-l border-gray-100"></div>
-              <h3 class="font-bold text-gray-700 text-lg">Fase 3: Condomínio</h3>
-              <p class="text-sm text-gray-500 mt-2">Atração de grandes empresas e construção do complexo industrial agro.</p>
+              <h3 class="font-bold text-gray-900 text-lg">Fase 3: Condomínio</h3>
+              <p class="text-sm text-gray-600 mt-2">Atração de grandes empresas e construção do complexo industrial agro.</p>
               <div class="mt-4">
-                <span class="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">Planejado</span>
+                <span class="px-3 py-1 bg-gray-300 text-gray-800 text-xs font-bold rounded-full">Planejado</span>
               </div>
             </div>
 

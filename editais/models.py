@@ -1,15 +1,13 @@
-import re
-import time
 from typing import Optional, Any
 from django.contrib.auth.models import User
 from django.db import models, IntegrityError, transaction
 from django.urls import reverse
-from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.utils import timezone
 
-from .utils import determine_edital_status
-from .constants import SLUG_GENERATION_MAX_RETRIES
+from .utils import determine_edital_status, generate_unique_slug
+from .constants import SLUG_GENERATION_MAX_RETRIES, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT
 
 
 class EditalQuerySet(models.QuerySet):
@@ -105,15 +103,15 @@ class Edital(models.Model):
     )
 
     # Conteúdo
-    analise = models.TextField(blank=True)  # Nova seção: Análise do Edital
-    objetivo = models.TextField(blank=True)
-    etapas = models.TextField(blank=True)
-    recursos = models.TextField(blank=True)
-    itens_financiaveis = models.TextField(blank=True)
-    criterios_elegibilidade = models.TextField(blank=True)
-    criterios_avaliacao = models.TextField(blank=True)
-    itens_essenciais_observacoes = models.TextField(blank=True)
-    detalhes_unirv = models.TextField(blank=True)
+    analise = models.TextField(blank=True, null=True)  # Nova seção: Análise do Edital
+    objetivo = models.TextField(blank=True, null=True)
+    etapas = models.TextField(blank=True, null=True)
+    recursos = models.TextField(blank=True, null=True)
+    itens_financiaveis = models.TextField(blank=True, null=True)
+    criterios_elegibilidade = models.TextField(blank=True, null=True)
+    criterios_avaliacao = models.TextField(blank=True, null=True)
+    itens_essenciais_observacoes = models.TextField(blank=True, null=True)
+    detalhes_unirv = models.TextField(blank=True, null=True)
 
     objects = EditalManager()
 
@@ -132,53 +130,24 @@ class Edital(models.Model):
         ]
 
     def _generate_unique_slug(self) -> str:
-        """Generate a unique slug from the title - optimized to reduce database queries"""
-        base_slug = slugify(self.titulo)
+        """
+        Generate a unique slug from the title - optimized to reduce database queries.
         
-        # Handle edge case: if slugify returns empty string (e.g., title is only special chars)
-        # Use a fallback slug based on PK or timestamp
-        if not base_slug:
-            if self.pk:
-                base_slug = f"edital-{self.pk}"
-            else:
-                # For new objects, use timestamp as fallback
-                base_slug = f"edital-{int(time.time())}"
-        
-        # Fetch slugs that match the exact base_slug or follow the pattern base_slug-N
-        # This is more precise than startswith and avoids false matches
-        # Strategy: Get exact match and slugs starting with base_slug-, then filter in Python
-        # This works across all database backends (SQLite, PostgreSQL, MySQL)
-        queryset = Edital.objects.filter(
-            models.Q(slug=base_slug) | models.Q(slug__startswith=f"{base_slug}-")
+        RACE CONDITION HANDLING:
+        Slug uniqueness is enforced at the database level with a unique constraint.
+        The save() method includes retry logic that regenerates the slug if an
+        IntegrityError occurs due to concurrent creation with the same title.
+        This handles race conditions where multiple requests create editais with
+        the same title simultaneously.
+        """
+        return generate_unique_slug(
+            text=self.titulo,
+            model_class=Edital,
+            slug_field_name='slug',
+            prefix='edital',
+            pk=self.pk,
+            max_attempts=SLUG_GENERATION_MAX_ATTEMPTS_EDITAL
         )
-        if self.pk:
-            queryset = queryset.exclude(pk=self.pk)
-
-        # Filter in Python to ensure we only get slugs matching base_slug or base_slug-N pattern
-        # This avoids false matches like "editable" when base_slug is "edit"
-        all_slugs = queryset.values_list('slug', flat=True)
-        existing_slugs = set()
-        pattern = re.compile(rf'^{re.escape(base_slug)}(-\d+)?$')
-        for slug in all_slugs:
-            if pattern.match(slug):
-                existing_slugs.add(slug)
-        
-        # Find next available slug in memory (no additional queries)
-        slug = base_slug
-        counter = 1
-        max_attempts = 10000  # Safety limit to prevent infinite loops
-        attempts = 0
-        
-        while slug in existing_slugs and attempts < max_attempts:
-            slug = f"{base_slug}-{counter}"
-            counter += 1
-            attempts += 1
-        
-        # If we hit the limit, append timestamp to ensure uniqueness
-        if attempts >= max_attempts:
-            slug = f"{base_slug}-{int(time.time())}"
-        
-        return slug
 
     def clean(self) -> None:
         """Validate model fields"""
@@ -208,8 +177,12 @@ class Edital(models.Model):
             today=today,
         )
         
-        # Handle race condition for slug uniqueness (retry if IntegrityError)
-        # Wrap in transaction to ensure atomicity
+        # RACE CONDITION HANDLING: Slug uniqueness retry logic
+        # When multiple requests create editais with the same title simultaneously,
+        # the database unique constraint on slug may cause IntegrityError.
+        # This retry mechanism regenerates the slug and attempts to save again.
+        # The transaction.atomic() wrapper ensures each attempt is atomic.
+        # This is an acceptable race condition pattern - retry with new slug value.
         max_retries = SLUG_GENERATION_MAX_RETRIES
         for attempt in range(max_retries):
             try:
@@ -217,16 +190,16 @@ class Edital(models.Model):
                     super().save(*args, **kwargs)
                 break
             except ValidationError:
-                # Re-raise validation errors
+                # Re-raise validation errors (not race conditions)
                 raise
             except IntegrityError as e:
                 # Check if it's an IntegrityError related to slug uniqueness
                 if 'slug' in str(e).lower() or 'unique' in str(e).lower():
                     if attempt < max_retries - 1:
-                        # Regenerate slug and retry
+                        # Regenerate slug and retry (handles race condition)
                         self.slug = self._generate_unique_slug()
                         continue
-                # Re-raise other exceptions
+                # Re-raise other IntegrityErrors (not slug-related)
                 raise
 
     @property
@@ -289,7 +262,14 @@ class EditalValor(models.Model):
     ]
     
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='valores')
-    valor_total = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    valor_total = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0)],
+        help_text='Valor total (não pode ser negativo)'
+    )
     moeda = models.CharField(
         max_length=10,
         choices=MOEDA_CHOICES,
@@ -423,7 +403,7 @@ class Project(models.Model):
     Modelo que representa uma startup incubada no AgroHub.
     
     Uma startup é uma empresa em processo de incubação na Ypetec, parte do AgroHub.
-    Contém informações sobre a startup, seu status no processo de incubação e nota.
+    Contém informações sobre a startup e seu status no processo de incubação.
     
     Attributes:
         name: Nome da startup
@@ -431,7 +411,7 @@ class Project(models.Model):
         proponente: Usuário responsável pela startup (ForeignKey)
         submitted_on: Data de entrada na incubadora
         status: Status atual no processo de incubação (Pré-Incubação, Incubação, Graduada, Suspensa)
-        note: Nota/score da startup (opcional)
+        contato: Informações de contato da startup (opcional)
         data_criacao: Data de criação do registro
         data_atualizacao: Data da última atualização
     """
@@ -467,7 +447,7 @@ class Project(models.Model):
     edital = models.ForeignKey(
         Edital,
         on_delete=models.SET_NULL,
-        related_name='projetos',
+        related_name='startups',
         verbose_name='Edital',
         null=True,
         blank=True,
@@ -476,7 +456,7 @@ class Project(models.Model):
     proponente = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='projetos_submetidos',
+        related_name='startups',
         verbose_name='Responsável'
     )
     submitted_on = models.DateTimeField(
@@ -489,16 +469,52 @@ class Project(models.Model):
         default='pre_incubacao',
         verbose_name='Status'
     )
-    note = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
+    contato = models.TextField(
         blank=True,
         null=True,
-        verbose_name='Nota',
-        help_text='Nota/score do projeto (opcional)'
+        verbose_name='Contato',
+        help_text='Informações de contato da startup (email, telefone, website, etc.)'
     )
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, editable=False, verbose_name='Slug')
+    logo = models.ImageField(
+        upload_to='startups/logos/',
+        blank=True,
+        null=True,
+        verbose_name='Logo',
+        help_text='Logo da startup (máximo 5MB, formatos: JPG, PNG, GIF)'
+    )
+    
+    def clean(self) -> None:
+        """Validate model fields including image upload"""
+        super().clean()
+        
+        # Validate logo file if provided
+        if self.logo:
+            # Check file size (5MB limit)
+            if self.logo.size > 5 * 1024 * 1024:  # 5MB in bytes
+                raise ValidationError({
+                    'logo': 'O arquivo de logo é muito grande. Tamanho máximo: 5MB.'
+                })
+            
+            # Check file extension
+            import os
+            ext = os.path.splitext(self.logo.name)[1].lower()
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            if ext not in allowed_extensions:
+                raise ValidationError({
+                    'logo': f'Formato de arquivo não permitido. Use: {", ".join(allowed_extensions)}'
+                })
+            
+            # Check content type if available
+            if hasattr(self.logo, 'content_type'):
+                content_type = self.logo.content_type
+                allowed_types = ['image/jpeg', 'image/png', 'image/gif']
+                if content_type not in allowed_types:
+                    raise ValidationError({
+                        'logo': 'Tipo de arquivo não permitido. Use apenas imagens JPG, PNG ou GIF.'
+                    })
     
     class Meta:
         ordering = ['-submitted_on']
@@ -510,13 +526,14 @@ class Project(models.Model):
             models.Index(fields=['edital', 'status'], name='idx_project_edital_status'),
             models.Index(fields=['proponente'], name='idx_project_proponente'),
             models.Index(fields=['category'], name='idx_project_category'),
+            models.Index(fields=['slug'], name='idx_project_slug'),
         ]
     
     def get_phase_display(self):
         """Map status to phase for display"""
         phase_mapping = {
             'pre_incubacao': 'Ideação',
-            'incubacao': 'MVP' if not self.note or self.note < 7 else 'Tração',
+            'incubacao': 'MVP',
             'graduada': 'Escala',
             'suspensa': 'Suspensa',
         }
@@ -526,7 +543,7 @@ class Project(models.Model):
         """Get CSS classes for phase badge"""
         phase_classes = {
             'pre_incubacao': 'bg-purple-100 text-purple-700 border-purple-200',
-            'incubacao': 'bg-yellow-100 text-yellow-700 border-yellow-200' if not self.note or self.note < 7 else 'bg-green-100 text-green-700 border-green-200',
+            'incubacao': 'bg-yellow-100 text-yellow-700 border-yellow-200',
             'graduada': 'bg-blue-100 text-blue-700 border-blue-200',
             'suspensa': 'bg-gray-100 text-gray-700 border-gray-200',
         }
@@ -535,6 +552,56 @@ class Project(models.Model):
     def __str__(self):
         edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''
         return f'{self.name} - {edital_titulo}' if edital_titulo else self.name
+    
+    def _generate_unique_slug(self) -> str:
+        """Generate a unique slug from the name - optimized to reduce database queries"""
+        return generate_unique_slug(
+            text=self.name,
+            model_class=Project,
+            slug_field_name='slug',
+            prefix='startup',
+            pk=self.pk,
+            max_attempts=SLUG_GENERATION_MAX_ATTEMPTS_PROJECT
+        )
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # Generate slug only if it doesn't exist (on creation)
+        if not self.slug:
+            self.slug = self._generate_unique_slug()
+        
+        # Ensure slug is never None after save
+        if not self.slug:
+            raise ValidationError('Slug não pode ser None. Nome inválido para geração de slug.')
+        
+        # Handle race condition for slug uniqueness (retry if IntegrityError)
+        # Wrap in transaction to ensure atomicity
+        max_retries = SLUG_GENERATION_MAX_RETRIES
+        for attempt in range(max_retries):
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                break
+            except ValidationError:
+                # Re-raise validation errors
+                raise
+            except IntegrityError as e:
+                # Check if it's an IntegrityError related to slug uniqueness
+                if 'slug' in str(e).lower() or 'unique' in str(e).lower():
+                    if attempt < max_retries - 1:
+                        # Regenerate slug and retry
+                        self.slug = self._generate_unique_slug()
+                        continue
+                # Re-raise other exceptions
+                raise
+    
+    def get_absolute_url(self) -> str:
+        """Return URL using slug if available, otherwise use PK"""
+        if self.slug:
+            return reverse('startup_detail_slug', kwargs={'slug': self.slug})
+        if self.pk:
+            return reverse('startup_detail', kwargs={'pk': self.pk})
+        # If object is not saved yet, return empty string
+        return ''
     
     def __repr__(self):
         return f"<Project: {self.name} (pk={self.pk}, status={self.status}, edital_id={self.edital_id})>"

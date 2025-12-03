@@ -29,7 +29,7 @@
     <div class="flex flex-col lg:flex-row gap-8">
       
       <!-- Sidebar Filters -->
-      <aside class="w-full lg:w-64 flex-shrink-0">
+      <aside class="w-full lg:w-64 shrink-0">
         <div class="reveal-up bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
           
           <details class="group filter-details" open>
@@ -137,7 +137,7 @@
         {% if page_obj and page_obj.object_list %}
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px] editais-grid">
             {% for edital in page_obj %}
-              <a href="{{ edital.get_absolute_url }}" class="edital-card bg-white rounded-3xl p-8 h-full flex flex-col cursor-pointer block no-underline shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group transform hover:-translate-y-2" aria-label="Ver detalhes do edital {{ edital.titulo }}">
+              <a href="{{ edital.get_absolute_url }}" class="edital-card bg-white rounded-3xl p-8 h-full flex flex-col cursor-pointer no-underline shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group transform hover:-translate-y-2" aria-label="Ver detalhes do edital {{ edital.titulo }}">
                 <!-- Status Badge -->
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-6 w-fit {% if edital.status == 'aberto' %}bg-green-100 text-green-700{% elif edital.status == 'fechado' %}bg-gray-100 text-gray-600{% else %}bg-blue-100 text-blue-700{% endif %}">
                   <i class="fas {% if edital.status == 'aberto' %}fa-check-circle{% elif edital.status == 'fechado' %}fa-times-circle{% else %}fa-hourglass-half{% endif %} mr-1.5"></i>
@@ -149,7 +149,7 @@
                   <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
                     {% if edital.end_date %}from-blue-50 to-indigo-100 border border-blue-100
                     {% else %}from-purple-50 to-fuchsia-100 border border-purple-100{% endif %}
-                    flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300 flex-shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+                    flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
                     {% if edital.end_date %}
                       <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
                     {% else %}
@@ -157,14 +157,14 @@
                     {% endif %}
                   </div>
                   {% if edital.numero_edital %}
-                  <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold uppercase tracking-wide ml-2 flex-shrink-0">
+                  <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold uppercase tracking-wide ml-2 shrink-0">
                     Edital {{ edital.numero_edital }}
                   </span>
                   {% endif %}
                 </div>
                 
                 <!-- Content -->
-                <div class="mb-6 flex-grow">
+                <div class="mb-6 grow">
                   <h3 class="font-extrabold text-2xl text-gray-900 group-hover:text-unirvBlue transition-colors mb-3 leading-tight">{{ edital.titulo }}</h3>
                   <p class="text-xs font-bold 
                     {% if edital.end_date %}text-blue-600

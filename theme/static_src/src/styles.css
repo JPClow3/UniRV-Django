@@ -8,6 +8,9 @@
 @source "../../../editais/templates/**/*.html";
 @source "../../../**/*.py";
 
+/* Note: FontAwesome font-display optimization is handled via preload link in base.html */
+/* CDN @font-face rules cannot be overridden, but preloading helps with font loading performance */
+
 @theme {
   --color-unirvBlue: #27348b;
   --color-agrohubBlue: #007bff;
@@ -268,13 +271,21 @@ body {
 
   .nav-cta {
     @apply px-6 py-2.5 rounded-full font-medium text-sm whitespace-nowrap transition-all duration-300 ease-in-out no-underline inline-flex items-center justify-center;
-    background-color: var(--color-secondary);
-    color: white;
+    background-color: var(--color-darkBlue);
+    color: #ffffff !important; /* Ensure white text for maximum contrast - WCAG AA compliant */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Ensure nav-cta has good contrast even on transparent headers */
+  .site-header.header-transparent .nav-cta,
+  .site-header.glass-nav .nav-cta {
+    background-color: var(--color-darkBlue) !important;
+    color: #ffffff !important;
   }
 
   .nav-cta:hover {
     background-color: var(--color-primary);
+    color: #ffffff !important; /* Ensure white text on hover for WCAG AA compliance */
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--color-green-light);
@@ -1270,7 +1281,7 @@ body {
   }
 
   .stat-card {
-    @apply bg-white rounded-[1.5rem] p-10 border-b-4 transition-all duration-300 ease-in-out;
+    @apply bg-white rounded-3xl p-10 border-b-4 transition-all duration-300 ease-in-out;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
   }
 
@@ -1329,7 +1340,7 @@ body {
   }
 
   .pillar-card {
-    @apply bg-white rounded-[1.5rem] p-8 border border-slate-900/5 flex flex-col items-center text-center gap-4 min-h-full transition-all duration-300 ease-in-out;
+    @apply bg-white rounded-3xl p-8 border border-slate-900/5 flex flex-col items-center text-center gap-4 min-h-full transition-all duration-300 ease-in-out;
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
   }
 
@@ -1778,18 +1789,32 @@ body {
   }
 
   /* Simple reusable blob animation (used in hero/startups/auth) */
+  /* Optimized to prevent layout shifts: contain layout, will-change for transform */
   .animate-blob {
     animation: blob 7s infinite;
+    will-change: transform;
+    contain: layout style paint;
+    /* Reserve space to prevent layout shifts */
+    min-width: 600px;
+    min-height: 600px;
   }
 
   .animate-blob-delay-1 {
     animation: blob 8s infinite;
     animation-delay: 2s;
+    will-change: transform;
+    contain: layout style paint;
+    min-width: 600px;
+    min-height: 600px;
   }
 
   .animate-blob-delay-2 {
     animation: blob 9s infinite;
     animation-delay: 4s;
+    will-change: transform;
+    contain: layout style paint;
+    min-width: 600px;
+    min-height: 600px;
   }
 }
 

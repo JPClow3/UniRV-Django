@@ -11,6 +11,18 @@
 {% block og_description %}{{ edital.objetivo|truncatewords:25|striptags }}{% endblock %}
 
 {% block content %}
+<style>
+  /* Optimize animations to reduce forced reflows */
+  .reveal-up,
+  .bg-white.rounded-xl {
+    will-change: transform, opacity;
+  }
+  /* Remove will-change after animation to free up resources */
+  .reveal-up.animated,
+  .bg-white.rounded-xl.animated {
+    will-change: auto;
+  }
+</style>
 <!-- Hero Header -->
 <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
   <div class="container relative z-10 px-6 pt-12">
@@ -254,54 +266,100 @@
 
   </div><!-- end max-w-6xl -->
 </div><!-- end container -->
+{% endblock %}
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    gsap.registerPlugin(ScrollTrigger);
-
-    // 1. Animate header elements immediately on load
-    const headerSection = document.querySelector('section.bg-gradient-to-r');
-    if (headerSection) {
-        const headerRevealElements = headerSection.querySelectorAll('.reveal-up');
-        if (headerRevealElements.length > 0) {
-            gsap.to(headerRevealElements, {
-                y: 0,
-                opacity: 1,
-                duration: 0.5,
-                stagger: 0.08,
-                ease: "power3.out",
-                delay: 0.1
-            });
+// Optimized animations for detail page - using GSAP loaded from base.html with defer
+// This code runs after GSAP is loaded, reducing forced reflows
+(function() {
+    'use strict';
+    
+    // Wait for GSAP to be available (loaded with defer in base.html)
+    function initAnimations() {
+        if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+            // Retry after a short delay if GSAP isn't loaded yet
+            setTimeout(initAnimations, 50);
+            return;
         }
-    }
 
-    // 2. Animate content sections on scroll
-    const contentSections = document.querySelectorAll('.bg-white.rounded-xl');
-    if (contentSections.length > 0) {
-        contentSections.forEach((section, index) => {
-            gsap.from(section, {
-                scrollTrigger: {
-                    trigger: section,
-                    start: "top 85%"
-                },
-                opacity: 0,
-                y: 30,
-                duration: 0.6,
-                ease: "power2.out",
-                delay: index * 0.1
-            });
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Batch DOM reads to reduce forced reflows
+        const headerSection = document.querySelector('section.bg-gradient-to-r');
+        const headerRevealElements = headerSection ? headerSection.querySelectorAll('.reveal-up') : [];
+        const contentSections = document.querySelectorAll('.bg-white.rounded-xl');
+        
+        // Use requestAnimationFrame to batch DOM writes
+        requestAnimationFrame(function() {
+            // 1. Animate header elements immediately on load
+            if (headerRevealElements.length > 0) {
+                // Set initial state in a single batch
+                gsap.set(headerRevealElements, { y: 20, opacity: 0 });
+                
+                // Animate with will-change optimization (handled by CSS)
+                gsap.to(headerRevealElements, {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.5,
+                    stagger: 0.08,
+                    ease: "power3.out",
+                    delay: 0.1,
+                    force3D: true, // Use GPU acceleration
+                    onComplete: function() {
+                        // Remove will-change after animation to free up resources
+                        headerRevealElements.forEach(function(el) {
+                            el.classList.add('animated');
+                        });
+                    }
+                });
+            }
+
+            // 2. Animate content sections on scroll with optimized ScrollTrigger
+            if (contentSections.length > 0) {
+                // Set initial state in batch
+                gsap.set(contentSections, { opacity: 0, y: 30 });
+                
+                // Use ScrollTrigger with refresh optimization
+                contentSections.forEach(function(section, index) {
+                    gsap.to(section, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.6,
+                        ease: "power2.out",
+                        delay: index * 0.1,
+                        force3D: true, // Use GPU acceleration
+                        scrollTrigger: {
+                            trigger: section,
+                            start: "top 85%",
+                            toggleActions: "play none none none", // Only play once
+                            refreshPriority: -1 // Lower priority for refresh
+                        },
+                        onComplete: function() {
+                            // Remove will-change after animation to free up resources
+                            section.classList.add('animated');
+                        }
+                    });
+                });
+            }
         });
     }
 
-    // 3. Print button functionality
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAnimations);
+    } else {
+        // DOM already loaded, but wait for GSAP
+        initAnimations();
+    }
+
+    // Print button functionality (doesn't require GSAP)
     const printBtn = document.getElementById('print-btn');
     if (printBtn) {
         printBtn.addEventListener('click', function() {
             window.print();
         });
     }
-});
+})();
 </script>
 {% endblock %}

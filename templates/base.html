@@ -41,19 +41,27 @@
       content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}"
     />
     <meta property="og:site_name" content="AgroHub UniRV" />
+    {% block og_image %}
+    <meta property="og:image" content="{% block og_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}{% endblock %}" />
+    <meta property="og:image:alt" content="{% block og_image_alt %}AgroHub UniRV - Logo do Centro de Inovação e Tecnologia{% endblock %}" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    {% endblock %}
     {% load static tailwind_tags compress editais_filters %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
     <!-- Resource Hints for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     
-    <!-- Google Fonts: Load asynchronously with font-display swap -->
+    <!-- Google Fonts: Optimized loading to prevent layout shifts -->
+    <!-- Load fonts asynchronously with swap to prevent invisible text during font load -->
     <link
-      rel="preload"
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-      as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
     <noscript>
       <link
@@ -61,11 +69,18 @@
         rel="stylesheet"
       />
     </noscript>
+    <!-- Preload FontAwesome font file for faster loading -->
+    <link
+      rel="preload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/webfonts/fa-solid-900.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
     <script>
-      // Polyfill for browsers that don't support onload on link tags
+      // Polyfill for browsers that don't support onload on link tags - minified inline
       !function(e){"use strict";var t=function(t,n,o){var i,r=e.document,a=r.createElement("link");if(o)i=o;else{var l=(r.body||r.getElementsByTagName("head")[0]).childNodes;i=l[l.length-1]}var d=r.styleSheets;a.rel="stylesheet",a.href=t,a.media="only x",function e(t){if(r.body)return t();setTimeout(function(){e(t)})}(function(){i.parentNode.insertBefore(a,o?i:i.nextSibling)});var f=function(e){for(var t=a.href,n=d.length;n--;)if(d[n].href===t)return e();setTimeout(function(){f(e)})};return a.addEventListener&&a.addEventListener("load",function(){this.media=o||"all"}),a.onloadcssdefined=f,f(function(){a.media!==o&&(a.media=o||"all")}),a};"undefined"!=typeof exports?exports.loadCSS=t:e.loadCSS=t}("undefined"!=typeof global?global:this);
     </script>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
     
     <!-- Structured Data (JSON-LD) for SEO -->
@@ -96,13 +111,18 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
       as="style"
       onload="this.onload=null;this.rel='stylesheet'"
+      crossorigin="anonymous"
     />
     <noscript>
       <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+        crossorigin="anonymous"
       />
     </noscript>
+    <!-- Note: FontAwesome font-display optimization would require self-hosting the fonts
+         with modified @font-face rules. CDN fonts cannot be overridden.
+         The preload link above helps minimize font loading delay. -->
     {% block extra_head %}{% endblock %}
   </head>
   {% with current_url=request.resolver_match.url_name|default:"" transparent_header=request.resolver_match.url_name|is_transparent_header %}
@@ -117,7 +137,7 @@
     >
 
     <header
-      class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 relative w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
+      class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
       <div
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
@@ -128,13 +148,13 @@
           <!-- Logo -->
           <a
             href="{% url 'home' %}"
-            class="flex items-center flex-shrink-0 mr-auto"
+            class="flex items-center shrink-0 mr-auto"
             aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia"
           >
             <img 
               src="{% static 'img/Logo.svg' %}" 
               alt="AgroHub UniRV Logo" 
-              class="w-28 h-28 flex-shrink-0" 
+              class="w-28 h-28 shrink-0" 
               width="112" 
               height="112" 
               fetchpriority="high"
@@ -143,28 +163,28 @@
           </a>
 
           <!-- Desktop Navigation -->
-          <div class="hidden md:flex items-center gap-6 flex-shrink-0 ml-auto whitespace-nowrap flex-nowrap">
+          <div class="hidden md:flex items-center gap-6 shrink-0 ml-auto whitespace-nowrap flex-nowrap">
             <a
               href="{% url 'home' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'home' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap shrink-0 {% if current_url == 'home' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Início
             </a>
             <a
               href="{% url 'ambientes_inovacao' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap shrink-0 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Ambientes de Inovação
             </a>
             <a
               href="{% url 'editais_index' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap shrink-0 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Editais
             </a>
             <a
               href="{% url 'startups_showcase' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap flex-shrink-0 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap shrink-0 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_startups' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Startups
             </a>
@@ -236,7 +256,7 @@
             <li>
               <a
                 href="{% url 'startups_showcase' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_projetos' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-2 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_startups' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Startups</a
               >
             </li>
@@ -438,9 +458,10 @@
 
 
     {% endwith %}
-    <!-- Global animation libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+    <!-- Global animation libraries - loaded with defer and preconnect -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
 
     {% compress js %}
     <script src="{% static 'js/animations.js' %}" defer></script>

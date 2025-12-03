@@ -11,8 +11,9 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db import connection
+from django.db import connection, DatabaseError
 from django.db.models import Q, Count
+from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
@@ -20,10 +21,12 @@ from django.utils import timezone
 
 from ..constants import (
     CACHE_TTL_INDEX, PAGINATION_DEFAULT,
-    ACTIVE_PROJECT_STATUSES, SECONDS_PER_DAY, CACHE_TTL_15_MINUTES
+    ACTIVE_PROJECT_STATUSES, SECONDS_PER_DAY, CACHE_TTL_15_MINUTES,
+    MAX_SEARCH_LENGTH, MAX_STARTUPS_DISPLAY
 )
 from ..models import Edital, Project
-from ..utils import mark_edital_fields_safe
+from ..utils import mark_edital_fields_safe, parse_date_filter, apply_tipo_filter
+from ..cache_utils import get_index_cache_key, get_detail_cache_key, get_user_cache_key
 from ..exceptions import EditalNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -34,13 +37,18 @@ def build_search_query(search_query: str) -> Q:
     Constrói um objeto Q para busca de texto completo em todos os campos de edital.
     
     Args:
-        search_query: String de busca
+        search_query: String de busca (será truncada se muito longa)
         
     Returns:
         Q: Objeto Q do Django para filtragem
     """
     if not search_query:
         return Q()
+    
+    # Validate and limit search query length to prevent DoS
+    # This is a safety measure - the view also truncates, but defense in depth
+    if len(search_query) > MAX_SEARCH_LENGTH:
+        search_query = search_query[:MAX_SEARCH_LENGTH]
 
     q_objects = Q()
     search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
@@ -120,7 +128,7 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
                 total_active=Count('id'),
                 graduadas=Count('id', filter=Q(status='graduada')),
             )
-        except Exception as stats_error:
+        except (DatabaseError, ValueError, TypeError) as stats_error:
             logger.warning(f"Error calculating stats, using defaults: {stats_error}")
             stats = {'total_active': 0, 'graduadas': 0}
         
@@ -135,7 +143,6 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         # Order by submission date (newest first) - already indexed in model
         # Limit results to prevent loading too many objects at once
         # Template can handle pagination if needed in the future
-        MAX_STARTUPS_DISPLAY = 100  # Reasonable limit for showcase page
         startups = startups.order_by('-submitted_on')[:MAX_STARTUPS_DISPLAY]
         
         context = {
@@ -151,7 +158,7 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         
         return render(request, 'startups.html', context)
     
-    except Exception as e:
+    except (DatabaseError, ValueError, TypeError) as e:
         logger.error(
             f"Erro ao carregar showcase de startups - erro: {str(e)}",
             exc_info=True
@@ -217,7 +224,7 @@ def register_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedir
                         recipient_list=[user.email],
                         fail_silently=True,
                     )
-            except Exception as e:
+            except (ConnectionError, OSError, ValueError) as e:
                 logger.warning(f"Failed to send welcome email to {user.email}: {e}")
             
             messages.success(request, 'Conta criada com sucesso! Bem-vindo ao AgroHub!')
@@ -248,9 +255,9 @@ def index(request: HttpRequest) -> HttpResponse:
             page_number = '1'
         
         # Validate search query length (prevent DoS with very long queries)
-        if search_query and len(search_query) > 500:
-            search_query = search_query[:500]
-            messages.warning(request, 'A busca foi truncada para 500 caracteres.')
+        if search_query and len(search_query) > MAX_SEARCH_LENGTH:
+            search_query = search_query[:MAX_SEARCH_LENGTH]
+            messages.warning(request, f'A busca foi truncada para {MAX_SEARCH_LENGTH} caracteres.')
 
         # Build cache key based on query parameters
         # Only cache if no search or filter is applied (most common case)
@@ -263,7 +270,7 @@ def index(request: HttpRequest) -> HttpResponse:
             # Get current cache version to ensure we get the latest cached data
             version_key = 'editais_index_cache_version'
             cache_version = cache.get(version_key, 0)
-            cache_key = f'editais_index_page_{page_number}_v{cache_version}'
+            cache_key = get_index_cache_key(page_number, cache_version)
             # Try to get cached content (string, not HttpResponse object)
             cached_content = cache.get(cache_key)
             if cached_content:
@@ -295,30 +302,16 @@ def index(request: HttpRequest) -> HttpResponse:
             editais = editais.filter(status='aberto')
         
         # Apply tipo filter (Fluxo Contínuo = sem end_date, Fomento = com end_date)
-        if tipo_filter:
-            if tipo_filter == 'Fluxo Contínuo':
-                editais = editais.filter(end_date__isnull=True)
-            elif tipo_filter == 'Fomento':
-                editais = editais.filter(end_date__isnull=False)
+        editais = apply_tipo_filter(editais, tipo_filter)
 
         # Apply date filters
-        if start_date_filter:
-            try:
-                from datetime import datetime
-                start_date = datetime.strptime(start_date_filter, '%Y-%m-%d').date()
-                editais = editais.filter(start_date__gte=start_date)
-            except (ValueError, TypeError):
-                # Invalid date format, ignore filter
-                pass
+        start_date = parse_date_filter(start_date_filter)
+        if start_date:
+            editais = editais.filter(start_date__gte=start_date)
 
-        if end_date_filter:
-            try:
-                from datetime import datetime
-                end_date = datetime.strptime(end_date_filter, '%Y-%m-%d').date()
-                editais = editais.filter(end_date__lte=end_date)
-            except (ValueError, TypeError):
-                # Invalid date format, ignore filter
-                pass
+        end_date = parse_date_filter(end_date_filter)
+        if end_date:
+            editais = editais.filter(end_date__lte=end_date)
 
         # Use pagination constant
         per_page = getattr(settings, 'EDITAIS_PER_PAGE', PAGINATION_DEFAULT)
@@ -350,7 +343,7 @@ def index(request: HttpRequest) -> HttpResponse:
         # Create and return a new HttpResponse for this request
         return HttpResponse(rendered_content)
     
-    except Exception as e:
+    except (DatabaseError, ValueError, TypeError, EmptyPage, PageNotAnInteger) as e:
         logger.error(
             f"Erro ao carregar página de editais - IP: {request.META.get('REMOTE_ADDR')}, "
             f"erro: {str(e)}",
@@ -392,17 +385,8 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
     # - staff: authenticated staff users (may have different permissions)
     # - auth: authenticated non-staff users (have CSRF tokens)
     # - public: unauthenticated users (no CSRF tokens)
-    if request.user.is_authenticated:
-        if request.user.is_staff:
-            user_key = 'staff'
-        else:
-            user_key = 'auth'  # Authenticated non-staff
-    else:
-        user_key = 'public'  # Unauthenticated
-    
-    # Use slug if available, otherwise use pk
     identifier = slug if slug else f'pk_{pk}'
-    cache_key = f'edital_detail_{identifier}_{user_key}'
+    cache_key = get_detail_cache_key('edital', identifier, request.user)
     
     # Try to get cached content (string, not HttpResponse object)
     cached_content = cache.get(cache_key)
@@ -476,7 +460,7 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
     except Http404:
         # Re-raise Http404 sem modificação
         raise
-    except Exception as e:
+    except (DatabaseError, ValidationError, ValueError) as e:
         logger.error(f"Erro inesperado em edital_detail: {e}", exc_info=True)
         raise Http404("Erro ao carregar edital")
 
@@ -504,7 +488,9 @@ def edital_detail_redirect(request: HttpRequest, pk: int) -> HttpResponseRedirec
     
     if edital.slug:
         return redirect('edital_detail_slug', slug=edital.slug, permanent=True)
-    # Fallback: if no slug, use detail view with PK
+    # Fallback: if no slug, call detail view directly with PK
+    # This handles edge case where slug generation failed or was None
+    # Note: edital_detail accepts both slug and pk parameters
     return edital_detail(request, pk=pk)
 
 
@@ -537,7 +523,7 @@ def health_check(request: HttpRequest) -> JsonResponse:
             'cache': 'ok' if cache_status else 'error',
             'timestamp': timezone.now().isoformat()
         })
-    except Exception as e:
+    except (DatabaseError, OSError, ConnectionError) as e:
         logger.error(f"Health check falhou: {e}", exc_info=True)
         return JsonResponse({
             'status': 'unhealthy',
@@ -545,3 +531,75 @@ def health_check(request: HttpRequest) -> JsonResponse:
             'timestamp': timezone.now().isoformat()
         }, status=500)
 
+
+def startup_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional[int] = None) -> HttpResponse:
+    """
+    Página de detalhes da startup - suporta slug ou PK.
+    
+    Similar ao edital_detail, mas para o modelo Project (startup).
+    """
+    # Build cache key that includes user authentication status
+    identifier = slug if slug else f'pk_{pk}'
+    cache_key = get_detail_cache_key('startup', identifier, request.user)
+    
+    # Try to get cached content (string, not HttpResponse object)
+    cached_content = cache.get(cache_key)
+    if cached_content:
+        return HttpResponse(cached_content)
+    
+    try:
+        # Optimize query with select_related
+        if slug:
+            startup = get_object_or_404(
+                Project.objects.select_related('proponente', 'edital'),
+                slug=slug
+            )
+        elif pk:
+            startup = get_object_or_404(
+                Project.objects.select_related('proponente', 'edital'),
+                pk=pk
+            )
+        else:
+            raise Http404("Startup não encontrada")
+        
+        context = {
+            'startup': startup,
+        }
+        
+        # Render template to string for caching
+        rendered_content = render_to_string('startups/detail.html', context, request=request)
+        
+        # Cache the rendered content (string) for 15 minutes
+        cache.set(cache_key, rendered_content, CACHE_TTL_15_MINUTES)
+        
+        # Create and return a new HttpResponse for this request
+        return HttpResponse(rendered_content)
+    except Project.DoesNotExist:
+        raise Http404("Startup não encontrada")
+    except Http404:
+        # Re-raise Http404 without modification
+        raise
+    except (DatabaseError, ValidationError) as e:
+        logger.error(f"Erro ao carregar startup: {e}", exc_info=True)
+        raise Http404("Erro ao carregar startup")
+
+
+def startup_detail_redirect(request: HttpRequest, pk: int) -> HttpResponseRedirect:
+    """
+    Redireciona URLs baseadas em PK para URLs baseadas em slug.
+    
+    Redirecionamento permanente (301) para melhorar SEO e consistência de URLs.
+    
+    Args:
+        request: HttpRequest
+        pk: Primary key da startup
+        
+    Returns:
+        HttpResponse: Redirecionamento permanente para URL com slug
+    """
+    startup = get_object_or_404(Project, pk=pk)
+    
+    if startup.slug:
+        return redirect('startup_detail_slug', slug=startup.slug, permanent=True)
+    # Fallback: if no slug, use detail view with PK
+    return startup_detail(request, pk=pk)

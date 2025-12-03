@@ -58,6 +58,9 @@ class EditalAdmin(admin.ModelAdmin):
         Override save_model to sanitize HTML content before saving.
         This prevents XSS vulnerabilities when editing through Django Admin.
         """
+        from .models import EditalHistory
+        from django.db import transaction
+        
         # Sanitize HTML fields before saving (same as web views)
         sanitize_edital_fields(obj)
         
@@ -66,8 +69,42 @@ class EditalAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         
+        # Capture original values for history tracking (before save)
+        from .services import EditalService
+        
+        if change:
+            try:
+                original_obj = Edital.objects.get(pk=obj.pk)
+                # Create temporary object with form values for comparison
+                temp_obj = Edital()
+                # Handle case where form might be None (e.g., in tests)
+                changed_fields = form.changed_data if form and hasattr(form, 'changed_data') else []
+                for field in changed_fields:
+                    if hasattr(obj, field):
+                        setattr(temp_obj, field, form.cleaned_data.get(field, getattr(obj, field)))
+                changes = EditalService.track_changes(
+                    original_obj=original_obj,
+                    new_obj=temp_obj,
+                    user=request.user,
+                    changed_fields=changed_fields
+                )
+            except Edital.DoesNotExist:
+                changes = {}
+        else:
+            changes = {'titulo': obj.titulo}
+        
         # Call parent save_model to actually save
         super().save_model(request, obj, form, change)
+        
+        # Create history entry after save
+        with transaction.atomic():
+            EditalHistory.objects.create(
+                edital=obj,
+                edital_titulo=obj.titulo,
+                user=request.user,
+                action='create' if not change else 'update',
+                changes_summary=changes
+            )
 
 
 @admin.register(EditalValor)
@@ -106,7 +143,7 @@ class ProjectAdmin(admin.ModelAdmin):
         'edital',
         'proponente',
         'status',
-        'note',
+        'contato',
         'submitted_on'
     )
     list_filter = ('status', 'edital', 'submitted_on')
@@ -123,8 +160,8 @@ class ProjectAdmin(admin.ModelAdmin):
     date_hierarchy = 'submitted_on'
     
     fieldsets = (
-        ('Informações do Projeto', {
-            'fields': ('name', 'edital', 'proponente', 'status', 'note')
+        ('Informações da Startup', {
+            'fields': ('name', 'description', 'category', 'edital', 'proponente', 'status', 'contato', 'logo')
         }),
         ('Datas', {
             'fields': ('submitted_on', 'data_criacao', 'data_atualizacao'),

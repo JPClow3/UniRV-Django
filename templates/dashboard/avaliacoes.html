@@ -13,7 +13,7 @@
       {% if user.is_staff %}
         Acompanhe o progresso das avaliações
       {% else %}
-        Avalie os projetos atribuídos a você
+        Avalie as startups atribuídas a você
       {% endif %}
     </p>
   </div>
@@ -50,15 +50,6 @@
       <div class="text-gray-900 text-2xl font-bold">{{ concluidas|default:0 }}</div>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 p-4">
-      <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-          <i class="fas fa-check-circle text-purple-600"></i>
-        </div>
-      </div>
-      <div class="text-gray-600 mb-1 text-sm">Nota Média</div>
-      <div class="text-gray-900 text-2xl font-bold">{{ nota_media|default:0 }}</div>
-    </div>
   </div>
 
   <!-- Search -->
@@ -67,7 +58,7 @@
       <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
       <input
         type="text"
-        placeholder="Buscar projetos..."
+        placeholder="Buscar startups..."
         class="pl-10 w-full"
         id="search-avaliacoes"
         aria-label="Buscar avaliações"
@@ -81,13 +72,12 @@
       <table class="hidden md:table min-w-full divide-y divide-gray-200" role="table" aria-label="Tabela de avaliações">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Projeto</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Startup</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Edital</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Proponente</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Prazo</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Tempo Restante</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Nota</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Ações</th>
           </tr>
         </thead>
@@ -126,13 +116,6 @@
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Em Avaliação</span>
               {% else %}
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">Pendente</span>
-              {% endif %}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              {% if evaluation.note %}
-                <span class="font-mono">{{ evaluation.note }}</span>
-              {% else %}
-                <span class="text-gray-400">-</span>
               {% endif %}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
@@ -222,19 +205,6 @@
             </dd>
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <i class="fas fa-star text-yellow-500"></i>
-          <div>
-            <dt class="sr-only">Nota</dt>
-            <dd>
-              {% if evaluation.note %}
-                <span class="font-semibold text-gray-900">{{ evaluation.note }}</span>
-              {% else %}
-                <span class="text-gray-400">Sem nota</span>
-              {% endif %}
-            </dd>
-          </div>
-        </div>
       </dl>
 
       <div class="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -260,7 +230,7 @@
 <div id="avaliacao-dialog" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="avaliacao-dialog-title" aria-describedby="dialog-projeto-info" aria-hidden="true">
   <div class="bg-white rounded-3xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" role="document">
     <div class="p-6 border-b border-gray-200">
-      <h2 id="avaliacao-dialog-title" class="text-gray-900 text-xl font-semibold">Avaliar Projeto</h2>
+      <h2 id="avaliacao-dialog-title" class="text-gray-900 text-xl font-semibold">Avaliar Startup</h2>
       <p class="text-gray-600 text-sm mt-1" id="dialog-projeto-info">AgroTech Solutions - Edital 001/2024</p>
     </div>
 
@@ -311,25 +281,16 @@
         <label for="parecer" class="text-sm font-medium text-gray-700">Parecer *</label>
         <textarea
           id="parecer"
-          placeholder="Escreva seu parecer detalhado sobre o projeto..."
+          placeholder="Escreva seu parecer detalhado sobre a startup..."
           rows="6"
           required
           class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none"
         ></textarea>
         <p class="text-xs text-gray-500">
-          Forneça uma avaliação detalhada justificando as notas atribuídas
+          Forneça uma avaliação detalhada da startup
         </p>
       </div>
 
-      <div class="p-4 bg-blue-50 rounded-lg">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm text-gray-700">Nota Final Calculada:</span>
-          <span class="text-2xl text-blue-600 font-bold">8.5</span>
-        </div>
-        <p class="text-xs text-gray-600">
-          A nota final é calculada automaticamente com base nos pesos de cada critério
-        </p>
-      </div>
     </div>
 
     <div class="p-6 border-t border-gray-200 flex justify-end gap-3">
@@ -370,11 +331,11 @@ function closeDialog() {
 }
 
 function submitAvaliacao() {
-  // TODO: Implement backend integration
+  // Funcionalidade de envio de avaliações será implementada em breve
   if (window.showToast) {
-    showToast('Funcionalidade em desenvolvimento. Em breve você poderá enviar avaliações.', 'info');
+    showToast('Funcionalidade em desenvolvimento. Em breve você poderá enviar avaliações através desta interface.', 'info');
   } else {
-    alert('Funcionalidade em desenvolvimento. Em breve você poderá enviar avaliações.');
+    alert('Funcionalidade em desenvolvimento. Em breve você poderá enviar avaliações através desta interface.');
   }
   closeDialog();
 }

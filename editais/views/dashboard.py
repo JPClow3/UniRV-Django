@@ -11,6 +11,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError
 from django.db.models import Q, Count, Avg
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -25,6 +27,7 @@ from ..decorators import rate_limit, staff_required
 from ..forms import EditalForm
 from ..models import Edital, Project
 from ..services import EditalService
+from ..utils import apply_tipo_filter
 from .public import build_search_query
 
 logger = logging.getLogger(__name__)
@@ -38,13 +41,66 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
     # Calculate statistics for staff users
     context = {}
     if request.user.is_staff:
+        # Get recent activities from editais and projects
+        # Use select_related to avoid N+1 queries when accessing created_by/updated_by
+        recent_editais = Edital.objects.select_related('created_by', 'updated_by').filter(
+            data_atualizacao__gte=timezone.now() - timedelta(days=7)
+        ).order_by('-data_atualizacao')[:5]
+        
+        recent_projects = Project.objects.filter(
+            data_atualizacao__gte=timezone.now() - timedelta(days=7)
+        ).select_related('proponente', 'edital').order_by('-data_atualizacao')[:5]
+        
+        # Combine and sort activities
+        activities = []
+        for edital in recent_editais:
+            activities.append({
+                'type': 'edital',
+                'title': edital.titulo,
+                'date': edital.data_atualizacao,
+                'icon': 'fa-file-alt',
+                'color': 'blue',
+            })
+        for project in recent_projects:
+            activities.append({
+                'type': 'project',
+                'title': project.name,
+                'date': project.data_atualizacao,
+                'icon': 'fa-rocket',
+                'color': 'green',
+            })
+        
+        # Sort by date descending
+        activities.sort(key=lambda x: x['date'], reverse=True)
+        activities = activities[:10]  # Limit to 10 most recent
+        
         context = {
             'total_usuarios': User.objects.count(),
             'editais_ativos': Edital.objects.filter(status='aberto').count(),
-            'projetos_submetidos': Project.objects.count(),
+            'startups_incubadas': Project.objects.count(),
             'avaliacoes_pendentes': Project.objects.filter(
                 status__in=EVALUATION_PROJECT_STATUSES
             ).count(),
+            'recent_activities': activities,
+        }
+    else:
+        # For non-staff users, show their own recent projects
+        user_projects = Project.objects.filter(
+            proponente=request.user
+        ).order_by('-data_atualizacao')[:5]
+        
+        activities = []
+        for project in user_projects:
+            activities.append({
+                'type': 'project',
+                'title': project.name,
+                'date': project.data_atualizacao,
+                'icon': 'fa-rocket',
+                'color': 'green',
+            })
+        
+        context = {
+            'recent_activities': activities,
         }
     return render(request, 'dashboard/home.html', context)
 
@@ -67,11 +123,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
             stats_base = stats_base.filter(build_search_query(search_query))
         
         # Apply tipo filter to stats base as well (but not status filter)
-        if tipo_filter:
-            if tipo_filter == 'Fluxo Contínuo':
-                stats_base = stats_base.filter(end_date__isnull=True)
-            elif tipo_filter == 'Fomento':
-                stats_base = stats_base.filter(end_date__isnull=False)
+        stats_base = apply_tipo_filter(stats_base, tipo_filter)
         
         # Calculate stats from base queryset (before status filtering)
         # This ensures stats show breakdown across all statuses
@@ -93,11 +145,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         if status_filter:
             editais = editais.filter(status=status_filter)
         
-        if tipo_filter:
-            if tipo_filter == 'Fluxo Contínuo':
-                editais = editais.filter(end_date__isnull=True)
-            elif tipo_filter == 'Fomento':
-                editais = editais.filter(end_date__isnull=False)
+        editais = apply_tipo_filter(editais, tipo_filter)
         
         editais = editais.order_by('-data_criacao')
         
@@ -111,7 +159,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         
         return render(request, 'dashboard/editais.html', context)
     
-    except Exception as e:
+    except (DatabaseError, ValueError, TypeError) as e:
         logger.error(
             f"Erro ao carregar dashboard de editais - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -121,7 +169,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         # Calculate total_submissoes even in error case for consistency
         try:
             total_submissoes = Project.objects.count()
-        except Exception:
+        except DatabaseError:
             total_submissoes = 0
         context = {
             'editais': Edital.objects.none(),
@@ -135,7 +183,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def dashboard_projetos(request: HttpRequest) -> HttpResponse:
-    """Dashboard projetos page - Public startup showcase"""
+    """Dashboard startups page - Public startup showcase"""
     from django.shortcuts import render
     from ..utils import get_project_status_mapping, get_project_sort_mapping
     
@@ -218,13 +266,13 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         
         return render(request, 'dashboard/projetos.html', context)
     
-    except Exception as e:
+    except (DatabaseError, ValueError, TypeError) as e:
         logger.error(
-            f"Erro ao carregar dashboard de projetos - usuário: {request.user.username}, "
+            f"Erro ao carregar dashboard de startups - usuário: {request.user.username}, "
             f"erro: {str(e)}",
             exc_info=True
         )
-        messages.error(request, 'Erro ao carregar projetos. Tente novamente.')
+        messages.error(request, 'Erro ao carregar startups. Tente novamente.')
         # Return empty context on error
         context = {
             'projects': [],
@@ -262,21 +310,12 @@ def dashboard_avaliacoes(request: HttpRequest) -> HttpResponse:
     em_incubacao = Project.objects.filter(status='incubacao').count()
     graduadas = Project.objects.filter(status='graduada').count()
     
-    # Calculate average note (only for projects with notes)
-    # Note: note is a DecimalField, so we only check for isnull, not empty string
-    projetos_com_nota = Project.objects.exclude(note__isnull=True)
-    nota_media = 0
-    if projetos_com_nota.exists():
-        nota_media = projetos_com_nota.aggregate(Avg('note'))['note__avg'] or 0
-        nota_media = round(nota_media, 1)
-    
     context = {
         'evaluations': projects,
         'total': total,
         'pre_incubacao': pre_incubacao,
         'em_incubacao': em_incubacao,
         'graduadas': graduadas,
-        'nota_media': nota_media,
     }
     return render(request, 'dashboard/avaliacoes.html', context)
 
@@ -288,6 +327,8 @@ def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
     from django.shortcuts import render
     
     # Get all users with related data
+    # Note: User model doesn't have foreign keys that need select_related,
+    # but we could add prefetch_related if accessing related objects like startups
     users = User.objects.all().order_by('-date_joined')
     
     # Search functionality
@@ -323,7 +364,7 @@ def dashboard_relatorios(request: HttpRequest) -> HttpResponse:
     if total_projetos > 0:
         taxa_graduacao = round((startups_graduadas / total_projetos) * 100)
     
-    usuarios_ativos = User.objects.filter(projetos_submetidos__isnull=False).distinct().count()
+    usuarios_ativos = User.objects.filter(startups__isnull=False).distinct().count()
     editais_ativos = Edital.objects.filter(status='aberto').count()
     
     context = {
@@ -340,7 +381,7 @@ def dashboard_relatorios(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def dashboard_submeter_projeto(request: HttpRequest) -> HttpResponse:
-    """Dashboard submeter projeto page - Add new startups to the incubator"""
+    """Dashboard submeter startup page - Add new startups to the incubator"""
     from django.shortcuts import render
     return render(request, 'dashboard/submeter_projeto.html')
 
@@ -384,7 +425,7 @@ def dashboard_novo_edital(request: HttpRequest) -> Union[HttpResponse, HttpRespo
             form = EditalForm()
 
         return render(request, 'dashboard/novo_edital.html', {'form': form})
-    except Exception as e:
+    except (DatabaseError, ValidationError, ValueError, TypeError) as e:
         logger.error(
             f"Erro ao criar edital via dashboard - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -468,7 +509,7 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         }
         
         return render(request, 'editais/dashboard.html', context)
-    except Exception as e:
+    except (DatabaseError, ValueError, TypeError) as e:
         logger.error(
             f"Erro ao carregar dashboard - usuário: {request.user.username}, "
             f"erro: {str(e)}",

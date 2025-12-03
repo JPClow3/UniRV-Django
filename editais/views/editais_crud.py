@@ -8,13 +8,15 @@ import logging
 from typing import Union
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.db import transaction, DatabaseError
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from ..decorators import rate_limit, staff_required
 from ..forms import EditalForm
 from ..models import Edital
 from ..services import EditalService
+from ..models import EditalHistory
 from ..utils import sanitize_edital_fields, clear_index_cache
 
 logger = logging.getLogger(__name__)
@@ -56,7 +58,7 @@ def edital_create(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedir
             form = EditalForm()
 
         return render(request, 'editais/create.html', {'form': form})
-    except Exception as e:
+    except (DatabaseError, ValidationError, ValueError, TypeError) as e:
         logger.error(
             f"Erro ao criar edital - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -104,16 +106,15 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
                 messages.error(request, 'O edital não foi encontrado.')
                 return redirect('editais_index')
             
-            # Track changes by comparing original DB values with new form values
-            changes = {}
-            for field in form.changed_data:
-                if field not in ['data_atualizacao', 'updated_by']:
-                    # Get original value from database (before form.save)
-                    old_value = str(getattr(original_edital, field, ''))
-                    # Get new value from form cleaned_data
-                    new_value = str(form.cleaned_data.get(field, ''))
-                    if old_value != new_value:
-                        changes[field] = {'old': old_value[:200], 'new': new_value[:200]}
+            # Track changes using service layer method
+            # Create a temporary object with form values for comparison
+            temp_edital = form.save(commit=False)
+            changes = EditalService.track_changes(
+                original_obj=original_edital,
+                new_obj=temp_edital,
+                user=request.user,
+                changed_fields=form.changed_data
+            )
             
             with transaction.atomic():
                 edital = form.save(commit=False)
@@ -143,7 +144,7 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
 
     try:
         return render(request, 'editais/update.html', {'form': form, 'edital': edital})
-    except Exception as e:
+    except (DatabaseError, ValueError, TypeError) as e:
         logger.error(
             f"Erro ao renderizar formulário de edição - edital_id: {pk}, "
             f"erro: {str(e)}",
@@ -198,7 +199,7 @@ def edital_delete(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
             
             messages.success(request, 'Edital excluído com sucesso!')
             return redirect('editais_index')
-        except Exception as e:
+        except (DatabaseError, ValidationError, ValueError) as e:
             logger.error(
                 f"Erro ao deletar edital - edital_id: {pk}, "
                 f"erro: {str(e)}",
