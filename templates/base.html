@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
+    {% load static tailwind_tags compress editais_filters %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
@@ -46,7 +47,6 @@
     <meta property="og:image:alt" content="{% block og_image_alt %}AgroHub UniRV - Logo do Centro de Inovação e Tecnologia{% endblock %}" />
     <meta property="og:image:type" content="image/svg+xml" />
     {% endblock %}
-    {% load static tailwind_tags compress editais_filters %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
     <!-- Resource Hints for Performance -->
