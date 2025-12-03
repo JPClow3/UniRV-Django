@@ -14,7 +14,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../fonts/Montserrat-Regular.ttf') format('truetype');
+  src: url('../../fonts/Montserrat-Regular.ttf') format('truetype');
 }
 
 @font-face {
@@ -22,7 +22,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('../fonts/Montserrat-SemiBold.ttf') format('truetype');
+  src: url('../../fonts/Montserrat-SemiBold.ttf') format('truetype');
 }
 
 /* Note: FontAwesome font-display optimization is handled via preload link in base.html */
@@ -165,7 +165,7 @@ body {
     object-fit: cover;
     object-position: center;
     filter: saturate(110%);
-    transition: transform 1.2s ease;
+    transition: transform 0.7s ease;
   }
 
   .hero-media::after {
@@ -971,7 +971,7 @@ body {
   .skeleton {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 1.2s infinite;
     border-radius: 4px;
   }
 

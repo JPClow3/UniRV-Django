@@ -23,10 +23,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# 
+# ⚠️ CRITICAL FOR PRODUCTION: The fallback value below is INSECURE and must NEVER be used in production.
+# Always set SECRET_KEY as an environment variable in production.
+# Generate a secure key with:
+#   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# 
+# The fallback is provided ONLY for local development convenience.
+# If SECRET_KEY is not set in production, Django will fail to start (by design).
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Em desenvolvimento, padrão é True. Em produção, definir DJANGO_DEBUG=False explicitamente
+# 
+# ⚠️ CRITICAL FOR PRODUCTION: DEBUG=True exposes sensitive information and should NEVER be used in production.
+# 
+# Development: Defaults to True for convenience (can be overridden with DJANGO_DEBUG=False)
+# Production: MUST be set to False via environment variable: DJANGO_DEBUG=False
+# 
+# When DEBUG=False, additional security settings are automatically enabled (see below).
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
 # Detect if we're running tests
@@ -42,13 +56,21 @@ TESTING = (
 )
 
 # Security: explicit ALLOWED_HOSTS
+# 
+# ALLOWED_HOSTS prevents HTTP Host header attacks.
+# 
+# Development (DEBUG=True): Automatically allows localhost, 127.0.0.1, and [::1]
+# Production (DEBUG=False): MUST be set via ALLOWED_HOSTS environment variable
+#   Example: ALLOWED_HOSTS=example.com,www.example.com
+# 
 # Parsear e validar ALLOWED_HOSTS antes de usar
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
 if DEBUG:
+    # Development: Allow localhost by default
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
-    # Em produção, usar variável de ambiente
-    # Em desenvolvimento sem DEBUG, ainda permitir localhost
+    # Production: Require explicit ALLOWED_HOSTS configuration
+    # Em desenvolvimento sem DEBUG, ainda permitir localhost como fallback
     if allowed_hosts_env:
         # Parsear hosts e filtrar valores vazios
         parsed_hosts = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
@@ -347,6 +369,14 @@ EDITAL_SEARCH_FIELDS = [
 ]
 
 # Security settings for production
+# 
+# Production security is automatically enabled when:
+#   1. DEBUG=False (explicitly set via DJANGO_DEBUG=False)
+#   2. ALLOWED_HOSTS is configured with valid host(s)
+# 
+# This ensures security settings are only enabled in actual production environments,
+# not accidentally in development with DEBUG=False.
+# 
 # Verificar se estamos em produção (DEBUG=False E ALLOWED_HOSTS válido e não-vazio)
 # Alinhar com a validação do ALLOWED_HOSTS para evitar ativar segurança de produção
 # com configuração inválida (ex: ALLOWED_HOSTS=' ' ou ALLOWED_HOSTS=',,,')

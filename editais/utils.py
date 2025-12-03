@@ -241,6 +241,7 @@ def sanitize_edital_fields(edital) -> None:
 def mark_edital_fields_safe(edital) -> None:
     """
     Marca os campos HTML de um Edital como safe para renderização em templates.
+    Cria atributos {field}_safe para cada campo HTML.
     
     Isso permite que HTML sanitizado seja renderizado sem escape adicional.
     
@@ -251,7 +252,9 @@ def mark_edital_fields_safe(edital) -> None:
         if hasattr(edital, field_name):
             field_value = getattr(edital, field_name)
             if field_value:
-                setattr(edital, field_name, mark_safe(field_value))
+                # Create {field}_safe attribute instead of modifying original
+                sanitized = sanitize_html(field_value)
+                setattr(edital, f'{field_name}_safe', mark_safe(sanitized))
 
 
 def apply_tipo_filter(queryset: QuerySet, tipo: Optional[str]) -> QuerySet:

@@ -24,7 +24,7 @@
   }
 </style>
 <!-- Hero Header -->
-<section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
+<section class="bg-linear-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
   <div class="container relative z-10 px-6 pt-12">
     <div class="max-w-6xl">
       <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
@@ -304,7 +304,7 @@
                     duration: 0.5,
                     stagger: 0.08,
                     ease: "power3.out",
-                    delay: 0.1,
+                    delay: 0.05,
                     force3D: true, // Use GPU acceleration
                     onComplete: function() {
                         // Remove will-change after animation to free up resources
@@ -315,26 +315,20 @@
                 });
             }
 
-            // 2. Animate content sections on scroll with optimized ScrollTrigger
+            // 2. Animate content sections immediately or very early on scroll
             if (contentSections.length > 0) {
                 // Set initial state in batch
                 gsap.set(contentSections, { opacity: 0, y: 30 });
                 
-                // Use ScrollTrigger with refresh optimization
+                // Animate immediately without waiting for scroll - show details fast
                 contentSections.forEach(function(section, index) {
                     gsap.to(section, {
                         opacity: 1,
                         y: 0,
-                        duration: 0.6,
+                        duration: 0.3,
                         ease: "power2.out",
-                        delay: index * 0.1,
+                        delay: index * 0.05,
                         force3D: true, // Use GPU acceleration
-                        scrollTrigger: {
-                            trigger: section,
-                            start: "top 85%",
-                            toggleActions: "play none none none", // Only play once
-                            refreshPriority: -1 // Lower priority for refresh
-                        },
                         onComplete: function() {
                             // Remove will-change after animation to free up resources
                             section.classList.add('animated');

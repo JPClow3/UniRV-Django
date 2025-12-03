@@ -17,9 +17,9 @@
     <div class="absolute inset-0 z-0 overflow-hidden" style="contain: layout;">
       <div class="absolute inset-0 bg-linear-to-br from-unirvBlue via-blue-900 to-darkBlue opacity-95"></div>
       <!-- Blob elements with fixed dimensions and containment to prevent layout shifts -->
-      <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="will-change: transform; contain: layout style paint;"></div>
-      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="animation-delay: 2s; will-change: transform; contain: layout style paint;"></div>
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="animation-delay: 4s; will-change: transform; contain: layout style paint;"></div>
+      <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="contain: layout style paint;"></div>
+      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2s" style="contain: layout style paint;"></div>
+      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-4s" style="contain: layout style paint;"></div>
       <!-- Grid Overlay -->
       <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
     </div>
@@ -32,11 +32,11 @@
           Incubadora YpeTech
         </div>
         
-        <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-          Nossas <span class="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-teal-300" style="text-shadow: none;">Startups</span>
+        <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight drop-shadow-lg">
+          Nossas <span class="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-teal-300">Startups</span>
         </h1>
         
-        <p class="reveal-hero text-lg md:text-xl text-white max-w-2xl mb-12 leading-relaxed border-l-4 border-agrohubGreen pl-6" style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);">
+        <p class="reveal-hero text-lg md:text-xl text-white max-w-2xl mb-12 leading-relaxed border-l-4 border-agrohubGreen pl-6 drop-shadow-md">
           Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado.
         </p>
       </div>
@@ -47,13 +47,13 @@
           <div class="stat-value text-3xl md:text-4xl font-bold text-white mb-1">
             <span class="stat-value-number counter" data-target="{{ stats.total_active }}" aria-live="polite">{{ stats.total_active }}</span>
           </div>
-          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Startups Ativas</div>
+          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium drop-shadow-sm">Startups Ativas</div>
         </div>
         <div class="text-center px-4 border-r border-white/10 last:border-0">
           <div class="stat-value text-3xl md:text-4xl font-bold text-white mb-1">
             <span class="stat-value-number counter" data-target="{{ stats.graduadas }}" aria-live="polite">{{ stats.graduadas }}</span>
           </div>
-          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Graduadas</div>
+          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium drop-shadow-sm">Graduadas</div>
         </div>
         <div class="text-center px-4">
           <div class="stat-value text-3xl md:text-4xl font-bold text-white mb-1 flex items-center justify-center gap-1">
@@ -61,7 +61,7 @@
             <span class="stat-value-number counter" data-target="{{ stats.total_valuation }}" aria-live="polite">{{ stats.total_valuation }}</span>
             <span>M+</span>
           </div>
-          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Valuation Total</div>
+          <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium drop-shadow-sm">Valuation Total</div>
         </div>
       </div>
     </div>
@@ -102,10 +102,9 @@
         </div>
 
         <!-- Dynamic Filters - Horizontal Scrollable on Mobile -->
-        <div class="flex md:flex-wrap md:justify-center md:items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0" id="portfolio-filters" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <div class="flex md:flex-wrap md:justify-center md:items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0" id="portfolio-filters">
           <style>
             #portfolio-filters::-webkit-scrollbar { display: none; }
-            #portfolio-filters { -webkit-overflow-scrolling: touch; }
           </style>
           <a href="{% url 'startups_showcase' %}{% if search_query %}?search={{ search_query|urlencode }}{% endif %}" class="filter-btn {% if not category_filter or category_filter == 'all' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-bold text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm shrink-0 whitespace-nowrap">
             Todos
@@ -126,7 +125,7 @@
       </div>
 
       <!-- Startups Grid - Reserve space to prevent layout shifts -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]" id="startups-grid" style="content-visibility: auto;">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]" id="startups-grid">
         {% for startup in startups %}
         <a href="{% url 'startup_detail_slug' startup.slug %}" class="startup-card group rounded-3xl p-8 h-full flex flex-col cursor-pointer no-underline" data-category="{{ startup.category }}" aria-label="Ver detalhes de {{ startup.name }}">
           <span class="phase-badge {{ startup.get_phase_badge_class }}">
@@ -151,7 +150,7 @@
               {% elif startup.category == 'iot' %}from-blue-50 to-indigo-100 border border-blue-100
               {% elif startup.category == 'edtech' %}from-sky-50 to-blue-100 border border-sky-100
               {% else %}from-gray-50 to-gray-100 border border-gray-100{% endif %}
-              flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300" style="width: 64px; height: 64px; flex-shrink: 0;">
+              flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0">
               {% if startup.category == 'agtech' %}🌿
               {% elif startup.category == 'biotech' %}🧬
               {% elif startup.category == 'iot' %}📡

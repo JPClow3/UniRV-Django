@@ -126,7 +126,6 @@
   <body
     class="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden{% if transparent_header %} page-detail{% endif %}"
     data-page="{% block page_id %}{% endblock %}"
-    style="overflow-x: hidden;"
   >
     <!-- Skip to main content link for accessibility -->
     <a href="#main-content" class="skip-link"
@@ -137,8 +136,7 @@
       class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
       <div
-        class="absolute top-0 left-0 right-0 w-full bg-linear-to-r from-unirvBlue to-agrohubBlue"
-        style="height: 4px; z-index: 1"
+        class="absolute top-0 left-0 right-0 w-full bg-linear-to-r from-unirvBlue to-agrohubBlue h-1 z-10"
       ></div>
       <nav class="relative z-10 site-nav">
         <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
@@ -228,8 +226,7 @@
 
         <!-- Mobile Navigation -->
         <div class="navbar-right md:hidden" id="navbar-menu">
-          <ul class="flex flex-col">
-            <li>
+          <ul class="flex flex-col"><li>
               <a
                 href="{% url 'home' %}"
                 class="nav-link block px-4 py-2 {% if current_url == 'home' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
@@ -292,15 +289,15 @@
       </nav>
     </header>
 
-    <main class="flex-1 w-full" style="width: 100%; margin: 0; padding: 0">
-      <div style="width: 100%; margin: 0; padding: 0">
-        <div class="content-area" id="main-content" style="width: 100%">
+    <main class="flex-1 w-full">
+      <div>
+        <div class="content-area" id="main-content">
           {% if messages %}
           <div
             class="messages"
             role="alert"
             aria-live="polite"
-            style="display: none"
+            class="hidden"
           >
             {% for message in messages %}
             <div

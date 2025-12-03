@@ -46,9 +46,15 @@
 
     <div class="container relative z-10 px-6 pt-20">
       <div class="max-w-4xl">
-        <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
-          <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
-          Centro de Inovação UniRV
+        <div class="reveal-up flex flex-col sm:flex-row gap-3 mb-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider">
+            <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
+            Centro de Inovação UniRV
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-medium">
+            <i class="fas fa-handshake text-agrohubGreen"></i>
+            Apoio FINEP
+          </div>
         </div>
         <h1 class="reveal-up text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
           O Futuro do <br/>
@@ -57,7 +63,7 @@
           </span> Começa Aqui.
         </h1>
         <p class="reveal-up text-lg md:text-xl text-gray-200 mb-10 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
-          Conectamos academia, startups e o setor produtivo para acelerar a transformação digital do campo.
+          O AgroHub UniRV é o centro de inovação, pesquisa aplicada e pós-graduação da Universidade de Rio Verde, projetado para conectar academia, empresas, startups, produtores e poder público em soluções tecnológicas para o agronegócio. Nossa missão é traduzir pesquisa em produtos e serviços sustentáveis, formando recursos humanos especializados e posicionando Rio Verde como polo de referência em inovação agropecuária.
         </p>
         <div class="reveal-up flex flex-col sm:flex-row gap-4">
           <button data-url="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
@@ -154,6 +160,22 @@
 
     </div>
 
+  </section>
+
+  <!-- MISSION STATEMENT SECTION -->
+  <section class="py-20 bg-white fold-section">
+    <div class="container mx-auto px-6">
+      <div class="max-w-4xl mx-auto text-center">
+        <span class="text-green-700 font-bold tracking-widest uppercase text-sm">Nossa Missão</span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-unirvBlue mt-2 mb-6">Posicionando Rio Verde como Polo de Referência</h2>
+        <p class="text-lg text-gray-700 leading-relaxed mb-6">
+          O AgroHub UniRV fortalece o compromisso da Universidade de Rio Verde com a ciência, tecnologia e desenvolvimento do agronegócio. Com infraestrutura de ponta — laboratórios de P&D, incubadora YpeTech, FabLab, espaços de coworking e campos experimentais/Smart Farm — o Hub acelera a transformação digital do campo (IA, IoT, automação), fomenta empreendedorismo e transfere conhecimento para o mercado.
+        </p>
+        <p class="text-lg text-gray-700 leading-relaxed">
+          Nossa missão é traduzir pesquisa em produtos e serviços sustentáveis, formar recursos humanos especializados e atrair investimentos, consolidando Rio Verde como polo de referência nacional em inovação agropecuária.
+        </p>
+      </div>
+    </div>
   </section>
 
   <!-- MISSION / HELIX SECTION -->

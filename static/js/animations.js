@@ -39,10 +39,10 @@
     // Reveal Animations
     gsap.utils.toArray('.reveal-up').forEach((elem) => {
       gsap.to(elem, {
-        scrollTrigger: { trigger: elem, start: 'top 90%' },
+        scrollTrigger: { trigger: elem, start: 'top 92%' },
         y: 0,
         opacity: 1,
-        duration: 1,
+        duration: 0.6,
         ease: 'power3.out'
       });
     });
@@ -52,11 +52,11 @@
       gsap.to('.pillar-card', {
         scrollTrigger: {
           trigger: '#pillars-section',
-          start: 'top 75%'
+          start: 'top 80%'
         },
         opacity: 1,
         y: 0,
-        duration: 0.8,
+        duration: 0.5,
         stagger: 0.2,
         ease: 'back.out(1.7)'
       });
@@ -78,9 +78,9 @@
       const obj = { value: 0 };
       gsap.to(obj, {
         value: target,
-        duration: 2.5,
+        duration: 1.8,
         snap: { value: 1 },
-        scrollTrigger: { trigger: counter, start: 'top 85%' },
+        scrollTrigger: { trigger: counter, start: 'top 88%' },
         ease: 'power1.inOut',
         onUpdate: () => {
           counter.innerText = String(Math.round(obj.value));
@@ -92,7 +92,7 @@
     if (document.querySelector('#progress-line')) {
       gsap.to('#progress-line', {
         width: '50%',
-        duration: 2,
+        duration: 1.2,
         scrollTrigger: { trigger: '#progress-line', start: 'top 80%' }
       });
     }
@@ -124,8 +124,8 @@
       gsap.from(heroElems, {
         y: 40,
         opacity: 0,
-        duration: 1.2,
-        stagger: 0.15,
+        duration: 0.7,
+        stagger: 0.08,
         ease: 'power3.out'
       });
     }
@@ -136,9 +136,9 @@
       const obj = { value: 0 };
       gsap.to(obj, {
         value: target,
-        duration: 2.5,
+        duration: 1.8,
         snap: { value: 1 },
-        scrollTrigger: { trigger: counter, start: 'top 90%' },
+        scrollTrigger: { trigger: counter, start: 'top 92%' },
         ease: 'power2.out',
         onUpdate: () => {
           counter.innerText = String(Math.round(obj.value));
@@ -179,7 +179,7 @@
             delay: index * 0.1,
             scrollTrigger: {
               trigger: card,
-              start: 'top 85%',
+              start: 'top 88%',
               toggleActions: 'play none none none'
             }
           }
@@ -231,10 +231,10 @@
         gsap.to(headerRevealElements, {
           y: 0,
           opacity: 1,
-          duration: 1,
-          stagger: 0.15,
+          duration: 0.5,
+          stagger: 0.05,
           ease: 'power3.out',
-          delay: 0.2
+          delay: 0.05
         });
       }
     }
@@ -245,10 +245,10 @@
       const belowFoldReveal = mainContentSection.querySelectorAll('.reveal-up');
       belowFoldReveal.forEach((elem) => {
         gsap.to(elem, {
-          scrollTrigger: { trigger: elem, start: 'top 85%' },
+          scrollTrigger: { trigger: elem, start: 'top 88%' },
           y: 0,
           opacity: 1,
-          duration: 0.8,
+          duration: 0.5,
           ease: 'power3.out'
         });
       });
@@ -263,13 +263,13 @@
       const runAnimation = () => {
         if (!editaisGrid) return;
         const rect = editaisGrid.getBoundingClientRect();
-        const isInViewport = rect.top < window.innerHeight * 0.9;
+        const isInViewport = rect.top < window.innerHeight * 0.95;
 
         const animCfg = {
           opacity: 1,
           y: 0,
-          duration: 0.6,
-          stagger: 0.1,
+          duration: 0.4,
+          stagger: 0.05,
           ease: 'power2.out'
         };
 
@@ -280,7 +280,7 @@
             ...animCfg,
             scrollTrigger: {
               trigger: '.editais-grid',
-              start: 'top 85%',
+              start: 'top 92%',
               once: true
             }
           });
@@ -288,14 +288,13 @@
       };
 
       runAnimation();
-      window.setTimeout(runAnimation, 200);
     }
 
     // Empty state animation
     const emptyState = document.querySelector('.empty-state-container, .empty-state');
     if (emptyState) {
       gsap.from(emptyState, {
-        scrollTrigger: { trigger: emptyState, start: 'top 85%' },
+        scrollTrigger: { trigger: emptyState, start: 'top 88%' },
         opacity: 0,
         scale: 0.95,
         y: 20,
@@ -320,8 +319,8 @@
           gsap.to(newCards, {
             opacity: 1,
             y: 0,
-            duration: 0.6,
-            stagger: 0.1,
+            duration: 0.4,
+            stagger: 0.05,
             ease: 'power2.out',
             onComplete: () => {
               newCards.forEach((card) => card.classList.add('animated'));
