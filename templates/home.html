@@ -8,16 +8,12 @@
 
 
 {% block extra_head %}
-  <!-- Preconnect to Unsplash for faster image loading -->
-  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
-  <link rel="dns-prefetch" href="https://images.unsplash.com" />
   <!-- Preload LCP hero image with high priority to improve LCP metric -->
   <link
     rel="preload"
     as="image"
-    href="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop"
+    href="{% static 'img/agrohub-hero.webp' %}"
     fetchpriority="high"
-    crossorigin="anonymous"
   />
 {% endblock %}
 
@@ -29,6 +25,11 @@
       <source
         type="image/webp"
         media="(min-width: 1024px)"
+        srcset="{% static 'img/agrohub-hero.webp' %}"
+      />
+      <source
+        type="image/webp"
+        media="(min-width: 768px)"
         srcset="{% static 'img/agrohub-hero.webp' %}"
       />
       <img

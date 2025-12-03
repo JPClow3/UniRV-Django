@@ -49,9 +49,10 @@
     {% endblock %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
-    <!-- Resource Hints for Performance -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <!-- Resource Hints for Performance - Early DNS resolution and connection -->
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <!-- Preload critical fonts - only Regular weight for above-the-fold content -->
     <link
       rel="preload"
       as="font"
@@ -59,6 +60,7 @@
       href="{% static 'fonts/Montserrat-Regular.ttf' %}"
       crossorigin="anonymous"
     />
+    <!-- SemiBold font can load after initial render -->
     <link
       rel="preload"
       as="font"
@@ -452,8 +454,7 @@
 
 
     {% endwith %}
-    <!-- Global animation libraries - loaded with defer and preconnect -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <!-- Global animation libraries - loaded with defer (preconnect already in head) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
 

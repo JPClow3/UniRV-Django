@@ -251,11 +251,11 @@ body {
   }
 
   /* Button components */
-  .btn {
+  .btn, button[type="submit"], a.btn {
     padding: 10px 18px;
     border-radius: var(--radius-xl);
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     border: none;
     cursor: pointer;
     display: inline-flex;
@@ -264,6 +264,19 @@ body {
     font-weight: 600;
     font-size: 14px;
     min-height: 44px;
+  }
+
+  .btn:hover, button[type="submit"]:hover, a.btn:hover {
+    transform: scale(1.05);
+  }
+
+  .btn:active, button[type="submit"]:active, a.btn:active {
+    transform: scale(0.95);
+  }
+
+  .btn:focus, button[type="submit"]:focus, a.btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-green), 0 0 0 4px rgba(16, 185, 129, 0.2);
   }
 
   .btn-primary {
@@ -536,25 +549,6 @@ body {
     font-size: 13px;
     color: #6b7280;
     border: 1px solid #e5e7eb;
-  }
-  /* Skeleton Loading */
-  .skeleton-card {
-    @apply bg-white rounded-2xl p-6 border border-gray-100 shadow-sm;
-  }
-  .skeleton {
-    @apply animate-pulse bg-gray-200 rounded;
-  }
-  .skeleton-badge {
-    @apply h-6 w-24 mb-4;
-  }
-  .skeleton-title {
-    @apply h-8 w-3/4 mb-4;
-  }
-  .skeleton-text {
-    @apply h-4 w-full mb-2;
-  }
-  .skeleton-button {
-    @apply h-10 w-32 mt-4 rounded-xl;
   }
 
   /* Toast Container */
@@ -893,11 +887,21 @@ body {
   /* Project Cards */
   .project-card {
     @apply transition-all duration-200 ease-in-out cursor-default;
+    animation: fadeInUp 0.4s ease-out;
+    animation-fill-mode: both;
+    will-change: transform, opacity;
   }
 
   .project-card:hover {
     border-color: var(--color-secondary);
   }
+
+  .project-card:nth-child(1) { animation-delay: 0.05s; }
+  .project-card:nth-child(2) { animation-delay: 0.1s; }
+  .project-card:nth-child(3) { animation-delay: 0.15s; }
+  .project-card:nth-child(4) { animation-delay: 0.2s; }
+  .project-card:nth-child(5) { animation-delay: 0.25s; }
+  .project-card:nth-child(6) { animation-delay: 0.3s; }
 
   .project-status-badge {
     transition: transform 0.2s ease;
@@ -927,6 +931,7 @@ body {
   /* Empty state icon animation */
   .empty-state-icon {
     animation: fadeInBounce 0.6s ease-out;
+    will-change: transform, opacity;
   }
 
   @keyframes fadeInBounce {
@@ -943,18 +948,6 @@ body {
     }
   }
 
-  /* Card fade-in animation */
-  .project-card {
-    animation: fadeInUp 0.4s ease-out;
-    animation-fill-mode: both;
-  }
-
-  .project-card:nth-child(1) { animation-delay: 0.05s; }
-  .project-card:nth-child(2) { animation-delay: 0.1s; }
-  .project-card:nth-child(3) { animation-delay: 0.15s; }
-  .project-card:nth-child(4) { animation-delay: 0.2s; }
-  .project-card:nth-child(5) { animation-delay: 0.25s; }
-  .project-card:nth-child(6) { animation-delay: 0.3s; }
 
   @keyframes fadeInUp {
     from {
@@ -973,6 +966,7 @@ body {
     background-size: 200% 100%;
     animation: shimmer 1.2s infinite;
     border-radius: 4px;
+    will-change: background-position;
   }
 
   @keyframes shimmer {
@@ -1067,20 +1061,6 @@ body {
     }
   }
 
-  /* Enhanced button states */
-  .btn, button[type="submit"], a.btn {
-    @apply transition-all duration-200;
-  }
-  .btn:hover, button[type="submit"]:hover, a.btn:hover {
-    @apply transform scale-105;
-  }
-  .btn:active, button[type="submit"]:active, a.btn:active {
-    @apply transform scale-95;
-  }
-  .btn:focus, button[type="submit"]:focus, a.btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--color-green), 0 0 0 4px rgba(16, 185, 129, 0.2);
-  }
 
   /* Enhanced card hover effects */
   .card, .project-card, [class*="card"] {
@@ -1181,6 +1161,11 @@ body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color: #1e293b !important;
+  }
+
+  .site-header .nav-link:hover {
+    color: var(--color-green) !important;
   }
 
   /* Glassmorphism header styles */
@@ -1199,17 +1184,7 @@ body {
     -webkit-backdrop-filter: blur(16px) saturate(180%);
   }
 
-  /* Ensure text contrast on glassmorphism header */
-  .site-header .nav-link {
-    color: #1e293b !important;
-  }
-
-  .site-header .nav-link:hover {
-    color: var(--color-green) !important;
-  }
-
   .site-header.header-transparent .nav-link {
-    color: #1e293b !important;
     text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
   }
 
@@ -1269,6 +1244,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.3em;
     animation: float 2.5s ease-in-out infinite;
+    will-change: transform;
   }
 
   .text-gradient {
@@ -1500,10 +1476,12 @@ body {
     height: 100%;
     border-color: rgba(118, 184, 42, 0.3);
     animation: orbit-spin-right 25s linear infinite;
+    will-change: transform;
   }
   /* Icon 1 - Counter-Spins Left */
   .ring-1 .floating-icon {
     animation: icon-counter-spin-left 25s linear infinite;
+    will-change: transform;
   }
 
   /* Ring 2 (Industria) - Spins Counter-Clockwise */
@@ -1512,10 +1490,12 @@ body {
     height: 80%;
     border-color: rgba(39, 52, 139, 0.4);
     animation: orbit-spin-left 20s linear infinite;
+    will-change: transform;
   }
   /* Icon 2 - Counter-Spins Right */
   .ring-2 .floating-icon {
     animation: icon-counter-spin-right 20s linear infinite;
+    will-change: transform;
   }
 
   /* Ring 3 (Governo) - Spins Clockwise */
@@ -1524,10 +1504,12 @@ body {
     height: 60%;
     border-color: rgba(234, 179, 8, 0.4);
     animation: orbit-spin-right 15s linear infinite;
+    will-change: transform;
   }
   /* Icon 3 - Counter-Spins Left */
   .ring-3 .floating-icon {
     animation: icon-counter-spin-left 15s linear infinite;
+    will-change: transform;
   }
 
   /* Ring 4 (Sociedade) - Spins Counter-Clockwise */
@@ -1536,10 +1518,12 @@ body {
     height: 40%;
     border-color: rgba(168, 85, 247, 0.4);
     animation: orbit-spin-left 10s linear infinite;
+    will-change: transform;
   }
   /* Icon 4 - Counter-Spins Right */
   .ring-4 .floating-icon {
     animation: icon-counter-spin-right 10s linear infinite;
+    will-change: transform;
   }
 
   /* Pause on hover */
@@ -1674,6 +1658,7 @@ body {
     border-radius: 9999px;
     border: 1px solid rgba(59, 130, 246, 0.5);
     animation: ping 2s linear infinite;
+    will-change: transform, opacity;
   }
 
   .timeline-card {
@@ -1772,6 +1757,7 @@ body {
     top: -120px;
     right: -80px;
     animation: blob 7s infinite;
+    will-change: transform;
   }
 
   .auth-layout::after {
@@ -1782,6 +1768,7 @@ body {
     left: -100px;
     animation: blob 9s infinite;
     animation-delay: 2s;
+    will-change: transform;
   }
 
   .auth-inner {
@@ -1970,6 +1957,7 @@ body {
 
   .animate-blob {
     animation: blob 7s infinite;
+    will-change: transform;
   }
 }
 
