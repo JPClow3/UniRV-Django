@@ -50,25 +50,22 @@
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
     <!-- Resource Hints for Performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
-    
-    <!-- Google Fonts: Optimized loading to prevent layout shifts -->
-    <!-- Load fonts asynchronously with swap to prevent invisible text during font load -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
+      rel="preload"
+      as="font"
+      type="font/ttf"
+      href="{% static 'fonts/Montserrat-Regular.ttf' %}"
+      crossorigin="anonymous"
     />
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet"
-      />
-    </noscript>
+    <link
+      rel="preload"
+      as="font"
+      type="font/ttf"
+      href="{% static 'fonts/Montserrat-SemiBold.ttf' %}"
+      crossorigin="anonymous"
+    />
     <!-- Preload FontAwesome font file for faster loading -->
     <link
       rel="preload"
@@ -140,7 +137,7 @@
       class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
       <div
-        class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue"
+        class="absolute top-0 left-0 right-0 w-full bg-linear-to-r from-unirvBlue to-agrohubBlue"
         style="height: 4px; z-index: 1"
       ></div>
       <nav class="relative z-10 site-nav">

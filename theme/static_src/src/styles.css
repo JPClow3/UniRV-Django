@@ -8,6 +8,23 @@
 @source "../../../editais/templates/**/*.html";
 @source "../../../**/*.py";
 
+/* Self-hosted Montserrat font to avoid render-blocking Google Fonts calls */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/Montserrat-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/Montserrat-SemiBold.ttf') format('truetype');
+}
+
 /* Note: FontAwesome font-display optimization is handled via preload link in base.html */
 /* CDN @font-face rules cannot be overridden, but preloading helps with font loading performance */
 
@@ -117,6 +134,49 @@ body {
   /* Page detail styles - minimal styles for detail pages */
   body.page-detail {
     background-color: #f0f2f5;
+  }
+
+  /* Fold-aware content wrapper keeps below-the-fold sections cheap */
+  .fold-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 600px 800px;
+    min-height: 200px;
+  }
+
+  @media (min-width: 1024px) {
+    .fold-section {
+      contain-intrinsic-size: 800px 900px;
+    }
+  }
+
+  .hero-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 0;
+    z-index: 0;
+  }
+
+  .hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(110%);
+    transition: transform 1.2s ease;
+  }
+
+  .hero-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(39, 52, 139, 0.95), rgba(39, 52, 139, 0.4));
+  }
+
+  .hero-media img.is-loaded {
+    transform: scale(1.05);
   }
 
   /* Mobile Menu Toggle */
@@ -1091,7 +1151,8 @@ body {
       color: black;
       text-decoration: underline;
     }
-    [class*="bg-gradient-to-"] {
+    [class*="bg-gradient-to-"],
+    [class*="bg-linear-to-"] {
       background: white !important;
       color: black !important;
     }
@@ -1293,6 +1354,14 @@ body {
   .stat-value {
     @apply text-4xl font-extrabold flex items-baseline gap-0.5;
     color: var(--color-unirvBlue);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-value-number {
+    min-width: 3.5ch;
+    text-align: center;
+    display: inline-flex;
+    justify-content: center;
   }
 
   .stat-label {
@@ -1749,7 +1818,7 @@ body {
   }
 
   .auth-gradient-cta {
-    @apply w-full h-12 rounded-full bg-gradient-to-r from-agrohubGreen to-unirvBlue
+    @apply w-full h-12 rounded-full bg-linear-to-r from-agrohubGreen to-unirvBlue
     text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-blue-700
     transition-all flex items-center justify-center gap-2 text-base;
     min-height: 48px;
@@ -1815,6 +1884,47 @@ body {
     contain: layout style paint;
     min-width: 600px;
     min-height: 600px;
+  }
+
+  .startups-stats-bar {
+    font-variant-numeric: tabular-nums;
+    contain: layout paint;
+  }
+
+  .startups-stats-bar .stat-value-number {
+    min-width: 4ch;
+    text-align: center;
+  }
+
+  #startups-grid {
+    contain: layout paint;
+  }
+
+  .startup-card {
+    @apply rounded-3xl border border-gray-100 bg-white shadow-lg transition-all duration-300;
+    min-height: 420px;
+    contain: layout paint;
+    will-change: transform;
+  }
+
+  .startup-card img {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    width: 64px;
+    height: 64px;
+  }
+
+  .startup-logo-fallback {
+    aspect-ratio: 1 / 1;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .startup-card .phase-badge {
+    min-height: 32px;
   }
 }
 

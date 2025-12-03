@@ -15,7 +15,7 @@
          - CAUTION: mix-blend-overlay on blobs can affect text readability on certain backgrounds
          - Consider testing text contrast when adding new interactive elements above z-10 -->
     <div class="absolute inset-0 z-0 overflow-hidden" style="contain: layout;">
-      <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue via-blue-900 to-darkBlue opacity-95"></div>
+      <div class="absolute inset-0 bg-linear-to-br from-unirvBlue via-blue-900 to-darkBlue opacity-95"></div>
       <!-- Blob elements with fixed dimensions and containment to prevent layout shifts -->
       <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="will-change: transform; contain: layout style paint;"></div>
       <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="animation-delay: 2s; will-change: transform; contain: layout style paint;"></div>
@@ -33,7 +33,7 @@
         </div>
         
         <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
-          Nossas <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300" style="text-shadow: none;">Startups</span>
+          Nossas <span class="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-teal-300" style="text-shadow: none;">Startups</span>
         </h1>
         
         <p class="reveal-hero text-lg md:text-xl text-white max-w-2xl mb-12 leading-relaxed border-l-4 border-agrohubGreen pl-6" style="text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);">
@@ -42,18 +42,24 @@
       </div>
 
       <!-- Stats Bar (Glassmorphism) - Fixed min-height to prevent layout shifts -->
-      <div class="reveal-hero inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl" style="min-height: 120px;">
+      <div class="reveal-hero inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl startups-stats-bar" role="group" aria-label="Indicadores da incubadora">
         <div class="text-center px-4 border-r border-white/10 last:border-0">
-          <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.total_active }}" style="min-width: 3ch; display: inline-block; text-align: center;">{{ stats.total_active }}</div>
+          <div class="stat-value text-3xl md:text-4xl font-bold text-white mb-1">
+            <span class="stat-value-number counter" data-target="{{ stats.total_active }}" aria-live="polite">{{ stats.total_active }}</span>
+          </div>
           <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Startups Ativas</div>
         </div>
         <div class="text-center px-4 border-r border-white/10 last:border-0">
-          <div class="text-3xl md:text-4xl font-bold text-white mb-1 counter" data-target="{{ stats.graduadas }}" style="min-width: 3ch; display: inline-block; text-align: center;">{{ stats.graduadas }}</div>
+          <div class="stat-value text-3xl md:text-4xl font-bold text-white mb-1">
+            <span class="stat-value-number counter" data-target="{{ stats.graduadas }}" aria-live="polite">{{ stats.graduadas }}</span>
+          </div>
           <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Graduadas</div>
         </div>
         <div class="text-center px-4">
-          <div class="text-3xl md:text-4xl font-bold text-white mb-1 flex items-center justify-center gap-1">
-            <span class="text-lg text-green-400 align-top">R$</span><span class="counter" data-target="{{ stats.total_valuation }}" style="min-width: 4ch; display: inline-block; text-align: center;">{{ stats.total_valuation }}</span><span>M+</span>
+          <div class="stat-value text-3xl md:text-4xl font-bold text-white mb-1 flex items-center justify-center gap-1">
+            <span class="text-lg text-green-400 align-top">R$</span>
+            <span class="stat-value-number counter" data-target="{{ stats.total_valuation }}" aria-live="polite">{{ stats.total_valuation }}</span>
+            <span>M+</span>
           </div>
           <div class="text-[10px] md:text-xs text-white/90 uppercase tracking-widest font-medium" style="text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">Valuation Total</div>
         </div>
@@ -62,7 +68,7 @@
   </section>
 
   <!-- CONTENT SECTION: Filtros e Grid -->
-  <section class="py-16 relative bg-gray-50">
+  <section class="py-16 relative bg-gray-50 fold-section">
     <!-- Pattern de fundo -->
     <div class="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none"></div>
     
@@ -135,11 +141,11 @@
             {% endif %}
           </span>
           
-          <div class="flex items-start justify-between mb-6">
+        <div class="flex items-start justify-between mb-6">
             {% if startup.logo %}
               <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-16 h-16 rounded-2xl object-cover border border-gray-200 shadow-sm" width="64" height="64" loading="lazy" />
             {% else %}
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
+          <div class="startup-logo-fallback w-16 h-16 rounded-2xl bg-linear-to-br 
               {% if startup.category == 'agtech' %}from-green-50 to-emerald-100 border border-green-100
               {% elif startup.category == 'biotech' %}from-purple-50 to-fuchsia-100 border border-purple-100
               {% elif startup.category == 'iot' %}from-blue-50 to-indigo-100 border border-blue-100
@@ -219,9 +225,9 @@
   </section>
 
   <!-- CALL TO ACTION -->
-  <section class="py-20 bg-white border-t border-gray-100">
+  <section class="py-20 bg-white border-t border-gray-100 fold-section">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-gradient-to-r from-unirvBlue to-darkBlue rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10 group cursor-pointer hover:shadow-[0_20px_50px_rgba(39,52,139,0.3)] transition-all duration-500">
+      <div class="bg-linear-to-r from-unirvBlue to-darkBlue rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10 group cursor-pointer hover:shadow-[0_20px_50px_rgba(39,52,139,0.3)] transition-all duration-500">
         <div class="absolute top-0 right-0 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700"></div>
         <div class="absolute bottom-0 left-0 w-64 h-64 bg-green-500 opacity-10 rounded-full blur-3xl -ml-16 -mb-16 group-hover:scale-125 transition-transform duration-700"></div>
         

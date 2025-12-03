@@ -25,17 +25,24 @@
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION -->
   <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
-    <div class="hero-bg absolute inset-0 z-0 scale-110">
-      <div
-        class="absolute inset-0 bg-cover bg-center"
-        style="background-image: url('https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=2070&auto=format&fit=crop');"
-        role="img"
-        aria-label="Campo agrícola com tecnologia moderna"
-      ></div>
-      <div
-        class="absolute inset-0 bg-gradient-to-r from-unirvBlue/95 via-unirvBlue/80 to-unirvBlue/40"
-      ></div>
-    </div>
+    <picture class="hero-media" aria-hidden="true">
+      <source
+        type="image/webp"
+        media="(min-width: 1024px)"
+        srcset="{% static 'img/agrohub-hero.webp' %}"
+      />
+      <img
+        src="{% static 'img/agrohub-hero.webp' %}"
+        width="2070"
+        height="1380"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+        alt=""
+        onload="this.classList.add('is-loaded')"
+        style="background: radial-gradient(circle at top, #1f2a6b, #0b122c);"
+      />
+    </picture>
 
     <div class="container relative z-10 px-6 pt-20">
       <div class="max-w-4xl">
@@ -70,7 +77,7 @@
   </header>
 
   <!-- STATS OVERLAP SECTION -->
-  <section class="relative z-20 -mt-20 pb-20 px-6">
+  <section class="relative z-20 -mt-20 pb-20 px-6 fold-section">
     <div class="container mx-auto">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <!-- Stat Cards -->
@@ -102,7 +109,7 @@
   </section>
 
   <!-- PILLARS SECTION -->
-  <section id="pillars-section" class="py-20 bg-gray-50 relative overflow-hidden">
+  <section id="pillars-section" class="py-20 bg-gray-50 relative overflow-hidden fold-section">
     <div class="container mx-auto px-6 relative z-10">
       <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="text-green-700 font-bold tracking-widest uppercase text-sm">Nossos Fundamentos</span>
@@ -150,7 +157,7 @@
   </section>
 
   <!-- MISSION / HELIX SECTION -->
-  <section class="py-24 bg-unirvBlue text-white overflow-hidden relative">
+  <section class="py-24 bg-unirvBlue text-white overflow-hidden relative fold-section">
     <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom right, #27348b, #1a237e);"></div>
     <div class="container mx-auto px-6 relative z-10">
       <div class="flex flex-col md:flex-row items-center gap-16">
@@ -258,7 +265,7 @@
   </section>
 
   <!-- TIMELINE SECTION -->
-  <section class="py-24 bg-white">
+  <section class="py-24 bg-white fold-section">
     <div class="container mx-auto px-6">
       <div class="text-center mb-20">
         <h2 class="text-3xl font-extrabold text-unirvBlue">Expansão Programada</h2>
