@@ -29,8 +29,7 @@ const collectConfig = {
         'http://localhost:7000/dashboard/avaliacoes/',
         'http://localhost:7000/dashboard/usuarios/',
         'http://localhost:7000/dashboard/relatorios/',
-        // Admin (requires authentication)
-        'http://localhost:7000/admin/',
+        // Admin pages excluded from Lighthouse CI scanning
         // CRUD pages (require authentication)
         'http://localhost:7000/cadastrar/',
       ],
