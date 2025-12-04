@@ -95,20 +95,16 @@ class TemplateErrorHandlingTest(TestCase):
     
     def test_template_with_missing_optional_context(self):
         """Test that templates handle missing optional context gracefully"""
-        # This is more of a manual test, but we can test that views provide required context
         response = self.client.get(reverse('home'))
-        # Should render without error even if some optional context is missing
         self.assertEqual(response.status_code, 200)
     
     def test_template_filter_with_none_value(self):
         """Test that template filters handle None values"""
         from editais.templatetags.editais_filters import days_until, is_deadline_soon
         
-        # days_until should return None for None (allows template to handle missing dates)
         result = days_until(None)
         self.assertIsNone(result)
         
-        # is_deadline_soon should return False for None
         result = is_deadline_soon(None)
         self.assertFalse(result)
 
@@ -129,7 +125,7 @@ class ManagementCommandErrorHandlingTest(TestCase):
         from io import StringIO
         
         # Create edital with invalid date combination (should be caught by model validation)
-        edital = Edital.objects.create(
+        Edital.objects.create(
             titulo='Test Edital',
             url='https://example.com',
             status='aberto',

@@ -102,7 +102,6 @@ class SearchQueryEdgeCasesTest(TestCase):
     
     def test_search_query_length_limit(self):
         """Test that search query length is limited in build_search_query"""
-        # This is tested by the function itself truncating
         long_query = 'x' * 600
         q = build_search_query(long_query)
         self.assertIsInstance(q, Q)
@@ -276,7 +275,7 @@ class URLRedirectEdgeCasesTest(TestCase):
         
         # Non-staff user should get 404
         self.client.logout()
-        regular_user = User.objects.create_user(
+        User.objects.create_user(
             username='regular',
             password='testpass123',
             is_staff=False

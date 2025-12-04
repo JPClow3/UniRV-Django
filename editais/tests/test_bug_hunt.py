@@ -5,16 +5,12 @@ validation, error handling, performance, and integration issues.
 This test suite implements the deep bug hunt plan systematically.
 """
 
-import re
-import time
-from datetime import date, datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, Client, TransactionTestCase
 from django.contrib.auth.models import User
-from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.db import transaction, DatabaseError, IntegrityError
 from django.http import Http404
 from django.utils import timezone
 from django.urls import reverse
@@ -213,11 +209,11 @@ class DataIntegrityTests(TransactionTestCase):
         self.assertTrue(form2.is_valid())
         
         # Save first user
-        user1 = form1.save()
+        form1.save()
         
         # Second save should handle IntegrityError
         try:
-            user2 = form2.save()
+            form2.save()
             # If it doesn't raise, the IntegrityError was caught
         except ValidationError as e:
             # Expected - email already exists
@@ -235,18 +231,13 @@ class DataIntegrityTests(TransactionTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('end_date', form.errors)
         
-        # Test same dates (should be valid - end_date >= start_date)
         form = EditalForm({
             'titulo': 'Test',
             'url': 'https://example.com',
             'start_date': '2025-01-01',
-            'end_date': '2025-01-01',  # Same date is valid
+            'end_date': '2025-01-01',
         })
-        # Form should be valid - same dates are allowed
-        # Note: Model validation might have different rules, but form allows it
         if not form.is_valid():
-            # If form validation fails, check if it's due to other required fields
-            # The date validation itself should pass
             self.assertNotIn('end_date', form.errors, 
                             f"end_date should be valid for same dates. Errors: {form.errors}")
     
@@ -280,24 +271,19 @@ class DataIntegrityTests(TransactionTestCase):
     
     def test_null_empty_field_handling(self):
         """Test handling of None and empty fields"""
-        # Note: Some fields may have NOT NULL constraints in database
-        # Use empty string instead of None for fields that don't allow NULL
         edital = Edital.objects.create(
             titulo='Test',
             url='https://example.com',
-            objetivo='',  # Empty string (some DB constraints may not allow None)
-            entidade_principal='',  # Empty string
+            objetivo='',
+            entidade_principal='',
         )
         
-        # Should not raise errors when accessing
         self.assertEqual(edital.objetivo, '')
         self.assertEqual(edital.entidade_principal, '')
         
-        # Template rendering should handle empty strings
         from django.template import Template, Context
         template = Template('{{ edital.objetivo|default:"No objetivo" }}')
         result = template.render(Context({'edital': edital}))
-        # Empty string should use default
         self.assertEqual(result, 'No objetivo')
 
 
@@ -437,14 +423,11 @@ class ValidationTests(TestCase):
             created_by=self.user
         )
         
-        # Test negative value (should be allowed for valor_total)
         valor = EditalValor(edital=edital, valor_total=Decimal('-1000'))
-        # Django DecimalField allows negative by default
+        valor.full_clean()
         
-        # Test very large number (max_digits=15 means 15 total digits including decimal places)
-        # So max value is 9999999999999.99 (13 digits before + 2 after = 15 total)
         large_valor = EditalValor(edital=edital, valor_total=Decimal('9999999999999.99'))
-        large_valor.full_clean()  # Should validate within max_digits=15
+        large_valor.full_clean()
     
     def test_form_required_fields(self):
         """Test form required field validation"""
@@ -464,15 +447,12 @@ class ErrorHandlingTests(TestCase):
     @patch('editais.views.public.cache')
     def test_cache_error_handling_in_rate_limit(self, mock_cache):
         """Test cache error handling in rate limiting"""
-        # Simulate cache connection error
         mock_cache.add.side_effect = ConnectionError("Cache unavailable")
         
-        # Rate limit should fail-open (allow request)
         from editais.decorators import rate_limit
         from editais.views.editais_crud import edital_create
         
-        # The decorator should handle the error gracefully
-        # This is tested by ensuring the view is still callable
+        self.assertTrue(hasattr(edital_create, '__wrapped__'))
     
     def test_template_rendering_with_missing_context(self):
         """Test template rendering with missing context variables"""
@@ -518,6 +498,7 @@ class PerformanceTests(TestCase):
             
             client = Client()
             response = client.get('/editais/')
+            self.assertEqual(response.status_code, 200)
             
             # Count queries
             query_count = len(connection.queries)

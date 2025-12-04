@@ -31,12 +31,10 @@ class ProjectSlugGenerationTestCase(TestCase):
     
     def test_slug_generation_empty_name(self):
         """Test slug generation with empty name (edge case)"""
-        # This should not happen in practice, but test the fallback
         project = Project(name='', proponente=self.user)
         project.save()
-        # Should generate a fallback slug
         self.assertIsNotNone(project.slug)
-        self.assertTrue(len(project.slug) > 0)
+        self.assertGreater(len(project.slug), 0)
     
     def test_slug_generation_special_characters(self):
         """Test slug generation with special characters"""

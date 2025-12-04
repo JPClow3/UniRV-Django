@@ -192,7 +192,7 @@ class StartupShowcaseViewTest(TestCase):
     def test_ordering_by_submitted_on(self):
         """Test that startups are ordered by submitted_on (newest first)"""
         # Create projects with different submission times
-        old_project = Project.objects.create(
+        Project.objects.create(
             name='Old Startup',
             category='other',
             status='pre_incubacao',
@@ -279,7 +279,7 @@ class StartupShowcaseViewTest(TestCase):
     
     def test_xss_in_project_description(self):
         """Test XSS prevention in project descriptions"""
-        xss_project = Project.objects.create(
+        Project.objects.create(
             name='XSS Test',
             description='<script>alert("XSS")</script>',
             category='other',
@@ -288,25 +288,15 @@ class StartupShowcaseViewTest(TestCase):
         )
         
         response = self.client.get(reverse('startups_showcase'))
-        # Description should be escaped (Django auto-escapes)
-        # Check that the escaped version appears, not the raw script
         content = response.content.decode('utf-8')
-        # Should contain escaped version somewhere in the content
-        # (Django auto-escapes template variables)
         self.assertIn('&lt;script&gt;', content)
-        # Should NOT contain unescaped script tag
-        # Note: The template uses {{ startup.description|truncatewords:25 }} which auto-escapes
-        # Check that we don't have unescaped <script> in the description area
-        # Find the project name and check nearby content
+        
         name_index = content.find('XSS Test')
         if name_index != -1:
-            # Check a section around the project name (description should be nearby)
             section_start = max(0, name_index - 100)
             section_end = min(len(content), name_index + 1000)
             project_section = content[section_start:section_end]
-            # Should have escaped version
             self.assertIn('&lt;script&gt;', project_section)
-            # Should have escaped quotes
             self.assertIn('&quot;XSS&quot;', project_section)
     
     def test_very_long_search_query(self):

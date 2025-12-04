@@ -204,23 +204,6 @@ def generate_unique_slug(
     return f"{base_slug[:available_length]}{timestamp_suffix}"
 
 
-def get_detail_cache_key(model_type: str, identifier: str, user) -> str:
-    """
-    Gera uma chave de cache única para páginas de detalhe.
-    
-    A chave inclui o tipo de modelo, identificador (slug ou PK) e status de autenticação do usuário.
-    Isso permite cache separado para usuários autenticados vs. não autenticados.
-    
-    Args:
-        model_type: Tipo de modelo ('edital' ou 'startup')
-        identifier: Identificador único (slug ou 'pk_{id}')
-        user: Objeto User ou AnonymousUser
-        
-    Returns:
-        str: Chave de cache
-    """
-    auth_status = 'auth' if user.is_authenticated else 'anon'
-    return f'{model_type}_detail_{identifier}_{auth_status}'
 
 
 def sanitize_edital_fields(edital) -> None:

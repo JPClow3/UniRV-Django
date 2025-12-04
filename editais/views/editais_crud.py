@@ -16,7 +16,6 @@ from ..decorators import rate_limit, staff_required
 from ..forms import EditalForm
 from ..models import Edital
 from ..services import EditalService
-from ..models import EditalHistory
 from ..utils import sanitize_edital_fields, clear_index_cache
 
 logger = logging.getLogger(__name__)
@@ -58,7 +57,7 @@ def edital_create(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedir
             form = EditalForm()
 
         return render(request, 'editais/create.html', {'form': form})
-    except (DatabaseError, ValidationError, ValueError, TypeError) as e:
+    except (DatabaseError, ValidationError) as e:
         logger.error(
             f"Erro ao criar edital - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -94,30 +93,22 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
     if request.method == 'POST':
         form = EditalForm(request.POST, instance=edital)
         if form.is_valid():
-            # IMPORTANT: Capture original values BEFORE save(commit=False)
-            # After save(commit=False), form.instance will have new values
             from ..models import EditalHistory
-            # Refresh from DB to get original values (handle edge case where object might be deleted)
             try:
-                # Use select_related to avoid N+1 queries if accessing related fields
-                original_edital = Edital.objects.with_related().get(pk=edital.pk)  # Fresh DB query
+                original_edital = Edital.objects.with_related().get(pk=edital.pk)
             except Edital.DoesNotExist:
-                # Edge case: object was deleted between get_object_or_404 and here
                 messages.error(request, 'O edital não foi encontrado.')
                 return redirect('editais_index')
             
-            # Track changes using service layer method
-            # Create a temporary object with form values for comparison
-            temp_edital = form.save(commit=False)
+            edital = form.save(commit=False)
             changes = EditalService.track_changes(
                 original_obj=original_edital,
-                new_obj=temp_edital,
+                new_obj=edital,
                 user=request.user,
                 changed_fields=form.changed_data
             )
             
             with transaction.atomic():
-                edital = form.save(commit=False)
                 edital.updated_by = request.user
                 sanitize_edital_fields(edital)
                 edital.save()
@@ -142,16 +133,7 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
     else:
         form = EditalForm(instance=edital)
 
-    try:
-        return render(request, 'editais/update.html', {'form': form, 'edital': edital})
-    except (DatabaseError, ValueError, TypeError) as e:
-        logger.error(
-            f"Erro ao renderizar formulário de edição - edital_id: {pk}, "
-            f"erro: {str(e)}",
-            exc_info=True
-        )
-        messages.error(request, 'Erro ao carregar formulário. Tente novamente.')
-        return redirect('editais_index')
+    return render(request, 'editais/update.html', {'form': form, 'edital': edital})
 
 
 @login_required
@@ -199,7 +181,7 @@ def edital_delete(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
             
             messages.success(request, 'Edital excluído com sucesso!')
             return redirect('editais_index')
-        except (DatabaseError, ValidationError, ValueError) as e:
+        except DatabaseError as e:
             logger.error(
                 f"Erro ao deletar edital - edital_id: {pk}, "
                 f"erro: {str(e)}",
