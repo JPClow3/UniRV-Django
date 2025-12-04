@@ -5,7 +5,7 @@ Este módulo contém a lógica de negócio extraída das views,
 seguindo o princípio de separação de responsabilidades.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Any, Optional
 from datetime import timedelta
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from .models import Edital
 from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES
-from .utils import sanitize_edital_fields, clear_index_cache
+from .utils import sanitize_edital_fields, clear_index_cache, apply_tipo_filter
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -121,4 +121,100 @@ class EditalService:
             transaction.on_commit(clear_index_cache)
         
         return edital
+    
+    @staticmethod
+    def get_editais_by_status(status: str) -> QuerySet:
+        """
+        Retorna editais filtrados por status.
+        
+        Args:
+            status: Status do edital
+            
+        Returns:
+            QuerySet de editais com o status especificado
+        """
+        return Edital.objects.with_related().filter(status=status)
+    
+    @staticmethod
+    def apply_filters(queryset: QuerySet, filters: Dict[str, Any]) -> QuerySet:
+        """
+        Aplica múltiplos filtros a um queryset de editais.
+        
+        Args:
+            queryset: QuerySet base
+            filters: Dicionário com filtros a aplicar:
+                - search_query: Busca de texto
+                - status: Filtro de status
+                - tipo: Filtro de tipo (Fluxo Contínuo/Fomento)
+                - start_date: Data de início mínima
+                - end_date: Data de término máxima
+                
+        Returns:
+            QuerySet filtrado
+        """
+        from .views.public import build_search_query
+        from .utils import parse_date_filter
+        
+        if filters.get('search_query'):
+            queryset = queryset.filter(build_search_query(filters['search_query']))
+        
+        if filters.get('status'):
+            queryset = queryset.filter(status=filters['status'])
+        
+        if filters.get('tipo'):
+            queryset = apply_tipo_filter(queryset, filters['tipo'])
+        
+        start_date = parse_date_filter(filters.get('start_date', ''))
+        if start_date:
+            queryset = queryset.filter(start_date__gte=start_date)
+        
+        end_date = parse_date_filter(filters.get('end_date', ''))
+        if end_date:
+            queryset = queryset.filter(end_date__lte=end_date)
+        
+        return queryset
+    
+    @staticmethod
+    def track_changes(
+        original_obj: Edital,
+        new_obj: Edital,
+        user: 'User',
+        changed_fields: Optional[list] = None
+    ) -> Dict[str, Dict[str, str]]:
+        """
+        Track changes between original and new edital objects.
+        
+        Args:
+            original_obj: Original edital object from database
+            new_obj: New edital object with updated values
+            user: User making the changes
+            changed_fields: Optional list of field names that changed
+            
+        Returns:
+            dict: Dictionary of changes in format {field: {'old': value, 'new': value}}
+        """
+        changes = {}
+        
+        # If changed_fields is provided, only check those fields
+        fields_to_check = changed_fields if changed_fields else [
+            'titulo', 'numero_edital', 'url', 'entidade_principal', 'status',
+            'start_date', 'end_date', 'analise', 'objetivo', 'etapas',
+            'recursos', 'itens_financiaveis', 'criterios_elegibilidade',
+            'criterios_avaliacao', 'itens_essenciais_observacoes', 'detalhes_unirv'
+        ]
+        
+        for field in fields_to_check:
+            if field in ['data_atualizacao', 'updated_by']:
+                continue
+            
+            old_value = str(getattr(original_obj, field, ''))
+            new_value = str(getattr(new_obj, field, ''))
+            
+            if old_value != new_value:
+                changes[field] = {
+                    'old': old_value[:200],  # Truncate long values
+                    'new': new_value[:200]
+                }
+        
+        return changes
 

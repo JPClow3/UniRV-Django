@@ -20,8 +20,9 @@ from .views.public import (
     index,
     edital_detail,
     edital_detail_redirect,
+    startup_detail,
+    startup_detail_redirect,
     health_check,
-    build_search_query,
 )
 from .views.dashboard import (
     dashboard_home,
@@ -51,8 +52,9 @@ __all__ = [
     'index',
     'edital_detail',
     'edital_detail_redirect',
+    'startup_detail',
+    'startup_detail_redirect',
     'health_check',
-    'build_search_query',
     # Dashboard views
     'dashboard_home',
     'dashboard_editais',

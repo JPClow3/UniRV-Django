@@ -15,6 +15,52 @@ from .constants import RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW
 logger = logging.getLogger(__name__)
 
 
+def _track_rate_limit_bypass(key: str, cache_key: str, client_ip: str, user_id: Any) -> None:
+    """
+    Track rate limit bypass events for monitoring.
+    
+    Stores metrics in cache with daily aggregation. This helps identify:
+    - Cache reliability issues
+    - Potential abuse patterns
+    - System health metrics
+    
+    Args:
+        key: Rate limit key type ('ip' or 'user')
+        cache_key: The cache key that failed
+        client_ip: Client IP address (if applicable)
+        user_id: User ID (if applicable)
+    """
+    from datetime import date
+    try:
+        # Create daily metric key
+        today = date.today().isoformat()
+        metric_key = f'rate_limit_bypass_count_{key}_{today}'
+        
+        # Increment counter (atomic operation if supported)
+        try:
+            cache.incr(metric_key)
+        except (ValueError, AttributeError, TypeError):
+            # Key doesn't exist or incr not supported, initialize it
+            cache.set(metric_key, 1, timeout=86400 * 2)  # Keep for 2 days
+        
+        # Also track per-identifier bypasses (for abuse detection)
+        if key == 'ip' and client_ip != 'N/A':
+            ip_metric_key = f'rate_limit_bypass_ip_{client_ip}_{today}'
+            try:
+                cache.incr(ip_metric_key)
+            except (ValueError, AttributeError, TypeError):
+                cache.set(ip_metric_key, 1, timeout=86400 * 2)
+        elif key == 'user' and user_id != 'N/A':
+            user_metric_key = f'rate_limit_bypass_user_{user_id}_{today}'
+            try:
+                cache.incr(user_metric_key)
+            except (ValueError, AttributeError, TypeError):
+                cache.set(user_metric_key, 1, timeout=86400 * 2)
+    except Exception as e:
+        # Don't let metrics tracking break rate limiting
+        logger.debug(f"Failed to track rate limit bypass metrics: {e}")
+
+
 def staff_required(view_func: Callable) -> Callable:
     """
     Decorator que verifica se o usuário é staff.
@@ -95,6 +141,17 @@ def rate_limit(key: str = 'ip', rate: int = RATE_LIMIT_REQUESTS, window: int = R
     """
     Decorator para rate limiting usando cache do Django.
     
+    DESIGN DECISION - Fail-Open Behavior:
+    When cache is unavailable (connection errors, timeouts), this decorator allows
+    requests to proceed rather than blocking them. This ensures service availability
+    during cache outages. Rate limiting is a protective measure, not a critical
+    security control, so fail-open behavior is intentional.
+    
+    RACE CONDITIONS:
+    Cache operations (add, incr) may have race conditions, but these are acceptable
+    for rate limiting. The worst case is slightly inaccurate rate counting, which
+    does not compromise security or functionality.
+    
     Args:
         key: Chave para identificar o limite ('ip' ou 'user')
         rate: Número máximo de requisições permitidas
@@ -125,25 +182,52 @@ def rate_limit(key: str = 'ip', rate: int = RATE_LIMIT_REQUESTS, window: int = R
                 return view_func(request, *args, **kwargs)
             
             # Use atomic operations to prevent race conditions
+            # NOTE: Cache race conditions are acceptable - worst case is slightly inaccurate counting
             try:
                 key_added = cache.add(cache_key, 1, window)
-            except Exception as e:
+            except (ConnectionError, OSError, AttributeError, TypeError) as e:
                 # Cache backend unavailable (connection error, timeout, etc.)
-                # Log error but allow request to proceed (fail open)
-                logger.error(
-                    f"Cache error in rate_limit (cache.add): {type(e).__name__}: {e}. "
-                    f"Allowing request to proceed. key={cache_key}"
+                # DESIGN DECISION: Fail-open behavior - allow request to proceed for availability
+                # Log error with structured context for monitoring
+                client_ip = get_client_ip(request) if key == 'ip' else 'N/A'
+                user_id = request.user.id if key == 'user' and request.user.is_authenticated else 'N/A'
+                logger.warning(
+                    "Rate limit bypass due to cache error - cache.add failed",
+                    extra={
+                        'cache_key': cache_key,
+                        'error_type': type(e).__name__,
+                        'error_message': str(e),
+                        'client_ip': client_ip,
+                        'user_id': user_id,
+                        'request_path': request.path,
+                        'request_method': request.method,
+                    }
                 )
+                # Track bypass metrics for monitoring
+                _track_rate_limit_bypass(key, cache_key, client_ip, user_id)
                 return view_func(request, *args, **kwargs)
             
             if not key_added:
                 try:
                     current_count = cache.incr(cache_key)
-                except Exception as e:
-                    logger.error(
-                        f"Cache error in rate_limit (cache.incr): {type(e).__name__}: {e}. "
-                        f"Rate limiting disabled for key={cache_key} in this window."
+                except (ConnectionError, OSError, AttributeError, TypeError) as e:
+                    # DESIGN DECISION: Fail-open behavior - allow request to proceed
+                    client_ip = get_client_ip(request) if key == 'ip' else 'N/A'
+                    user_id = request.user.id if key == 'user' and request.user.is_authenticated else 'N/A'
+                    logger.warning(
+                        "Rate limit bypass due to cache error - cache.incr failed",
+                        extra={
+                            'cache_key': cache_key,
+                            'error_type': type(e).__name__,
+                            'error_message': str(e),
+                            'client_ip': client_ip,
+                            'user_id': user_id,
+                            'request_path': request.path,
+                            'request_method': request.method,
+                        }
                     )
+                    # Track bypass metrics for monitoring
+                    _track_rate_limit_bypass(key, cache_key, client_ip, user_id)
                     return view_func(request, *args, **kwargs)
 
                 if current_count > rate:

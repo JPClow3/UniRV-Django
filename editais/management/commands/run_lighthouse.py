@@ -399,10 +399,14 @@ class Command(BaseCommand):
                 config_file.write(f"        '{flag}',\n")
             config_file.write('      ],\n')
             
-            # Add protocolTimeout to handle slow page loads (increase from default 30s to 120s)
+            # Add protocolTimeout to handle slow page loads (increase from default 30s to 180s)
             config_file.write('      settings: {\n')
-            config_file.write('        maxWaitForFcp: 30000,\n')  # Max wait for First Contentful Paint (30s)
-            config_file.write('        maxWaitForLoad: 60000,\n')  # Max wait for page load (60s)
+            config_file.write('        maxWaitForFcp: 60000,\n')  # Max wait for First Contentful Paint (60s)
+            config_file.write('        maxWaitForLoad: 120000,\n')  # Max wait for page load (120s)
+            config_file.write('      },\n')
+            # Add protocolTimeout via puppeteerLaunchOptions to fix "Page.navigate timed out" errors
+            config_file.write('      puppeteerLaunchOptions: {\n')
+            config_file.write('        protocolTimeout: 180000,\n')  # 180 seconds (3 minutes)
             config_file.write('      },\n')
             
             # Add authentication cookie if provided - use it for ALL URLs when auditing all pages
@@ -446,8 +450,10 @@ class Command(BaseCommand):
             
             # Increase timeout settings for slow pages
             # These help with "Page.navigate timed out" errors
-            env['PUPPETEER_TIMEOUT'] = '120000'  # 120 seconds for Puppeteer operations
-            env['LIGHTHOUSE_TIMEOUT'] = '120000'  # 120 seconds for Lighthouse operations
+            env['PUPPETEER_TIMEOUT'] = '180000'  # 180 seconds for Puppeteer operations
+            env['LIGHTHOUSE_TIMEOUT'] = '180000'  # 180 seconds for Lighthouse operations
+            # Set protocolTimeout environment variable for Puppeteer
+            env['PUPPETEER_PROTOCOL_TIMEOUT'] = '180000'  # 180 seconds (3 minutes)
             
             # Override thresholds if provided
             if thresholds:

@@ -27,6 +27,8 @@ urlpatterns = [
     path('ambientes-inovacao/', views.ambientes_inovacao, name='ambientes_inovacao'),
     path('projetos-aprovados/', views.projetos_aprovados, name='projetos_aprovados'),
     path('startups/', views.startups_showcase, name='startups_showcase'),
+    path('startup/<slug:slug>/', views.startup_detail, name='startup_detail_slug'),
+    path('startup/<int:pk>/', views.startup_detail_redirect, name='startup_detail'),
     path('edital/', RedirectView.as_view(pattern_name='editais_index', permanent=False)),
     
     path('edital/<slug:slug>/', views.edital_detail, name='edital_detail_slug'),
@@ -43,6 +45,9 @@ urlpatterns = [
     path('dashboard/home/', views.dashboard_home, name='dashboard_home'),
     path('dashboard/editais/', views.dashboard_editais, name='dashboard_editais'),
     path('dashboard/editais/novo/', views.dashboard_novo_edital, name='dashboard_novo_edital'),
+    path('dashboard/startups/', views.dashboard_projetos, name='dashboard_startups'),
+    path('dashboard/startups/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_startup'),
+    # URL aliases for backward compatibility
     path('dashboard/projetos/', views.dashboard_projetos, name='dashboard_projetos'),
     path('dashboard/projetos/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_projeto'),
     path('dashboard/avaliacoes/', views.dashboard_avaliacoes, name='dashboard_avaliacoes'),

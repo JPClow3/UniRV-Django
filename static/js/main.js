@@ -1397,3 +1397,26 @@ window.showConfirmDialog = showConfirmDialog;
         }
     }
 })();
+
+// ========================================
+// PAGE-SPECIFIC GSAP ANIMATION BOOTSTRAP
+// ========================================
+// Detect page via data-page on <body> and delegate to animations.js helpers
+(function () {
+  document.addEventListener('DOMContentLoaded', function () {
+    const pageId = document.body && document.body.dataset
+      ? document.body.dataset.page
+      : '';
+    const animations = window.AgroHubAnimations || {};
+
+    if (!pageId) return;
+
+    if (pageId === 'home' && typeof animations.initHomeAnimations === 'function') {
+      animations.initHomeAnimations();
+    } else if (pageId === 'startups' && typeof animations.initStartupShowcaseAnimations === 'function') {
+      animations.initStartupShowcaseAnimations();
+    } else if (pageId === 'editais-index' && typeof animations.initEditaisIndexAnimations === 'function') {
+      animations.initEditaisIndexAnimations();
+    }
+  });
+})();

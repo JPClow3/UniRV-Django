@@ -1,0 +1,366 @@
+// Centralized GSAP animations for AgroHub pages
+// Each init function is safe to call once per page and guards against missing GSAP.
+
+(function (window) {
+  'use strict';
+
+  function hasGSAP() {
+    return typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
+  }
+
+  /**
+   * Home page animations (hero, stats, pillars, helix, timeline, nav glass)
+   */
+  function initHomeAnimations() {
+    if (!hasGSAP()) return;
+
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Navigation Glass Effect
+    const nav = document.querySelector('.site-header');
+    if (nav) {
+      ScrollTrigger.create({
+        trigger: 'body',
+        start: 'top -50',
+        end: 'max',
+        onEnter: () => {
+          nav.classList.add('glass-nav', 'text-gray-800', 'shadow-sm');
+          nav.classList.remove('bg-transparent', 'text-white');
+        },
+        onLeaveBack: () => {
+          nav.classList.remove('glass-nav', 'text-gray-800', 'shadow-sm');
+          nav.classList.add('bg-transparent', 'text-white');
+        }
+      });
+    }
+
+    // Reveal Animations
+    gsap.utils.toArray('.reveal-up').forEach((elem) => {
+      gsap.to(elem, {
+        scrollTrigger: { trigger: elem, start: 'top 92%' },
+        y: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: 'power3.out'
+      });
+    });
+
+    // Pillars stagger
+    if (document.querySelector('#pillars-section')) {
+      gsap.to('.pillar-card', {
+        scrollTrigger: {
+          trigger: '#pillars-section',
+          start: 'top 80%'
+        },
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        stagger: 0.2,
+        ease: 'back.out(1.7)'
+      });
+    }
+
+    // Hero parallax
+    if (document.querySelector('.hero-bg')) {
+      gsap.to('.hero-bg', {
+        scrollTrigger: { trigger: 'header', start: 'top top', end: 'bottom top', scrub: true },
+        y: 150,
+        scale: 1.2,
+        ease: 'none'
+      });
+    }
+
+    // Counters
+    gsap.utils.toArray('.counter').forEach((counter) => {
+      const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+      const obj = { value: 0 };
+      gsap.to(obj, {
+        value: target,
+        duration: 1.8,
+        snap: { value: 1 },
+        scrollTrigger: { trigger: counter, start: 'top 88%' },
+        ease: 'power1.inOut',
+        onUpdate: () => {
+          counter.innerText = String(Math.round(obj.value));
+        }
+      });
+    });
+
+    // Timeline progress line
+    if (document.querySelector('#progress-line')) {
+      gsap.to('#progress-line', {
+        width: '50%',
+        duration: 1.2,
+        scrollTrigger: { trigger: '#progress-line', start: 'top 80%' }
+      });
+    }
+
+    // Hero buttons navigation
+    document.querySelectorAll('.hero-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        if (url) {
+          window.location.href = url;
+        }
+      });
+    });
+  }
+
+  /**
+   * Startups showcase animations (hero reveal, counters, cards)
+   */
+  function initStartupShowcaseAnimations() {
+    if (!hasGSAP()) return;
+
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero animations
+    const heroElems = document.querySelectorAll('.reveal-hero');
+    if (heroElems.length) {
+      gsap.from(heroElems, {
+        y: 40,
+        opacity: 0,
+        duration: 0.7,
+        stagger: 0.08,
+        ease: 'power3.out'
+      });
+    }
+
+    // Counters
+    gsap.utils.toArray('.counter').forEach((counter) => {
+      const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+      const obj = { value: 0 };
+      gsap.to(obj, {
+        value: target,
+        duration: 1.8,
+        snap: { value: 1 },
+        scrollTrigger: { trigger: counter, start: 'top 92%' },
+        ease: 'power2.out',
+        onUpdate: () => {
+          counter.innerText = String(Math.round(obj.value));
+        }
+      });
+    });
+
+    // Cards entrance animation
+    const allCards = document.querySelectorAll('.startup-card');
+    function animateCards(elements) {
+      if (!elements || !elements.length) return;
+      gsap.fromTo(
+        elements,
+        { y: 50, opacity: 0, scale: 0.95 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: 'back.out(1.2)',
+          clearProps: 'transform'
+        }
+      );
+    }
+    if (allCards.length) {
+      animateCards(allCards);
+
+      // Reveal on scroll for each card
+      gsap.utils.toArray('.startup-card').forEach((card, index) => {
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            delay: index * 0.1,
+            scrollTrigger: {
+              trigger: card,
+              start: 'top 88%',
+              toggleActions: 'play none none none'
+            }
+          }
+        );
+      });
+    }
+
+    // Search form debounced submit (fallback – page reload, not AJAX)
+    const searchInput = document.querySelector('form[action$="startups_showcase"] input[name="search"]');
+    const searchForm = searchInput && searchInput.closest('form');
+    let searchTimeout = null;
+    const SEARCH_DELAY = 500;
+
+    if (searchInput && searchForm) {
+      searchInput.addEventListener('input', function () {
+        window.clearTimeout(searchTimeout);
+        searchTimeout = window.setTimeout(() => {
+          if (this.value.length >= 3 || this.value.length === 0) {
+            searchForm.submit();
+          }
+        }, SEARCH_DELAY);
+      });
+
+      searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          window.clearTimeout(searchTimeout);
+          searchForm.submit();
+        }
+      });
+    }
+  }
+
+  /**
+   * Editais index animations (header, filters, cards, empty state)
+   */
+  function initEditaisIndexAnimations() {
+    if (!hasGSAP()) return;
+
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Header immediate reveal
+    const headerSection = document.querySelector('section.bg-gradient-to-r');
+    if (headerSection) {
+      const headerRevealElements = headerSection.querySelectorAll('.reveal-up');
+      if (headerRevealElements.length) {
+        gsap.to(headerRevealElements, {
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          stagger: 0.05,
+          ease: 'power3.out',
+          delay: 0.05
+        });
+      }
+    }
+
+    // Below-fold reveal (filters/search/badges)
+    const mainContentSection = document.querySelector('section.container');
+    if (mainContentSection) {
+      const belowFoldReveal = mainContentSection.querySelectorAll('.reveal-up');
+      belowFoldReveal.forEach((elem) => {
+        gsap.to(elem, {
+          scrollTrigger: { trigger: elem, start: 'top 88%' },
+          y: 0,
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power3.out'
+        });
+      });
+    }
+
+    // Edital cards staggered fade-in
+    const editalCards = document.querySelectorAll('.edital-card');
+    if (editalCards.length) {
+      gsap.set(editalCards, { opacity: 0, y: 30 });
+
+      const editaisGrid = document.querySelector('.editais-grid');
+      const runAnimation = () => {
+        if (!editaisGrid) return;
+        const rect = editaisGrid.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight * 0.95;
+
+        const animCfg = {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          stagger: 0.05,
+          ease: 'power2.out'
+        };
+
+        if (isInViewport) {
+          gsap.to(editalCards, animCfg);
+        } else {
+          gsap.to(editalCards, {
+            ...animCfg,
+            scrollTrigger: {
+              trigger: '.editais-grid',
+              start: 'top 92%',
+              once: true
+            }
+          });
+        }
+      };
+
+      runAnimation();
+    }
+
+    // Empty state animation
+    const emptyState = document.querySelector('.empty-state-container, .empty-state');
+    if (emptyState) {
+      gsap.from(emptyState, {
+        scrollTrigger: { trigger: emptyState, start: 'top 88%' },
+        opacity: 0,
+        scale: 0.95,
+        y: 20,
+        duration: 0.8,
+        ease: 'back.out(1.7)'
+      });
+    }
+
+    // Observe AJAX-updated cards (integrates with main.js filters)
+    const editaisGrid = document.querySelector('.editais-grid');
+    if (editaisGrid) {
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (!mutation.addedNodes.length) return;
+          const newCards = document.querySelectorAll('.edital-card:not(.animated)');
+          if (!newCards.length) return;
+
+          newCards.forEach((card) => {
+            gsap.set(card, { opacity: 0, y: 30 });
+          });
+
+          gsap.to(newCards, {
+            opacity: 1,
+            y: 0,
+            duration: 0.4,
+            stagger: 0.05,
+            ease: 'power2.out',
+            onComplete: () => {
+              newCards.forEach((card) => card.classList.add('animated'));
+            }
+          });
+        });
+      });
+
+      observer.observe(editaisGrid, { childList: true, subtree: true });
+
+      // Safety: ensure cards visible even if animations are skipped
+      window.setTimeout(() => {
+        const allCards = document.querySelectorAll('.edital-card');
+        allCards.forEach((card) => {
+          const opacity = parseFloat(window.getComputedStyle(card).opacity || '1');
+          if (opacity < 0.5) {
+            gsap.set(card, { opacity: 1, y: 0, clearProps: 'all' });
+          }
+        });
+      }, 2000);
+    }
+
+    // Ctrl+K shortcut focusing search (page-specific fallback)
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        const searchInput = document.getElementById('search-editais');
+        if (searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+    });
+  }
+
+  window.AgroHubAnimations = {
+    initHomeAnimations,
+    initStartupShowcaseAnimations,
+    initEditaisIndexAnimations
+  };
+})(window);
+
+

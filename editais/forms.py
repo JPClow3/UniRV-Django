@@ -105,6 +105,15 @@ class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
         return email
 
     def save(self, commit: bool = True) -> User:
+        """
+        Save user with race condition handling for email uniqueness.
+        
+        RACE CONDITION HANDLING:
+        Email uniqueness is checked in clean_email(), but between validation and save(),
+        another request may register the same email. The IntegrityError catch here
+        handles this race condition by providing a user-friendly error message.
+        The transaction.atomic() wrapper ensures the save operation is atomic.
+        """
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
@@ -115,10 +124,11 @@ class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
                     user.save()
             except IntegrityError as e:
                 # Handle race condition: if email was registered between check and save
+                # This is an acceptable race condition pattern - catch and provide user feedback
                 if 'email' in str(e).lower() or 'unique' in str(e).lower():
                     raise ValidationError({
                         'email': 'Este e-mail já está cadastrado. Por favor, tente novamente.'
-                    })
+                    }) from e
                 raise
         return user
 
@@ -153,7 +163,7 @@ class EditalForm(TailwindFormMixin, forms.ModelForm):
         self.apply_tailwind_styles()
 
     def clean(self) -> Dict[str, Any]:
-        """Validação de datas: end_date deve ser posterior a start_date"""
+        """Validação de datas: end_date deve ser posterior ou igual a start_date"""
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
         end_date = cleaned_data.get('end_date')
@@ -162,5 +172,6 @@ class EditalForm(TailwindFormMixin, forms.ModelForm):
             raise ValidationError({
                 'end_date': 'A data de encerramento deve ser posterior à data de abertura.'
             })
+        # Allow same dates (end_date == start_date is valid)
         
         return cleaned_data

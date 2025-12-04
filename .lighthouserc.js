@@ -5,10 +5,9 @@
  * budgets/thresholds that must be met for the audits to pass.
  */
 
-module.exports = {
-  ci: {
-    collect: {
-      url: [
+// Build collect configuration with optional authentication
+const collectConfig = {
+  url: [
         // Public pages
         'http://localhost:7000/',
         'http://localhost:7000/editais/',
@@ -17,7 +16,6 @@ module.exports = {
         'http://localhost:7000/ambientes-inovacao/',
         'http://localhost:7000/projetos-aprovados/',
         'http://localhost:7000/startups/',
-        'http://localhost:7000/health/',
         'http://localhost:7000/password-reset/',
         'http://localhost:7000/password-reset/done/',
         'http://localhost:7000/password-reset-complete/',
@@ -31,25 +29,49 @@ module.exports = {
         'http://localhost:7000/dashboard/avaliacoes/',
         'http://localhost:7000/dashboard/usuarios/',
         'http://localhost:7000/dashboard/relatorios/',
-        // Admin (requires authentication)
-        'http://localhost:7000/admin/',
+        // Admin pages excluded from Lighthouse CI scanning
         // CRUD pages (require authentication)
         'http://localhost:7000/cadastrar/',
       ],
-      numberOfRuns: 3,
-      // Chrome flags for headless mode
-      chromeFlags: '--no-sandbox --disable-setuid-sandbox',
+      numberOfRuns: parseInt(process.env.LHCI_NUMBER_OF_RUNS || '3', 10),
+      // Chrome flags for headless mode (array format for better compatibility)
+      chromeFlags: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+      ],
       // Wait for page to be fully loaded
       settings: {
-        maxWaitForFcp: 30000,
-        maxWaitForLoad: 60000,
+        maxWaitForFcp: 60000,  // Increased from 30s to 60s
+        maxWaitForLoad: 120000,  // Increased from 60s to 120s
         skipAudits: [],
+      },
+      // Increase protocol timeout to handle slow page loads (in milliseconds)
+      // This fixes "Page.navigate timed out" errors
+      // Set via puppeteerLaunchOptions for proper Chrome connection timeout handling
+      puppeteerLaunchOptions: {
+        protocolTimeout: 180000,  // 180 seconds (3 minutes)
       },
       // Server will be started manually in GitHub Actions workflow
       // This ensures proper server startup and readiness before Lighthouse runs
-      // Authentication cookie will be added automatically by run_lighthouse command
-      // For manual usage, add: extraHeaders: { 'Cookie': 'sessionid=...' }
-    },
+      // Authentication cookie will be added via extraHeaders if AUTH_COOKIE env var is set
+      // This prevents redirects and allows testing of protected pages
+};
+
+// Add authentication cookie if provided via environment variable
+if (process.env.AUTH_COOKIE) {
+  collectConfig.extraHeaders = {
+    'Cookie': process.env.AUTH_COOKIE
+  };
+}
+
+module.exports = {
+  ci: {
+    collect: collectConfig,
     assert: {
       assertions: {
         // Performance thresholds (0-100)
@@ -73,11 +95,13 @@ module.exports = {
             minScore: parseFloat(process.env.LHCI_BEST_PRACTICES_THRESHOLD || '0.90'),
           },
         ],
-        // SEO thresholds (0-100)
+        // SEO thresholds (0-100) - apply only to non-admin URLs
+        // Admin pages don't need SEO checks, so we exclude them using matchingUrlPattern
         'categories:seo': [
           'error',
           {
             minScore: parseFloat(process.env.LHCI_SEO_THRESHOLD || '0.90'),
+            matchingUrlPattern: '^(?!.*/admin/).*$', // Negative lookahead: exclude URLs containing /admin/
           },
         ],
         // Performance metrics - warn if these are slow

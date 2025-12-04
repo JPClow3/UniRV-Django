@@ -22,6 +22,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+# Import Edital model for dynamic URL discovery
+try:
+    from editais.models import Edital
+except ImportError:
+    Edital = None
+
 
 class Command(BaseCommand):
     help = 'Run Lighthouse audits on all pages of the site'
@@ -175,11 +181,12 @@ class Command(BaseCommand):
 
     def discover_urls(self, url_name: Optional[str] = None) -> List[tuple]:
         """
-        Discover all URLs from Django URL patterns.
+        Discover all URLs from Django URL patterns, including dynamic URLs.
         Returns list of tuples: (url_path, url_name)
         """
         urls = []
         resolver = get_resolver()
+        seen_urls = set()  # Track URLs to avoid duplicates
 
         def extract_urls(patterns, prefix=''):
             for pattern in patterns:
@@ -191,6 +198,10 @@ class Command(BaseCommand):
                         if 'admin' in pattern.name or 'admin' in prefix:
                             continue
                         
+                        # Skip password reset confirm (requires tokens)
+                        if 'password_reset_confirm' in pattern.name:
+                            continue
+                        
                         # Filter by url_name if specified
                         if url_name and pattern.name != url_name:
                             continue
@@ -198,14 +209,51 @@ class Command(BaseCommand):
                         # Try to reverse URL
                         try:
                             url_path = reverse(pattern.name)
-                            urls.append((url_path, pattern.name))
+                            if url_path not in seen_urls:
+                                urls.append((url_path, pattern.name))
+                                seen_urls.add(url_path)
                         except NoReverseMatch:
-                            # URL requires arguments, skip
+                            # URL requires arguments - handle special cases
+                            # Skip for now, will handle dynamically below
                             continue
                     except Exception:
                         continue
 
         extract_urls(resolver.url_patterns)
+        
+        # Add dynamic URLs that require arguments
+        # Edital detail pages with slugs
+        if Edital is not None:
+            try:
+                editais_with_slugs = Edital.objects.filter(slug__isnull=False).exclude(slug='')[:5]  # Limit to 5 for testing
+                for edital in editais_with_slugs:
+                    try:
+                        url_path = reverse('edital_detail_slug', kwargs={'slug': edital.slug})
+                        url_name_with_slug = f'edital_detail_slug_{edital.slug}'
+                        if url_path not in seen_urls:
+                            urls.append((url_path, url_name_with_slug))
+                            seen_urls.add(url_path)
+                    except NoReverseMatch:
+                        continue
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f'Could not discover edital detail URLs: {e}'))
+        
+        # Add edital update/delete URLs (require pk)
+        if Edital is not None:
+            try:
+                # Get one edital for testing update/delete pages
+                test_edital = Edital.objects.first()
+                if test_edital:
+                    try:
+                        url_path = reverse('edital_update', kwargs={'pk': test_edital.pk})
+                        if url_path not in seen_urls:
+                            urls.append((url_path, 'edital_update'))
+                            seen_urls.add(url_path)
+                    except NoReverseMatch:
+                        pass
+            except Exception:
+                pass
+        
         return urls
 
     def run_lighthouse_audit(
@@ -225,15 +273,11 @@ class Command(BaseCommand):
             # Try lighthouse directly first
             subprocess.run(['lighthouse', '--version'], capture_output=True, shell=True, timeout=2)
             lighthouse_cmd = 'lighthouse'
-        except:
+            cmd = ['lighthouse', url]
+        except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.SubprocessError):
             # Fallback to npx
             lighthouse_cmd = 'npx'
-            if lighthouse_cmd == 'npx':
-                cmd = ['npx', '--yes', 'lighthouse', url]
-            else:
-                cmd = ['lighthouse', url]
-        else:
-            cmd = ['lighthouse', url]
+            cmd = ['npx', '--yes', 'lighthouse', url]
         
         # Build command with authentication
         import os

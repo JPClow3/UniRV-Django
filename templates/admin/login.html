@@ -1,0 +1,76 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Login Administrativo | AgroHub UniRV{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <meta name="description" content="Acesse o painel administrativo do AgroHub UniRV para gerenciar editais, startups e avaliações." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="{{ request.build_absolute_uri }}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name">
+    <a href="{% url 'admin:index' %}" aria-label="{% trans 'Área administrativa' %}">
+      AgroHub UniRV • Admin
+    </a>
+  </h1>
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+  <div id="content-main" class="admin-login-container" role="main">
+    {% if form.errors and not form.non_field_errors %}
+      <p class="errornote" role="alert">
+        {% if form.errors.items|length == 1 %}
+          {% trans "Por favor, corrija o erro abaixo." %}
+        {% else %}
+          {% trans "Por favor, corrija os erros abaixo." %}
+        {% endif %}
+      </p>
+    {% endif %}
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <p class="errornote" role="alert">{{ error }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <form action="{{ app_path }}" method="post" id="login-form" novalidate>
+      {% csrf_token %}
+      <div class="form-row">
+        {{ form.username.errors }}
+        <label for="{{ form.username.id_for_label }}" class="required">
+          {% trans 'Usuário ou e-mail' %}
+        </label>
+        {{ form.username }}
+      </div>
+      <div class="form-row">
+        {{ form.password.errors }}
+        <label for="{{ form.password.id_for_label }}" class="required">
+          {% trans 'Senha' %}
+        </label>
+        {{ form.password }}
+      </div>
+      <input type="hidden" name="next" value="{{ next }}" />
+      <div class="submit-row">
+        <button type="submit" class="default">
+          {% trans 'Entrar no painel' %}
+        </button>
+      </div>
+    </form>
+
+    <div class="admin-login-links">
+      <a href="{% url 'password_reset' %}" class="password-reset-link">
+        {% trans 'Esqueceu a senha?' %}
+      </a>
+      <span aria-hidden="true">•</span>
+      <a href="{% url 'home' %}" class="back-to-site-link">
+        {% trans 'Voltar ao site' %}
+      </a>
+    </div>
+  </div>
+{% endblock %}
+

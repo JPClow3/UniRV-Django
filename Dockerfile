@@ -1,6 +1,11 @@
 # syntax=docker/dockerfile:1
 FROM python:3.12-slim
 
+# Environment variables for Python and Django
+# PYTHONDONTWRITEBYTECODE: Prevent Python from writing .pyc files
+# PYTHONUNBUFFERED: Ensure Python output is sent straight to terminal
+# DJANGO_DEBUG: Django debug mode (default: False for production)
+#   Override with: docker run -e DJANGO_DEBUG=True ...
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DJANGO_DEBUG=False

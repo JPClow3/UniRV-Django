@@ -182,11 +182,35 @@ class EditalSearchAndFilterTest(TestCase):
 
     def test_empty_search_returns_all(self):
         """Testa que busca vazia retorna todos os editais."""
-        resp = self.client.get(reverse("editais_index"))
-        self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, self.edital1.titulo)
-        self.assertContains(resp, self.edital2.titulo)
-        self.assertContains(resp, self.edital3.titulo)
+        # Check all pages to find the test editais (they may be paginated)
+        found_editais = set()
+        page = 1
+        max_pages = 10  # Safety limit
+        
+        while page <= max_pages:
+            resp = self.client.get(reverse("editais_index"), {'page': page} if page > 1 else {})
+            self.assertEqual(resp.status_code, 200)
+            
+            content = resp.content.decode('utf-8')
+            
+            # Check which editais are on this page
+            if self.edital1.titulo in content:
+                found_editais.add(1)
+            if self.edital2.titulo in content:
+                found_editais.add(2)
+            if self.edital3.titulo in content:
+                found_editais.add(3)
+            
+            # Check if there's a next page
+            if f'page={page + 1}' in content or (f'?page={page + 1}' in content):
+                page += 1
+            else:
+                break
+        
+        # All three editais should be found across all pages
+        self.assertIn(1, found_editais, f"Edital1 '{self.edital1.titulo}' not found in any page")
+        self.assertIn(2, found_editais, f"Edital2 '{self.edital2.titulo}' not found in any page")
+        self.assertIn(3, found_editais, f"Edital3 '{self.edital3.titulo}' not found in any page")
 
     def test_filter_by_start_date(self):
         """Testa filtro por data de abertura."""

@@ -2,11 +2,12 @@
 {% load static %}
 
 {% block title %}Editais Publicados - AgroHub UniRV{% endblock %}
+{% block page_id %}editais-index{% endblock %}
 
 {% block content %}
 <div class="bg-white min-h-screen">
   <!-- Header -->
-  <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-12 md:py-16 relative overflow-hidden">
+  <section class="bg-linear-to-r from-unirvBlue to-agrohubBlue text-white py-12 md:py-16 relative overflow-hidden fold-section">
     <div class="container relative z-10 px-6 pt-16">
       <div class="max-w-4xl">
         <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
@@ -24,11 +25,11 @@
   </section>
 
   <!-- Main Content -->
-  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 fold-section">
     <div class="flex flex-col lg:flex-row gap-8">
       
       <!-- Sidebar Filters -->
-      <aside class="w-full lg:w-64 flex-shrink-0">
+      <aside class="w-full lg:w-64 shrink-0">
         <div class="reveal-up bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sticky top-24">
           
           <details class="group filter-details" open>
@@ -134,76 +135,74 @@
 
         <!-- List -->
         {% if page_obj and page_obj.object_list %}
-          <div class="space-y-6 editais-grid">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px] editais-grid">
             {% for edital in page_obj %}
-              <div class="edital-card bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group transform hover:-translate-y-2">
-                <div class="p-6 md:p-8">
-                  <div class="flex flex-col lg:flex-row gap-6">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-3 mb-4 flex-wrap">
-                        {% if edital.numero_edital %}
-                          <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-xs font-bold uppercase tracking-wide">
-                            Edital {{ edital.numero_edital }}
-                          </span>
-                        {% endif %}
-                        <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide {% if edital.status == 'aberto' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600{% endif %}">
-                          {{ edital.get_status_display }}
-                        </span>
-                        {% if edital.end_date %}
-                          <span class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold uppercase tracking-wide">
-                            Fomento
-                          </span>
-                        {% else %}
-                          <span class="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-bold uppercase tracking-wide">
-                            Fluxo Contínuo
-                          </span>
-                        {% endif %}
-                      </div>
-
-                      <h3 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-secondary transition-colors">
-                        <a href="{{ edital.get_absolute_url }}">
-                          {{ edital.titulo }}
-                        </a>
-                      </h3>
-                      
-                      <p class="text-gray-600 mb-6 leading-relaxed line-clamp-2">
-                        {{ edital.objetivo|default:edital.analise|default:"Sem descrição disponível."|striptags }}
-                      </p>
-
-                      {% if edital.entidade_principal %}
-                        <div class="flex items-center gap-2 mb-4">
-                          <span class="text-sm text-gray-500 font-medium">Entidade:</span>
-                          <span class="px-3 py-1 bg-gray-50 text-gray-700 rounded-full text-sm border border-gray-200">
-                            {{ edital.entidade_principal }}
-                          </span>
-                        </div>
-                      {% endif %}
-
-                      <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 border-t border-gray-100 pt-4 mt-auto">
-                        {% if edital.start_date %}
-                          <div class="flex items-center gap-2">
-                            <i class="fas fa-calendar-alt text-secondary"></i>
-                            <span>Abertura: <span class="font-medium text-gray-900">{{ edital.start_date|date:"d/m/Y" }}</span></span>
-                          </div>
-                        {% endif %}
-                        {% if edital.end_date %}
-                          <div class="flex items-center gap-2">
-                            <i class="fas fa-clock text-orange-500"></i>
-                            <span>Encerramento: <span class="font-medium text-gray-900">{{ edital.end_date|date:"d/m/Y" }}</span></span>
-                          </div>
-                        {% endif %}
-                      </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col gap-3 lg:w-48 flex-shrink-0 justify-center">
-                      <a href="{{ edital.get_absolute_url }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-sm font-medium rounded-xl text-white {% if edital.status == 'aberto' %}bg-secondary hover:bg-unirvBlue{% else %}bg-gray-500 hover:bg-gray-600{% endif %} shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 text-center">
-                        Ver Detalhes
-                      </a>
-                    </div>
+              <a href="{{ edital.get_absolute_url }}" class="edital-card bg-white rounded-3xl p-8 h-full flex flex-col cursor-pointer no-underline shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group transform hover:-translate-y-2" aria-label="Ver detalhes do edital {{ edital.titulo }}">
+                <!-- Status Badge -->
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-6 w-fit {% if edital.status == 'aberto' %}bg-green-100 text-green-700{% elif edital.status == 'fechado' %}bg-gray-100 text-gray-600{% else %}bg-blue-100 text-blue-700{% endif %}">
+                  <i class="fas {% if edital.status == 'aberto' %}fa-check-circle{% elif edital.status == 'fechado' %}fa-times-circle{% else %}fa-hourglass-half{% endif %} mr-1.5"></i>
+                  {{ edital.get_status_display }}
+                </span>
+                
+                <!-- Icon Area & Type Badge -->
+                <div class="flex items-start justify-between mb-4">
+                <div class="w-16 h-16 rounded-2xl bg-linear-to-br 
+                    {% if edital.end_date %}from-blue-50 to-indigo-100 border border-blue-100
+                    {% else %}from-purple-50 to-fuchsia-100 border border-purple-100{% endif %}
+                    flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+                    {% if edital.end_date %}
+                      <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
+                    {% else %}
+                      <i class="fas fa-sync-alt text-purple-600" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
+                    {% endif %}
                   </div>
+                  {% if edital.numero_edital %}
+                  <span class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold uppercase tracking-wide ml-2 shrink-0">
+                    Edital {{ edital.numero_edital }}
+                  </span>
+                  {% endif %}
                 </div>
-              </div>
+                
+                <!-- Content -->
+                <div class="mb-6 grow">
+                  <h3 class="font-extrabold text-2xl text-gray-900 group-hover:text-unirvBlue transition-colors mb-3 leading-tight">{{ edital.titulo }}</h3>
+                  <p class="text-xs font-bold 
+                    {% if edital.end_date %}text-blue-600
+                    {% else %}text-purple-600{% endif %}
+                    uppercase tracking-wider mb-4">
+                    {% if edital.end_date %}
+                      <i class="fas fa-hand-holding-usd mr-1.5"></i>Fomento
+                    {% else %}
+                      <i class="fas fa-infinity mr-1.5"></i>Fluxo Contínuo
+                    {% endif %}
+                  </p>
+                  <p class="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                    {{ edital.objetivo|default:edital.analise|default:"Sem descrição disponível."|striptags|truncatewords:25 }}
+                  </p>
+                </div>
+
+                <!-- Footer Info -->
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-xs text-gray-500 border-t border-gray-100 pt-4 mt-auto">
+                  {% if edital.start_date %}
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-calendar-alt text-secondary"></i>
+                      <span>Abertura: <span class="font-medium text-gray-900">{{ edital.start_date|date:"d/m/Y" }}</span></span>
+                    </div>
+                  {% endif %}
+                  {% if edital.end_date %}
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-clock text-orange-500"></i>
+                      <span>Encerramento: <span class="font-medium text-gray-900">{{ edital.end_date|date:"d/m/Y" }}</span></span>
+                    </div>
+                  {% endif %}
+                  {% if edital.entidade_principal %}
+                    <div class="flex items-center gap-2">
+                      <i class="fas fa-building text-gray-400"></i>
+                      <span class="font-medium text-gray-700">{{ edital.entidade_principal|truncatewords:3 }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+              </a>
             {% endfor %}
           </div>
 
@@ -234,21 +233,11 @@
 
         {% else %}
           <!-- Empty State -->
-          <div class="empty-state-container text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300 hover:border-secondary/50 transition-colors">
-            <div class="empty-state-icon mb-4">
-              <i class="fas fa-folder-open text-6xl text-gray-300"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Nenhum edital encontrado</h3>
-            <p class="text-gray-600 max-w-md mx-auto mb-6">
-              Não encontramos resultados para sua busca. Tente termos diferentes ou remova os filtros.
-            </p>
-            {% if search_query or status_filter or tipo_filter %}
-            <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5">
-              <i class="fas fa-undo-alt"></i>
-              Limpar Filtros
-            </a>
-            {% endif %}
-          </div>
+          {% if search_query or status_filter or tipo_filter %}
+            {% include 'components/empty_state.html' with icon='fa-folder-open' title='Nenhum edital encontrado' description='Não encontramos resultados para sua busca. Tente termos diferentes ou remova os filtros.' action_url_name='editais_index' action_text='Limpar Filtros' %}
+          {% else %}
+            {% include 'components/empty_state.html' with icon='fa-file-alt' title='Nenhum edital disponível no momento' description='Novos editais serão publicados em breve. Fique atento às oportunidades!' %}
+          {% endif %}
         {% endif %}
       </div>
     </div>
@@ -258,165 +247,4 @@
 </template>
 
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", (event) => {
-  gsap.registerPlugin(ScrollTrigger);
-
-  // 1. Animate header elements immediately on load (not scroll-triggered)
-  const headerSection = document.querySelector('section.bg-gradient-to-r');
-  if (headerSection) {
-    const headerRevealElements = headerSection.querySelectorAll('.reveal-up');
-    if (headerRevealElements.length > 0) {
-      gsap.to(headerRevealElements, {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        stagger: 0.15,
-        ease: "power3.out",
-        delay: 0.2
-      });
-    }
-  }
-
-  // 2. Reveal Animations for below-fold elements (filters, search, badges) - scroll-triggered
-  const mainContentSection = document.querySelector('section.container');
-  if (mainContentSection) {
-    const belowFoldReveal = mainContentSection.querySelectorAll('.reveal-up');
-    if (belowFoldReveal.length > 0) {
-      belowFoldReveal.forEach((elem) => {
-        gsap.to(elem, {
-          scrollTrigger: { trigger: elem, start: "top 85%" },
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "power3.out"
-        });
-      });
-    }
-  }
-
-  // 3. Staggered fade-in animation for edital cards
-  const editalCards = document.querySelectorAll('.edital-card');
-  if (editalCards.length > 0) {
-    // Set initial state immediately
-    gsap.set(editalCards, { opacity: 0, y: 30 });
-    
-    // Check if cards are already in viewport
-    const editaisGrid = document.querySelector('.editais-grid');
-    const checkAndAnimate = () => {
-      if (!editaisGrid) return;
-      
-      const rect = editaisGrid.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight * 0.9;
-      
-      if (isInViewport) {
-        // Cards are already visible, animate immediately
-        gsap.to(editalCards, {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out"
-        });
-      } else {
-        // Cards are below fold, use ScrollTrigger
-        gsap.to(editalCards, {
-          scrollTrigger: {
-            trigger: '.editais-grid',
-            start: "top 85%",
-            once: true
-          },
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out"
-        });
-      }
-    };
-    
-    // Check immediately
-    checkAndAnimate();
-    
-    // Also check after a short delay to catch any layout shifts
-    setTimeout(checkAndAnimate, 200);
-  }
-
-  // 4. Empty state animation
-  const emptyState = document.querySelector('.empty-state-container');
-  if (emptyState) {
-    gsap.from(emptyState, {
-      scrollTrigger: { trigger: emptyState, start: "top 85%" },
-      opacity: 0,
-      scale: 0.95,
-      y: 20,
-      duration: 0.8,
-      ease: "back.out(1.7)"
-    });
-  }
-
-  // 5. Re-animate cards when AJAX updates occur
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      if (mutation.addedNodes.length) {
-        const newCards = document.querySelectorAll('.edital-card:not(.animated)');
-        if (newCards.length > 0) {
-          // Set initial state for new cards
-          newCards.forEach(card => {
-            gsap.set(card, { opacity: 0, y: 30 });
-          });
-          gsap.to(newCards, {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            stagger: 0.1,
-            ease: "power2.out",
-            onComplete: () => {
-              newCards.forEach(card => card.classList.add('animated'));
-            }
-          });
-        }
-      }
-    });
-  });
-
-  const editaisGrid = document.querySelector('.editais-grid');
-  if (editaisGrid) {
-    observer.observe(editaisGrid, { childList: true, subtree: true });
-  }
-  
-  // Safety fallback: Ensure all cards are visible after animations should have completed
-  setTimeout(() => {
-    const allCards = document.querySelectorAll('.edital-card');
-    allCards.forEach(card => {
-      const computedStyle = window.getComputedStyle(card);
-      const opacity = parseFloat(computedStyle.opacity);
-      if (opacity < 0.5) {
-        // Force visibility if still hidden
-        gsap.set(card, { opacity: 1, y: 0, clearProps: "all" });
-      }
-    });
-  }, 2000);
-});
-
-// Ctrl+K to focus search (fallback if main.js doesn't handle this specific input)
-document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        const searchInput = document.getElementById('search-editais');
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.select();
-        }
-    }
-});
-
-// Filter details behavior is handled by CSS media queries (see styles.css)
-// The summary is non-interactive on large screens (lg:pointer-events-none)
-</script>
 {% endblock %}

@@ -23,20 +23,54 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# 
+# ⚠️ CRITICAL FOR PRODUCTION: The fallback value below is INSECURE and must NEVER be used in production.
+# Always set SECRET_KEY as an environment variable in production.
+# Generate a secure key with:
+#   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# 
+# The fallback is provided ONLY for local development convenience.
+# If SECRET_KEY is not set in production, Django will fail to start (by design).
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Em desenvolvimento, padrão é True. Em produção, definir DJANGO_DEBUG=False explicitamente
+# 
+# ⚠️ CRITICAL FOR PRODUCTION: DEBUG=True exposes sensitive information and should NEVER be used in production.
+# 
+# Development: Defaults to True for convenience (can be overridden with DJANGO_DEBUG=False)
+# Production: MUST be set to False via environment variable: DJANGO_DEBUG=False
+# 
+# When DEBUG=False, additional security settings are automatically enabled (see below).
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
+# Detect if we're running tests
+# Django sets sys.argv[1] to 'test' when running tests
+# Also check for 'pytest' or 'unittest' in command line
+TESTING = (
+    len(sys.argv) > 1 and (
+        sys.argv[1] == 'test' or 
+        'pytest' in sys.argv[0] or 
+        'unittest' in sys.argv[0] or
+        'test' in sys.argv
+    )
+)
+
 # Security: explicit ALLOWED_HOSTS
+# 
+# ALLOWED_HOSTS prevents HTTP Host header attacks.
+# 
+# Development (DEBUG=True): Automatically allows localhost, 127.0.0.1, and [::1]
+# Production (DEBUG=False): MUST be set via ALLOWED_HOSTS environment variable
+#   Example: ALLOWED_HOSTS=example.com,www.example.com
+# 
 # Parsear e validar ALLOWED_HOSTS antes de usar
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
 if DEBUG:
+    # Development: Allow localhost by default
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
-    # Em produção, usar variável de ambiente
-    # Em desenvolvimento sem DEBUG, ainda permitir localhost
+    # Production: Require explicit ALLOWED_HOSTS configuration
+    # Em desenvolvimento sem DEBUG, ainda permitir localhost como fallback
     if allowed_hosts_env:
         # Parsear hosts e filtrar valores vazios
         parsed_hosts = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
@@ -77,12 +111,14 @@ except ImportError:
     # Compressor not installed, skip it
     pass
 
-# Add django_browser_reload only in DEBUG mode
-if DEBUG:
+# Add django_browser_reload only in DEBUG mode and not during testing
+# TESTING mode disables django_browser_reload to avoid namespace issues in test environment
+if DEBUG and not TESTING:
     INSTALLED_APPS += ['django_browser_reload']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',  # Add gzip compression for HTML responses
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -92,9 +128,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Add django_browser_reload middleware only in DEBUG mode
+# Add django_browser_reload middleware only in DEBUG mode and not during testing
 # Should be after any middleware that encodes the response (like GZipMiddleware)
-if DEBUG:
+if DEBUG and not TESTING:
     MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
     INTERNAL_IPS = [
         "127.0.0.1",
@@ -194,9 +230,6 @@ STATICFILES_FINDERS = [
 if HAS_COMPRESSOR:
     STATICFILES_FINDERS.append('compressor.finders.CompressorFinder')
 
-# Testing flag (needed before compressor settings)
-TESTING = 'test' in sys.argv
-
 # Django Compressor settings for minification (only if compressor is installed)
 if HAS_COMPRESSOR:
     # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
@@ -204,14 +237,21 @@ if HAS_COMPRESSOR:
     # COMPRESS_URL should match the format used by {% static %} tag (with leading slash)
     COMPRESS_URL = '/static/' if not STATIC_URL.startswith('/') else STATIC_URL
     
-    # Disable compression in tests and development to avoid file not found errors
-    if TESTING or DEBUG:
+    # Enable compression for Lighthouse testing even in DEBUG mode
+    # Set COMPRESS_ENABLED=true environment variable to enable compression in development
+    compress_enabled_env = os.environ.get('COMPRESS_ENABLED', '').lower() == 'true'
+    if TESTING:
         COMPRESS_ENABLED = False
         COMPRESS_OFFLINE = False
-    else:
-        # In production: pre-compress during collectstatic for better performance
+    elif compress_enabled_env or not DEBUG:
+        # Enable compression if explicitly requested or in production
         COMPRESS_ENABLED = True
         COMPRESS_OFFLINE = True
+    else:
+        # Default: disable in development to avoid file not found errors
+        # But allow runtime compression (not offline) for testing
+        COMPRESS_ENABLED = True  # Enable runtime compression
+        COMPRESS_OFFLINE = False  # Don't require offline compression in dev
     
     COMPRESS_CSS_FILTERS = [
         'compressor.filters.css_default.CssAbsoluteFilter',
@@ -226,19 +266,40 @@ else:
     COMPRESS_OFFLINE = False
 
 # WhiteNoise: serve compressed static files
-STORAGES = {
-    'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
-    },
-}
+# Use non-manifest storage during tests to avoid requiring collected static files
+if TESTING:
+    STORAGES = {
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
+    }
+else:
+    STORAGES = {
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 
 # Static files caching headers
 # Set cache headers for both development and production
 # Development: 1 hour cache for testing, Production: 1 year
+# For Lighthouse testing, use longer cache even in development
+# Note: CompressedManifestStaticFilesStorage automatically adds cache headers
+# To test with longer cache in development, set: WHITENOISE_MAX_AGE=31536000
 if DEBUG:
-    WHITENOISE_MAX_AGE = 3600  # 1 hour in seconds for development
+    # Allow override via environment variable for Lighthouse testing
+    whitenoise_max_age_env = os.environ.get('WHITENOISE_MAX_AGE', '')
+    if whitenoise_max_age_env:
+        WHITENOISE_MAX_AGE = int(whitenoise_max_age_env)
+    else:
+        WHITENOISE_MAX_AGE = 3600  # 1 hour in seconds for development
 else:
     WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds for production
+
+# WhiteNoise compression settings
+WHITENOISE_USE_FINDERS = True  # Use staticfiles finders for better performance
+WHITENOISE_AUTOREFRESH = DEBUG  # Auto-refresh in development mode
+WHITENOISE_MANIFEST_STRICT = False  # Don't fail if manifest file is missing (useful in dev)
 
 # Cache configuration
 # Try Redis first, fallback to LocMemCache for development
@@ -308,6 +369,14 @@ EDITAL_SEARCH_FIELDS = [
 ]
 
 # Security settings for production
+# 
+# Production security is automatically enabled when:
+#   1. DEBUG=False (explicitly set via DJANGO_DEBUG=False)
+#   2. ALLOWED_HOSTS is configured with valid host(s)
+# 
+# This ensures security settings are only enabled in actual production environments,
+# not accidentally in development with DEBUG=False.
+# 
 # Verificar se estamos em produção (DEBUG=False E ALLOWED_HOSTS válido e não-vazio)
 # Alinhar com a validação do ALLOWED_HOSTS para evitar ativar segurança de produção
 # com configuração inválida (ex: ALLOWED_HOSTS=' ' ou ALLOWED_HOSTS=',,,')

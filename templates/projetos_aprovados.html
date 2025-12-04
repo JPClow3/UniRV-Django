@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Projetos Aprovados - AgroHub UniRV{% endblock %}
+{% block title %}Startups Incubadas - AgroHub UniRV{% endblock %}
 
 {% block content %}
 <div class="bg-white">
   <!-- Header -->
-  <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-16 md:py-20">
+  <section class="bg-linear-to-r from-unirvBlue to-agrohubBlue text-white py-16 md:py-20 fold-section">
     <div class="container relative z-10 px-6 pt-20">
       <div class="max-w-4xl">
         <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
@@ -14,22 +14,22 @@
           Ecossistema
         </div>
         <h1 class="reveal-up text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
-          Projetos Aprovados
+          Startups Incubadas
         </h1>
         <p class="reveal-up text-lg md:text-xl text-gray-200 mb-10 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
-          Conheça as startups e projetos que fazem parte do ecossistema AgroHub UniRV
+          Conheça as startups que fazem parte do ecossistema AgroHub UniRV
         </p>
       </div>
     </div>
   </section>
 
   <!-- Stats -->
-  <section class="bg-white py-20">
+  <section class="bg-white py-20 fold-section">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 max-w-5xl mx-auto">
         <div class="text-center">
           <div class="text-blue-600 mb-2 text-5xl md:text-6xl font-bold">4</div>
-          <div class="text-gray-700 text-base md:text-lg">Projetos Ativos</div>
+          <div class="text-gray-700 text-base md:text-lg">Startups Ativas</div>
         </div>
         <div class="text-center">
           <div class="text-blue-600 mb-2 text-5xl md:text-6xl font-bold">4</div>
@@ -48,13 +48,13 @@
   </section>
 
   <!-- Filters -->
-  <section class="bg-gray-50 border-b">
+  <section class="bg-gray-50 border-b fold-section">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex flex-col md:flex-row gap-4 max-w-5xl mx-auto">
         <div class="flex-1 relative">
-          <label for="search-projetos" class="sr-only">Buscar projetos</label>
+          <label for="search-startups" class="sr-only">Buscar startups</label>
           <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
-          <input type="text" id="search-projetos" placeholder="Buscar projetos..." class="pl-10 w-full">
+          <input type="text" id="search-startups" placeholder="Buscar startups..." class="pl-10 w-full">
         </div>
         <div class="w-full md:w-48">
           <label for="filter-area" class="sr-only">Filtrar por área</label>
@@ -81,12 +81,12 @@
   </section>
 
   <!-- Projects Grid -->
-  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 fold-section">
     <div class="max-w-6xl mx-auto">
-      <h2 class="sr-only">Projetos Aprovados</h2>
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="projetos-grid">
-        <!-- Projeto 1 -->
-        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Agronegócio" data-tipo="Incubação">
+      <h2 class="sr-only">Startups Incubadas</h2>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="startups-grid">
+        <!-- Startup 1 -->
+        <div class="startup-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Agronegócio" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -119,8 +119,8 @@
           </div>
         </div>
 
-        <!-- Projeto 2 -->
-        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Educação" data-tipo="Pré-Incubação">
+        <!-- Startup 2 -->
+        <div class="startup-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Educação" data-tipo="Pré-Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -149,8 +149,8 @@
           </div>
         </div>
 
-        <!-- Projeto 3 -->
-        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Saúde" data-tipo="Incubação">
+        <!-- Startup 3 -->
+        <div class="startup-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Saúde" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -183,8 +183,8 @@
           </div>
         </div>
 
-        <!-- Projeto 4 -->
-        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Sustentabilidade" data-tipo="Incubação">
+        <!-- Startup 4 -->
+        <div class="startup-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Sustentabilidade" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -217,8 +217,8 @@
           </div>
         </div>
 
-        <!-- Projeto 5 -->
-        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Tecnologia" data-tipo="Incubação">
+        <!-- Startup 5 -->
+        <div class="startup-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Tecnologia" data-tipo="Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -247,8 +247,8 @@
           </div>
         </div>
 
-        <!-- Projeto 6 -->
-        <div class="projeto-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Impacto Social" data-tipo="Pré-Incubação">
+        <!-- Startup 6 -->
+        <div class="startup-item bg-white rounded-2xl shadow-md hover:shadow-xl transition-all border-0 overflow-hidden group" data-area="Impacto Social" data-tipo="Pré-Incubação">
           <div class="p-8">
             <div class="flex items-start justify-between mb-6">
               <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -258,7 +258,7 @@
             </div>
             <h3 class="text-blue-600 mb-3 group-hover:text-blue-700 transition-colors text-lg font-semibold">SocialConnect</h3>
             <p class="text-gray-600 text-sm mb-6 leading-relaxed line-clamp-3">
-              Plataforma de conexão entre ONGs e voluntários para projetos sociais locais.
+              Plataforma de conexão entre ONGs e voluntários para iniciativas sociais locais.
             </p>
             <div class="space-y-3 mb-6">
               <div class="flex items-center gap-2 text-sm text-gray-600">
@@ -281,7 +281,7 @@
   </section>
 
   <!-- CTA Section -->
-  <section class="bg-gradient-to-br from-unirvBlue via-unirvBlue to-agrohubBlue py-16">
+  <section class="bg-linear-to-br from-unirvBlue via-unirvBlue to-agrohubBlue py-16">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="text-white mb-4 text-3xl font-bold">Quer fazer parte do nosso ecossistema?</h2>
       <p class="text-white/80 mb-8 max-w-2xl mx-auto text-lg">
@@ -297,17 +297,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById('search-projetos');
+  const searchInput = document.getElementById('search-startups');
   const filterArea = document.getElementById('filter-area');
   const filterTipo = document.getElementById('filter-tipo');
-  const projetoItems = document.querySelectorAll('.projeto-item');
+  const startupItems = document.querySelectorAll('.startup-item');
   
-  function filterProjetos() {
+  function filterStartups() {
     const searchTerm = searchInput.value.toLowerCase();
     const selectedArea = filterArea.value;
     const selectedTipo = filterTipo.value;
     
-    projetoItems.forEach(item => {
+    startupItems.forEach(item => {
       const nome = item.querySelector('h3').textContent.toLowerCase();
       const descricao = item.querySelector('p').textContent.toLowerCase();
       const area = item.getAttribute('data-area');
@@ -325,9 +325,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  searchInput.addEventListener('input', filterProjetos);
-  filterArea.addEventListener('change', filterProjetos);
-  filterTipo.addEventListener('change', filterProjetos);
+  searchInput.addEventListener('input', filterStartups);
+  filterArea.addEventListener('change', filterStartups);
+  filterTipo.addEventListener('change', filterStartups);
 });
 </script>
 {% endblock %}

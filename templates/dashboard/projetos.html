@@ -20,7 +20,7 @@
       </p>
     </div>
     {% if user.is_staff %}
-      <a href="{% url 'dashboard_submeter_projeto' %}" class="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+      <a href="{% url 'dashboard_submeter_startup' %}" class="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
         <i class="fas fa-plus w-4 h-4"></i>
         Nova Startup
       </a>
@@ -106,7 +106,6 @@
         <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Nome (A-Z)</option>
         <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Nome (Z-A)</option>
         <option value="status_asc" {% if sort_by == 'status_asc' %}selected{% endif %}>Status</option>
-        <option value="note_desc" {% if sort_by == 'note_desc' %}selected{% endif %}>Nota (maior)</option>
       </select>
     </form>
 
@@ -138,7 +137,7 @@
     <div>
       <p class="font-semibold">Nenhuma startup encontrada com os filtros aplicados.</p>
       <p class="text-sm text-blue-700/80">Tente outros critérios de busca ou limpe os filtros para visualizar todas as startups.</p>
-      <a href="{% url 'dashboard_projetos' %}" class="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
+            <a href="{% url 'dashboard_startups' %}" class="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
         <i class="fas fa-undo-alt text-xs"></i>
         Limpar filtros
       </a>
@@ -207,13 +206,6 @@
           {% endif %}
         </div>
 
-        {% if project.note is not None %}
-        <div class="flex items-center gap-2 text-sm">
-          <i class="fas fa-star text-yellow-500"></i>
-          <span class="font-semibold text-gray-900">{{ project.note }}</span>
-          <span class="text-gray-500">/ 10</span>
-        </div>
-        {% endif %}
       </div>
 
       <!-- Card Footer -->
@@ -247,12 +239,12 @@
     <p class="text-gray-600 mb-6">Revise os filtros aplicados{% if user.is_staff %} ou cadastre uma nova startup{% endif %}.</p>
     <div class="flex flex-col sm:flex-row justify-center gap-3">
       {% if user.is_staff %}
-      <a href="{% url 'dashboard_submeter_projeto' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
+      <a href="{% url 'dashboard_submeter_startup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
         <i class="fas fa-plus"></i>
         Nova Startup
       </a>
       {% endif %}
-      <a href="{% url 'dashboard_projetos' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg font-medium transition-all">
+      <a href="{% url 'dashboard_startups' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg font-medium transition-all">
         <i class="fas fa-undo-alt"></i>
         Limpar filtros
       </a>

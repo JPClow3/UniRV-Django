@@ -1,12 +1,26 @@
+# Core Django and web server
 Django==5.2.8
 whitenoise==6.11.0
-requests==2.32.5
-beautifulsoup4==4.14.3
 gunicorn==23.0.0
 uvicorn==0.38.0
+
+# HTTP and web scraping
+requests==2.32.5
+beautifulsoup4==4.14.3
+
+# Content processing
 markdown2==2.5.4
 bleach==6.3.0
+
+# Django extensions
 django-compressor==4.6.0
-django-tailwind>=3.8.0
-django-browser-reload>=1.11.0
+django-tailwind==3.8.0
+django-browser-reload==1.11.0
 django-redis==6.0.0
+
+# Image processing (required for ImageField)
+Pillow>=11.0.0
+
+# Note: Regularly update dependencies for security patches
+# Use 'pip list --outdated' to check for updates
+# Review changelogs before updating major versions
