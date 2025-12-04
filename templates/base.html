@@ -50,22 +50,19 @@
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
     <!-- Resource Hints for Performance - Early DNS resolution and connection -->
+    <!-- DNS prefetch for external domains (happens early, before connection) -->
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <!-- Preconnect to establish early connections to CDNs -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <!-- Prefetch likely next-page resources for better navigation performance -->
+    <link rel="prefetch" href="{% url 'editais_index' %}" as="document" />
     <!-- Preload critical fonts - only Regular weight for above-the-fold content -->
+    <!-- SemiBold font loads on-demand when needed (font-display: swap handles this) -->
     <link
       rel="preload"
       as="font"
       type="font/ttf"
       href="{% static 'fonts/Montserrat-Regular.ttf' %}"
-      crossorigin="anonymous"
-    />
-    <!-- SemiBold font can load after initial render -->
-    <link
-      rel="preload"
-      as="font"
-      type="font/ttf"
-      href="{% static 'fonts/Montserrat-SemiBold.ttf' %}"
       crossorigin="anonymous"
     />
     <!-- Preload FontAwesome font file for faster loading -->
@@ -156,6 +153,7 @@
               height="112" 
               fetchpriority="high"
               loading="eager"
+              decoding="async"
             />
           </a>
 
@@ -453,15 +451,20 @@
     </footer>
 
 
-    {% endwith %}
-    <!-- Global animation libraries - loaded with defer (preconnect already in head) -->
+    <!-- Global animation libraries - conditionally loaded only on pages that need animations -->
+    {% if current_url == 'home' or current_url|startswith:'edital_' or current_url == 'startups_showcase' or current_url == 'ambientes_inovacao' %}
+    <!-- GSAP only loaded on pages with animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
-
     {% compress js %}
     <script src="{% static 'js/animations.js' %}" defer></script>
+    {% endcompress %}
+    {% endif %}
+
+    {% compress js %}
     <script src="{% static 'js/main.js' %}" defer></script>
     {% endcompress %}
     {% block extra_js %}{% endblock %}
+    {% endwith %}
   </body>
   </html>

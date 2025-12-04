@@ -14,6 +14,7 @@
     as="image"
     href="{% static 'img/agrohub-hero.webp' %}"
     fetchpriority="high"
+    type="image/webp"
   />
 {% endblock %}
 
@@ -36,8 +37,10 @@
         src="{% static 'img/agrohub-hero.webp' %}"
         width="2070"
         height="1380"
+        sizes="100vw"
         loading="eager"
         fetchpriority="high"
+        decoding="async"
         alt=""
         onload="this.classList.add('is-loaded')"
         style="background: radial-gradient(circle at top, #1f2a6b, #0b122c);"
@@ -65,7 +68,7 @@
         <p class="reveal-up text-lg md:text-xl text-gray-200 mb-10 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
           O AgroHub UniRV é o centro de inovação, pesquisa aplicada e pós-graduação da Universidade de Rio Verde, projetado para conectar academia, empresas, startups, produtores e poder público em soluções tecnológicas para o agronegócio. Nossa missão é traduzir pesquisa em produtos e serviços sustentáveis, formando recursos humanos especializados e posicionando Rio Verde como polo de referência em inovação agropecuária.
         </p>
-        <div class="reveal-up flex flex-col sm:flex-row gap-4">
+        <div class="reveal-up flex flex-col sm:flex-row gap-4 mb-16 md:mb-20">
           <button data-url="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
             Ver Editais Abertos <i class="fas fa-arrow-right"></i>
           </button>
@@ -76,7 +79,7 @@
       </div>
     </div>
     <!-- Scroll Indicator -->
-    <div class="absolute bottom-24 left-1/2 -translate-x-1/2 text-white z-10 pointer-events-none flex flex-col items-center">
+    <div class="absolute bottom-8 md:bottom-24 left-1/2 -translate-x-1/2 text-white z-10 pointer-events-none hidden md:flex flex-col items-center">
       <span class="text-xs uppercase tracking-widest mb-2 opacity-70">Role para baixo</span>
       <i class="fas fa-chevron-down opacity-70 text-2xl animate-slow-bounce"></i>
     </div>

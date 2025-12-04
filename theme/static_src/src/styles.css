@@ -14,7 +14,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../../fonts/Montserrat-Regular.ttf') format('truetype');
+  src: url('/static/fonts/Montserrat-Regular.ttf') format('truetype');
 }
 
 @font-face {
@@ -22,7 +22,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('../../fonts/Montserrat-SemiBold.ttf') format('truetype');
+  src: url('/static/fonts/Montserrat-SemiBold.ttf') format('truetype');
 }
 
 /* Note: FontAwesome font-display optimization is handled via preload link in base.html */
