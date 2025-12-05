@@ -38,12 +38,18 @@
 
     // Reveal Animations
     gsap.utils.toArray('.reveal-up').forEach((elem) => {
+      // Add will-change hint for better performance
+      elem.style.willChange = 'transform, opacity';
       gsap.to(elem, {
         scrollTrigger: { trigger: elem, start: 'top 92%' },
         y: 0,
         opacity: 1,
         duration: 0.6,
-        ease: 'power3.out'
+        ease: 'power3.out',
+        onComplete: function() {
+          // Remove will-change after animation completes
+          elem.style.willChange = 'auto';
+        }
       });
     });
 
@@ -121,12 +127,22 @@
     // Hero animations
     const heroElems = document.querySelectorAll('.reveal-hero');
     if (heroElems.length) {
+      // Add will-change hint for better performance
+      heroElems.forEach(elem => {
+        elem.style.willChange = 'transform, opacity';
+      });
       gsap.from(heroElems, {
         y: 40,
         opacity: 0,
         duration: 0.7,
         stagger: 0.08,
-        ease: 'power3.out'
+        ease: 'power3.out',
+        onComplete: function() {
+          // Remove will-change after animation completes
+          heroElems.forEach(elem => {
+            elem.style.willChange = 'auto';
+          });
+        }
       });
     }
 
@@ -150,6 +166,10 @@
     const allCards = document.querySelectorAll('.startup-card');
     function animateCards(elements) {
       if (!elements || !elements.length) return;
+      // Add will-change hint for better performance
+      elements.forEach(card => {
+        card.style.willChange = 'transform, opacity';
+      });
       gsap.fromTo(
         elements,
         { y: 50, opacity: 0, scale: 0.95 },
@@ -160,7 +180,13 @@
           duration: 0.6,
           stagger: 0.1,
           ease: 'back.out(1.2)',
-          clearProps: 'transform'
+          clearProps: 'transform',
+          onComplete: function() {
+            // Remove will-change after animation completes
+            elements.forEach(card => {
+              card.style.willChange = 'auto';
+            });
+          }
         }
       );
     }
@@ -169,6 +195,8 @@
 
       // Reveal on scroll for each card
       gsap.utils.toArray('.startup-card').forEach((card, index) => {
+        // Add will-change hint for better performance
+        card.style.willChange = 'transform, opacity';
         gsap.fromTo(
           card,
           { opacity: 0, y: 30 },
@@ -181,6 +209,10 @@
               trigger: card,
               start: 'top 88%',
               toggleActions: 'play none none none'
+            },
+            onComplete: function() {
+              // Remove will-change after animation completes
+              card.style.willChange = 'auto';
             }
           }
         );
@@ -257,6 +289,10 @@
     // Edital cards staggered fade-in
     const editalCards = document.querySelectorAll('.edital-card');
     if (editalCards.length) {
+      // Add will-change hint for better performance
+      editalCards.forEach(card => {
+        card.style.willChange = 'transform, opacity';
+      });
       gsap.set(editalCards, { opacity: 0, y: 30 });
 
       const editaisGrid = document.querySelector('.editais-grid');
@@ -270,7 +306,13 @@
           y: 0,
           duration: 0.4,
           stagger: 0.05,
-          ease: 'power2.out'
+          ease: 'power2.out',
+          onComplete: function() {
+            // Remove will-change after animation completes
+            editalCards.forEach(card => {
+              card.style.willChange = 'auto';
+            });
+          }
         };
 
         if (isInViewport) {
@@ -313,6 +355,7 @@
           if (!newCards.length) return;
 
           newCards.forEach((card) => {
+            card.style.willChange = 'transform, opacity';
             gsap.set(card, { opacity: 0, y: 30 });
           });
 
@@ -323,7 +366,10 @@
             stagger: 0.05,
             ease: 'power2.out',
             onComplete: () => {
-              newCards.forEach((card) => card.classList.add('animated'));
+              newCards.forEach((card) => {
+                card.classList.add('animated');
+                card.style.willChange = 'auto';
+              });
             }
           });
         });

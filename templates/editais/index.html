@@ -211,7 +211,7 @@
             <div class="pagination-container mt-12 flex justify-center">
               <nav class="flex items-center gap-2" aria-label="Pagination">
                 {% if page_obj.has_previous %}
-                  <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="p-2 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow">
+                  <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow min-w-[44px] min-h-[44px] inline-flex items-center justify-center">
                     <span class="sr-only">Anterior</span>
                     <i class="fas fa-chevron-left"></i>
                   </a>
@@ -222,7 +222,7 @@
                 </span>
                 
                 {% if page_obj.has_next %}
-                  <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="p-2 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow">
+                  <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow min-w-[44px] min-h-[44px] inline-flex items-center justify-center">
                     <span class="sr-only">Próxima</span>
                     <i class="fas fa-chevron-right"></i>
                   </a>
@@ -234,7 +234,44 @@
         {% else %}
           <!-- Empty State -->
           {% if search_query or status_filter or tipo_filter %}
-            {% include 'components/empty_state.html' with icon='fa-folder-open' title='Nenhum edital encontrado' description='Não encontramos resultados para sua busca. Tente termos diferentes ou remova os filtros.' action_url_name='editais_index' action_text='Limpar Filtros' %}
+            <div id="no-results" class="text-center py-20 max-w-lg mx-auto">
+              <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400 text-3xl">
+                <i class="fas fa-search"></i>
+              </div>
+              <h2 class="text-gray-900 font-bold text-xl mb-2">Nenhum edital encontrado</h2>
+              
+              {% if search_query %}
+                <p class="text-gray-600 mb-6">
+                  Não encontramos editais para "<strong>{{ search_query }}</strong>".
+                </p>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                  <h3 class="font-semibold text-blue-900 mb-2">Dicas de busca:</h3>
+                  <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• Verifique a ortografia das palavras</li>
+                    <li>• Tente termos mais genéricos (ex: "agricultura" em vez de "agropecuária")</li>
+                    <li>• Use palavras-chave diferentes</li>
+                    <li>• Remova filtros para ampliar os resultados</li>
+                  </ul>
+                </div>
+              {% elif status_filter %}
+                <p class="text-gray-600 mb-6">
+                  Não há editais com status <strong>{{ status_filter|title }}</strong> no momento.
+                </p>
+              {% elif tipo_filter %}
+                <p class="text-gray-600 mb-6">
+                  Não há editais do tipo <strong>{{ tipo_filter }}</strong> no momento.
+                </p>
+              {% endif %}
+              
+              <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="{% url 'editais_index' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-unirvBlue text-white font-bold rounded-full hover:bg-blue-700 transition-colors">
+                  <i class="fas fa-redo"></i> Limpar Filtros
+                </a>
+                <a href="mailto:ypetec@unirv.edu.br" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-medium rounded-full hover:border-unirvBlue hover:text-unirvBlue transition-colors">
+                  <i class="fas fa-envelope"></i> Receber Notificações
+                </a>
+              </div>
+            </div>
           {% else %}
             {% include 'components/empty_state.html' with icon='fa-file-alt' title='Nenhum edital disponível no momento' description='Novos editais serão publicados em breve. Fique atento às oportunidades!' %}
           {% endif %}

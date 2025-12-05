@@ -14,6 +14,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
+  size-adjust: 100.06%;
   src: url('/static/fonts/Montserrat-Regular.ttf') format('truetype');
 }
 
@@ -22,6 +23,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
+  size-adjust: 100.06%;
   src: url('/static/fonts/Montserrat-SemiBold.ttf') format('truetype');
 }
 
@@ -61,6 +63,22 @@
 body {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     system-ui, -system-ui, sans-serif;
+}
+
+:root {
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+}
+
+@media (max-width: 767px) {
+  html {
+    font-size: 17px;
+  }
 }
 
 @layer components {
@@ -120,15 +138,25 @@ body {
     padding-right: 0 !important;
   }
 
-  /* Prevent horizontal scrollbar - using clip instead of hidden to preserve sticky positioning */
+  /* Prevent horizontal scrollbar with safer containment */
   html {
-    overflow-x: clip;
-    max-width: 100%;
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
   }
 
   body {
-    overflow-x: clip;
+    overflow-x: hidden;
     max-width: 100%;
+    position: relative;
+  }
+
+  .container,
+  .editais-grid,
+  .startups-grid,
+  table {
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   /* Page detail styles - minimal styles for detail pages */
@@ -187,6 +215,11 @@ body {
   .mobile-menu-toggle:hover {
     background: rgba(0, 0, 0, 0.05);
   }
+  .mobile-menu-toggle:focus-visible {
+    outline: 3px solid var(--color-unirvBlue);
+    outline-offset: 3px;
+    background: rgba(39, 52, 139, 0.1);
+  }
 
   body.page-detail .mobile-menu-toggle:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -216,6 +249,22 @@ body {
 
   .mobile-menu-toggle[aria-expanded="true"] .hamburger-line:nth-child(3) {
     transform: rotate(-45deg) translate(6px, -6px);
+  }
+
+  /* Theme toggle button */
+  .theme-toggle {
+    @apply flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 text-gray-600 transition-all;
+    background: white;
+  }
+
+  .theme-toggle:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .theme-toggle:focus-visible {
+    outline: 2px solid var(--color-unirvBlue);
+    outline-offset: 2px;
   }
 
   /* Mobile Navigation Menu */
@@ -354,6 +403,7 @@ body {
   .site-header.glass-nav .nav-cta {
     background-color: var(--color-darkBlue) !important;
     color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 
   .nav-cta:hover {
@@ -361,7 +411,29 @@ body {
     color: #ffffff !important; /* Ensure white text on hover for WCAG AA compliance */
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--color-green-light);
+    border: 2px solid var(--color-green-light);
+  }
+
+  /* Global focus-visible styles for interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 3px solid var(--color-unirvBlue);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(39, 52, 139, 0.1);
+  }
+
+  *:focus {
+    outline: none;
+  }
+
+  .filter-btn:focus-visible {
+    outline: 3px solid var(--color-unirvBlue);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(39, 52, 139, 0.1);
+    border-color: var(--color-unirvBlue);
   }
 
   .page-meta {
@@ -389,7 +461,7 @@ body {
     color: #1f2937;
     font-size: 16px;
     line-height: 1.75;
-    max-width: 100%;
+    max-width: 65ch;
   }
 
   .prose h1,
@@ -444,6 +516,13 @@ body {
   .prose strong {
     font-weight: 600;
     color: #111827;
+  }
+
+  @media (min-width: 768px) {
+    .prose {
+      font-size: 18px;
+      line-height: 1.8;
+    }
   }
 
   /* History section */
@@ -575,7 +654,13 @@ body {
     @apply text-gray-900 text-sm flex-1;
   }
   .toast-close {
-    @apply text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-100 shrink-0;
+    @apply text-gray-400 hover:text-gray-600 transition-colors rounded hover:bg-gray-100 shrink-0;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
   }
   .toast-success {
     @apply border-green-200 bg-green-50;
@@ -590,10 +675,11 @@ body {
     @apply text-red-600;
   }
   .toast-warning {
-    @apply border-yellow-200 bg-yellow-50;
+    border-color: #d97706;
+    background-color: #fef3c7;
   }
   .toast-warning .toast-icon {
-    @apply text-yellow-600;
+    color: #b45309;
   }
   .toast-info {
     @apply border-blue-200 bg-blue-50;
@@ -737,6 +823,19 @@ body {
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5), 0 4px 12px rgba(10, 37, 88, 0.3);
   }
 
+  @media (max-width: 767px) {
+    .pagination .page-link,
+    .search-clear,
+    .toast-close,
+    .back-to-top {
+      min-width: 44px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
   /* Form Page Styles */
   .form-page {
     @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
@@ -853,13 +952,64 @@ body {
     padding-right: 2.5rem;
   }
 
+  /* Search loading indicator */
+  .search-input-wrapper {
+    position: relative;
+  }
+
+  .search-input-wrapper.searching::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+  }
+
+  /* Adjust for clear button */
+  .search-input-wrapper.searching .search-clear {
+    right: 36px;
+  }
+
+  /* Select loading state */
+  select.loading {
+    opacity: 0.6;
+    cursor: wait;
+    background-image: 
+      url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"),
+      url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%233b82f6'%3e%3ccircle cx='8' cy='8' r='6' stroke='%233b82f6' stroke-width='2' fill='none' stroke-dasharray='30' stroke-dashoffset='10'%3e%3canimateTransform attributeName='transform' type='rotate' from='0 8 8' to='360 8 8' dur='1s' repeatCount='indefinite'/%3e%3c/circle%3e%3c/svg%3e");
+    background-position: right 0.75rem center, right 2.75rem center;
+    background-size: 1.5em 1.5em, 1em 1em;
+    padding-right: 4.5rem;
+  }
+
+  /* Input focus glow */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow: 0 0 0 3px rgba(39, 52, 139, 0.1),
+                0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.15s ease;
+  }
+
   /* Status Badge */
   .status-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
   }
 
   .status-aberto {
-    @apply bg-green-100 text-green-700 border border-green-200;
+    background-color: #dcfce7;
+    color: #14532d;
+    border: 1px solid #16a34a;
   }
 
   .status-fechado {
@@ -871,7 +1021,9 @@ body {
   }
 
   .status-suspenso {
-    @apply bg-yellow-100 text-yellow-700;
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #d97706;
   }
 
 
@@ -962,10 +1114,17 @@ body {
 
   /* Skeleton Loading States */
   .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 0%,
+      #f0f0f0 40%,
+      #e8e8e8 50%,
+      #f0f0f0 60%,
+      #f0f0f0 100%
+    );
     background-size: 200% 100%;
-    animation: shimmer 1.2s infinite;
-    border-radius: 4px;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
     will-change: background-position;
   }
 
@@ -981,6 +1140,7 @@ body {
   .skeleton-card {
     @apply bg-white rounded-xl border border-gray-200 p-6;
     min-height: 200px;
+    animation: shimmer 1.5s ease-in-out infinite, pulse 2s ease-in-out infinite;
   }
 
   .skeleton-title {
@@ -1003,9 +1163,25 @@ body {
     width: 120px;
   }
 
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.95; }
+  }
+
   /* Edital Card improvements */
   .edital-card {
     position: relative;
+  }
+
+  .edital-card,
+  .startup-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .edital-card:hover,
+  .startup-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
   }
 
   .edital-card .fas,
@@ -1166,6 +1342,27 @@ body {
 
   .site-header .nav-link:hover {
     color: var(--color-green) !important;
+  }
+
+  /* Nav link underline animation */
+  .nav-link {
+    position: relative;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--color-green);
+    transition: width 0.3s ease;
+  }
+
+  .nav-link:hover::after,
+  .nav-link:focus::after {
+    width: 100%;
   }
 
   /* Glassmorphism header styles */
@@ -1456,6 +1653,7 @@ body {
     aspect-ratio: 1 / 1;
     /* Optimization: Promotes this element to a GPU layer */
     will-change: transform; 
+    overflow: hidden; /* prevent internal scrollbars */
   }
 
   /* 3. THE RINGS */
@@ -1588,6 +1786,7 @@ body {
 
   .timeline-wrapper {
     position: relative;
+    overflow: hidden; /* avoid inner scrollbars on the timeline */
   }
 
   .timeline-line-bg,
@@ -1787,8 +1986,19 @@ body {
   }
 
   .auth-label {
-    @apply text-gray-100 md:text-gray-800 font-semibold text-sm mb-2;
+    color: #ffffff;
+    font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
     display: block;
+  }
+
+  @media (min-width: 768px) {
+    .auth-label {
+      color: #1f2937;
+      text-shadow: none;
+    }
   }
 
   .auth-muted {
@@ -1972,3 +2182,4 @@ body {
     display: none;
   }
 }
+

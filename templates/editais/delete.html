@@ -71,7 +71,8 @@ async function confirmDelete() {
     
     const confirmed = await showConfirmDialog({
         title: 'Confirmar Exclusão',
-        message: `Tem certeza que deseja excluir o edital "${escapedTitle}"? Esta ação não pode ser desfeita.`,
+        // IMPORTANT: Use regular string concatenation, not template literals here
+        message: 'Tem certeza que deseja excluir o edital "' + escapedTitle + '"? Esta ação não pode ser desfeita.',
         confirmText: 'Excluir',
         cancelText: 'Cancelar',
         type: 'danger',

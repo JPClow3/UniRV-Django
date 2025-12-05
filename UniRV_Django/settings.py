@@ -84,6 +84,15 @@ else:
         # Fallback para desenvolvimento: permitir localhost mesmo sem DEBUG
         ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
+# CSRF Trusted Origins for cross-origin requests
+# Required when accessing site from different domains (even subdomains)
+if not DEBUG:
+    # Generate trusted origins from ALLOWED_HOSTS (excluding localhost/127.0.0.1)
+    CSRF_TRUSTED_ORIGINS = [
+        f'https://{host}' for host in ALLOWED_HOSTS 
+        if host not in ['localhost', '127.0.0.1', '[::1]']
+    ]
+
 
 # Application definition
 
@@ -138,6 +147,10 @@ if DEBUG and not TESTING:
 
 ROOT_URLCONF = 'UniRV_Django.urls'
 
+# Custom context processor to make HAS_COMPRESSOR available in templates
+def compressor_context(request):
+    return {'HAS_COMPRESSOR': HAS_COMPRESSOR}
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -148,6 +161,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'UniRV_Django.settings.compressor_context',
             ],
         },
     },
@@ -165,6 +179,34 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Production database override (PostgreSQL)
+if not DEBUG:
+    # Check if production database is configured
+    db_name = os.environ.get('DB_NAME')
+    if db_name:  # PostgreSQL configured
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': db_name,
+                'USER': os.environ.get('DB_USER'),
+                'PASSWORD': os.environ.get('DB_PASSWORD'),
+                'HOST': os.environ.get('DB_HOST', 'localhost'),
+                'PORT': os.environ.get('DB_PORT', '5432'),
+                'CONN_MAX_AGE': 600,  # Connection pooling - reuse connections for 10 minutes
+                'OPTIONS': {
+                    'connect_timeout': 10,
+                },
+            }
+        }
+    # If no DB configured and not using SQLite in production, warn
+    elif DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+        import warnings
+        warnings.warn(
+            "Using SQLite in production is not recommended for applications with concurrent users. "
+            "Consider PostgreSQL or MySQL.",
+            UserWarning
+        )
 
 
 # Password validation
@@ -209,6 +251,20 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files (user-uploaded content)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Production warning: Media files should be served by web server (nginx/apache), not Django
+if not DEBUG:
+    import warnings
+    from django.core.exceptions import SecurityWarning
+    warnings.warn(
+        "Ensure MEDIA_ROOT is served by your web server (nginx/apache), not Django. "
+        "User-uploaded files should never be executed.",
+        SecurityWarning
+    )
+
 # Tailwind CSS configuration
 TAILWIND_APP_NAME = 'theme'
 
@@ -219,6 +275,11 @@ NPM_BIN_PATH = (
     or shutil.which('npm.cmd')
     or 'npm'
 )
+
+# Disable Tailwind CSS compilation on-the-fly in development to prevent slow loading
+# Use pre-compiled CSS from staticfiles instead
+# Set TAILWIND_COMPILE_ON_THE_FLY=false to disable real-time compilation
+TAILWIND_COMPILE_ON_THE_FLY = os.environ.get('TAILWIND_COMPILE_ON_THE_FLY', 'False').lower() == 'true'
 
 # Static files finders
 STATICFILES_FINDERS = [
@@ -246,11 +307,20 @@ if HAS_COMPRESSOR:
     elif compress_enabled_env or not DEBUG:
         # Enable compression if explicitly requested or in production
         COMPRESS_ENABLED = True
-        COMPRESS_OFFLINE = True
+        # Only use offline compression if static files exist
+        if STATIC_ROOT and os.path.exists(STATIC_ROOT):
+            COMPRESS_OFFLINE = True
+        else:
+            COMPRESS_OFFLINE = False
+            import warnings
+            warnings.warn(
+                "STATIC_ROOT doesn't exist. Run 'collectstatic' before enabling COMPRESS_OFFLINE.",
+                UserWarning
+            )
     else:
-        # Default: disable in development to avoid file not found errors
-        # But allow runtime compression (not offline) for testing
-        COMPRESS_ENABLED = True  # Enable runtime compression
+        # Default: disable in development to avoid file not found errors and hanging
+        # Runtime compression can cause infinite loading if compressor has issues
+        COMPRESS_ENABLED = False  # Disable compression in development to prevent hangs
         COMPRESS_OFFLINE = False  # Don't require offline compression in dev
     
     COMPRESS_CSS_FILTERS = [
@@ -267,13 +337,23 @@ else:
 
 # WhiteNoise: serve compressed static files
 # Use non-manifest storage during tests to avoid requiring collected static files
+# In development, use simple storage to avoid slow manifest lookups
 if TESTING:
     STORAGES = {
         'staticfiles': {
             'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         },
     }
+elif DEBUG:
+    # Development: Use simple storage for faster static file serving
+    # CompressedManifestStaticFilesStorage is slow because it checks manifest on every request
+    STORAGES = {
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+        },
+    }
 else:
+    # Production: Use manifest storage for cache busting
     STORAGES = {
         'staticfiles': {
             'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
@@ -327,11 +407,33 @@ if not DEBUG:
                     'LOCATION': f'redis://{redis_host}:{redis_port}/1',
                     'OPTIONS': {
                         'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                        'SOCKET_CONNECT_TIMEOUT': 5,  # Connection timeout
+                        'SOCKET_TIMEOUT': 5,  # Socket timeout
                     },
                     'KEY_PREFIX': 'unirv_editais',
                     'TIMEOUT': 300,  # Default timeout 5 minutes
                 }
             }
+            
+            # Validate connection on startup (only in production)
+            try:
+                from django.core.cache import cache
+                cache.set('connection_test', 'ok', 1)
+                cache.get('connection_test')
+            except Exception as e:
+                import warnings
+                warnings.warn(
+                    f"Redis connection failed: {e}. Falling back to LocMemCache.",
+                    UserWarning
+                )
+                # Fallback to LocMemCache
+                CACHES = {
+                    'default': {
+                        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                        'LOCATION': 'unique-snowflake',
+                        'OPTIONS': {'MAX_ENTRIES': 1000}
+                    }
+                }
         except ImportError:
             try:
                 # Fallback to Django's built-in Redis backend (no CLIENT_CLASS option)
@@ -344,6 +446,26 @@ if not DEBUG:
                         'TIMEOUT': 300,  # Default timeout 5 minutes
                     }
                 }
+                
+                # Validate connection for built-in backend
+                try:
+                    from django.core.cache import cache
+                    cache.set('connection_test', 'ok', 1)
+                    cache.get('connection_test')
+                except Exception as e:
+                    import warnings
+                    warnings.warn(
+                        f"Redis connection failed: {e}. Falling back to LocMemCache.",
+                        UserWarning
+                    )
+                    # Fallback to LocMemCache
+                    CACHES = {
+                        'default': {
+                            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                            'LOCATION': 'unique-snowflake',
+                            'OPTIONS': {'MAX_ENTRIES': 1000}
+                        }
+                    }
             except ImportError:
                 # Redis not installed, use LocMemCache
                 pass
@@ -420,6 +542,15 @@ SESSION_SAVE_EVERY_REQUEST = True  # Extend session on each request
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expire when browser closes
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+# Always store Django messages in the session (avoids cookie-only storage)
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Session cookie domain (prevent session fixation attacks across subdomains)
+if not DEBUG:
+    cookie_domain = os.environ.get('COOKIE_DOMAIN', None)
+    if cookie_domain:
+        SESSION_COOKIE_DOMAIN = cookie_domain
+        CSRF_COOKIE_DOMAIN = cookie_domain
 
 # Email configuration
 EMAIL_BACKEND = os.environ.get(
@@ -433,6 +564,22 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@agrohub.unirv.edu.br')
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Email backend validation and fallback
+if not DEBUG and EMAIL_BACKEND != 'django.core.mail.backends.console.EmailBackend':
+    # Validate SMTP settings
+    required_email_vars = ['EMAIL_HOST', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD']
+    missing_vars = [var for var in required_email_vars if not os.environ.get(var)]
+    
+    if missing_vars:
+        import warnings
+        warnings.warn(
+            f"Email not configured. Missing: {', '.join(missing_vars)}. "
+            "Password reset and notifications won't work.",
+            UserWarning
+        )
+        # Fallback to console
+        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Site URL for email links
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
@@ -490,9 +637,24 @@ LOGGING = {
 }
 
 if LOG_TO_FILE:
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    LOGGING['handlers'].update({
-        'file': {
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        # Test write permissions
+        test_file = LOG_DIR / '.write_test'
+        test_file.touch()
+        test_file.unlink()
+    except (OSError, PermissionError) as e:
+        import warnings
+        warnings.warn(
+            f"Cannot write to LOG_DIR ({LOG_DIR}): {e}. "
+            "Falling back to console logging.",
+            UserWarning
+        )
+        LOG_TO_FILE = False
+    
+    if LOG_TO_FILE:
+        LOGGING['handlers'].update({
+            'file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': LOG_DIR / 'django.log',
             'maxBytes': 10 * 1024 * 1024,  # 10MB
@@ -513,10 +675,10 @@ if LOG_TO_FILE:
             'backupCount': 5,
             'formatter': 'verbose',
         },
-    })
-    LOGGING['loggers']['django']['handlers'].append('file')
-    LOGGING['loggers']['editais']['handlers'].append('file')
-    LOGGING['loggers']['django.security']['handlers'] = ['security_file', 'console']
-    LOGGING['loggers']['django.db.backends']['handlers'] = (
-        ['performance_file'] if not DEBUG else ['console']
-    )
+        })
+        LOGGING['loggers']['django']['handlers'].append('file')
+        LOGGING['loggers']['editais']['handlers'].append('file')
+        LOGGING['loggers']['django.security']['handlers'] = ['security_file', 'console']
+        LOGGING['loggers']['django.db.backends']['handlers'] = (
+            ['performance_file'] if not DEBUG else ['console']
+        )

@@ -143,7 +143,7 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         return render(request, 'startups.html', default_context)
 
 
-def login_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
+def _login_view_impl(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
     """Custom login page matching React design"""
     from django.contrib.auth import authenticate, login
     from django.contrib.auth.forms import AuthenticationForm
@@ -165,6 +165,14 @@ def login_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect
         form = AuthenticationForm()
     
     return render(request, 'registration/login.html', {'form': form})
+
+# Apply rate limiting to login view (5 requests per minute per IP for POST requests)
+try:
+    from django_ratelimit.decorators import ratelimit
+    login_view = ratelimit(key='ip', rate='5/m', method='POST')(_login_view_impl)
+except ImportError:
+    # django-ratelimit not installed, skip rate limiting
+    login_view = _login_view_impl
 
 
 def register_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
@@ -382,18 +390,20 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
         raise Http404("Erro ao carregar edital")
 
 
-def edital_detail_redirect(request: HttpRequest, pk: int) -> HttpResponseRedirect:
+def edital_detail_redirect(request: HttpRequest, pk: int) -> Union[HttpResponseRedirect, HttpResponse]:
     """
     Redireciona URLs baseadas em PK para URLs baseadas em slug.
     
     Redirecionamento permanente (301) para melhorar SEO e consistência de URLs.
+    Se o slug não existir, exibe a página de detalhes usando PK.
     
     Args:
         request: HttpRequest
         pk: Primary key do edital
         
     Returns:
-        HttpResponse: Redirecionamento permanente para URL com slug
+        HttpResponseRedirect: Redirecionamento permanente para URL com slug
+        HttpResponse: Página de detalhes se slug não existir
     """
     edital = get_object_or_404(Edital, pk=pk)
     
@@ -403,6 +413,7 @@ def edital_detail_redirect(request: HttpRequest, pk: int) -> HttpResponseRedirec
     
     if edital.slug:
         return redirect('edital_detail_slug', slug=edital.slug, permanent=True)
+    # Fallback to PK-based view if slug is missing
     return edital_detail(request, pk=pk)
 
 
@@ -483,21 +494,24 @@ def startup_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optiona
         raise Http404("Erro ao carregar startup")
 
 
-def startup_detail_redirect(request: HttpRequest, pk: int) -> HttpResponseRedirect:
+def startup_detail_redirect(request: HttpRequest, pk: int) -> Union[HttpResponseRedirect, HttpResponse]:
     """
     Redireciona URLs baseadas em PK para URLs baseadas em slug.
     
     Redirecionamento permanente (301) para melhorar SEO e consistência de URLs.
+    Se o slug não existir, exibe a página de detalhes usando PK.
     
     Args:
         request: HttpRequest
         pk: Primary key da startup
         
     Returns:
-        HttpResponse: Redirecionamento permanente para URL com slug
+        HttpResponseRedirect: Redirecionamento permanente para URL com slug
+        HttpResponse: Página de detalhes se slug não existir
     """
     startup = get_object_or_404(Project, pk=pk)
     
     if startup.slug:
         return redirect('startup_detail_slug', slug=startup.slug, permanent=True)
+    # Fallback to PK-based view if slug is missing
     return startup_detail(request, pk=pk)

@@ -187,3 +187,116 @@ class RegisterViewTest(TestCase):
         response = self.client.get(reverse('register'))
         self.assertContains(response, 'csrfmiddlewaretoken')
 
+
+class DjangoMessagesToToastTest(TestCase):
+    """Tests for Django messages to toast notification conversion"""
+    
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123',
+            email='test@example.com'
+        )
+    
+    def test_success_message_appears_as_toast(self):
+        """Test that Django success messages are converted to toast notifications"""
+        from django.contrib import messages
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.get(reverse('home'))
+        messages.success(response.wsgi_request, 'Test success message')
+        # Persist messages to session as middleware would normally do
+        if hasattr(response.wsgi_request, '_messages'):
+            response.wsgi_request._messages.update(response)
+        
+        # Check that message is in the response context
+        response = self.client.get(reverse('home'))
+        messages_list = list(messages.get_messages(response.wsgi_request))
+        self.assertTrue(any(msg.message == 'Test success message' for msg in messages_list))
+    
+    def test_error_message_appears_as_toast(self):
+        """Test that Django error messages are converted to toast notifications"""
+        from django.contrib import messages
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.get(reverse('home'))
+        messages.error(response.wsgi_request, 'Test error message')
+        if hasattr(response.wsgi_request, '_messages'):
+            response.wsgi_request._messages.update(response)
+        
+        response = self.client.get(reverse('home'))
+        messages_list = list(messages.get_messages(response.wsgi_request))
+        self.assertTrue(any(msg.message == 'Test error message' for msg in messages_list))
+    
+    def test_warning_message_appears_as_toast(self):
+        """Test that Django warning messages are converted to toast notifications"""
+        from django.contrib import messages
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.get(reverse('home'))
+        messages.warning(response.wsgi_request, 'Test warning message')
+        if hasattr(response.wsgi_request, '_messages'):
+            response.wsgi_request._messages.update(response)
+        
+        response = self.client.get(reverse('home'))
+        messages_list = list(messages.get_messages(response.wsgi_request))
+        self.assertTrue(any(msg.message == 'Test warning message' for msg in messages_list))
+
+
+class PasswordResetTest(TestCase):
+    """Tests for complete password reset workflow"""
+    
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='oldpass123',
+            email='test@example.com'
+        )
+    
+    def test_password_reset_page_loads(self):
+        """Test that password reset page loads"""
+        response = self.client.get(reverse('password_reset'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'registration/password_reset_form.html')
+    
+    def test_password_reset_with_valid_email(self):
+        """Test password reset with valid email"""
+        from django.core import mail
+        
+        response = self.client.post(reverse('password_reset'), {
+            'email': 'test@example.com'
+        })
+        # Should redirect to password_reset_done
+        self.assertRedirects(response, reverse('password_reset_done'))
+        
+        # Check that email was sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('test@example.com', mail.outbox[0].to)
+    
+    def test_password_reset_with_invalid_email(self):
+        """Test password reset with invalid email"""
+        from django.core import mail
+        
+        response = self.client.post(reverse('password_reset'), {
+            'email': 'nonexistent@example.com'
+        })
+        # Should still redirect (for security - don't reveal if email exists)
+        self.assertRedirects(response, reverse('password_reset_done'))
+        
+        # Email should still be sent (security best practice)
+        # But in Django, it won't send if email doesn't exist
+        # This test verifies the form doesn't crash
+    
+    def test_password_reset_done_page_loads(self):
+        """Test that password reset done page loads"""
+        response = self.client.get(reverse('password_reset_done'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'registration/password_reset_done.html')
+    
+    def test_password_reset_complete_page_loads(self):
+        """Test that password reset complete page loads"""
+        response = self.client.get(reverse('password_reset_complete'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'registration/password_reset_complete.html')

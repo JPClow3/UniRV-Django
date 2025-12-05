@@ -17,9 +17,16 @@ django-compressor==4.6.0
 django-tailwind==3.8.0
 django-browser-reload==1.11.0
 django-redis==6.0.0
+django-ratelimit==4.1.0
 
 # Image processing (required for ImageField)
 Pillow>=11.0.0
+
+# Database (production)
+psycopg2-binary==2.9.9  # PostgreSQL adapter
+
+# Security auditing (optional, for deployment)
+pip-audit>=2.6.0
 
 # Note: Regularly update dependencies for security patches
 # Use 'pip list --outdated' to check for updates

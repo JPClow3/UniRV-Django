@@ -417,17 +417,21 @@ class ValidationTests(TestCase):
     
     def test_decimal_field_validation(self):
         """Test decimal field validation"""
+        from django.core.exceptions import ValidationError
         edital = Edital.objects.create(
             titulo='Test',
             url='https://example.com',
             created_by=self.user
         )
         
+        # Test that negative values are rejected
         valor = EditalValor(edital=edital, valor_total=Decimal('-1000'))
-        valor.full_clean()
+        with self.assertRaises(ValidationError):
+            valor.full_clean()
         
+        # Test that valid large values are accepted
         large_valor = EditalValor(edital=edital, valor_total=Decimal('9999999999999.99'))
-        large_valor.full_clean()
+        large_valor.full_clean()  # Should not raise
     
     def test_form_required_fields(self):
         """Test form required field validation"""

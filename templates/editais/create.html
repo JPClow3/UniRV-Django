@@ -74,8 +74,8 @@
                             <small class="form-help">{{ field.help_text }}</small>
                         {% endif %}
                         {% if field.errors %}
-                            <div class="field-error" role="alert">
-                                {{ field.errors }}
+                            <div id="{{ field.auto_id }}_error" class="field-error" role="alert" aria-live="polite">
+                                {{ field.errors.0|striptags }}
                             </div>
                         {% endif %}
                     </div>
@@ -101,8 +101,8 @@
                             <small class="form-help">{{ field.help_text }}</small>
                         {% endif %}
                         {% if field.errors %}
-                            <div class="field-error" role="alert">
-                                {{ field.errors }}
+                            <div id="{{ field.auto_id }}_error" class="field-error" role="alert" aria-live="polite">
+                                {{ field.errors.0|striptags }}
                             </div>
                         {% endif %}
                     </div>

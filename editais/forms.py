@@ -161,6 +161,18 @@ class EditalForm(TailwindFormMixin, forms.ModelForm):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.apply_tailwind_styles()
+        for field_name, field in self.fields.items():
+            if field.required:
+                field.widget.attrs['aria-required'] = 'true'
+            if self.is_bound and self.errors.get(field_name):
+                # Generate field ID using form's auto_id format
+                # auto_id is a form-level property, not field-level
+                if self.auto_id:
+                    field_id = self.auto_id % field_name
+                else:
+                    field_id = f'id_{field_name}'
+                field.widget.attrs['aria-describedby'] = f'{field_id}_error'
+                field.widget.attrs['aria-invalid'] = 'true'
 
     def clean(self) -> Dict[str, Any]:
         """Validação de datas: end_date deve ser posterior ou igual a start_date"""

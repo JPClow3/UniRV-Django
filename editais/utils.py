@@ -163,13 +163,14 @@ def generate_unique_slug(
     Returns:
         str: Slug único
     """
-    if not text:
-        return ''
-    
     # Gerar slug base
-    base_slug = slugify(text)
-    if prefix:
-        base_slug = f"{prefix}-{base_slug}"
+    if not text:
+        # Se texto está vazio, usar apenas o prefixo ou padrão
+        base_slug = prefix or 'item'
+    else:
+        base_slug = slugify(text)
+        if prefix:
+            base_slug = f"{prefix}-{base_slug}"
     
     # Truncar se necessário
     base_slug = base_slug[:max_length]
@@ -284,15 +285,35 @@ def parse_date_filter(date_string: Optional[str]) -> Optional[date]:
 
 def get_project_status_mapping() -> dict:
     """
-    Retorna mapeamento de status de projeto para exibição.
+    Retorna mapeamento de labels de status para valores de status.
+    Mapeia nomes de exibição (case-insensitive) para valores do modelo.
     
     Returns:
-        dict: Mapeamento de status para labels
+        dict: Mapeamento de labels (lowercase) para valores de status
     """
     from .models import Project
     return {
-        status: label
+        label.lower(): status
         for status, label in Project.STATUS_CHOICES
+    }
+
+
+def get_project_sort_mapping() -> dict:
+    """
+    Retorna mapeamento de opções de ordenação para projetos.
+    
+    Returns:
+        dict: Mapeamento de chaves de ordenação para campos do modelo
+    """
+    return {
+        'submitted_on_desc': '-submitted_on',
+        'submitted_on_asc': 'submitted_on',
+        'name_asc': 'name',
+        'name_desc': '-name',
+        'status_asc': 'status',
+        'status_desc': '-status',
+        'updated_on_desc': '-updated_on',
+        'updated_on_asc': 'updated_on',
     }
 
 

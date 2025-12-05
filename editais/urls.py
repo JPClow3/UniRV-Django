@@ -29,7 +29,7 @@ urlpatterns = [
     path('startups/', views.startups_showcase, name='startups_showcase'),
     path('startup/<slug:slug>/', views.startup_detail, name='startup_detail_slug'),
     path('startup/<int:pk>/', views.startup_detail_redirect, name='startup_detail'),
-    path('edital/', RedirectView.as_view(pattern_name='editais_index', permanent=False)),
+    path('edital/', RedirectView.as_view(pattern_name='editais_index', permanent=True)),
     
     path('edital/<slug:slug>/', views.edital_detail, name='edital_detail_slug'),
     path('edital/<int:pk>/', views.edital_detail_redirect, name='edital_detail'),

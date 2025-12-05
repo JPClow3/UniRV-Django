@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
-    {% load static tailwind_tags compress editais_filters %}
+    {% load static tailwind_tags editais_filters %}
+    {% load compress %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
@@ -54,8 +55,12 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
     <!-- Preconnect to establish early connections to CDNs -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <!-- Preconnect to FontAwesome CDN for faster font loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <!-- Prefetch likely next-page resources for better navigation performance -->
     <link rel="prefetch" href="{% url 'editais_index' %}" as="document" />
+    <!-- Prefetch login page for faster navigation -->
+    <link rel="prefetch" href="{% url 'login' %}" as="document" />
     <!-- Preload critical fonts - only Regular weight for above-the-fold content -->
     <!-- SemiBold font loads on-demand when needed (font-display: swap handles this) -->
     <link
@@ -101,24 +106,12 @@
     </script>
     
     {% tailwind_css %}
-    <!-- Font Awesome: Loaded asynchronously to prevent render blocking -->
+    <!-- Font Awesome -->
     <link
-      rel="preload"
+      rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-      as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
       crossorigin="anonymous"
     />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-        crossorigin="anonymous"
-      />
-    </noscript>
-    <!-- Note: FontAwesome font-display optimization would require self-hosting the fonts
-         with modified @font-face rules. CDN fonts cannot be overridden.
-         The preload link above helps minimize font loading delay. -->
     {% block extra_head %}{% endblock %}
   </head>
   {% with current_url=request.resolver_match.url_name|default:"" transparent_header=request.resolver_match.url_name|is_transparent_header %}
@@ -456,14 +449,22 @@
     <!-- GSAP only loaded on pages with animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
+    {% if HAS_COMPRESSOR %}
     {% compress js %}
     <script src="{% static 'js/animations.js' %}" defer></script>
     {% endcompress %}
+    {% else %}
+    <script src="{% static 'js/animations.js' %}" defer></script>
+    {% endif %}
     {% endif %}
 
+    {% if HAS_COMPRESSOR %}
     {% compress js %}
     <script src="{% static 'js/main.js' %}" defer></script>
     {% endcompress %}
+    {% else %}
+    <script src="{% static 'js/main.js' %}" defer></script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
     {% endwith %}
   </body>

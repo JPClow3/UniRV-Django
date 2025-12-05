@@ -240,6 +240,10 @@
     const filterSelects = document.querySelectorAll('select[name="tipo"], select[name="status"], select[name="edital"]');
     filterSelects.forEach(select => {
         select.addEventListener('change', function() {
+            // Add loading state to the select itself
+            this.classList.add('loading');
+            this.disabled = true;
+
             // Sync filter values to search form's hidden inputs
             if (searchForm) {
                 const fieldName = this.name;
@@ -282,6 +286,8 @@
                 if (clearBtn) {
                     clearBtn.classList.remove('loading');
                 }
+                this.classList.remove('loading');
+                this.disabled = false;
             }, 300);
         });
     });
@@ -391,8 +397,15 @@
 
   if (!menuToggle || !navMenu) return;
 
+  // Cache menu height to avoid reflows when toggling
+  let cachedMenuHeight = null;
+
   // Calculate actual menu height dynamically instead of hardcoded max-height
   function getMenuHeight() {
+    if (cachedMenuHeight !== null) {
+      return cachedMenuHeight;
+    }
+
     // Temporarily show menu to measure its height
     navMenu.style.display = 'block';
     navMenu.style.maxHeight = 'none';
@@ -401,7 +414,10 @@
     navMenu.style.display = '';
     navMenu.style.maxHeight = '';
     navMenu.style.visibility = '';
-    return height;
+
+    // Limit to 80% viewport height for safety
+    cachedMenuHeight = Math.min(height, window.innerHeight * 0.8);
+    return cachedMenuHeight;
   }
 
   menuToggle.addEventListener('click', function() {
@@ -434,6 +450,27 @@
     navMenu.classList.remove('menu-open');
   }
 
+  // Swipe-to-close gesture on mobile
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  function handleSwipe() {
+    const swipeDistance = touchEndX - touchStartX;
+    const swipeThreshold = 100;
+    if (swipeDistance > swipeThreshold) {
+      closeMenu();
+    }
+  }
+
+  navMenu.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  navMenu.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
   document.addEventListener('click', function(event) {
     const isClickInsideMenu = navMenu.contains(event.target);
     const isClickOnToggle = menuToggle.contains(event.target);
@@ -453,6 +490,7 @@
 
   // Close menu when window is resized to desktop size
   window.addEventListener('resize', function() {
+    cachedMenuHeight = null;
     if (window.innerWidth > 767) {
       closeMenu();
     }
@@ -534,10 +572,25 @@
         };
 
         try {
-            localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
+            const jsonString = JSON.stringify(saveData);
+            // Prevent localStorage overflow (approx. 5MB limit)
+            if (jsonString.length > 4.5 * 1024 * 1024) {
+                showToast('Rascunho muito grande para salvar automaticamente', 'warning');
+                return;
+            }
+            localStorage.setItem(AUTOSAVE_KEY, jsonString);
             showAutosaveIndicator();
         } catch (e) {
-            // Silently fail autosave - non-critical feature
+            if (e.name === 'QuotaExceededError') {
+                showToast('Armazenamento local cheio. Rascunho não salvo.', 'error');
+                // Clear old autosaves
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('edital_form_autosave')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            }
+            // Silently ignore other storage errors
         }
     }
 
@@ -761,6 +814,10 @@ function dismissToast(toast) {
         if (toast.parentNode) {
             toast.remove();
         }
+        const container = document.getElementById('toast-container');
+        if (container && container.children.length === 0) {
+            container.remove();
+        }
     }, 300);
 }
 
@@ -892,12 +949,23 @@ window.showConfirmDialog = showConfirmDialog;
             const targetField = document.getElementById(targetId);
 
             if (targetField) {
-                // Scroll to field
-                targetField.scrollIntoView({behavior: 'smooth', block: 'center'});
+                const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
+                const fieldPosition = targetField.getBoundingClientRect().top + window.pageYOffset;
+                const offsetPosition = fieldPosition - headerHeight - 20;
 
-                // Focus the field
+                // Scroll to field with offset for fixed header
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+
+                // Focus the field after scroll completes
                 setTimeout(function () {
-                    targetField.focus();
+                    targetField.focus({ preventScroll: true });
+
+                    if (targetField.tagName === 'SELECT') {
+                        targetField.click();
+                    }
 
                     const formGroup = targetField.closest('.form-group');
                     if (formGroup) {
@@ -906,7 +974,7 @@ window.showConfirmDialog = showConfirmDialog;
                             formGroup.style.animation = '';
                         }, 1000);
                     }
-                }, 300);
+                }, 500);
             }
         });
     });
