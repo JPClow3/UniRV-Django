@@ -1649,11 +1649,12 @@ body {
   /* 2. MAIN CONTAINER */
   .orbit-container {
     position: relative;
-    width: min(400px, 80vw);
-    aspect-ratio: 1 / 1;
+    width: min(360px, 70vw);
+    height: min(360px, 70vw);
+    padding: 1.5rem; /* extra padding to account for icon overflow during rotation */
     /* Optimization: Promotes this element to a GPU layer */
     will-change: transform; 
-    overflow: hidden; /* prevent internal scrollbars */
+    overflow: hidden; /* keep scrollbars off */
   }
 
   /* 3. THE RINGS */
@@ -1670,8 +1671,8 @@ body {
 
   /* Ring 1 (Academia) - Spins Clockwise */
   .ring-1 {
-    width: 100%;
-    height: 100%;
+    width: 90%;
+    height: 90%;
     border-color: rgba(118, 184, 42, 0.3);
     animation: orbit-spin-right 25s linear infinite;
     will-change: transform;
@@ -1684,8 +1685,8 @@ body {
 
   /* Ring 2 (Industria) - Spins Counter-Clockwise */
   .ring-2 {
-    width: 80%;
-    height: 80%;
+    width: 72%;
+    height: 72%;
     border-color: rgba(39, 52, 139, 0.4);
     animation: orbit-spin-left 20s linear infinite;
     will-change: transform;
@@ -1698,8 +1699,8 @@ body {
 
   /* Ring 3 (Governo) - Spins Clockwise */
   .ring-3 {
-    width: 60%;
-    height: 60%;
+    width: 54%;
+    height: 54%;
     border-color: rgba(234, 179, 8, 0.4);
     animation: orbit-spin-right 15s linear infinite;
     will-change: transform;
@@ -1712,8 +1713,8 @@ body {
 
   /* Ring 4 (Sociedade) - Spins Counter-Clockwise */
   .ring-4 {
-    width: 40%;
-    height: 40%;
+    width: 36%;
+    height: 36%;
     border-color: rgba(168, 85, 247, 0.4);
     animation: orbit-spin-left 10s linear infinite;
     will-change: transform;
@@ -1737,8 +1738,8 @@ body {
     left: 50%;
     /* This sets the starting position. The animation then takes over. */
     transform: translate(-50%, -50%);
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 9999px;
     background: white;
     color: var(--color-unirvBlue);
@@ -1768,8 +1769,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 6rem;
-    height: 6rem;
+    width: 5rem;
+    height: 5rem;
     border-radius: 9999px;
     background: white;
     display: flex;
@@ -1788,6 +1789,38 @@ body {
     position: relative;
     overflow: hidden; /* avoid inner scrollbars on the timeline */
   }
+
+  /* =========================================
+     Gradient utilities (Tailwind-like shims)
+     ========================================= */
+  .bg-linear-to-r {
+    background-image: linear-gradient(to right,
+      var(--tw-gradient-from, var(--color-unirvBlue)),
+      var(--tw-gradient-via, var(--tw-gradient-from, var(--color-unirvBlue))),
+      var(--tw-gradient-to, var(--color-agrohubBlue))
+    );
+  }
+
+  .bg-linear-to-br {
+    background-image: linear-gradient(to bottom right,
+      var(--tw-gradient-from, var(--color-unirvBlue)),
+      var(--tw-gradient-via, var(--tw-gradient-from, var(--color-unirvBlue))),
+      var(--tw-gradient-to, var(--color-agrohubBlue))
+    );
+  }
+
+  /* Gradient color tokens */
+  .from-unirvBlue { --tw-gradient-from: #27348b; }
+  .from-agrohubGreen { --tw-gradient-from: #76b82a; }
+  .from-green-400 { --tw-gradient-from: #34d399; }
+
+  .to-agrohubBlue { --tw-gradient-to: #007bff; }
+  .to-unirvBlue { --tw-gradient-to: #27348b; }
+  .to-darkBlue { --tw-gradient-to: #1a237e; }
+  .to-teal-300 { --tw-gradient-to: #5eead4; }
+
+  .via-blue-900 { --tw-gradient-via: #1e3a8a; }
+  .via-unirvBlue { --tw-gradient-via: #27348b; }
 
   .timeline-line-bg,
   .timeline-line-progress {
