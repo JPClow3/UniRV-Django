@@ -36,17 +36,28 @@
       });
     }
 
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Reveal Animations
     gsap.utils.toArray('.reveal-up').forEach((elem) => {
+      // Skip animation if user prefers reduced motion
+      if (prefersReducedMotion) {
+        gsap.set(elem, { opacity: 1, y: 0 });
+        return;
+      }
+
       // Add will-change hint for better performance
       elem.style.willChange = 'transform, opacity';
       gsap.to(elem, {
         scrollTrigger: { trigger: elem, start: 'top 92%' },
         y: 0,
         opacity: 1,
-        duration: 0.6,
-        ease: 'power3.out',
+        duration: 0.4,
+        ease: 'power2.out',
         onComplete: function() {
+          // Mark as animated to prevent fallback
+          elem.classList.add('animated');
           // Remove will-change after animation completes
           elem.style.willChange = 'auto';
         }
@@ -124,22 +135,35 @@
     const ScrollTrigger = window.ScrollTrigger;
     gsap.registerPlugin(ScrollTrigger);
 
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Hero animations
     const heroElems = document.querySelectorAll('.reveal-hero');
     if (heroElems.length) {
+      // Skip animation if user prefers reduced motion
+      if (prefersReducedMotion) {
+        heroElems.forEach(elem => {
+          gsap.set(elem, { opacity: 1, y: 0 });
+          elem.classList.add('animated');
+        });
+        return;
+      }
+
       // Add will-change hint for better performance
       heroElems.forEach(elem => {
         elem.style.willChange = 'transform, opacity';
       });
       gsap.from(heroElems, {
-        y: 40,
+        y: 30,
         opacity: 0,
-        duration: 0.7,
-        stagger: 0.08,
-        ease: 'power3.out',
+        duration: 0.5,
+        stagger: 0.06,
+        ease: 'power2.out',
         onComplete: function() {
-          // Remove will-change after animation completes
+          // Mark as animated to prevent fallback
           heroElems.forEach(elem => {
+            elem.classList.add('animated');
             elem.style.willChange = 'auto';
           });
         }
@@ -255,19 +279,34 @@
     const ScrollTrigger = window.ScrollTrigger;
     gsap.registerPlugin(ScrollTrigger);
 
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Header immediate reveal
     const headerSection = document.querySelector('section.bg-gradient-to-r');
     if (headerSection) {
       const headerRevealElements = headerSection.querySelectorAll('.reveal-up');
       if (headerRevealElements.length) {
-        gsap.to(headerRevealElements, {
-          y: 0,
-          opacity: 1,
-          duration: 0.5,
-          stagger: 0.05,
-          ease: 'power3.out',
-          delay: 0.05
-        });
+        if (prefersReducedMotion) {
+          headerRevealElements.forEach(elem => {
+            gsap.set(elem, { opacity: 1, y: 0 });
+            elem.classList.add('animated');
+          });
+        } else {
+          gsap.to(headerRevealElements, {
+            y: 0,
+            opacity: 1,
+            duration: 0.4,
+            stagger: 0.04,
+            ease: 'power2.out',
+            delay: 0.05,
+            onComplete: function() {
+              headerRevealElements.forEach(elem => {
+                elem.classList.add('animated');
+              });
+            }
+          });
+        }
       }
     }
 
@@ -276,24 +315,42 @@
     if (mainContentSection) {
       const belowFoldReveal = mainContentSection.querySelectorAll('.reveal-up');
       belowFoldReveal.forEach((elem) => {
-        gsap.to(elem, {
-          scrollTrigger: { trigger: elem, start: 'top 88%' },
-          y: 0,
-          opacity: 1,
-          duration: 0.5,
-          ease: 'power3.out'
-        });
+        if (prefersReducedMotion) {
+          gsap.set(elem, { opacity: 1, y: 0 });
+          elem.classList.add('animated');
+        } else {
+          gsap.to(elem, {
+            scrollTrigger: { trigger: elem, start: 'top 88%' },
+            y: 0,
+            opacity: 1,
+            duration: 0.4,
+            ease: 'power2.out',
+            onComplete: function() {
+              elem.classList.add('animated');
+            }
+          });
+        }
       });
     }
 
     // Edital cards staggered fade-in
     const editalCards = document.querySelectorAll('.edital-card');
     if (editalCards.length) {
+      // Check for reduced motion
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (prefersReducedMotion) {
+        editalCards.forEach(card => {
+          gsap.set(card, { opacity: 1, y: 0 });
+        });
+        return;
+      }
+
       // Add will-change hint for better performance
       editalCards.forEach(card => {
         card.style.willChange = 'transform, opacity';
       });
-      gsap.set(editalCards, { opacity: 0, y: 30 });
+      gsap.set(editalCards, { opacity: 0, y: 20 });
 
       const editaisGrid = document.querySelector('.editais-grid');
       const runAnimation = () => {
@@ -304,8 +361,8 @@
         const animCfg = {
           opacity: 1,
           y: 0,
-          duration: 0.4,
-          stagger: 0.05,
+          duration: 0.35,
+          stagger: 0.04,
           ease: 'power2.out',
           onComplete: function() {
             // Remove will-change after animation completes

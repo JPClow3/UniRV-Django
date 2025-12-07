@@ -517,6 +517,7 @@ class Project(models.Model):
                     })
     
     class Meta:
+        db_table = 'editais_startup'  # Explicit table name since table was renamed from editais_project
         ordering = ['-submitted_on']
         verbose_name = 'Startup'
         verbose_name_plural = 'Startups'

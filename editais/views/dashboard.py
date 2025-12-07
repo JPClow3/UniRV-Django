@@ -20,7 +20,6 @@ from django.utils import timezone
 
 from ..constants import (
     DEADLINE_WARNING_DAYS,
-    EVALUATION_PROJECT_STATUSES,
     CACHE_TTL_5_MINUTES
 )
 from ..decorators import rate_limit, staff_required
@@ -78,9 +77,7 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
             'total_usuarios': User.objects.count(),
             'editais_ativos': Edital.objects.filter(status='aberto').count(),
             'startups_incubadas': Project.objects.count(),
-            'avaliacoes_pendentes': Project.objects.filter(
-                status__in=EVALUATION_PROJECT_STATUSES
-            ).count(),
+            'startups_graduadas': Project.objects.filter(status='graduada').count(),
             'recent_activities': activities,
         }
     else:
@@ -295,32 +292,6 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def dashboard_avaliacoes(request: HttpRequest) -> HttpResponse:
-    """Dashboard avaliações page"""
-    from django.shortcuts import render
-    
-    # Get startups that need evaluation (in pre-incubation or incubation)
-    projects = Project.objects.select_related('edital', 'proponente').filter(
-        status__in=EVALUATION_PROJECT_STATUSES
-    ).order_by('-submitted_on')
-    
-    # Calculate statistics
-    total = Project.objects.filter(status__in=EVALUATION_PROJECT_STATUSES).count()
-    pre_incubacao = Project.objects.filter(status='pre_incubacao').count()
-    em_incubacao = Project.objects.filter(status='incubacao').count()
-    graduadas = Project.objects.filter(status='graduada').count()
-    
-    context = {
-        'evaluations': projects,
-        'total': total,
-        'pre_incubacao': pre_incubacao,
-        'em_incubacao': em_incubacao,
-        'graduadas': graduadas,
-    }
-    return render(request, 'dashboard/avaliacoes.html', context)
-
-
-@login_required
 @staff_required
 def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
     """Dashboard usuarios page"""
@@ -346,37 +317,6 @@ def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
         'search_query': search_query,
     }
     return render(request, 'dashboard/usuarios.html', context)
-
-
-@login_required
-@staff_required
-def dashboard_relatorios(request: HttpRequest) -> HttpResponse:
-    """Dashboard relatorios page"""
-    from django.shortcuts import render
-    
-    # Calculate statistics
-    total_projetos = Project.objects.count()
-    startups_incubacao = Project.objects.filter(status='incubacao').count()
-    startups_graduadas = Project.objects.filter(status='graduada').count()
-    
-    # Calculate graduation rate, handling division by zero
-    taxa_graduacao = 0
-    if total_projetos > 0:
-        taxa_graduacao = round((startups_graduadas / total_projetos) * 100)
-    
-    usuarios_ativos = User.objects.filter(startups__isnull=False).distinct().count()
-    editais_ativos = Edital.objects.filter(status='aberto').count()
-    
-    context = {
-        'total_projetos': total_projetos,
-        'taxa_graduacao': taxa_graduacao,
-        'startups_incubacao': startups_incubacao,
-        'startups_graduadas': startups_graduadas,
-        'usuarios_ativos': usuarios_ativos,
-        'editais_ativos': editais_ativos,
-    }
-    
-    return render(request, 'dashboard/relatorios.html', context)
 
 
 @login_required
