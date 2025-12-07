@@ -2,11 +2,12 @@
 {% load static %}
 
 {% block title %}Startups - AgroHub UniRV{% endblock %}
+{% block page_id %}startups{% endblock %}
 
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION: O Ecossistema -->
-  <section class="relative pt-32 pb-20 bg-unirvBlue overflow-hidden">
+  <section class="relative pt-24 pb-12 md:pt-28 md:pb-16 bg-unirvBlue overflow-hidden">
     <!-- Elementos de Fundo Animados -->
     <!-- Z-Index Hierarchy Documentation:
          - Blobs: z-0 (background layer)
@@ -27,16 +28,16 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div class="max-w-4xl">
         <!-- Badge -->
-        <div class="reveal-hero inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-green-300 text-xs font-bold uppercase tracking-widest mb-6">
+        <div class="reveal-hero inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-green-300 text-xs font-bold uppercase tracking-widest mb-4">
           <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
           Incubadora YpeTech
         </div>
         
-        <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight drop-shadow-lg">
+        <h1 class="reveal-hero text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
           Nossas <span class="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-teal-300">Startups</span>
         </h1>
         
-        <p class="reveal-hero text-lg md:text-xl text-white max-w-2xl mb-12 leading-relaxed border-l-4 border-agrohubGreen pl-6 drop-shadow-md">
+        <p class="reveal-hero text-base md:text-lg text-white max-w-2xl mb-8 leading-relaxed border-l-4 border-agrohubGreen pl-6 drop-shadow-md">
           Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado.
         </p>
       </div>

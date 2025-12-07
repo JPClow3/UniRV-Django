@@ -50,7 +50,5 @@ urlpatterns = [
     # URL aliases for backward compatibility
     path('dashboard/projetos/', views.dashboard_projetos, name='dashboard_projetos'),
     path('dashboard/projetos/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_projeto'),
-    path('dashboard/avaliacoes/', views.dashboard_avaliacoes, name='dashboard_avaliacoes'),
     path('dashboard/usuarios/', views.dashboard_usuarios, name='dashboard_usuarios'),
-    path('dashboard/relatorios/', views.dashboard_relatorios, name='dashboard_relatorios'),
 ]

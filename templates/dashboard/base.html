@@ -21,7 +21,7 @@
   <!-- Top Navigation -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-20">
+      <div class="flex justify-between items-center h-16">
         <!-- Logo -->
         <a href="{% url 'home' %}" class="flex items-center gap-3">
           <img src="{% static 'img/Logo.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10" width="40" height="40" />
@@ -56,14 +56,6 @@
             <a href="{% url 'dashboard_startups' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_startups' or request.resolver_match.url_name == 'dashboard_submeter_startup' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
               <i class="fas fa-folder-open w-4 h-4"></i>
               <span>Startups</span>
-            </a>
-            <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_avaliacoes' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
-              <i class="fas fa-clipboard-check w-4 h-4"></i>
-              <span>Avaliações</span>
-            </a>
-            <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_relatorios' %}text-unirvBlue font-semibold border-unirvBlue/40 bg-unirvBlue/5{% else %}text-gray-700 border-transparent hover:text-unirvBlue hover:bg-gray-100{% endif %}">
-              <i class="fas fa-chart-bar w-4 h-4"></i>
-              <span>Relatórios</span>
             </a>
           {% endif %}
         </nav>
@@ -106,14 +98,6 @@
                 <a href="{% url 'dashboard_startups' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_startups' or request.resolver_match.url_name == 'dashboard_submeter_startup' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
                   <i class="fas fa-folder-open w-4 h-4"></i>
                   Startups
-                </a>
-                <a href="{% url 'dashboard_avaliacoes' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_avaliacoes' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-                  <i class="fas fa-clipboard-check w-4 h-4"></i>
-                  Avaliações
-                </a>
-                <a href="{% url 'dashboard_relatorios' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_relatorios' %}text-unirvBlue font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-                  <i class="fas fa-chart-bar w-4 h-4"></i>
-                  Relatórios
                 </a>
               {% endif %}
               <div class="border-t border-gray-200 my-1"></div>

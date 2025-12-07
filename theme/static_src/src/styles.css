@@ -1649,12 +1649,18 @@ body {
   /* 2. MAIN CONTAINER */
   .orbit-container {
     position: relative;
-    width: min(360px, 70vw);
-    height: min(360px, 70vw);
-    padding: 1.5rem; /* extra padding to account for icon overflow during rotation */
+    /* Increase size to account for icon overflow - icons are 3rem (48px), so we need extra space */
+    width: min(600px, 90vw);
+    height: min(600px, 90vw);
+    /* Add padding around the rings to give icons space to move without clipping */
+    padding: 4rem; /* 64px padding to ensure 3rem icons (48px) can move freely */
     /* Optimization: Promotes this element to a GPU layer */
     will-change: transform; 
-    overflow: hidden; /* keep scrollbars off */
+    overflow: hidden; /* contain icons within the padded area */
+    margin: 0 auto;
+    /* Ensure container takes up the space it needs */
+    min-height: min(600px, 90vw);
+    min-width: min(600px, 90vw);
   }
 
   /* 3. THE RINGS */
@@ -1671,8 +1677,8 @@ body {
 
   /* Ring 1 (Academia) - Spins Clockwise */
   .ring-1 {
-    width: 90%;
-    height: 90%;
+    width: 95%;
+    height: 95%;
     border-color: rgba(118, 184, 42, 0.3);
     animation: orbit-spin-right 25s linear infinite;
     will-change: transform;
@@ -1685,8 +1691,8 @@ body {
 
   /* Ring 2 (Industria) - Spins Counter-Clockwise */
   .ring-2 {
-    width: 72%;
-    height: 72%;
+    width: 78%;
+    height: 78%;
     border-color: rgba(39, 52, 139, 0.4);
     animation: orbit-spin-left 20s linear infinite;
     will-change: transform;
@@ -1699,8 +1705,8 @@ body {
 
   /* Ring 3 (Governo) - Spins Clockwise */
   .ring-3 {
-    width: 54%;
-    height: 54%;
+    width: 60%;
+    height: 60%;
     border-color: rgba(234, 179, 8, 0.4);
     animation: orbit-spin-right 15s linear infinite;
     will-change: transform;
@@ -1713,8 +1719,8 @@ body {
 
   /* Ring 4 (Sociedade) - Spins Counter-Clockwise */
   .ring-4 {
-    width: 36%;
-    height: 36%;
+    width: 42%;
+    height: 42%;
     border-color: rgba(168, 85, 247, 0.4);
     animation: orbit-spin-left 10s linear infinite;
     will-change: transform;
@@ -1738,14 +1744,15 @@ body {
     left: 50%;
     /* This sets the starting position. The animation then takes over. */
     transform: translate(-50%, -50%);
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 9999px;
     background: white;
     color: var(--color-unirvBlue);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.25rem;
     box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
     z-index: 20; /* Ensure icons are above rings */
   }
@@ -1769,8 +1776,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 5rem;
-    height: 5rem;
+    width: 6rem;
+    height: 6rem;
     border-radius: 9999px;
     background: white;
     display: flex;
@@ -1953,6 +1960,33 @@ body {
   .reveal-up {
     opacity: 0;
     transform: translateY(30px);
+  }
+
+  .reveal-hero {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  /* Fallback for when animations don't load - ensure content is visible */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-up,
+    .reveal-hero {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Ensure content is visible after a delay if GSAP doesn't load */
+  .reveal-up:not(.animated),
+  .reveal-hero:not(.animated) {
+    animation: fadeInFallback 0.5s ease-out 1s forwards;
+  }
+
+  @keyframes fadeInFallback {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* ---------- Shared glassmorphism & blob utilities ---------- */

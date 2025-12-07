@@ -445,7 +445,7 @@
 
 
     <!-- Global animation libraries - conditionally loaded only on pages that need animations -->
-    {% if current_url == 'home' or current_url|startswith:'edital_' or current_url == 'startups_showcase' or current_url == 'ambientes_inovacao' %}
+    {% if current_url == 'home' or current_url|startswith:'edital_' or current_url == 'startups_showcase' or current_url == 'ambientes_inovacao' or current_url == 'editais_index' or current_url == 'startups' %}
     <!-- GSAP only loaded on pages with animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>

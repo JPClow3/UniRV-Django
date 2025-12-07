@@ -21,7 +21,7 @@
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION -->
-  <header class="relative min-h-screen flex items-center justify-center overflow-hidden">
+  <header class="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden">
     <picture class="hero-media" aria-hidden="true">
       <source
         type="image/webp"
@@ -48,9 +48,9 @@
       />
     </picture>
 
-    <div class="container relative z-10 px-6 pt-20">
+    <div class="container relative z-10 px-6 pt-16 pb-8">
       <div class="max-w-4xl">
-        <div class="reveal-up flex flex-col sm:flex-row gap-3 mb-6">
+        <div class="reveal-up flex flex-col sm:flex-row gap-3 mb-4">
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider">
             <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
             Centro de Inovação UniRV
@@ -60,16 +60,16 @@
             Apoio FINEP
           </div>
         </div>
-        <h1 class="reveal-up text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
+        <h1 class="reveal-up text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4">
           O Futuro do <br/>
           <span class="text-transparent bg-clip-text" style="background-image: linear-gradient(to right, #34d399, #5eead4);">
             Agronegócio
           </span> Começa Aqui.
         </h1>
-        <p class="reveal-up text-lg md:text-xl text-gray-200 mb-10 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
+        <p class="reveal-up text-base md:text-lg text-gray-200 mb-6 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
           O AgroHub UniRV é o centro de inovação, pesquisa aplicada e pós-graduação da Universidade de Rio Verde, projetado para conectar academia, empresas, startups, produtores e poder público em soluções tecnológicas para o agronegócio. Nossa missão é traduzir pesquisa em produtos e serviços sustentáveis, formando recursos humanos especializados e posicionando Rio Verde como polo de referência em inovação agropecuária.
         </p>
-        <div class="reveal-up flex flex-col sm:flex-row gap-4 mb-16 md:mb-20">
+        <div class="reveal-up flex flex-col sm:flex-row gap-4 mb-8">
           <button data-url="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
             Ver Editais Abertos <i class="fas fa-arrow-right"></i>
           </button>
@@ -87,7 +87,7 @@
   </header>
 
   <!-- STATS OVERLAP SECTION -->
-  <section class="relative z-20 -mt-20 pb-20 px-6 fold-section">
+  <section class="relative z-20 -mt-4 md:-mt-6 pb-20 px-6 fold-section">
     <div class="container mx-auto">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <!-- Stat Cards -->
@@ -183,18 +183,18 @@
   </section>
 
   <!-- MISSION / HELIX SECTION -->
-  <section class="py-24 bg-unirvBlue text-white overflow-visible relative fold-section">
+  <section class="py-12 md:py-16 bg-unirvBlue text-white relative fold-section">
     <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom right, #27348b, #1a237e);"></div>
     <div class="container mx-auto px-6 relative z-10">
-      <div class="flex flex-col md:flex-row items-center gap-16">
+      <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
         <!-- LISTA -->
         <div class="md:w-1/2">
           <h2 class="text-agrohubGreen font-bold tracking-wider uppercase text-sm mb-2">Ecossistema</h2>
-          <h3 class="text-4xl md:text-5xl font-extrabold mb-8">A Hélice Quádrupla</h3>
-          <p class="text-gray-300 text-lg mb-10 leading-relaxed">
+          <h3 class="text-4xl md:text-5xl font-extrabold mb-4">A Hélice Quádrupla</h3>
+          <p class="text-gray-300 text-lg mb-6 leading-relaxed">
             Unimos as quatro forças fundamentais da inovação em um único ecossistema colaborativo.
           </p>
-          <ul class="space-y-6">
+          <ul class="space-y-4">
             <!-- Item 1: Academia -->
             <li class="flex items-center gap-5 group">
               <div class="w-12 h-12 rounded-full bg-agrohubGreen/20 border border-agrohubGreen flex items-center justify-center text-agrohubGreen group-hover:bg-agrohubGreen group-hover:text-white transition-all">
@@ -238,7 +238,7 @@
           </ul>
         </div>
         <!-- ORBITA -->
-        <div class="md:w-1/2 flex justify-center mt-12 md:mt-0 overflow-hidden">
+        <div class="md:w-1/2 flex justify-center items-center mt-8 md:mt-0 py-4 md:py-6 overflow-hidden">
           <div class="orbit-container" role="img" aria-label="Representação visual da Hélice Quádrupla: quatro elementos orbitando ao redor do AgroHub UniRV">
             <!-- Anel 1: Academia -->
             <div class="orbit-ring ring-1" aria-label="Órbita da Academia">
