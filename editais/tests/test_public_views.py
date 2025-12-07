@@ -204,44 +204,58 @@ class DjangoMessagesToToastTest(TestCase):
         from django.contrib import messages
         self.client.login(username='testuser', password='testpass123')
         
+        # Make a request to get a session
         response = self.client.get(reverse('home'))
-        messages.success(response.wsgi_request, 'Test success message')
-        # Persist messages to session as middleware would normally do
-        if hasattr(response.wsgi_request, '_messages'):
-            response.wsgi_request._messages.update(response)
+        # Add message to the session storage directly
+        storage = messages.get_messages(response.wsgi_request)
+        storage.add(messages.SUCCESS, 'Test success message')
+        # Save the session
+        response.wsgi_request.session.save()
         
-        # Check that message is in the response context
+        # Make another request - message should be available
         response = self.client.get(reverse('home'))
         messages_list = list(messages.get_messages(response.wsgi_request))
-        self.assertTrue(any(msg.message == 'Test success message' for msg in messages_list))
+        # Check if message is in the list
+        self.assertTrue(any(msg.message == 'Test success message' for msg in messages_list),
+                       f"Message not found. Messages: {[m.message for m in messages_list]}")
     
     def test_error_message_appears_as_toast(self):
         """Test that Django error messages are converted to toast notifications"""
         from django.contrib import messages
         self.client.login(username='testuser', password='testpass123')
         
+        # Make a request to get a session
         response = self.client.get(reverse('home'))
-        messages.error(response.wsgi_request, 'Test error message')
-        if hasattr(response.wsgi_request, '_messages'):
-            response.wsgi_request._messages.update(response)
+        # Add message to the session storage directly
+        storage = messages.get_messages(response.wsgi_request)
+        storage.add(messages.ERROR, 'Test error message')
+        # Save the session
+        response.wsgi_request.session.save()
         
+        # Make another request - message should be available
         response = self.client.get(reverse('home'))
         messages_list = list(messages.get_messages(response.wsgi_request))
-        self.assertTrue(any(msg.message == 'Test error message' for msg in messages_list))
+        self.assertTrue(any(msg.message == 'Test error message' for msg in messages_list),
+                       f"Message not found. Messages: {[m.message for m in messages_list]}")
     
     def test_warning_message_appears_as_toast(self):
         """Test that Django warning messages are converted to toast notifications"""
         from django.contrib import messages
         self.client.login(username='testuser', password='testpass123')
         
+        # Make a request to get a session
         response = self.client.get(reverse('home'))
-        messages.warning(response.wsgi_request, 'Test warning message')
-        if hasattr(response.wsgi_request, '_messages'):
-            response.wsgi_request._messages.update(response)
+        # Add message to the session storage directly
+        storage = messages.get_messages(response.wsgi_request)
+        storage.add(messages.WARNING, 'Test warning message')
+        # Save the session
+        response.wsgi_request.session.save()
         
+        # Make another request - message should be available
         response = self.client.get(reverse('home'))
         messages_list = list(messages.get_messages(response.wsgi_request))
-        self.assertTrue(any(msg.message == 'Test warning message' for msg in messages_list))
+        self.assertTrue(any(msg.message == 'Test warning message' for msg in messages_list),
+                       f"Message not found. Messages: {[m.message for m in messages_list]}")
 
 
 class PasswordResetTest(TestCase):

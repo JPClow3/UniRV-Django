@@ -37,16 +37,19 @@ class StartupDetailViewTestCase(TestCase):
         """Test that accessing by ID redirects to slug URL"""
         # Ensure project has a slug (should be generated on save)
         self.project.refresh_from_db()
+        url = reverse('startup_detail', kwargs={'pk': self.project.pk})
+        response = self.client.get(url, follow=False)
+        
         if self.project.slug:
-            url = reverse('startup_detail', kwargs={'pk': self.project.pk})
-            response = self.client.get(url)
             # Should redirect to slug URL if slug exists
-            self.assertIn(response.status_code, [301, 302])
+            self.assertIn(response.status_code, [301, 302], 
+                         f"Expected redirect (301/302), got {response.status_code}")
+            if response.status_code in [301, 302]:
+                self.assertIn(self.project.slug, response.url)
         else:
             # If no slug, should call detail view directly (200)
-            url = reverse('startup_detail', kwargs={'pk': self.project.pk})
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200,
+                           f"Expected 200 when no slug, got {response.status_code}")
     
     def test_startup_detail_404_invalid_slug(self):
         """Test 404 for invalid slug"""

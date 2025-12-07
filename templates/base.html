@@ -20,7 +20,7 @@
     />
     <meta name="author" content="UniRV - Universidade de Rio Verde" />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#1e40af" />
+    <meta name="theme-color" content="#27348b" />
     <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}" />
 
     <!-- Twitter Card Meta Tags -->
@@ -106,12 +106,20 @@
     </script>
     
     {% tailwind_css %}
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-      crossorigin="anonymous"
-    />
+    <!-- Font Awesome - Loaded asynchronously to prevent render blocking -->
+    <script>
+      // Async CSS loader for Font Awesome (fallback if loadCSS not available)
+      (function() {
+        var faLink = document.createElement('link');
+        faLink.rel = 'stylesheet';
+        faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
+        faLink.crossOrigin = 'anonymous';
+        faLink.media = 'print';
+        faLink.onload = function() { this.media = 'all'; };
+        document.head.appendChild(faLink);
+      })();
+    </script>
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" /></noscript>
     {% block extra_head %}{% endblock %}
   </head>
   {% with current_url=request.resolver_match.url_name|default:"" transparent_header=request.resolver_match.url_name|is_transparent_header %}
@@ -128,7 +136,7 @@
       class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
       <div
-        class="absolute top-0 left-0 right-0 w-full bg-linear-to-r from-unirvBlue to-agrohubBlue h-1 z-10"
+        class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue h-1 z-10"
       ></div>
       <nav class="relative z-10 site-nav">
         <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
@@ -141,9 +149,9 @@
             <img 
               src="{% static 'img/Logo.svg' %}" 
               alt="AgroHub UniRV Logo" 
-              class="w-28 h-28 shrink-0" 
-              width="112" 
-              height="112" 
+              class="w-16 h-16 shrink-0" 
+              width="64" 
+              height="64" 
               fetchpriority="high"
               loading="eager"
               decoding="async"
@@ -218,7 +226,7 @@
         </div>
 
         <!-- Mobile Navigation -->
-        <div class="navbar-right md:hidden" id="navbar-menu">
+        <div class="navbar-right md:hidden" id="navbar-menu" style="z-index: 50;">
           <ul class="flex flex-col"><li>
               <a
                 href="{% url 'home' %}"
@@ -324,12 +332,12 @@
               />
               <div>
                 <div class="font-bold text-xl">AgroHub UniRV</div>
-                <div class="text-sm text-gray-300">
+                <div class="text-sm text-gray-200">
                   NIT - Núcleo de Inovação e Tecnologia
                 </div>
               </div>
             </div>
-            <p class="text-gray-300 text-sm leading-relaxed max-w-md">
+            <p class="text-gray-200 text-sm leading-relaxed max-w-md">
               Centro de Inovação e Tecnologia apoiado pela FINEP, voltado à
               transformação digital do agronegócio em Goiás. Conectamos
               pesquisa, startups e o setor produtivo.
@@ -342,7 +350,7 @@
               <li>
                 <a
                   href="{% url 'home' %}"
-                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
+                  class="text-gray-200 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -353,7 +361,7 @@
               <li>
                 <a
                   href="{% url 'ambientes_inovacao' %}"
-                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
+                  class="text-gray-200 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -364,7 +372,7 @@
               <li>
                 <a
                   href="{% url 'editais_index' %}"
-                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
+                  class="text-gray-200 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -375,7 +383,7 @@
               <li>
                 <a
                   href="{% url 'startups_showcase' %}"
-                  class="text-gray-300 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
+                  class="text-gray-200 hover:text-white text-sm transition-colors inline-flex items-center gap-2 group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-unirvBlue rounded"
                 >
                   <span
                     class="w-1.5 h-1.5 bg-green-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -388,7 +396,7 @@
 
           <div>
             <h3 class="font-bold mb-4 text-white">Contato</h3>
-            <ul class="space-y-4 text-sm text-gray-300">
+            <ul class="space-y-4 text-sm text-gray-200">
               <li>
                 <a
                   href="mailto:agrohub@unirv.edu.br"
@@ -426,10 +434,10 @@
           <div
             class="flex flex-col md:flex-row justify-between items-center gap-4"
           >
-            <p class="text-sm text-gray-300">
+            <p class="text-sm text-gray-200">
               © 2025 AgroHub UniRV. Todos os direitos reservados.
             </p>
-            <div class="flex gap-4 text-sm text-gray-300">
+            <div class="flex gap-4 text-sm text-gray-200">
               <button type="button" class="hover:text-white transition-colors cursor-not-allowed opacity-50" title="Em breve" aria-label="Política de Privacidade (em breve)" disabled>
                 Política de Privacidade
               </button>
@@ -451,19 +459,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
     {% if HAS_COMPRESSOR %}
     {% compress js %}
-    <script src="{% static 'js/animations.js' %}" defer></script>
+    {% if DEBUG %}<script src="{% static 'js/animations.js' %}" defer></script>{% else %}<script src="{% static 'js/animations.min.js' %}" defer></script>{% endif %}
     {% endcompress %}
     {% else %}
-    <script src="{% static 'js/animations.js' %}" defer></script>
+    {% if DEBUG %}<script src="{% static 'js/animations.js' %}" defer></script>{% else %}<script src="{% static 'js/animations.min.js' %}" defer></script>{% endif %}
     {% endif %}
     {% endif %}
 
     {% if HAS_COMPRESSOR %}
     {% compress js %}
-    <script src="{% static 'js/main.js' %}" defer></script>
+    {% if DEBUG %}<script src="{% static 'js/main.js' %}" defer></script>{% else %}<script src="{% static 'js/main.min.js' %}" defer></script>{% endif %}
     {% endcompress %}
     {% else %}
-    <script src="{% static 'js/main.js' %}" defer></script>
+    {% if DEBUG %}<script src="{% static 'js/main.js' %}" defer></script>{% else %}<script src="{% static 'js/main.min.js' %}" defer></script>{% endif %}
     {% endif %}
     {% block extra_js %}{% endblock %}
     {% endwith %}

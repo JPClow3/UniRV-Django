@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Edital, EditalValor, Cronograma, EditalHistory, Project
+from .models import Edital, EditalValor, Cronograma, Project
 from .utils import sanitize_edital_fields
+from simple_history.admin import SimpleHistoryAdmin
 
 
 class EditalValorInline(admin.TabularInline):
@@ -14,7 +15,7 @@ class CronogramaInline(admin.TabularInline):
 
 
 @admin.register(Edital)
-class EditalAdmin(admin.ModelAdmin):
+class EditalAdmin(SimpleHistoryAdmin):
     list_display = (
         'titulo',
         'status',
@@ -57,10 +58,9 @@ class EditalAdmin(admin.ModelAdmin):
         """
         Override save_model to sanitize HTML content before saving.
         This prevents XSS vulnerabilities when editing through Django Admin.
-        """
-        from .models import EditalHistory
-        from django.db import transaction
         
+        Note: History tracking is now handled automatically by django-simple-history.
+        """
         # Sanitize HTML fields before saving (same as web views)
         sanitize_edital_fields(obj)
         
@@ -69,42 +69,9 @@ class EditalAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         
-        # Capture original values for history tracking (before save)
-        from .services import EditalService
-        
-        if change:
-            try:
-                original_obj = Edital.objects.get(pk=obj.pk)
-                # Create temporary object with form values for comparison
-                temp_obj = Edital()
-                # Handle case where form might be None (e.g., in tests)
-                changed_fields = form.changed_data if form and hasattr(form, 'changed_data') else []
-                for field in changed_fields:
-                    if hasattr(obj, field):
-                        setattr(temp_obj, field, form.cleaned_data.get(field, getattr(obj, field)))
-                changes = EditalService.track_changes(
-                    original_obj=original_obj,
-                    new_obj=temp_obj,
-                    user=request.user,
-                    changed_fields=changed_fields
-                )
-            except Edital.DoesNotExist:
-                changes = {}
-        else:
-            changes = {'titulo': obj.titulo}
-        
         # Call parent save_model to actually save
+        # django-simple-history will automatically create history entries
         super().save_model(request, obj, form, change)
-        
-        # Create history entry after save
-        with transaction.atomic():
-            EditalHistory.objects.create(
-                edital=obj,
-                edital_titulo=obj.titulo,
-                user=request.user,
-                action='create' if not change else 'update',
-                changes_summary=changes
-            )
 
 
 @admin.register(EditalValor)
@@ -117,23 +84,6 @@ class EditalValorAdmin(admin.ModelAdmin):
 class CronogramaAdmin(admin.ModelAdmin):
     list_display = ('edital', 'descricao', 'data_inicio', 'data_fim', 'data_publicacao')
     list_filter = ('data_inicio', 'data_fim', 'data_publicacao')
-
-
-@admin.register(EditalHistory)
-class EditalHistoryAdmin(admin.ModelAdmin):
-    list_display = ('edital_titulo_display', 'action', 'user', 'timestamp')
-    list_filter = ('action', 'timestamp', 'user')
-    search_fields = ('edital__titulo', 'edital_titulo', 'user__username')
-    readonly_fields = ('edital', 'edital_titulo', 'user', 'action', 'field_name', 'old_value', 'new_value', 'timestamp', 'changes_summary')
-    date_hierarchy = 'timestamp'
-    
-    def edital_titulo_display(self, obj):
-        """Display edital title (from edital or preserved edital_titulo)"""
-        return obj.edital.titulo if obj.edital else (obj.edital_titulo or 'Edital Deletado')
-    edital_titulo_display.short_description = 'Edital'
-    
-    def has_add_permission(self, request):
-        return False  # History entries are created automatically
 
 
 @admin.register(Project)

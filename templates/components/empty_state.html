@@ -30,12 +30,12 @@ Usage:
       {% if action_text %}
       <div class="flex flex-col sm:flex-row justify-center gap-3">
         {% if action_url_name %}
-        <a href="{% url action_url_name %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
+        <a href="{% url action_url_name %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
           <i class="fas fa-plus"></i>
           {{ action_text }}
         </a>
         {% elif action_url %}
-        <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
+        <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
           <i class="fas fa-plus"></i>
           {{ action_text }}
         </a>

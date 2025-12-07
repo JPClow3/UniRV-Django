@@ -62,7 +62,8 @@ class FilteredListViewMixin:
         
         search_query = self.get_search_query(request)
         if search_query:
-            queryset = queryset.filter(build_search_query(search_query))
+            # Use queryset-aware search for PostgreSQL full-text search support
+            search_q, queryset = build_search_query(search_query, queryset)
         
         status_filter = self.get_status_filter(request)
         if status_filter:

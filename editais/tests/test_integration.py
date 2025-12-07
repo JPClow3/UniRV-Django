@@ -110,7 +110,9 @@ class EditalWorkflowTest(TestCase):
         self.assertEqual(response.status_code, 200)
         # Verificar que há paginação se houver mais de 12 editais
         if Edital.objects.count() > 12 and hasattr(response, 'content'):
-            self.assertIn(b'P\xc3\xa1gina' or b'Pagina', response.content)
+            # Check for pagination text (either "Página" or "Pagina")
+            has_pagination = (b'P\xc3\xa1gina' in response.content) or (b'Pagina' in response.content)
+            self.assertTrue(has_pagination, "Pagination text not found in response")
     
     def test_rate_limiting(self):
         """Testa que rate limiting funciona corretamente"""

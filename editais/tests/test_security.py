@@ -171,7 +171,6 @@ class AuthenticationAuthorizationTest(TestCase):
         staff_only_views = [
             'dashboard_editais',
             'dashboard_usuarios',
-            'dashboard_relatorios',
             'dashboard_novo_edital',
         ]
         
@@ -185,7 +184,6 @@ class AuthenticationAuthorizationTest(TestCase):
         staff_only_views = [
             'dashboard_editais',
             'dashboard_usuarios',
-            'dashboard_relatorios',
             'dashboard_novo_edital',
         ]
         

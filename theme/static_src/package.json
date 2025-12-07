@@ -4,9 +4,12 @@
   "description": "",
   "scripts": {
     "start": "npm run dev",
-    "build": "npm run build:clean && npm run build:tailwind",
+    "build": "npm run build:clean && npm run build:tailwind && npm run build:js",
     "build:clean": "rimraf ../static/css/dist",
     "build:tailwind": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify",
+    "build:js": "npm run build:js:main && npm run build:js:animations",
+    "build:js:main": "terser ../../static/js/main.js -o ../../static/js/main.min.js -c -m --comments false",
+    "build:js:animations": "terser ../../static/js/animations.js -o ../../static/js/animations.min.js -c -m --comments false",
     "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/css/dist/styles.css --watch"
   },
   "keywords": [],
@@ -22,6 +25,7 @@
     "postcss-nested": "^7.0.2",
     "postcss-simple-vars": "^7.0.1",
     "rimraf": "^6.0.1",
-    "tailwindcss": "^4.1.16"
+    "tailwindcss": "^4.1.16",
+    "terser": "^5.36.0"
   }
 }

@@ -101,22 +101,13 @@ class EditalService:
         if not form.is_valid():
             raise ValueError("Form must be valid before creating edital")
         
-        from .models import EditalHistory
-        
         with transaction.atomic():
             edital = form.save(commit=False)
             edital.created_by = user
             edital.updated_by = user
             sanitize_edital_fields(edital)
             edital.save()
-            
-            EditalHistory.objects.create(
-                edital=edital,
-                edital_titulo=edital.titulo,
-                user=user,
-                action='create',
-                changes_summary={'titulo': edital.titulo}
-            )
+            # History tracking is now handled automatically by django-simple-history
             
             transaction.on_commit(clear_index_cache)
         
@@ -156,7 +147,8 @@ class EditalService:
         from .utils import parse_date_filter
         
         if filters.get('search_query'):
-            queryset = queryset.filter(build_search_query(filters['search_query']))
+            # Use queryset-aware search for PostgreSQL full-text search support
+            search_q, queryset = build_search_query(filters['search_query'], queryset)
         
         if filters.get('status'):
             queryset = queryset.filter(status=filters['status'])
@@ -174,47 +166,4 @@ class EditalService:
         
         return queryset
     
-    @staticmethod
-    def track_changes(
-        original_obj: Edital,
-        new_obj: Edital,
-        user: 'User',
-        changed_fields: Optional[list] = None
-    ) -> Dict[str, Dict[str, str]]:
-        """
-        Track changes between original and new edital objects.
-        
-        Args:
-            original_obj: Original edital object from database
-            new_obj: New edital object with updated values
-            user: User making the changes
-            changed_fields: Optional list of field names that changed
-            
-        Returns:
-            dict: Dictionary of changes in format {field: {'old': value, 'new': value}}
-        """
-        changes = {}
-        
-        # If changed_fields is provided, only check those fields
-        fields_to_check = changed_fields if changed_fields else [
-            'titulo', 'numero_edital', 'url', 'entidade_principal', 'status',
-            'start_date', 'end_date', 'analise', 'objetivo', 'etapas',
-            'recursos', 'itens_financiaveis', 'criterios_elegibilidade',
-            'criterios_avaliacao', 'itens_essenciais_observacoes', 'detalhes_unirv'
-        ]
-        
-        for field in fields_to_check:
-            if field in ['data_atualizacao', 'updated_by']:
-                continue
-            
-            old_value = str(getattr(original_obj, field, ''))
-            new_value = str(getattr(new_obj, field, ''))
-            
-            if old_value != new_value:
-                changes[field] = {
-                    'old': old_value[:200],  # Truncate long values
-                    'new': new_value[:200]
-                }
-        
-        return changes
 

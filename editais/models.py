@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from simple_history.models import HistoricalRecords
 
 from .utils import determine_edital_status, generate_unique_slug
 from .constants import SLUG_GENERATION_MAX_RETRIES, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT
@@ -23,7 +24,9 @@ class EditalQuerySet(models.QuerySet):
     
     def with_full_prefetch(self):
         """Add all common prefetch_related for detail views."""
-        return self.prefetch_related('valores', 'cronogramas', 'history')
+        # Note: simple_history creates a 'history' related manager automatically
+        # but it doesn't support prefetch_related, so we exclude it
+        return self.prefetch_related('valores', 'cronogramas')
     
     def active(self):
         """Filter editais that are not drafts."""
@@ -243,6 +246,8 @@ class Edital(models.Model):
         # If object is not saved yet, return empty string
         return ''
 
+    history = HistoricalRecords()  # Automatic audit logging via django-simple-history
+
 
 class EditalValor(models.Model):
     """
@@ -326,76 +331,6 @@ class Cronograma(models.Model):
     
     def __repr__(self):
         return f"<Cronograma: edital_id={self.edital_id}, descricao={self.descricao[:30]}>"
-
-
-class EditalHistory(models.Model):
-    """
-    Modelo que representa o histórico de alterações em editais.
-    
-    Mantém um registro de todas as ações (criar, atualizar, deletar)
-    realizadas em editais para fins de auditoria.
-    
-    Attributes:
-        edital: Edital relacionado (pode ser None se deletado)
-        edital_titulo: Título preservado quando edital é deletado
-        user: Usuário que realizou a ação
-        action: Tipo de ação (create, update, delete)
-        field_name: Nome do campo alterado (legado)
-        old_value: Valor antigo (legado)
-        new_value: Valor novo (legado)
-        timestamp: Data e hora da ação
-        changes_summary: Resumo das mudanças em formato JSON
-    """
-    edital = models.ForeignKey(
-        Edital,
-        on_delete=models.SET_NULL,  # Preserve history even if edital is deleted
-        null=True,
-        blank=True,
-        related_name='history'
-    )
-    edital_titulo = models.CharField(
-        max_length=500,
-        blank=True,
-        null=True,
-        help_text='Título do edital (preservado quando edital é deletado)'
-    )
-    user = models.ForeignKey(
-        'auth.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='edital_changes'
-    )
-    action = models.CharField(
-        max_length=20,
-        choices=[
-            ('create', 'Criado'),
-            ('update', 'Atualizado'),
-            ('delete', 'Excluído'),
-        ]
-    )
-    field_name = models.CharField(max_length=100, blank=True, null=True)
-    old_value = models.TextField(blank=True, null=True)
-    new_value = models.TextField(blank=True, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    changes_summary = models.JSONField(default=dict, blank=True)  # Resumo das mudanças
-    
-    class Meta:
-        ordering = ['-timestamp']
-        verbose_name = 'Histórico de Edital'
-        verbose_name_plural = 'Históricos de Editais'
-        indexes = [
-            models.Index(fields=['-timestamp']),
-            models.Index(fields=['edital', '-timestamp']),
-        ]
-    
-    def __str__(self):
-        titulo = self.edital.titulo if self.edital else (self.edital_titulo or 'Edital Deletado')
-        return f'{titulo} - {self.get_action_display()} - {self.timestamp.strftime("%d/%m/%Y %H:%M")}'
-    
-    def __repr__(self):
-        edital_id = self.edital_id if self.edital else None
-        return f"<EditalHistory: edital_id={edital_id}, action={self.action}, timestamp={self.timestamp}>"
 
 
 class Project(models.Model):

@@ -2,7 +2,7 @@
 Utility functions for the editais app.
 """
 
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union, List
 from datetime import date, datetime
 import logging
 import re
@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.text import slugify
 from django.core.cache import cache
-from django.db import models
+from django.db import models, connection
 from django.db.models import QuerySet
 
 from .constants import HTML_FIELDS, CACHE_FALLBACK_PAGE_RANGE, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, CACHE_TTL_15_MINUTES
@@ -370,3 +370,96 @@ def clear_index_cache() -> None:
     except Exception:
         # Cache delete failed - log but don't raise
         logger.warning("Failed to delete old cache keys - cache unavailable", exc_info=True)
+
+
+def get_search_suggestions(query: str, limit: int = 3) -> List[str]:
+    """
+    Get search suggestions using PostgreSQL trigram similarity.
+    
+    Uses PostgreSQL's pg_trgm extension to find similar titles, entity names,
+    or edital numbers when no search results are found. This provides helpful
+    "Did you mean?" suggestions to users.
+    
+    Args:
+        query: Search query string
+        limit: Maximum number of suggestions to return (default: 3)
+        
+    Returns:
+        List of suggestion strings (titles, entity names, or edital numbers)
+        Returns empty list if not using PostgreSQL, extension not available,
+        or query is empty.
+    """
+    if not query or not query.strip():
+        return []
+    
+    # Only work with PostgreSQL
+    if connection.vendor != 'postgresql':
+        return []
+    
+    # Normalize query for cache key
+    query_normalized = query.strip().lower()
+    cache_key = f'search_suggestions_{query_normalized}_{limit}'
+    
+    # Check cache first
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    
+    suggestions = []
+    
+    try:
+        with connection.cursor() as cursor:
+            # Check if pg_trgm extension is available
+            cursor.execute("SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm';")
+            if not cursor.fetchone():
+                # Extension not available, return empty list
+                logger.debug("pg_trgm extension not available for search suggestions")
+                return []
+            
+            # Search across multiple fields and combine results
+            # Use UNION to get unique suggestions from different fields
+            cursor.execute("""
+                WITH suggestions AS (
+                    SELECT DISTINCT titulo as suggestion,
+                           similarity(titulo, %s) as sim
+                    FROM editais_edital
+                    WHERE titulo IS NOT NULL 
+                      AND similarity(titulo, %s) > 0.3
+                    
+                    UNION
+                    
+                    SELECT DISTINCT entidade_principal as suggestion,
+                           similarity(entidade_principal, %s) as sim
+                    FROM editais_edital
+                    WHERE entidade_principal IS NOT NULL 
+                      AND similarity(entidade_principal, %s) > 0.3
+                    
+                    UNION
+                    
+                    SELECT DISTINCT numero_edital as suggestion,
+                           similarity(numero_edital, %s) as sim
+                    FROM editais_edital
+                    WHERE numero_edital IS NOT NULL 
+                      AND similarity(numero_edital, %s) > 0.3
+                )
+                SELECT suggestion
+                FROM suggestions
+                ORDER BY sim DESC
+                LIMIT %s
+            """, [query, query, query, query, query, query, limit])
+            
+            suggestions = [row[0] for row in cursor.fetchall() if row[0]]
+            
+    except Exception as e:
+        # Log error but don't fail - suggestions are nice-to-have
+        logger.warning(f"Error generating search suggestions: {e}", exc_info=True)
+        return []
+    
+    # Cache suggestions for 5 minutes
+    if suggestions:
+        cache.set(cache_key, suggestions, 300)  # 5 minutes
+    else:
+        # Cache empty result for shorter time to allow retry
+        cache.set(cache_key, [], 60)  # 1 minute
+    
+    return suggestions

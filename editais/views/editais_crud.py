@@ -93,39 +93,18 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
     if request.method == 'POST':
         form = EditalForm(request.POST, instance=edital)
         if form.is_valid():
-            from ..models import EditalHistory
-            try:
-                original_edital = Edital.objects.with_related().get(pk=edital.pk)
-            except Edital.DoesNotExist:
-                messages.error(request, 'O edital não foi encontrado.')
-                return redirect('editais_index')
-            
             edital = form.save(commit=False)
-            changes = EditalService.track_changes(
-                original_obj=original_edital,
-                new_obj=edital,
-                user=request.user,
-                changed_fields=form.changed_data
-            )
             
             with transaction.atomic():
                 edital.updated_by = request.user
                 sanitize_edital_fields(edital)
                 edital.save()
-                if changes:
-                    EditalHistory.objects.create(
-                        edital=edital,
-                        edital_titulo=edital.titulo,
-                        user=request.user,
-                        action='update',
-                        changes_summary=changes
-                    )
+                # History tracking is now handled automatically by django-simple-history
                 transaction.on_commit(clear_index_cache)
             
             logger.info(
                 f"edital atualizado com sucesso - ID: {edital.pk}, "
-                f"título: {edital.titulo}, usuário: {request.user.username}, "
-                f"campos alterados: {list(changes.keys())}"
+                f"título: {edital.titulo}, usuário: {request.user.username}"
             )
             
             messages.success(request, 'Edital atualizado com sucesso!')
@@ -160,16 +139,8 @@ def edital_delete(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
 
     if request.method == 'POST':
         try:
-            # Create history entry before deletion (preserve title)
-            from ..models import EditalHistory
+            # History tracking for deletion is handled automatically by django-simple-history
             with transaction.atomic():
-                EditalHistory.objects.create(
-                    edital=edital,
-                    edital_titulo=edital.titulo,
-                    user=request.user,
-                    action='delete',
-                    changes_summary={'titulo': edital.titulo}
-                )
                 titulo_edital = edital.titulo
                 edital.delete()
                 transaction.on_commit(clear_index_cache)

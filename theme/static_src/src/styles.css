@@ -32,8 +32,8 @@
 
 @theme {
   --color-unirvBlue: #27348b;
-  --color-agrohubBlue: #007bff;
-  --color-agrohubGreen: #76b82a;
+  --color-agrohubBlue: #1d4ed8;
+  --color-agrohubGreen: #22c55e;
   --color-darkBlue: #1a237e;
   --color-green: #10b981;
   --color-green-light: #34d399;
@@ -194,6 +194,8 @@ body {
     object-position: center;
     filter: saturate(110%);
     transition: transform 0.7s ease;
+    aspect-ratio: 1024 / 1024; /* Prevent CLS - matches source image dimensions */
+    will-change: transform; /* GPU acceleration hint for scale animation */
   }
 
   .hero-media::after {
@@ -210,6 +212,9 @@ body {
   /* Mobile Menu Toggle */
   .mobile-menu-toggle {
     @apply flex flex-col justify-center items-center gap-1 w-10 h-10 p-2 bg-transparent border-none cursor-pointer rounded-lg transition-colors duration-200;
+    min-width: 44px; /* WCAG minimum touch target size */
+    min-height: 44px; /* WCAG minimum touch target size */
+    touch-action: manipulation; /* Optimize touch response, prevent double-tap zoom */
   }
 
   .mobile-menu-toggle:hover {
@@ -274,6 +279,7 @@ body {
     transition: max-height 0.3s ease-out;
     background: white;
     border-top: 1px solid #e5e7eb;
+    touch-action: pan-y; /* Allow vertical scrolling, prevent horizontal swipe conflicts */
   }
 
   body.page-detail .navbar-right {
@@ -797,14 +803,20 @@ body {
 
   /* Back to Top Button */
   .back-to-top {
-    @apply fixed bottom-8 right-8 w-12 h-12 rounded-full border-none cursor-pointer flex items-center justify-center text-lg transition-all duration-300 ease-in-out;
+    @apply fixed w-12 h-12 rounded-full border-none cursor-pointer flex items-center justify-center text-lg transition-all duration-300 ease-in-out;
+    min-width: 44px; /* WCAG minimum touch target size */
+    min-height: 44px; /* WCAG minimum touch target size */
+    touch-action: manipulation; /* Optimize touch response */
     background: linear-gradient(135deg, var(--color-unirvBlue), var(--color-agrohubBlue));
     color: white;
     box-shadow: 0 4px 12px rgba(10, 37, 88, 0.3);
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px);
-    z-index: 1000;
+    z-index: 40; /* Below mobile menu (z-50) but above content */
+    /* Position with safe area insets for iOS devices */
+    bottom: max(2rem, env(safe-area-inset-bottom, 2rem));
+    right: max(2rem, env(safe-area-inset-right, 2rem));
   }
 
   .back-to-top:hover {
@@ -830,6 +842,8 @@ body {
     .back-to-top {
       min-width: 44px;
       min-height: 44px;
+      /* Ensure back-to-top doesn't overlap with mobile menu when open */
+      /* Mobile menu has higher z-index, so back-to-top will be behind it */
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1307,8 +1321,7 @@ body {
       color: black;
       text-decoration: underline;
     }
-    [class*="bg-gradient-to-"],
-    [class*="bg-linear-to-"] {
+    [class*="bg-gradient-to-"] {
       background: white !important;
       color: black !important;
     }
@@ -1345,6 +1358,14 @@ body {
   }
 
   /* Nav link underline animation */
+  /* Ensure mobile nav links meet WCAG touch target requirements */
+  .navbar-right .nav-link {
+    min-height: 44px; /* WCAG minimum touch target size */
+    display: flex;
+    align-items: center;
+    touch-action: manipulation; /* Optimize touch response */
+  }
+
   .nav-link {
     position: relative;
   }
@@ -1649,30 +1670,30 @@ body {
   /* 2. MAIN CONTAINER */
   .orbit-container {
     position: relative;
-    /* Increase size to account for icon overflow - icons are 3rem (48px), so we need extra space */
-    width: min(600px, 90vw);
-    height: min(600px, 90vw);
-    /* Add padding around the rings to give icons space to move without clipping */
-    padding: 4rem; /* 64px padding to ensure 3rem icons (48px) can move freely */
+    /* Reduced size for better proportions - content area ~400px */
+    width: min(500px, 80vw);
+    height: min(500px, 80vw);
+    /* Reduced padding - icons are 48px (3rem), padding of 48px (3rem) ensures clearance */
+    padding: 3rem;
+    box-sizing: border-box;
     /* Optimization: Promotes this element to a GPU layer */
     will-change: transform; 
-    overflow: hidden; /* contain icons within the padded area */
+    overflow: visible; /* Allow icons to be visible when rotating - no clipping */
     margin: 0 auto;
     /* Ensure container takes up the space it needs */
-    min-height: min(600px, 90vw);
-    min-width: min(600px, 90vw);
+    min-height: min(500px, 80vw);
+    min-width: min(500px, 80vw);
   }
 
   /* 3. THE RINGS */
   .orbit-ring {
     position: absolute;
-    /* Centers the ring perfectly without using transform */
+    /* Centers the ring perfectly - inset: 0 with margin: auto centers when width/height are set */
     inset: 0;
     margin: auto;
     border-radius: 50%;
     border: 1px dashed rgba(255, 255, 255, 0.2);
     transform-origin: center center;
-    /* IMPORTANT: 'transform: none' was removed from here */
   }
 
   /* Ring 1 (Academia) - Spins Clockwise */
@@ -1737,6 +1758,14 @@ body {
     animation-play-state: paused;
   }
 
+  /* Respect reduced motion preference for orbit animations */
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-ring,
+    .orbit-ring .floating-icon {
+      animation: none;
+    }
+  }
+
   /* 4. FLOATING ICONS (Positioning) */
   .floating-icon {
     position: absolute;
@@ -1744,15 +1773,15 @@ body {
     left: 50%;
     /* This sets the starting position. The animation then takes over. */
     transform: translate(-50%, -50%);
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 9999px;
     background: white;
     color: var(--color-unirvBlue);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
     z-index: 20; /* Ensure icons are above rings */
   }
@@ -1776,8 +1805,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 6rem;
-    height: 6rem;
+    width: 5rem;
+    height: 5rem;
     border-radius: 9999px;
     background: white;
     display: flex;
@@ -1800,28 +1829,14 @@ body {
   /* =========================================
      Gradient utilities (Tailwind-like shims)
      ========================================= */
-  .bg-linear-to-r {
-    background-image: linear-gradient(to right,
-      var(--tw-gradient-from, var(--color-unirvBlue)),
-      var(--tw-gradient-via, var(--tw-gradient-from, var(--color-unirvBlue))),
-      var(--tw-gradient-to, var(--color-agrohubBlue))
-    );
-  }
-
-  .bg-linear-to-br {
-    background-image: linear-gradient(to bottom right,
-      var(--tw-gradient-from, var(--color-unirvBlue)),
-      var(--tw-gradient-via, var(--tw-gradient-from, var(--color-unirvBlue))),
-      var(--tw-gradient-to, var(--color-agrohubBlue))
-    );
-  }
+  /* Note: Custom bg-linear-to-* classes removed - using standard Tailwind bg-gradient-to-* classes */
 
   /* Gradient color tokens */
   .from-unirvBlue { --tw-gradient-from: #27348b; }
-  .from-agrohubGreen { --tw-gradient-from: #76b82a; }
+  .from-agrohubGreen { --tw-gradient-from: #22c55e; }
   .from-green-400 { --tw-gradient-from: #34d399; }
 
-  .to-agrohubBlue { --tw-gradient-to: #007bff; }
+  .to-agrohubBlue { --tw-gradient-to: #1d4ed8; }
   .to-unirvBlue { --tw-gradient-to: #27348b; }
   .to-darkBlue { --tw-gradient-to: #1a237e; }
   .to-teal-300 { --tw-gradient-to: #5eead4; }
@@ -1877,12 +1892,12 @@ body {
   }
 
   .timeline-icon.complete {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg, var(--color-agrohubGreen), #16a34a);
     color: white;
   }
 
   .timeline-icon.active {
-    background: linear-gradient(135deg, var(--color-unirvBlue), #1d4ed8);
+    background: linear-gradient(135deg, var(--color-unirvBlue), var(--color-agrohubBlue));
     color: white;
   }
 
@@ -1944,7 +1959,7 @@ body {
 
   .timeline-tag.info {
     background: #e0f2fe;
-    color: #1d4ed8;
+    color: var(--color-agrohubBlue);
   }
 
   .timeline-tag.neutral {
@@ -2003,7 +2018,7 @@ body {
   /* Auth layout: full-screen gradient with animated blobs */
   .auth-layout {
     @apply min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden;
-    background: radial-gradient(circle at top left, #22c55e 0, #0f172a 35%, #020617 100%);
+    background: radial-gradient(circle at top left, var(--color-agrohubGreen) 0, #0f172a 35%, #020617 100%);
   }
 
   .auth-layout::before,
@@ -2019,7 +2034,7 @@ body {
   .auth-layout::before {
     width: 420px;
     height: 420px;
-    background: #22c55e;
+    background: var(--color-agrohubGreen);
     top: -120px;
     right: -80px;
     animation: blob 7s infinite;
@@ -2082,7 +2097,7 @@ body {
   }
 
   .auth-gradient-cta {
-    @apply w-full h-12 rounded-full bg-linear-to-r from-agrohubGreen to-unirvBlue
+    @apply w-full h-12 rounded-full bg-gradient-to-r from-agrohubGreen to-unirvBlue
     text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-blue-700
     transition-all flex items-center justify-center gap-2 text-base;
     min-height: 48px;
@@ -2108,7 +2123,7 @@ body {
   .bg-blobs::before {
     width: 560px;
     height: 560px;
-    background: #22c55e;
+    background: var(--color-agrohubGreen);
     top: -180px;
     right: -160px;
   }

@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',  # For timesince and other human-readable filters
+    'simple_history',  # Audit logging - must be before apps that use it
     'tailwind',
     'theme',  # Tailwind theme app
     'editais.apps.EditaisConfig',
@@ -133,6 +134,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',  # Track user in history
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -147,9 +149,12 @@ if DEBUG and not TESTING:
 
 ROOT_URLCONF = 'UniRV_Django.urls'
 
-# Custom context processor to make HAS_COMPRESSOR available in templates
+# Custom context processor to make HAS_COMPRESSOR and DEBUG available in templates
 def compressor_context(request):
-    return {'HAS_COMPRESSOR': HAS_COMPRESSOR}
+    return {
+        'HAS_COMPRESSOR': HAS_COMPRESSOR,
+        'DEBUG': DEBUG
+    }
 
 TEMPLATES = [
     {
@@ -254,6 +259,22 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Media files (user-uploaded content)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# CDN Configuration for Image Delivery (Optional)
+# 
+# Configure CDN_BASE_URL to serve images via CDN (Cloudflare Images, Cloudinary, Imgix, etc.)
+# If not set, images will be served via Django static files.
+# 
+# Example CDN configurations:
+#   Cloudflare Images: CDN_BASE_URL = "https://imagedelivery.net/your-account-id"
+#   Cloudinary: CDN_BASE_URL = "https://res.cloudinary.com/your-cloud-name"
+#   Imgix: CDN_BASE_URL = "https://your-domain.imgix.net"
+#   Custom S3+CloudFront: CDN_BASE_URL = "https://d1234567890.cloudfront.net"
+# 
+# CDN_IMAGE_FORMATS defines the priority order of formats to use.
+# Browsers will automatically select the best supported format from the srcset.
+CDN_BASE_URL = os.environ.get('CDN_BASE_URL', None)  # Set via environment variable or leave None for static files
+CDN_IMAGE_FORMATS = ['avif', 'webp', 'jpg']  # Format priority: AVIF (best) -> WebP -> JPEG (fallback)
 
 # Production warning: Media files should be served by web server (nginx/apache), not Django
 if not DEBUG:

@@ -122,30 +122,6 @@ class DashboardProjetosViewTest(TestCase):
         self.assertTemplateUsed(response, "dashboard/projetos.html")
 
 
-class DashboardAvaliacoesViewTest(TestCase):
-    """Tests for dashboard avaliações view"""
-
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser", password="testpass123"
-        )
-
-    def test_dashboard_avaliacoes_requires_login(self):
-        """Test that dashboard avaliações requires authentication"""
-        response = self.client.get(reverse("dashboard_avaliacoes"))
-        self.assertRedirects(
-            response, f"{reverse('login')}?next={reverse('dashboard_avaliacoes')}"
-        )
-
-    def test_dashboard_avaliacoes_loads_for_authenticated_user(self):
-        """Test that dashboard avaliações loads for authenticated user"""
-        self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("dashboard_avaliacoes"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "dashboard/avaliacoes.html")
-
-
 class DashboardUsuariosViewTest(TestCase):
     """Tests for dashboard usuarios view"""
 
@@ -177,39 +153,6 @@ class DashboardUsuariosViewTest(TestCase):
         response = self.client.get(reverse("dashboard_usuarios"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "dashboard/usuarios.html")
-
-
-class DashboardRelatoriosViewTest(TestCase):
-    """Tests for dashboard relatorios view"""
-
-    def setUp(self):
-        self.client = Client()
-        self.staff_user = User.objects.create_user(
-            username="staff", password="testpass123", is_staff=True
-        )
-        self.regular_user = User.objects.create_user(
-            username="regular", password="testpass123", is_staff=False
-        )
-
-    def test_dashboard_relatorios_requires_login(self):
-        """Test that dashboard relatorios requires authentication"""
-        response = self.client.get(reverse("dashboard_relatorios"))
-        self.assertRedirects(
-            response, f"{reverse('login')}?next={reverse('dashboard_relatorios')}"
-        )
-
-    def test_dashboard_relatorios_requires_staff(self):
-        """Test that dashboard relatorios requires staff permission"""
-        self.client.login(username="regular", password="testpass123")
-        response = self.client.get(reverse("dashboard_relatorios"))
-        self.assertEqual(response.status_code, 403)
-
-    def test_dashboard_relatorios_loads_for_staff(self):
-        """Test that dashboard relatorios loads for staff user"""
-        self.client.login(username="staff", password="testpass123")
-        response = self.client.get(reverse("dashboard_relatorios"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "dashboard/relatorios.html")
 
 
 class DashboardSubmeterProjetoViewTest(TestCase):

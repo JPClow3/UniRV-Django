@@ -15,7 +15,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.urls import reverse
 
-from editais.models import Edital, EditalValor, Cronograma, EditalHistory, Project
+from editais.models import Edital, EditalValor, Cronograma, Project
 from editais.forms import EditalForm, UserRegistrationForm
 from editais.utils import (
     determine_edital_status, sanitize_html, sanitize_edital_fields,

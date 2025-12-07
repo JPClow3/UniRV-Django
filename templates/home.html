@@ -8,43 +8,76 @@
 
 
 {% block extra_head %}
-  <!-- Preload LCP hero image with high priority to improve LCP metric -->
+  <!-- Preload LCP hero image with responsive srcset for optimal candidate selection -->
+  <!-- AVIF preload (best compression, modern browsers) -->
   <link
     rel="preload"
     as="image"
-    href="{% static 'img/agrohub-hero.webp' %}"
+    imagesrcset="{% static 'img/hero/agrohub-hero-480w.avif' %} 480w,
+                 {% static 'img/hero/agrohub-hero-768w.avif' %} 768w,
+                 {% static 'img/hero/agrohub-hero-1024w.avif' %} 1024w,
+                 {% static 'img/hero/agrohub-hero-1600w.avif' %} 1600w,
+                 {% static 'img/hero/agrohub-hero-2400w.avif' %} 2400w"
+    imagesizes="100vw"
+    type="image/avif"
     fetchpriority="high"
+  />
+  <!-- WebP fallback preload (for browsers that don't support AVIF) -->
+  <link
+    rel="preload"
+    as="image"
+    imagesrcset="{% static 'img/hero/agrohub-hero-480w.webp' %} 480w,
+                 {% static 'img/hero/agrohub-hero-768w.webp' %} 768w,
+                 {% static 'img/hero/agrohub-hero-1024w.webp' %} 1024w,
+                 {% static 'img/hero/agrohub-hero-1600w.webp' %} 1600w,
+                 {% static 'img/hero/agrohub-hero-2400w.webp' %} 2400w"
+    imagesizes="100vw"
     type="image/webp"
+    fetchpriority="high"
   />
 {% endblock %}
 
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION -->
-  <header class="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden">
-    <picture class="hero-media" aria-hidden="true">
+  <header class="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden" style="background-image: url('{% static 'img/hero/agrohub-hero-lqip.jpg' %}'); background-size: cover; background-position: center;">
+    <picture class="hero-media">
+      <!-- AVIF sources (best compression, modern browsers) -->
       <source
-        type="image/webp"
-        media="(min-width: 1024px)"
-        srcset="{% static 'img/agrohub-hero.webp' %}"
-      />
-      <source
-        type="image/webp"
-        media="(min-width: 768px)"
-        srcset="{% static 'img/agrohub-hero.webp' %}"
-      />
-      <img
-        src="{% static 'img/agrohub-hero.webp' %}"
-        width="2070"
-        height="1380"
+        type="image/avif"
+        srcset="{% static 'img/hero/agrohub-hero-480w.avif' %} 480w,
+                {% static 'img/hero/agrohub-hero-768w.avif' %} 768w,
+                {% static 'img/hero/agrohub-hero-1024w.avif' %} 1024w,
+                {% static 'img/hero/agrohub-hero-1600w.avif' %} 1600w,
+                {% static 'img/hero/agrohub-hero-2400w.avif' %} 2400w"
         sizes="100vw"
-        loading="eager"
+      />
+      <!-- WebP sources (widely supported, good compression) -->
+      <source
+        type="image/webp"
+        srcset="{% static 'img/hero/agrohub-hero-480w.webp' %} 480w,
+                {% static 'img/hero/agrohub-hero-768w.webp' %} 768w,
+                {% static 'img/hero/agrohub-hero-1024w.webp' %} 1024w,
+                {% static 'img/hero/agrohub-hero-1600w.webp' %} 1600w,
+                {% static 'img/hero/agrohub-hero-2400w.webp' %} 2400w"
+        sizes="100vw"
+      />
+      <!-- JPEG fallback (universal support) -->
+      <img
+        src="{% static 'img/hero/agrohub-hero-1024w.jpg' %}"
+        srcset="{% static 'img/hero/agrohub-hero-480w.jpg' %} 480w,
+                {% static 'img/hero/agrohub-hero-768w.jpg' %} 768w,
+                {% static 'img/hero/agrohub-hero-1024w.jpg' %} 1024w,
+                {% static 'img/hero/agrohub-hero-1600w.jpg' %} 1600w,
+                {% static 'img/hero/agrohub-hero-2400w.jpg' %} 2400w"
+        sizes="100vw"
+        width="1024"
+        height="1024"
         fetchpriority="high"
         decoding="async"
-        alt=""
+        alt="AgroHub UniRV - Centro de Inovação e Tecnologia com infraestrutura moderna para pesquisa e desenvolvimento no agronegócio"
         onload="this.classList.add('is-loaded')"
         style="background: radial-gradient(circle at top, #1f2a6b, #0b122c);"
-        importance="high"
       />
     </picture>
 
@@ -87,7 +120,7 @@
   </header>
 
   <!-- STATS OVERLAP SECTION -->
-  <section class="relative z-20 -mt-4 md:-mt-6 pb-20 px-6 fold-section">
+  <section class="relative z-20 pt-8 md:pt-12 pb-20 px-6 fold-section">
     <div class="container mx-auto">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <!-- Stat Cards -->
@@ -96,20 +129,20 @@
           <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Startups</p>
           <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-agrohubGreen w-0 group-hover:w-full transition-all duration-700"></div></div>
         </div>
-        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-blue-400 transform hover:-translate-y-2 transition-all duration-300 group">
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-unirvBlue transform hover:-translate-y-2 transition-all duration-300 group">
           <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span>R$</span><span class="counter" data-target="10">0</span><span>M</span></div>
           <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Investimento</p>
-          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-blue-400 w-0 group-hover:w-full transition-all duration-700"></div></div>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-unirvBlue w-0 group-hover:w-full transition-all duration-700"></div></div>
         </div>
-        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-yellow-400 transform hover:-translate-y-2 transition-all duration-300 group">
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-agrohubGreen transform hover:-translate-y-2 transition-all duration-300 group">
           <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span class="counter" data-target="40">0</span><span>ha</span></div>
           <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Smart Farm</p>
-          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-yellow-400 w-0 group-hover:w-full transition-all duration-700"></div></div>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-agrohubGreen w-0 group-hover:w-full transition-all duration-700"></div></div>
         </div>
-        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-purple-500 transform hover:-translate-y-2 transition-all duration-300 group">
+        <div class="stat-card bg-white p-8 rounded-2xl shadow-xl border-b-4 border-agrohubBlue transform hover:-translate-y-2 transition-all duration-300 group">
           <div class="text-4xl font-bold text-unirvBlue mb-1 flex items-baseline"><span class="counter" data-target="3">0</span></div>
           <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Fases</p>
-          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-purple-500 w-0 group-hover:w-full transition-all duration-700"></div></div>
+          <div class="w-12 h-1 bg-gray-100 mt-4 rounded-full overflow-hidden"><div class="h-full bg-agrohubBlue w-0 group-hover:w-full transition-all duration-700"></div></div>
         </div>
 
       </div>
@@ -183,7 +216,7 @@
   </section>
 
   <!-- MISSION / HELIX SECTION -->
-  <section class="py-12 md:py-16 bg-unirvBlue text-white relative fold-section">
+  <section class="py-8 md:py-10 bg-unirvBlue text-white relative fold-section">
     <div class="absolute inset-0 z-0" style="background: linear-gradient(to bottom right, #27348b, #1a237e);"></div>
     <div class="container mx-auto px-6 relative z-10">
       <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
@@ -207,7 +240,7 @@
             </li>
             <!-- Item 2: Setor Produtivo -->
             <li class="flex items-center gap-5 group">
-              <div class="w-12 h-12 rounded-full bg-blue-400/20 border border-blue-400 flex items-center justify-center text-blue-400 group-hover:bg-blue-400 group-hover:text-white transition-all">
+              <div class="w-12 h-12 rounded-full bg-unirvBlue/20 border border-unirvBlue flex items-center justify-center text-unirvBlue group-hover:bg-unirvBlue group-hover:text-white transition-all">
                 <i class="fas fa-tractor text-lg"></i>
               </div>
               <div>
@@ -217,7 +250,7 @@
             </li>
             <!-- Item 3: Governo -->
             <li class="flex items-center gap-5 group">
-              <div class="w-12 h-12 rounded-full bg-yellow-400/20 border border-yellow-400 flex items-center justify-center text-yellow-400 group-hover:bg-yellow-400 group-hover:text-white transition-all">
+              <div class="w-12 h-12 rounded-full bg-agrohubGreen/20 border border-agrohubGreen flex items-center justify-center text-agrohubGreen group-hover:bg-agrohubGreen group-hover:text-white transition-all">
                 <i class="fas fa-landmark text-lg"></i>
               </div>
               <div>
@@ -227,7 +260,7 @@
             </li>
             <!-- Item 4: Sociedade -->
             <li class="flex items-center gap-5 group">
-              <div class="w-12 h-12 rounded-full bg-purple-400/20 border border-purple-400 flex items-center justify-center text-purple-400 group-hover:bg-purple-400 group-hover:text-white transition-all">
+              <div class="w-12 h-12 rounded-full bg-agrohubBlue/20 border border-agrohubBlue flex items-center justify-center text-agrohubBlue group-hover:bg-agrohubBlue group-hover:text-white transition-all">
                 <i class="fas fa-users text-lg"></i>
               </div>
               <div>
@@ -238,7 +271,7 @@
           </ul>
         </div>
         <!-- ORBITA -->
-        <div class="md:w-1/2 flex justify-center items-center mt-8 md:mt-0 py-4 md:py-6 overflow-hidden">
+        <div class="md:w-1/2 flex justify-center items-center mt-6 md:mt-0 py-2">
           <div class="orbit-container" role="img" aria-label="Representação visual da Hélice Quádrupla: quatro elementos orbitando ao redor do AgroHub UniRV">
             <!-- Anel 1: Academia -->
             <div class="orbit-ring ring-1" aria-label="Órbita da Academia">
@@ -281,8 +314,8 @@
               </div>
             </div>
             <!-- Logo Central -->
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 orbit-core" role="img" aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia">
-              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV - Logo do Centro de Inovação" class="w-16 h-16" width="64" height="64" loading="lazy" decoding="async" />
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)] z-10 orbit-core" role="img" aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia">
+              <img src="{% static 'img/favicon.svg' %}" alt="AgroHub UniRV - Logo do Centro de Inovação" class="w-12 h-12" width="48" height="48" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>

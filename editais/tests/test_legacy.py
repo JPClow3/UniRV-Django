@@ -182,32 +182,66 @@ class EditalSearchAndFilterTest(TestCase):
 
     def test_empty_search_returns_all(self):
         """Testa que busca vazia retorna todos os editais."""
+        # Verify editais exist and are not drafts
+        self.assertEqual(self.edital1.status, 'aberto')
+        self.assertEqual(self.edital2.status, 'fechado')
+        self.assertEqual(self.edital3.status, 'aberto')
+        
+        # Refresh to ensure slugs are set
+        self.edital1.refresh_from_db()
+        self.edital2.refresh_from_db()
+        self.edital3.refresh_from_db()
+        
         # Check all pages to find the test editais (they may be paginated)
         found_editais = set()
         page = 1
         max_pages = 10  # Safety limit
+        total_editais_found = 0
         
         while page <= max_pages:
             resp = self.client.get(reverse("editais_index"), {'page': page} if page > 1 else {})
-            self.assertEqual(resp.status_code, 200)
+            self.assertEqual(resp.status_code, 200, f"Page {page} should return 200")
             
             content = resp.content.decode('utf-8')
             
             # Check which editais are on this page
             if self.edital1.titulo in content:
                 found_editais.add(1)
+                total_editais_found += 1
             if self.edital2.titulo in content:
                 found_editais.add(2)
+                total_editais_found += 1
             if self.edital3.titulo in content:
                 found_editais.add(3)
+                total_editais_found += 1
             
-            # Check if there's a next page
-            if f'page={page + 1}' in content or (f'?page={page + 1}' in content):
+            # Check if there's a next page - look for pagination indicators
+            has_next_page = (
+                f'page={page + 1}' in content or 
+                f'?page={page + 1}' in content or
+                f'href="?page={page + 1}' in content or
+                f'href="/editais/?page={page + 1}' in content
+            )
+            
+            if has_next_page and page < max_pages:
                 page += 1
             else:
                 break
         
         # All three editais should be found across all pages
+        # If not all found, provide helpful debug info
+        if len(found_editais) < 3:
+            # Get total count of editais in database
+            total_in_db = Edital.objects.active().count()
+            resp = self.client.get(reverse("editais_index"))
+            content_sample = resp.content.decode('utf-8')[:500]
+            self.fail(
+                f"Not all editais found. Found: {found_editais}, "
+                f"Total editais in DB (active): {total_in_db}, "
+                f"Pages checked: {page}, "
+                f"Sample content: {content_sample}"
+            )
+        
         self.assertIn(1, found_editais, f"Edital1 '{self.edital1.titulo}' not found in any page")
         self.assertIn(2, found_editais, f"Edital2 '{self.edital2.titulo}' not found in any page")
         self.assertIn(3, found_editais, f"Edital3 '{self.edital3.titulo}' not found in any page")

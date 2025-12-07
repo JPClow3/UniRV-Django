@@ -232,21 +232,24 @@ class StartupShowcaseViewTest(TestCase):
     
     def test_stats_aggregation_error_handling(self):
         """Test error handling when stats aggregation fails"""
-        # Patch the queryset to raise ValueError when aggregate is called
-        with patch('editais.views.public.Project.objects.select_related') as mock_select:
-            mock_queryset = MagicMock()
-            # Make filter return the queryset, but aggregate raises ValueError
-            filtered_queryset = MagicMock()
-            filtered_queryset.aggregate.side_effect = ValueError("Aggregation error")
-            mock_queryset.filter.return_value = filtered_queryset
-            mock_select.return_value = mock_queryset
-            
+        from django.db import DatabaseError
+        # Create a mock queryset that raises DatabaseError on aggregate
+        mock_queryset = MagicMock()
+        mock_queryset.aggregate.side_effect = DatabaseError("Aggregation error")
+        # Make all chain methods return the same mock
+        mock_queryset.filter.return_value = mock_queryset
+        mock_queryset.only.return_value = mock_queryset
+        mock_queryset.select_related.return_value = mock_queryset
+        
+        # Patch Project.objects to return our mock
+        with patch('editais.views.public.Project.objects', mock_queryset):
             response = self.client.get(reverse('startups_showcase'))
-            # Should return 200 with default stats (view catches ValueError)
+            # Should return 200 with default stats (view catches DatabaseError)
             self.assertEqual(response.status_code, 200)
             context = response.context
-            # View should catch ValueError and use default stats
+            # View should catch DatabaseError and use default stats
             self.assertEqual(context['stats']['total_active'], 0)
+            self.assertEqual(context['stats']['graduadas'], 0)
     
     def test_projects_without_proponente_excluded(self):
         """Test that projects without proponente are excluded"""
@@ -279,7 +282,7 @@ class StartupShowcaseViewTest(TestCase):
     
     def test_xss_in_project_description(self):
         """Test XSS prevention in project descriptions"""
-        Project.objects.create(
+        project = Project.objects.create(
             name='XSS Test',
             description='<script>alert("XSS")</script>',
             category='other',
@@ -288,16 +291,18 @@ class StartupShowcaseViewTest(TestCase):
         )
         
         response = self.client.get(reverse('startups_showcase'))
+        self.assertEqual(response.status_code, 200)
         content = response.content.decode('utf-8')
-        self.assertIn('&lt;script&gt;', content)
         
-        name_index = content.find('XSS Test')
-        if name_index != -1:
-            section_start = max(0, name_index - 100)
-            section_end = min(len(content), name_index + 1000)
-            project_section = content[section_start:section_end]
-            self.assertIn('&lt;script&gt;', project_section)
-            self.assertIn('&quot;XSS&quot;', project_section)
+        # Check that the project name appears (to ensure it's in the response)
+        self.assertIn('XSS Test', content)
+        
+        # Check that script tags are escaped in the entire response
+        # Django auto-escapes, so <script> should become &lt;script&gt;
+        self.assertIn('&lt;script&gt;', content, 
+                     "Script tags should be escaped. Content may contain: " + content[:500])
+        # Also check that the alert is escaped
+        self.assertIn('&quot;XSS&quot;', content or '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;' in content)
     
     def test_very_long_search_query(self):
         """Test handling of very long search queries"""

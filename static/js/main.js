@@ -450,25 +450,103 @@
     navMenu.classList.remove('menu-open');
   }
 
-  // Swipe-to-close gesture on mobile
+  // Swipe-to-close gesture on mobile (optimized to prevent conflicts with horizontal scrolling)
   let touchStartX = 0;
   let touchEndX = 0;
+  let touchStartY = 0;
+  let touchEndY = 0;
+  let isScrolling = false;
+
+  function isWithinScrollableContainer(element) {
+    // Check if element is within a horizontally scrollable container (table, carousel, etc.)
+    let parent = element.parentElement;
+    while (parent && parent !== document.body) {
+      const style = window.getComputedStyle(parent);
+      const overflowX = style.overflowX;
+      if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'hidden') {
+        // Check if container can scroll horizontally
+        if (parent.scrollWidth > parent.clientWidth) {
+          return true;
+        }
+      }
+      parent = parent.parentElement;
+    }
+    return false;
+  }
 
   function handleSwipe() {
     const swipeDistance = touchEndX - touchStartX;
-    const swipeThreshold = 100;
-    if (swipeDistance > swipeThreshold) {
+    const verticalDistance = Math.abs(touchEndY - touchStartY);
+    const horizontalDistance = Math.abs(swipeDistance);
+    const swipeThreshold = 120; // Increased from 100px for better intentionality
+    
+    // Only trigger if:
+    // 1. Swipe is primarily horizontal (horizontal > vertical)
+    // 2. Swipe distance exceeds threshold
+    // 3. Swipe is to the right (positive distance)
+    // 4. User is not scrolling (vertical movement is minimal)
+    if (horizontalDistance > swipeThreshold && 
+        horizontalDistance > verticalDistance && 
+        swipeDistance > 0 && 
+        verticalDistance < 50 && 
+        !isScrolling) {
       closeMenu();
     }
   }
 
   navMenu.addEventListener('touchstart', function(e) {
+    // Only track touches on the menu element itself, not children
+    if (e.target !== navMenu && !navMenu.contains(e.target)) {
+      return;
+    }
+    
+    // Check if touch is within a scrollable container
+    if (isWithinScrollableContainer(e.target)) {
+      isScrolling = true;
+      return;
+    }
+    
     touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+    isScrolling = false;
+  }, { passive: true });
+
+  navMenu.addEventListener('touchmove', function(e) {
+    // Detect if user is scrolling (vertical or horizontal)
+    if (touchStartY !== 0) {
+      const currentY = e.changedTouches[0].screenY;
+      const currentX = e.changedTouches[0].screenX;
+      const verticalDelta = Math.abs(currentY - touchStartY);
+      const horizontalDelta = Math.abs(currentX - touchStartX);
+      
+      // If vertical movement is significant, user is scrolling
+      if (verticalDelta > 10 || (horizontalDelta > 10 && isWithinScrollableContainer(e.target))) {
+        isScrolling = true;
+      }
+    }
   }, { passive: true });
 
   navMenu.addEventListener('touchend', function(e) {
+    // Only process if touch started on menu and wasn't scrolling
+    if (touchStartX === 0 || isScrolling) {
+      touchStartX = 0;
+      touchStartY = 0;
+      touchEndX = 0;
+      touchEndY = 0;
+      isScrolling = false;
+      return;
+    }
+    
     touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
     handleSwipe();
+    
+    // Reset
+    touchStartX = 0;
+    touchStartY = 0;
+    touchEndX = 0;
+    touchEndY = 0;
+    isScrolling = false;
   }, { passive: true });
 
   document.addEventListener('click', function(event) {

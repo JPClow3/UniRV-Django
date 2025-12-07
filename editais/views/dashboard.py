@@ -117,7 +117,8 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         stats_base = Edital.objects.with_related()
         
         if search_query:
-            stats_base = stats_base.filter(build_search_query(search_query))
+            # Use queryset-aware search for PostgreSQL full-text search support
+            search_q, stats_base = build_search_query(search_query, stats_base)
         
         # Apply tipo filter to stats base as well (but not status filter)
         stats_base = apply_tipo_filter(stats_base, tipo_filter)
@@ -137,7 +138,8 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         editais = Edital.objects.with_related().with_prefetch()
         
         if search_query:
-            editais = editais.filter(build_search_query(search_query))
+            # Use queryset-aware search for PostgreSQL full-text search support
+            search_q, editais = build_search_query(search_query, editais)
         
         if status_filter:
             editais = editais.filter(status=status_filter)

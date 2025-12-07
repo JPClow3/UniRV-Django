@@ -148,12 +148,12 @@
                 <div class="flex items-start justify-between mb-4">
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
                     {% if edital.end_date %}from-blue-50 to-indigo-100 border border-blue-100
-                    {% else %}from-purple-50 to-fuchsia-100 border border-purple-100{% endif %}
+                    {% else %}from-blue-50 to-agrohubBlue/20 border border-blue-100{% endif %}
                     flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
                     {% if edital.end_date %}
                       <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
                     {% else %}
-                      <i class="fas fa-sync-alt text-purple-600" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
+                      <i class="fas fa-sync-alt text-agrohubBlue" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
                     {% endif %}
                   </div>
                   {% if edital.numero_edital %}
@@ -244,15 +244,30 @@
                 <p class="text-gray-600 mb-6">
                   Não encontramos editais para "<strong>{{ search_query }}</strong>".
                 </p>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
-                  <h3 class="font-semibold text-blue-900 mb-2">Dicas de busca:</h3>
-                  <ul class="text-sm text-blue-800 space-y-1">
-                    <li>• Verifique a ortografia das palavras</li>
-                    <li>• Tente termos mais genéricos (ex: "agricultura" em vez de "agropecuária")</li>
-                    <li>• Use palavras-chave diferentes</li>
-                    <li>• Remova filtros para ampliar os resultados</li>
-                  </ul>
-                </div>
+                
+                {% if search_suggestions %}
+                  <div class="mb-6">
+                    <p class="text-sm text-gray-600 mb-3 font-medium">Você quis dizer:</p>
+                    <div class="flex flex-wrap gap-2 justify-center">
+                      {% for suggestion in search_suggestions %}
+                        <a href="?search={{ suggestion|urlencode }}" 
+                           class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors font-medium text-sm">
+                          {{ suggestion }}
+                        </a>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                    <h3 class="font-semibold text-blue-900 mb-2">Dicas de busca:</h3>
+                    <ul class="text-sm text-blue-800 space-y-1">
+                      <li>• Verifique a ortografia das palavras</li>
+                      <li>• Tente termos mais genéricos (ex: "agricultura" em vez de "agropecuária")</li>
+                      <li>• Use palavras-chave diferentes</li>
+                      <li>• Remova filtros para ampliar os resultados</li>
+                    </ul>
+                  </div>
+                {% endif %}
               {% elif status_filter %}
                 <p class="text-gray-600 mb-6">
                   Não há editais com status <strong>{{ status_filter|title }}</strong> no momento.
@@ -264,10 +279,10 @@
               {% endif %}
               
               <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="{% url 'editais_index' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-unirvBlue text-white font-bold rounded-full hover:bg-blue-700 transition-colors">
+                <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-unirvBlue text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl text-base min-h-[48px]">
                   <i class="fas fa-redo"></i> Limpar Filtros
                 </a>
-                <a href="mailto:ypetec@unirv.edu.br" class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-medium rounded-full hover:border-unirvBlue hover:text-unirvBlue transition-colors">
+                <a href="mailto:ypetec@unirv.edu.br" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-medium rounded-full hover:border-unirvBlue hover:text-unirvBlue transition-colors min-h-[44px]">
                   <i class="fas fa-envelope"></i> Receber Notificações
                 </a>
               </div>

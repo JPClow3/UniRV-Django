@@ -13,6 +13,7 @@ from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import connection, DatabaseError
 from django.db.models import Q, Count
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
@@ -25,37 +26,81 @@ from ..constants import (
     MAX_SEARCH_LENGTH, MAX_STARTUPS_DISPLAY
 )
 from ..models import Edital, Project
-from ..utils import mark_edital_fields_safe, parse_date_filter, apply_tipo_filter
+from ..utils import mark_edital_fields_safe, parse_date_filter, apply_tipo_filter, get_search_suggestions
 from ..cache_utils import get_index_cache_key, get_detail_cache_key
 from ..exceptions import EditalNotFoundError
 
 logger = logging.getLogger(__name__)
 
 
-def build_search_query(search_query: str) -> Q:
+def build_search_query(search_query: str, queryset=None):
     """
-    Constrói um objeto Q para busca de texto completo em todos os campos de edital.
+    Constrói um objeto Q ou anota um queryset para busca de texto completo em todos os campos de edital.
+    
+    Uses PostgreSQL full-text search when available (with GIN indexes for performance),
+    falls back to icontains for SQLite/other databases.
     
     Args:
         search_query: String de busca (será truncada se muito longa)
+        queryset: Optional queryset to annotate with search ranking (PostgreSQL only)
         
     Returns:
-        Q: Objeto Q do Django para filtragem
+        Q: Objeto Q do Django para filtragem, or tuple (Q, annotated_queryset) for PostgreSQL
     """
     if not search_query:
-        return Q()
+        return Q() if queryset is None else (Q(), queryset)
     
     if len(search_query) > MAX_SEARCH_LENGTH:
         search_query = search_query[:MAX_SEARCH_LENGTH]
 
+    # Check if we're using PostgreSQL
+    db_engine = settings.DATABASES['default'].get('ENGINE', '')
+    is_postgres = 'postgresql' in db_engine or 'postgis' in db_engine
+    
+    if is_postgres and queryset is not None:
+        # Use PostgreSQL full-text search with Portuguese language configuration
+        # This enables stemming (e.g., "startup" matches "startups") and ranking
+        try:
+            # Create search vector from all searchable fields
+            search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
+                'titulo', 'entidade_principal', 'numero_edital',
+                'analise', 'objetivo', 'etapas', 'recursos',
+                'itens_financiaveis', 'criterios_elegibilidade',
+                'criterios_avaliacao', 'itens_essenciais_observacoes',
+                'detalhes_unirv'
+            ])
+            
+            # Build search vector with Portuguese language configuration
+            # 'portuguese' config provides stemming and stop word removal
+            search_vector = SearchVector(*search_fields, config='portuguese')
+            
+            # Create search query with Portuguese config
+            search_query_obj = SearchQuery(search_query, config='portuguese')
+            
+            # Annotate queryset with search rank for relevance ordering
+            annotated_qs = queryset.annotate(
+                search=search_vector,
+                rank=SearchRank(search_vector, search_query_obj)
+            ).filter(search=search_query_obj).order_by('-rank', '-data_atualizacao')
+            
+            # Return empty Q (filtering already done) and annotated queryset
+            return Q(), annotated_qs
+        except Exception as e:
+            # Fallback to icontains if full-text search fails
+            logger.warning(f"PostgreSQL full-text search failed, falling back to icontains: {e}")
+            is_postgres = False
+    
+    # Fallback: Use icontains for SQLite or if PostgreSQL search fails
     q_objects = Q()
     search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
         'titulo', 'entidade_principal', 'numero_edital'
     ])
-
+    
     for field in search_fields:
         q_objects |= Q(**{f'{field}__icontains': search_query})
-
+    
+    if queryset is not None:
+        return q_objects, queryset.filter(q_objects)
     return q_objects
 
 
@@ -261,7 +306,10 @@ def index(request: HttpRequest) -> HttpResponse:
             editais = editais.active()
 
         if search_query:
-            editais = editais.filter(build_search_query(search_query))
+            # Use full-text search for PostgreSQL, fallback to icontains for SQLite
+            search_q, editais = build_search_query(search_query, editais)
+            # If PostgreSQL FTS was used, editais is already filtered and ranked
+            # If fallback was used, search_q contains the Q object and editais is filtered
 
         if status_filter:
             editais = editais.filter(status=status_filter)
@@ -282,6 +330,15 @@ def index(request: HttpRequest) -> HttpResponse:
         paginator = Paginator(editais, per_page)
         page_obj = paginator.get_page(page_number)
 
+        # Generate search suggestions if no results found and search query exists
+        search_suggestions = []
+        if page_obj.paginator.count == 0 and search_query:
+            try:
+                search_suggestions = get_search_suggestions(search_query, limit=3)
+            except Exception as e:
+                # Log but don't fail - suggestions are nice-to-have
+                logger.warning(f"Error generating search suggestions: {e}", exc_info=True)
+
         context = {
             'page_obj': page_obj,
             'search_query': search_query,
@@ -292,6 +349,7 @@ def index(request: HttpRequest) -> HttpResponse:
             'only_open': only_open,
             'status_choices': Edital.STATUS_CHOICES,
             'total_count': page_obj.paginator.count,
+            'search_suggestions': search_suggestions,
         }
         
         rendered_content = render_to_string('editais/index.html', context, request=request)
@@ -413,7 +471,7 @@ def edital_detail_redirect(request: HttpRequest, pk: int) -> Union[HttpResponseR
     
     if edital.slug:
         return redirect('edital_detail_slug', slug=edital.slug, permanent=True)
-    # Fallback to PK-based view if slug is missing
+    # Fallback to PK-based view if slug is missing (None or empty string)
     return edital_detail(request, pk=pk)
 
 
@@ -513,5 +571,5 @@ def startup_detail_redirect(request: HttpRequest, pk: int) -> Union[HttpResponse
     
     if startup.slug:
         return redirect('startup_detail_slug', slug=startup.slug, permanent=True)
-    # Fallback to PK-based view if slug is missing
+    # Fallback to PK-based view if slug is missing (None or empty string)
     return startup_detail(request, pk=pk)
