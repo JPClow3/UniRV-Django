@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load editais_filters humanize %}
+{% load static editais_filters humanize %}
 
 {% block title %}{{ edital.titulo }} - AgroHub UniRV{% endblock %}
 
@@ -10,19 +10,11 @@
 
 {% block og_description %}{{ edital.objetivo|truncatewords:25|striptags }}{% endblock %}
 
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/detail.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-  /* Optimize animations to reduce forced reflows */
-  .reveal-up,
-  .bg-white.rounded-xl {
-    will-change: transform, opacity;
-  }
-  /* Remove will-change after animation to free up resources */
-  .reveal-up.animated,
-  .bg-white.rounded-xl.animated {
-    will-change: auto;
-  }
-</style>
 <!-- Hero Header -->
 <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
   <div class="container relative z-10 px-6 pt-12">
@@ -218,7 +210,7 @@
 </p>
 
 <div class="flex flex-wrap gap-3 mt-8">
-  {% include "components/button.html" with href=edital.url type="primary" icon="fas fa-external-link-alt" slot="Acessar Edital" attrs='target="_blank" rel="noopener noreferrer"' %}
+  {% include "components/button.html" with href=edital.url type="primary" icon="fas fa-external-link-alt" slot="Acessar Edital" target="_blank" rel="noopener noreferrer" %}
   
   {% if user.is_authenticated and user.is_staff %}
     {% url 'edital_update' edital.pk as update_url %}
@@ -269,91 +261,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Optimized animations for detail page - using GSAP loaded from base.html with defer
-// This code runs after GSAP is loaded, reducing forced reflows
-(function() {
-    'use strict';
-    
-    // Wait for GSAP to be available (loaded with defer in base.html)
-    function initAnimations() {
-        if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
-            // Retry after a short delay if GSAP isn't loaded yet
-            setTimeout(initAnimations, 50);
-            return;
-        }
-
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Batch DOM reads to reduce forced reflows
-        const headerSection = document.querySelector('section.bg-gradient-to-r');
-        const headerRevealElements = headerSection ? headerSection.querySelectorAll('.reveal-up') : [];
-        const contentSections = document.querySelectorAll('.bg-white.rounded-xl');
-        
-        // Use requestAnimationFrame to batch DOM writes
-        requestAnimationFrame(function() {
-            // 1. Animate header elements immediately on load
-            if (headerRevealElements.length > 0) {
-                // Set initial state in a single batch
-                gsap.set(headerRevealElements, { y: 20, opacity: 0 });
-                
-                // Animate with will-change optimization (handled by CSS)
-                gsap.to(headerRevealElements, {
-                    y: 0,
-                    opacity: 1,
-                    duration: 0.5,
-                    stagger: 0.08,
-                    ease: "power3.out",
-                    delay: 0.05,
-                    force3D: true, // Use GPU acceleration
-                    onComplete: function() {
-                        // Remove will-change after animation to free up resources
-                        headerRevealElements.forEach(function(el) {
-                            el.classList.add('animated');
-                        });
-                    }
-                });
-            }
-
-            // 2. Animate content sections immediately or very early on scroll
-            if (contentSections.length > 0) {
-                // Set initial state in batch
-                gsap.set(contentSections, { opacity: 0, y: 30 });
-                
-                // Animate immediately without waiting for scroll - show details fast
-                contentSections.forEach(function(section, index) {
-                    gsap.to(section, {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.3,
-                        ease: "power2.out",
-                        delay: index * 0.05,
-                        force3D: true, // Use GPU acceleration
-                        onComplete: function() {
-                            // Remove will-change after animation to free up resources
-                            section.classList.add('animated');
-                        }
-                    });
-                });
-            }
-        });
-    }
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAnimations);
-    } else {
-        // DOM already loaded, but wait for GSAP
-        initAnimations();
-    }
-
-    // Print button functionality (doesn't require GSAP)
-    const printBtn = document.getElementById('print-btn');
-    if (printBtn) {
-        printBtn.addEventListener('click', function() {
-            window.print();
-        });
-    }
-})();
-</script>
+<script src="{% static 'js/detail.js' %}" defer></script>
 {% endblock %}

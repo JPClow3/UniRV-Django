@@ -3,6 +3,7 @@
 from typing import Optional
 from django.core.cache import cache
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 
 
 def get_user_cache_key(user: Optional[User]) -> str:
@@ -44,5 +45,33 @@ def get_detail_cache_key(
         identifier=identifier,
         user_key=user_key
     )
+
+
+def get_cached_response(cache_key: str) -> Optional[HttpResponse]:
+    """
+    Get cached HTTP response if available.
+    
+    Args:
+        cache_key: Cache key to look up
+        
+    Returns:
+        HttpResponse if cached content exists, None otherwise
+    """
+    cached_content = cache.get(cache_key)
+    if cached_content:
+        return HttpResponse(cached_content)
+    return None
+
+
+def cache_response(cache_key: str, rendered_content: str, timeout: int) -> None:
+    """
+    Cache rendered HTTP response content.
+    
+    Args:
+        cache_key: Cache key to store content under
+        rendered_content: Rendered HTML content to cache
+        timeout: Cache timeout in seconds
+    """
+    cache.set(cache_key, rendered_content, timeout)
 
 

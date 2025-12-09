@@ -27,7 +27,6 @@ from ..forms import EditalForm
 from ..models import Edital, Project
 from ..services import EditalService
 from ..utils import apply_tipo_filter
-from .public import build_search_query
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +116,8 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         stats_base = Edital.objects.with_related()
         
         if search_query:
-            # Use queryset-aware search for PostgreSQL full-text search support
-            search_q, stats_base = build_search_query(search_query, stats_base)
+            # Use model's search method which handles PostgreSQL full-text search or SQLite fallback
+            stats_base = stats_base.search(search_query)
         
         # Apply tipo filter to stats base as well (but not status filter)
         stats_base = apply_tipo_filter(stats_base, tipo_filter)
@@ -138,8 +137,8 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         editais = Edital.objects.with_related().with_prefetch()
         
         if search_query:
-            # Use queryset-aware search for PostgreSQL full-text search support
-            search_q, editais = build_search_query(search_query, editais)
+            # Use model's search method which handles PostgreSQL full-text search or SQLite fallback
+            editais = editais.search(search_query)
         
         if status_filter:
             editais = editais.filter(status=status_filter)
@@ -158,7 +157,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
         
         return render(request, 'dashboard/editais.html', context)
     
-    except (DatabaseError, ValueError, TypeError) as e:
+    except (DatabaseError, ValueError) as e:
         logger.error(
             f"Erro ao carregar dashboard de editais - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -265,7 +264,7 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         
         return render(request, 'dashboard/projetos.html', context)
     
-    except (DatabaseError, ValueError, TypeError) as e:
+    except (DatabaseError, ValueError) as e:
         logger.error(
             f"Erro ao carregar dashboard de startups - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -367,7 +366,7 @@ def dashboard_novo_edital(request: HttpRequest) -> Union[HttpResponse, HttpRespo
             form = EditalForm()
 
         return render(request, 'dashboard/novo_edital.html', {'form': form})
-    except (DatabaseError, ValidationError, ValueError, TypeError) as e:
+    except (DatabaseError, ValidationError, ValueError) as e:
         logger.error(
             f"Erro ao criar edital via dashboard - usuário: {request.user.username}, "
             f"erro: {str(e)}",
@@ -451,7 +450,7 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         }
         
         return render(request, 'editais/dashboard.html', context)
-    except (DatabaseError, ValueError, TypeError) as e:
+    except (DatabaseError, ValueError) as e:
         logger.error(
             f"Erro ao carregar dashboard - usuário: {request.user.username}, "
             f"erro: {str(e)}",

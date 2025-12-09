@@ -114,15 +114,7 @@
       });
     }
 
-    // Hero buttons navigation
-    document.querySelectorAll('.hero-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const url = btn.getAttribute('data-url');
-        if (url) {
-          window.location.href = url;
-        }
-      });
-    });
+    // Hero buttons navigation - removed: buttons replaced with semantic <a> tags
   }
 
   /**

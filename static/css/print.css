@@ -1,0 +1,123 @@
+/* Print Styles for AgroHub UniRV */
+
+@media print {
+  /* Hide navigation and non-content elements */
+  .no-print,
+  .site-header,
+  .site-footer,
+  .site-nav,
+  .mobile-menu-toggle,
+  .navbar-right,
+  .back-to-top,
+  .skip-link,
+  .toast-container,
+  .confirm-dialog-overlay,
+  button[type="button"],
+  .hero-btn,
+  nav,
+  header {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Optimize page layout for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Remove backgrounds and shadows for cleaner print */
+  * {
+    background: white !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure text is black for readability */
+  h1, h2, h3, h4, h5, h6,
+  p, span, div, li, td, th {
+    color: black !important;
+  }
+
+  /* Optimize links for print */
+  a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+
+  /* Show URL for external links */
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666 !important;
+  }
+
+  /* Prevent page breaks inside important sections */
+  .bg-white.rounded-xl,
+  section,
+  article {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Add page breaks between major sections */
+  .bg-white.rounded-xl + .bg-white.rounded-xl {
+    page-break-before: auto;
+  }
+
+  /* Optimize images for print */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+
+  /* Remove decorative elements */
+  .reveal-up,
+  .fold-section,
+  .stat-card,
+  .pillar-card,
+  .timeline-item,
+  .orbit-container {
+    /* Keep content but remove animation classes */
+  }
+
+  /* Ensure proper spacing */
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Print-friendly typography */
+  .prose {
+    font-size: 11pt;
+    line-height: 1.6;
+  }
+
+  /* Hide empty states and decorative badges */
+  .empty-state,
+  .empty-state-container,
+  [role="presentation"] {
+    display: none !important;
+  }
+
+  /* Show only essential content */
+  main {
+    padding: 0 !important;
+  }
+
+  /* Optimize tables if any */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8pt;
+  }
+}
+

@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import Edital, EditalValor, Cronograma, Project
-from .utils import sanitize_edital_fields
 from simple_history.admin import SimpleHistoryAdmin
 
 
@@ -56,14 +55,11 @@ class EditalAdmin(SimpleHistoryAdmin):
 
     def save_model(self, request, obj, form, change):
         """
-        Override save_model to sanitize HTML content before saving.
-        This prevents XSS vulnerabilities when editing through Django Admin.
+        Override save_model to track user who created/updated.
         
-        Note: History tracking is now handled automatically by django-simple-history.
+        Note: HTML sanitization is now handled automatically in Edital.save() method.
+        History tracking is handled automatically by django-simple-history.
         """
-        # Sanitize HTML fields before saving (same as web views)
-        sanitize_edital_fields(obj)
-        
         # Track user who created/updated (if not already set)
         if not change:  # New object
             obj.created_by = request.user
@@ -71,6 +67,7 @@ class EditalAdmin(SimpleHistoryAdmin):
         
         # Call parent save_model to actually save
         # django-simple-history will automatically create history entries
+        # sanitize_edital_fields() is called automatically in Edital.save()
         super().save_model(request, obj, form, change)
 
 

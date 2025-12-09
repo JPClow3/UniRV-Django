@@ -13,6 +13,7 @@ django-tailwind>=3.8.0
 django-browser-reload>=1.11.0
 django-redis>=6.0.0
 django-ratelimit>=4.1.0
+django-widget-tweaks>=1.5.0
 
 # Image processing (required for ImageField)
 Pillow>=11.0.0

@@ -103,12 +103,12 @@
           O AgroHub UniRV é o centro de inovação, pesquisa aplicada e pós-graduação da Universidade de Rio Verde, projetado para conectar academia, empresas, startups, produtores e poder público em soluções tecnológicas para o agronegócio. Nossa missão é traduzir pesquisa em produtos e serviços sustentáveis, formando recursos humanos especializados e posicionando Rio Verde como polo de referência em inovação agropecuária.
         </p>
         <div class="reveal-up flex flex-col sm:flex-row gap-4 mb-8">
-          <button data-url="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
+          <a href="{% url 'editais_index' %}" class="hero-btn bg-white text-unirvBlue px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-xl flex items-center justify-center gap-3">
             Ver Editais Abertos <i class="fas fa-arrow-right"></i>
-          </button>
-          <button data-url="{% url 'ambientes_inovacao' %}" class="hero-btn px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3">
+          </a>
+          <a href="{% url 'ambientes_inovacao' %}" class="hero-btn px-8 py-4 rounded-xl font-bold text-lg text-white border border-white/30 hover:bg-white/10 backdrop-blur-md transition-all flex items-center justify-center gap-3">
             <i class="fas fa-play-circle"></i> Conhecer Infraestrutura
-          </button>
+          </a>
         </div>
       </div>
     </div>

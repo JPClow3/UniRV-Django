@@ -106,6 +106,10 @@
     </script>
     
     {% tailwind_css %}
+    <!-- Native animations CSS (replaces GSAP for simple fade-ins) -->
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <!-- Print styles -->
+    <link rel="stylesheet" href="{% static 'css/print.css' %}" media="print">
     <!-- Font Awesome - Loaded asynchronously to prevent render blocking -->
     <script>
       // Async CSS loader for Font Awesome (fallback if loadCSS not available)
@@ -133,7 +137,7 @@
     >
 
     <header
-      class="site-header bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
+      class="site-header no-print bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
       <div
         class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-unirvBlue to-agrohubBlue h-1 z-10"
@@ -316,7 +320,7 @@
 
     <!-- Footer -->
     <footer
-      class="site-footer text-white w-full full-bleed bg-unirvBlue"
+      class="site-footer no-print text-white w-full full-bleed bg-unirvBlue"
     >
       <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -454,7 +458,17 @@
 
     <!-- Global animation libraries - conditionally loaded only on pages that need animations -->
     {% if current_url == 'home' or current_url|startswith:'edital_' or current_url == 'startups_showcase' or current_url == 'ambientes_inovacao' or current_url == 'editais_index' or current_url == 'startups' %}
-    <!-- GSAP only loaded on pages with animations -->
+    <!-- Native animations for simple fade-ins (Intersection Observer) -->
+    {% if HAS_COMPRESSOR %}
+    {% compress js %}
+    {% if DEBUG %}<script src="{% static 'js/animations-native.js' %}" defer></script>{% else %}<script src="{% static 'js/animations-native.min.js' %}" defer></script>{% endif %}
+    {% endcompress %}
+    {% else %}
+    {% if DEBUG %}<script src="{% static 'js/animations-native.js' %}" defer></script>{% else %}<script src="{% static 'js/animations-native.min.js' %}" defer></script>{% endif %}
+    {% endif %}
+    
+    <!-- GSAP only for complex animations (counters, timeline progress) on home page -->
+    {% if current_url == 'home' %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
     {% if HAS_COMPRESSOR %}
@@ -463,6 +477,7 @@
     {% endcompress %}
     {% else %}
     {% if DEBUG %}<script src="{% static 'js/animations.js' %}" defer></script>{% else %}<script src="{% static 'js/animations.min.js' %}" defer></script>{% endif %}
+    {% endif %}
     {% endif %}
     {% endif %}
 

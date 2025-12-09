@@ -1,50 +1,50 @@
 {# templates/components/button.html #}
-{% load editais_filters %}
 {% comment %}
   Reusable Button Component
   Args:
     href: Optional URL. If present, renders <a>, else <button>
     type: 'primary', 'secondary', 'outline', 'danger' (default: 'primary')
     class: Extra classes to append
-    attrs: Extra attributes string (automatically escaped for XSS protection)
+    target: Optional target attribute for links (e.g., '_blank')
+    rel: Optional rel attribute for links (e.g., 'noopener noreferrer')
     slot: Button text content (auto-escaped for XSS protection)
     icon: Optional icon class (e.g., 'fas fa-edit') - rendered safely as hardcoded template content
   
-  Security Note: The attrs parameter is automatically escaped using the escape_attrs filter
-  to prevent XSS attacks. Always pass properly formatted attribute strings.
+  Security Note: Attributes are rendered directly by Django's template system, which automatically
+  escapes values. Do not pass user-generated content as attribute values.
 {% endcomment %}
 
 {% with base_classes="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 border focus:outline-none focus:ring-2 focus:ring-offset-2" %}
   {% if type == 'secondary' %}
     {% with color_classes="bg-agrohubBlue text-white border-transparent hover:bg-blue-700 focus:ring-agrohubBlue shadow-sm hover:shadow" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if target %} target="{{ target }}"{% endif %}{% if rel %} rel="{{ rel }}"{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}">{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% elif type == 'outline' %}
     {% with color_classes="bg-transparent text-unirvBlue border-2 border-unirvBlue hover:bg-unirvBlue hover:text-white focus:ring-unirvBlue" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if target %} target="{{ target }}"{% endif %}{% if rel %} rel="{{ rel }}"{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}">{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% elif type == 'danger' %}
     {% with color_classes="bg-red-600 text-white border-transparent hover:bg-red-700 focus:ring-red-600 shadow-sm hover:shadow" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if target %} target="{{ target }}"{% endif %}{% if rel %} rel="{{ rel }}"{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}">{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% else %} {# Primary #}
     {% with color_classes="bg-unirvBlue text-white border-transparent hover:bg-blue-900 focus:ring-unirvBlue shadow-md hover:shadow-lg" %}
       {% if href %}
-        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
+        <a href="{{ href }}" class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if target %} target="{{ target }}"{% endif %}{% if rel %} rel="{{ rel }}"{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</a>
       {% else %}
-        <button class="{{ base_classes }} {{ color_classes }} {{ class }}"{% if attrs %} {{ attrs|escape_attrs }}{% endif %}>{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
+        <button class="{{ base_classes }} {{ color_classes }} {{ class }}">{% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ slot }}</button>
       {% endif %}
     {% endwith %}
   {% endif %}

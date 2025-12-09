@@ -1,14 +1,20 @@
 from typing import Optional, Any
+import logging
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models, IntegrityError, transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from simple_history.models import HistoricalRecords
 
-from .utils import determine_edital_status, generate_unique_slug
-from .constants import SLUG_GENERATION_MAX_RETRIES, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT
+from .utils import determine_edital_status, generate_unique_slug, sanitize_edital_fields
+from .constants import SLUG_GENERATION_MAX_RETRIES, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, MAX_SEARCH_LENGTH
+
+logger = logging.getLogger(__name__)
 
 
 class EditalQuerySet(models.QuerySet):
@@ -55,6 +61,70 @@ class EditalManager(models.Manager):
     def active(self):
         """Filter editais that are not drafts."""
         return self.get_queryset().active()
+    
+    def search(self, query: str):
+        """
+        Search editais by query string.
+        
+        Uses PostgreSQL full-text search when available (with GIN indexes for performance),
+        falls back to icontains for SQLite/other databases.
+        
+        Args:
+            query: Search query string (will be truncated if too long)
+            
+        Returns:
+            QuerySet: Filtered and ranked queryset
+        """
+        if not query:
+            return self.get_queryset()
+        
+        if len(query) > MAX_SEARCH_LENGTH:
+            query = query[:MAX_SEARCH_LENGTH]
+        
+        # Check if we're using PostgreSQL
+        db_engine = settings.DATABASES['default'].get('ENGINE', '')
+        is_postgres = 'postgresql' in db_engine or 'postgis' in db_engine
+        
+        if is_postgres:
+            # Use PostgreSQL full-text search with Portuguese language configuration
+            # This enables stemming (e.g., "startup" matches "startups") and ranking
+            try:
+                # Create search vector from all searchable fields
+                search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
+                    'titulo', 'entidade_principal', 'numero_edital',
+                    'analise', 'objetivo', 'etapas', 'recursos',
+                    'itens_financiaveis', 'criterios_elegibilidade',
+                    'criterios_avaliacao', 'itens_essenciais_observacoes',
+                    'detalhes_unirv'
+                ])
+                
+                # Build search vector with Portuguese language configuration
+                # 'portuguese' config provides stemming and stop word removal
+                search_vector = SearchVector(*search_fields, config='portuguese')
+                
+                # Create search query with Portuguese config
+                search_query_obj = SearchQuery(query, config='portuguese')
+                
+                # Annotate queryset with search rank for relevance ordering
+                return self.get_queryset().annotate(
+                    search=search_vector,
+                    rank=SearchRank(search_vector, search_query_obj)
+                ).filter(search=search_query_obj).order_by('-rank', '-data_atualizacao')
+            except Exception as e:
+                # Fallback to icontains if full-text search fails
+                logger.warning(f"PostgreSQL full-text search failed, falling back to icontains: {e}")
+                is_postgres = False
+        
+        # Fallback: Use icontains for SQLite or if PostgreSQL search fails
+        q_objects = Q()
+        search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
+            'titulo', 'entidade_principal', 'numero_edital'
+        ])
+        
+        for field in search_fields:
+            q_objects |= Q(**{f'{field}__icontains': query})
+        
+        return self.get_queryset().filter(q_objects)
 
 
 class Edital(models.Model):
@@ -179,6 +249,10 @@ class Edital(models.Model):
             end_date=self.end_date,
             today=today,
         )
+        
+        # Sanitize HTML fields to prevent XSS attacks
+        # This ensures data is sanitized regardless of entry point (admin, views, shell, API, etc.)
+        sanitize_edital_fields(self)
         
         # RACE CONDITION HANDLING: Slug uniqueness retry logic
         # When multiple requests create editais with the same title simultaneously,

@@ -70,7 +70,8 @@ if DEBUG:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
     # Production: Require explicit ALLOWED_HOSTS configuration
-    # Em desenvolvimento sem DEBUG, ainda permitir localhost como fallback
+    from django.core.exceptions import ImproperlyConfigured
+    
     if allowed_hosts_env:
         # Parsear hosts e filtrar valores vazios
         parsed_hosts = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
@@ -78,11 +79,19 @@ else:
         if parsed_hosts:
             ALLOWED_HOSTS = parsed_hosts
         else:
-            # Se parsing resultou em lista vazia, usar fallback para desenvolvimento
-            ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+            # Se parsing resultou em lista vazia, levantar erro em produção
+            raise ImproperlyConfigured(
+                "ALLOWED_HOSTS environment variable is set but contains no valid hosts. "
+                "Please set ALLOWED_HOSTS with at least one valid hostname or IP address. "
+                "Example: ALLOWED_HOSTS=example.com,www.example.com"
+            )
     else:
-        # Fallback para desenvolvimento: permitir localhost mesmo sem DEBUG
-        ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+        # Em produção sem ALLOWED_HOSTS configurado, levantar erro para forçar configuração explícita
+        raise ImproperlyConfigured(
+            "ALLOWED_HOSTS environment variable is required in production (DEBUG=False). "
+            "Please set ALLOWED_HOSTS with your domain(s). "
+            "Example: ALLOWED_HOSTS=example.com,www.example.com"
+        )
 
 # CSRF Trusted Origins for cross-origin requests
 # Required when accessing site from different domains (even subdomains)
@@ -105,6 +114,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',  # For timesince and other human-readable filters
     'simple_history',  # Audit logging - must be before apps that use it
+    'widget_tweaks',  # For form field styling in templates
     'tailwind',
     'theme',  # Tailwind theme app
     'editais.apps.EditaisConfig',
@@ -257,7 +267,6 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (user-uploaded content)
-MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CDN Configuration for Image Delivery (Optional)
@@ -275,6 +284,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Browsers will automatically select the best supported format from the srcset.
 CDN_BASE_URL = os.environ.get('CDN_BASE_URL', None)  # Set via environment variable or leave None for static files
 CDN_IMAGE_FORMATS = ['avif', 'webp', 'jpg']  # Format priority: AVIF (best) -> WebP -> JPEG (fallback)
+
+# Override MEDIA_URL to use CDN if CDN_BASE_URL is configured
+if CDN_BASE_URL:
+    # Strip whitespace and trailing slashes from CDN_BASE_URL
+    cdn_url = CDN_BASE_URL.strip().rstrip("/")
+    MEDIA_URL = f'{cdn_url}/media/'
+else:
+    MEDIA_URL = '/media/'
 
 # Production warning: Media files should be served by web server (nginx/apache), not Django
 if not DEBUG:
@@ -435,26 +452,6 @@ if not DEBUG:
                     'TIMEOUT': 300,  # Default timeout 5 minutes
                 }
             }
-            
-            # Validate connection on startup (only in production)
-            try:
-                from django.core.cache import cache
-                cache.set('connection_test', 'ok', 1)
-                cache.get('connection_test')
-            except Exception as e:
-                import warnings
-                warnings.warn(
-                    f"Redis connection failed: {e}. Falling back to LocMemCache.",
-                    UserWarning
-                )
-                # Fallback to LocMemCache
-                CACHES = {
-                    'default': {
-                        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-                        'LOCATION': 'unique-snowflake',
-                        'OPTIONS': {'MAX_ENTRIES': 1000}
-                    }
-                }
         except ImportError:
             try:
                 # Fallback to Django's built-in Redis backend (no CLIENT_CLASS option)
@@ -467,26 +464,6 @@ if not DEBUG:
                         'TIMEOUT': 300,  # Default timeout 5 minutes
                     }
                 }
-                
-                # Validate connection for built-in backend
-                try:
-                    from django.core.cache import cache
-                    cache.set('connection_test', 'ok', 1)
-                    cache.get('connection_test')
-                except Exception as e:
-                    import warnings
-                    warnings.warn(
-                        f"Redis connection failed: {e}. Falling back to LocMemCache.",
-                        UserWarning
-                    )
-                    # Fallback to LocMemCache
-                    CACHES = {
-                        'default': {
-                            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-                            'LOCATION': 'unique-snowflake',
-                            'OPTIONS': {'MAX_ENTRIES': 1000}
-                        }
-                    }
             except ImportError:
                 # Redis not installed, use LocMemCache
                 pass

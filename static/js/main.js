@@ -6,16 +6,6 @@
     const searchInput = document.querySelector('.search-input, .search-input-enhanced');
     const skeletonTemplate = document.getElementById('edital-skeleton-template');
     const templateSkeletonMarkup = skeletonTemplate ? skeletonTemplate.innerHTML.trim() : null;
-    const fallbackSkeletonMarkup = `
-        <article class="skeleton-card" role="listitem" aria-hidden="true">
-            <div class="skeleton skeleton-badge"></div>
-            <div class="skeleton skeleton-title"></div>
-            <div class="skeleton skeleton-text"></div>
-            <div class="skeleton skeleton-text"></div>
-            <div class="skeleton skeleton-text" style="width: 60%;"></div>
-            <div class="skeleton skeleton-button"></div>
-        </article>
-    `;
 
     if (!searchForm || !editaisGrid) return;
 
@@ -32,12 +22,19 @@
         isLoading = true;
 
         editaisGrid.classList.add('loading');
+        
+        // Always use template from DOM - no fallback to prevent duplication
+        if (!templateSkeletonMarkup) {
+            // If template is missing, show simple loading message
+            editaisGrid.innerHTML = '<div class="text-center py-12 text-gray-500">Carregando editais...</div>';
+            return;
+        }
+
         const skeletonCount = 6;
         const skeletonCards = [];
-        const skeletonMarkup = templateSkeletonMarkup || fallbackSkeletonMarkup;
 
         for (let i = 0; i < skeletonCount; i++) {
-            skeletonCards.push(skeletonMarkup);
+            skeletonCards.push(templateSkeletonMarkup);
         }
 
         editaisGrid.innerHTML = skeletonCards.join('');
@@ -63,17 +60,17 @@
         })
             .then(response => response.text())
             .then(html => {
+                // Server now returns partial HTML (only grid and pagination) for AJAX requests
+                // Parse it to extract the grid and pagination sections
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
 
                 const newGrid = doc.querySelector('.editais-grid');
                 const newPagination = doc.querySelector('.pagination-container');
-                const newResultsCount = doc.querySelector('.search-results-count');
+                const noResults = doc.querySelector('#no-results');
 
-                const resultsCountElement = document.querySelector('.search-results-count');
-                if (newResultsCount && resultsCountElement) {
-                    resultsCountElement.innerHTML = newResultsCount.innerHTML;
-                }
+                // Note: search-results-count element may not exist in all templates
+                // This is safe - it just won't update if the element doesn't exist
 
                 if (newGrid) {
                     editaisGrid.classList.remove('loading');
@@ -84,12 +81,22 @@
                     setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
 
                     // Announce to screen readers
-                    announceToScreenReader(`Resultados atualizados. ${newGrid.children.length} editais encontrados.`);
+                    const cardCount = newGrid.querySelectorAll('.edital-card').length;
+                    announceToScreenReader(`Resultados atualizados. ${cardCount} editais encontrados.`);
+                } else if (noResults) {
+                    // Handle empty state
+                    editaisGrid.classList.remove('loading');
+                    editaisGrid.innerHTML = noResults.outerHTML;
+                    isLoading = false;
+                    announceToScreenReader('Nenhum resultado encontrado.');
                 }
 
                 if (newPagination && paginationContainer) {
                     paginationContainer.innerHTML = newPagination.innerHTML;
                     setupPaginationAjax();
+                } else if (paginationContainer) {
+                    // Clear pagination if no results
+                    paginationContainer.innerHTML = '';
                 }
 
                 // Remove loading states
@@ -335,11 +342,13 @@
                 })
                     .then(response => response.text())
                     .then(html => {
+                        // Server now returns partial HTML for AJAX requests
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
 
                         const newGrid = doc.querySelector('.editais-grid');
                         const newPagination = doc.querySelector('.pagination-container');
+                        const noResults = doc.querySelector('#no-results');
 
                         if (newGrid) {
                             editaisGrid.classList.remove('loading');
@@ -350,12 +359,20 @@
                             setTimeout(() => editaisGrid.classList.remove('fade-in'), 400);
 
                             // Announce to screen readers
-                            announceToScreenReader(`Página atualizada. ${newGrid.children.length} editais exibidos.`);
+                            const cardCount = newGrid.querySelectorAll('.edital-card').length;
+                            announceToScreenReader(`Página atualizada. ${cardCount} editais exibidos.`);
+                        } else if (noResults) {
+                            editaisGrid.classList.remove('loading');
+                            editaisGrid.innerHTML = noResults.outerHTML;
+                            isLoading = false;
+                            announceToScreenReader('Nenhum resultado encontrado.');
                         }
 
                         if (newPagination && paginationContainer) {
                             paginationContainer.innerHTML = newPagination.innerHTML;
                             setupPaginationAjax();
+                        } else if (paginationContainer) {
+                            paginationContainer.innerHTML = '';
                         }
 
                         history.pushState({}, '', url);

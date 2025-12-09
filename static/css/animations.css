@@ -1,0 +1,171 @@
+/* Native CSS animations for reveal-up elements */
+/* Respects prefers-reduced-motion for accessibility */
+
+.reveal-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.reveal-up.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    opacity: 1;
+    transform: translateY(0);
+    transition: none;
+  }
+}
+
+/* Content sections animation */
+.bg-white.rounded-xl {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.bg-white.rounded-xl.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-white.rounded-xl {
+    opacity: 1;
+    transform: translateY(0);
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------
+ * Helix / Orbit animation (home page)
+ * Pure CSS, compositor-friendly, respects reduced motion
+ * -------------------------------------------------- */
+@keyframes orbit-spin-right {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes orbit-spin-left {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+@keyframes icon-counter-spin-right {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes icon-counter-spin-left {
+  from { transform: translate(-50%, -50%) rotate(360deg); }
+  to   { transform: translate(-50%, -50%) rotate(0deg); }
+}
+
+@keyframes float-bob {
+  0%   { transform: translate(-50%, -50%) translateY(0); }
+  50%  { transform: translate(-50%, -50%) translateY(-6px); }
+  100% { transform: translate(-50%, -50%) translateY(0); }
+}
+
+.orbit-container {
+  position: relative;
+  width: min(360px, 70vw);
+  height: min(360px, 70vw);
+  padding: 1.25rem;
+  will-change: transform;
+  overflow: hidden;
+}
+
+.orbit-ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  transform-origin: center center;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+/* Ring sizing and spin */
+.orbit-ring.ring-1 {
+  width: 90%;
+  height: 90%;
+  border-color: rgba(118, 184, 42, 0.3);
+  animation: orbit-spin-right 24s linear infinite;
+}
+.orbit-ring.ring-2 {
+  width: 72%;
+  height: 72%;
+  border-color: rgba(39, 52, 139, 0.35);
+  animation: orbit-spin-left 20s linear infinite;
+}
+.orbit-ring.ring-3 {
+  width: 54%;
+  height: 54%;
+  border-color: rgba(234, 179, 8, 0.35);
+  animation: orbit-spin-right 16s linear infinite;
+}
+.orbit-ring.ring-4 {
+  width: 36%;
+  height: 36%;
+  border-color: rgba(168, 85, 247, 0.35);
+  animation: orbit-spin-left 12s linear infinite;
+}
+
+.orbit-container.is-paused .orbit-ring,
+.orbit-container.is-paused .floating-icon {
+  animation-play-state: paused;
+}
+
+.floating-icon {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: white;
+  color: var(--color-unirvBlue, #27348b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
+  will-change: transform;
+  animation: float-bob 4s ease-in-out infinite;
+}
+
+.orbit-ring.ring-1 .floating-icon { animation: icon-counter-spin-left 24s linear infinite, float-bob 4s ease-in-out infinite; }
+.orbit-ring.ring-2 .floating-icon { animation: icon-counter-spin-right 20s linear infinite, float-bob 4s ease-in-out infinite; }
+.orbit-ring.ring-3 .floating-icon { animation: icon-counter-spin-left 16s linear infinite, float-bob 4s ease-in-out infinite; }
+.orbit-ring.ring-4 .floating-icon { animation: icon-counter-spin-right 12s linear infinite, float-bob 4s ease-in-out infinite; }
+
+.floating-icon:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+  z-index: 5;
+}
+
+.orbit-icon-academia:hover { background: var(--color-agrohubGreen, #76b82a); color: white; }
+.orbit-icon-industria:hover { background: var(--color-unirvBlue, #27348b); color: white; }
+.orbit-icon-governo:hover { background: #eab308; color: white; }
+.orbit-icon-sociedade:hover { background: #a855f7; color: white; }
+
+.orbit-core {
+  box-shadow: 0 0 60px rgba(255, 255, 255, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-ring,
+  .floating-icon {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+

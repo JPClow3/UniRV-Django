@@ -5,9 +5,7 @@ Template tags customizados para o app editais.
 from typing import Optional
 from datetime import date as date_type
 from django import template
-from django.utils.html import escape
 from urllib.parse import urlencode
-import re
 
 register = template.Library()
 
@@ -75,52 +73,6 @@ def is_transparent_header(url_name: Optional[str]) -> bool:
 
 
 @register.filter
-def escape_attrs(attrs_string: Optional[str]) -> str:
-    """
-    Safely escape HTML attributes string to prevent XSS attacks.
-    
-    This filter takes a string of HTML attributes (e.g., 'target="_blank" rel="noopener"')
-    and escapes special characters in attribute values while preserving the structure.
-    
-    Usage in templates:
-        {% include "components/button.html" with attrs='target="_blank" rel="noopener"'|escape_attrs %}
-    
-    Note: This filter should be used when passing user-generated or untrusted data
-    to the attrs parameter. For hardcoded strings, it's optional but recommended.
-    
-    Args:
-        attrs_string: String of HTML attributes or None
-        
-    Returns:
-        str: Escaped attributes string
-    """
-    if not attrs_string:
-        return ''
-    
-    # Pattern to match attribute="value" or attribute='value' or attribute=value
-    # Handles: attr="value", attr='value', attr=value, and attributes with spaces in values
-    attr_pattern = r'(\w+)=(["\'])([^"\']*)\2|(\w+)=([^\s>]+)'
-    
-    def escape_attr_value(match):
-        if match.group(1):  # Matched quoted attribute
-            attr_name = match.group(1)
-            quote = match.group(2)
-            attr_value = match.group(3)
-            escaped_value = escape(attr_value)
-            return f'{attr_name}={quote}{escaped_value}{quote}'
-        else:  # Matched unquoted attribute
-            attr_name = match.group(4)
-            attr_value = match.group(5)
-            escaped_value = escape(attr_value)
-            return f'{attr_name}="{escaped_value}"'
-    
-    # Replace all attribute values with escaped versions
-    escaped = re.sub(attr_pattern, escape_attr_value, attrs_string)
-    
-    return escaped
-
-
-@register.filter
 def startswith(value: Optional[str], arg: str) -> bool:
     """
     Check if a string starts with the given prefix.
@@ -138,3 +90,39 @@ def startswith(value: Optional[str], arg: str) -> bool:
     if not value:
         return False
     return str(value).startswith(str(arg))
+
+
+@register.filter
+def is_textarea_widget(widget) -> bool:
+    """
+    Check if a widget is a Textarea widget.
+    
+    Usage in templates:
+        {% if field.field.widget|is_textarea_widget %}
+    
+    Args:
+        widget: Django form widget
+        
+    Returns:
+        bool: True if widget is a Textarea
+    """
+    from django.forms import Textarea
+    return isinstance(widget, Textarea)
+
+
+@register.filter
+def is_select_widget(widget) -> bool:
+    """
+    Check if a widget is a Select widget.
+    
+    Usage in templates:
+        {% if field.field.widget|is_select_widget %}
+    
+    Args:
+        widget: Django form widget
+        
+    Returns:
+        bool: True if widget is a Select or SelectMultiple
+    """
+    from django.forms import Select, SelectMultiple
+    return isinstance(widget, (Select, SelectMultiple))

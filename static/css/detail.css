@@ -1,0 +1,14 @@
+/* Detail page animation optimizations */
+
+/* Optimize animations to reduce forced reflows */
+.reveal-up,
+.bg-white.rounded-xl {
+  will-change: transform, opacity;
+}
+
+/* Remove will-change after animation to free up resources */
+.reveal-up.animated,
+.bg-white.rounded-xl.animated {
+  will-change: auto;
+}
+

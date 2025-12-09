@@ -13,12 +13,12 @@ from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import connection, DatabaseError
 from django.db.models import Q, Count
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, JsonResponse, HttpRequest, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
 
 from ..constants import (
     CACHE_TTL_INDEX, PAGINATION_DEFAULT,
@@ -27,81 +27,10 @@ from ..constants import (
 )
 from ..models import Edital, Project
 from ..utils import mark_edital_fields_safe, parse_date_filter, apply_tipo_filter, get_search_suggestions
-from ..cache_utils import get_index_cache_key, get_detail_cache_key
+from ..cache_utils import get_index_cache_key, get_detail_cache_key, get_cached_response, cache_response
 from ..exceptions import EditalNotFoundError
 
 logger = logging.getLogger(__name__)
-
-
-def build_search_query(search_query: str, queryset=None):
-    """
-    Constrói um objeto Q ou anota um queryset para busca de texto completo em todos os campos de edital.
-    
-    Uses PostgreSQL full-text search when available (with GIN indexes for performance),
-    falls back to icontains for SQLite/other databases.
-    
-    Args:
-        search_query: String de busca (será truncada se muito longa)
-        queryset: Optional queryset to annotate with search ranking (PostgreSQL only)
-        
-    Returns:
-        Q: Objeto Q do Django para filtragem, or tuple (Q, annotated_queryset) for PostgreSQL
-    """
-    if not search_query:
-        return Q() if queryset is None else (Q(), queryset)
-    
-    if len(search_query) > MAX_SEARCH_LENGTH:
-        search_query = search_query[:MAX_SEARCH_LENGTH]
-
-    # Check if we're using PostgreSQL
-    db_engine = settings.DATABASES['default'].get('ENGINE', '')
-    is_postgres = 'postgresql' in db_engine or 'postgis' in db_engine
-    
-    if is_postgres and queryset is not None:
-        # Use PostgreSQL full-text search with Portuguese language configuration
-        # This enables stemming (e.g., "startup" matches "startups") and ranking
-        try:
-            # Create search vector from all searchable fields
-            search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
-                'titulo', 'entidade_principal', 'numero_edital',
-                'analise', 'objetivo', 'etapas', 'recursos',
-                'itens_financiaveis', 'criterios_elegibilidade',
-                'criterios_avaliacao', 'itens_essenciais_observacoes',
-                'detalhes_unirv'
-            ])
-            
-            # Build search vector with Portuguese language configuration
-            # 'portuguese' config provides stemming and stop word removal
-            search_vector = SearchVector(*search_fields, config='portuguese')
-            
-            # Create search query with Portuguese config
-            search_query_obj = SearchQuery(search_query, config='portuguese')
-            
-            # Annotate queryset with search rank for relevance ordering
-            annotated_qs = queryset.annotate(
-                search=search_vector,
-                rank=SearchRank(search_vector, search_query_obj)
-            ).filter(search=search_query_obj).order_by('-rank', '-data_atualizacao')
-            
-            # Return empty Q (filtering already done) and annotated queryset
-            return Q(), annotated_qs
-        except Exception as e:
-            # Fallback to icontains if full-text search fails
-            logger.warning(f"PostgreSQL full-text search failed, falling back to icontains: {e}")
-            is_postgres = False
-    
-    # Fallback: Use icontains for SQLite or if PostgreSQL search fails
-    q_objects = Q()
-    search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
-        'titulo', 'entidade_principal', 'numero_edital'
-    ])
-    
-    for field in search_fields:
-        q_objects |= Q(**{f'{field}__icontains': search_query})
-    
-    if queryset is not None:
-        return q_objects, queryset.filter(q_objects)
-    return q_objects
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -212,12 +141,7 @@ def _login_view_impl(request: HttpRequest) -> Union[HttpResponse, HttpResponseRe
     return render(request, 'registration/login.html', {'form': form})
 
 # Apply rate limiting to login view (5 requests per minute per IP for POST requests)
-try:
-    from django_ratelimit.decorators import ratelimit
-    login_view = ratelimit(key='ip', rate='5/m', method='POST')(_login_view_impl)
-except ImportError:
-    # django-ratelimit not installed, skip rate limiting
-    login_view = _login_view_impl
+login_view = ratelimit(key='ip', rate='5/m', method='POST')(_login_view_impl)
 
 
 def register_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
@@ -282,18 +206,19 @@ def index(request: HttpRequest) -> HttpResponse:
             search_query = search_query[:MAX_SEARCH_LENGTH]
             messages.warning(request, f'A busca foi truncada para {MAX_SEARCH_LENGTH} caracteres.')
 
-        cache_key = None
+        # Cache only for anonymous users without filters
         has_filters = search_query or status_filter or tipo_filter or start_date_filter or end_date_filter or only_open
         use_cache = not has_filters and not request.user.is_authenticated
         cache_ttl = getattr(settings, 'EDITAIS_CACHE_TTL', CACHE_TTL_INDEX)
 
+        cache_key = None
         if use_cache:
             version_key = 'editais_index_cache_version'
             cache_version = cache.get(version_key, 0)
             cache_key = get_index_cache_key(page_number, cache_version)
-            cached_content = cache.get(cache_key)
-            if cached_content:
-                return HttpResponse(cached_content)
+            cached_response = get_cached_response(cache_key)
+            if cached_response:
+                return cached_response
 
         editais = Edital.objects.with_related().prefetch_related('valores').only(
             'id', 'numero_edital', 'titulo', 'url', 'entidade_principal',
@@ -306,10 +231,8 @@ def index(request: HttpRequest) -> HttpResponse:
             editais = editais.active()
 
         if search_query:
-            # Use full-text search for PostgreSQL, fallback to icontains for SQLite
-            search_q, editais = build_search_query(search_query, editais)
-            # If PostgreSQL FTS was used, editais is already filtered and ranked
-            # If fallback was used, search_q contains the Q object and editais is filtered
+            # Use model's search method which handles PostgreSQL full-text search or SQLite fallback
+            editais = editais.search(search_query)
 
         if status_filter:
             editais = editais.filter(status=status_filter)
@@ -352,10 +275,21 @@ def index(request: HttpRequest) -> HttpResponse:
             'search_suggestions': search_suggestions,
         }
         
-        rendered_content = render_to_string('editais/index.html', context, request=request)
+        # Check if this is an AJAX request - return partial HTML for better performance
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         
-        if use_cache and cache_key:
-            cache.set(cache_key, rendered_content, cache_ttl)
+        if is_ajax:
+            # Return only the grid and pagination sections for AJAX requests
+            template_name = 'editais/index_partial.html'
+        else:
+            # Return full page for normal requests
+            template_name = 'editais/index.html'
+        
+        rendered_content = render_to_string(template_name, context, request=request)
+        
+        if use_cache and cache_key and not is_ajax:
+            # Only cache full page responses, not partials
+            cache_response(cache_key, rendered_content, cache_ttl)
         
         return HttpResponse(rendered_content)
     
@@ -382,9 +316,18 @@ def index(request: HttpRequest) -> HttpResponse:
             'only_open': False,
             'status_choices': Edital.STATUS_CHOICES,
             'total_count': 0,
+            'search_suggestions': [],
         }
-        messages.error(request, 'Erro ao carregar editais. Tente novamente.')
-        return render(request, 'editais/index.html', context)
+        
+        # Check if this is an AJAX request for error handling too
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        if is_ajax:
+            template_name = 'editais/index_partial.html'
+        else:
+            template_name = 'editais/index.html'
+            messages.error(request, 'Erro ao carregar editais. Tente novamente.')
+        
+        return render(request, template_name, context)
 
 
 def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional[int] = None) -> HttpResponse:
@@ -394,9 +337,9 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
     identifier = slug if slug else f'pk_{pk}'
     cache_key = get_detail_cache_key('edital', identifier, request.user)
     
-    cached_content = cache.get(cache_key)
-    if cached_content:
-        return HttpResponse(cached_content)
+    cached_response = get_cached_response(cache_key)
+    if cached_response:
+        return cached_response
     
     try:
         if slug:
@@ -434,7 +377,7 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
         }
         
         rendered_content = render_to_string('editais/detail.html', context, request=request)
-        cache.set(cache_key, rendered_content, CACHE_TTL_15_MINUTES)
+        cache_response(cache_key, rendered_content, CACHE_TTL_15_MINUTES)
         return HttpResponse(rendered_content)
     except EditalNotFoundError as e:
         logger.warning(f"Edital não encontrado: {e.identifier}")
@@ -518,9 +461,9 @@ def startup_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optiona
     identifier = slug if slug else f'pk_{pk}'
     cache_key = get_detail_cache_key('startup', identifier, request.user)
     
-    cached_content = cache.get(cache_key)
-    if cached_content:
-        return HttpResponse(cached_content)
+    cached_response = get_cached_response(cache_key)
+    if cached_response:
+        return cached_response
     
     try:
         if slug:
@@ -541,7 +484,7 @@ def startup_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optiona
         }
         
         rendered_content = render_to_string('startups/detail.html', context, request=request)
-        cache.set(cache_key, rendered_content, CACHE_TTL_15_MINUTES)
+        cache_response(cache_key, rendered_content, CACHE_TTL_15_MINUTES)
         return HttpResponse(rendered_content)
     except Project.DoesNotExist:
         raise Http404("Startup não encontrada")

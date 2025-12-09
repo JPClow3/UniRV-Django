@@ -58,12 +58,11 @@ class FilteredListViewMixin:
     def apply_filters(self, queryset, request: HttpRequest):
         """Apply common filters to queryset."""
         from ..utils import apply_tipo_filter
-        from .public import build_search_query
         
         search_query = self.get_search_query(request)
         if search_query:
-            # Use queryset-aware search for PostgreSQL full-text search support
-            search_q, queryset = build_search_query(search_query, queryset)
+            # Use model's search method which handles PostgreSQL full-text search or SQLite fallback
+            queryset = queryset.search(search_query)
         
         status_filter = self.get_status_filter(request)
         if status_filter:

@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from .models import Edital
 from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES
-from .utils import sanitize_edital_fields, clear_index_cache, apply_tipo_filter
+from .utils import clear_index_cache, apply_tipo_filter
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -105,7 +105,7 @@ class EditalService:
             edital = form.save(commit=False)
             edital.created_by = user
             edital.updated_by = user
-            sanitize_edital_fields(edital)
+            # sanitize_edital_fields() is called automatically in Edital.save()
             edital.save()
             # History tracking is now handled automatically by django-simple-history
             
@@ -143,12 +143,11 @@ class EditalService:
         Returns:
             QuerySet filtrado
         """
-        from .views.public import build_search_query
         from .utils import parse_date_filter
         
         if filters.get('search_query'):
-            # Use queryset-aware search for PostgreSQL full-text search support
-            search_q, queryset = build_search_query(filters['search_query'], queryset)
+            # Use model's search method which handles PostgreSQL full-text search or SQLite fallback
+            queryset = queryset.search(filters['search_query'])
         
         if filters.get('status'):
             queryset = queryset.filter(status=filters['status'])

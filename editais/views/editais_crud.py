@@ -16,7 +16,7 @@ from ..decorators import rate_limit, staff_required
 from ..forms import EditalForm
 from ..models import Edital
 from ..services import EditalService
-from ..utils import sanitize_edital_fields, clear_index_cache
+from ..utils import clear_index_cache
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,6 @@ def edital_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResp
             
             with transaction.atomic():
                 edital.updated_by = request.user
-                sanitize_edital_fields(edital)
                 edital.save()
                 # History tracking is now handled automatically by django-simple-history
                 transaction.on_commit(clear_index_cache)

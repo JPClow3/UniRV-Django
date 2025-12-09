@@ -7,42 +7,8 @@ from django.db import IntegrityError, transaction
 from .models import Edital
 
 
-class TailwindFormMixin:
-    """
-    Aplica classes padrão do Tailwind aos campos do formulário para evitar repetição.
-    """
-    input_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-    textarea_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-    select_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-    date_class = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-
-    def apply_tailwind_styles(self) -> None:
-        for field in self.fields.values():
-            base_class = self._get_base_class(field.widget)
-            if not base_class:
-                continue
-            existing = field.widget.attrs.get('class', '').strip()
-            if existing:
-                field.widget.attrs['class'] = f"{base_class} {existing}".strip()
-            else:
-                field.widget.attrs['class'] = base_class
-
-    def _get_base_class(self, widget: forms.Widget) -> Optional[str]:
-        if isinstance(widget, forms.CheckboxInput):
-            return None
-        if isinstance(widget, forms.Textarea):
-            return self.textarea_class
-        if isinstance(widget, (forms.Select, forms.SelectMultiple)):
-            return self.select_class
-        if isinstance(widget, (forms.DateInput, forms.DateTimeInput, forms.TimeInput)):
-            return self.date_class
-        return self.input_class
-
-
-class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
+class UserRegistrationForm(UserCreationForm):
     """Form for user registration"""
-    input_class = 'h-11 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent'
-    date_class = input_class
     email = forms.EmailField(
         required=True,
         label='E-mail',
@@ -93,8 +59,6 @@ class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
             'placeholder': '••••••••',
             'autocomplete': 'new-password'
         })
-        # Aplicar classes Tailwind depois de definir placeholders/autocomplete
-        self.apply_tailwind_styles()
 
     def clean_email(self) -> str:
         email = self.cleaned_data.get('email')
@@ -122,18 +86,17 @@ class UserRegistrationForm(TailwindFormMixin, UserCreationForm):
             try:
                 with transaction.atomic():
                     user.save()
-            except IntegrityError as e:
+            except IntegrityError:
                 # Handle race condition: if email was registered between check and save
                 # This is an acceptable race condition pattern - catch and provide user feedback
-                if 'email' in str(e).lower() or 'unique' in str(e).lower():
-                    raise ValidationError({
-                        'email': 'Este e-mail já está cadastrado. Por favor, tente novamente.'
-                    }) from e
-                raise
+                # Note: We don't parse the error string as it's database-backend dependent
+                raise ValidationError({
+                    'email': 'Este e-mail já está cadastrado. Por favor, tente novamente.'
+                })
         return user
 
 
-class EditalForm(TailwindFormMixin, forms.ModelForm):
+class EditalForm(forms.ModelForm):
     class Meta:
         model = Edital
         fields = [
@@ -160,7 +123,6 @@ class EditalForm(TailwindFormMixin, forms.ModelForm):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.apply_tailwind_styles()
         for field_name, field in self.fields.items():
             if field.required:
                 field.widget.attrs['aria-required'] = 'true'
