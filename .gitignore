@@ -62,6 +62,11 @@ wheels/
 .dmypy.json
 dmypy.json
 
+# Speckit / Specify tool artifacts
+.specify/
+.github/prompts/
+specs/
+
 # Virtual environments
 .venv/
 venv/
