@@ -28,7 +28,7 @@
   </div>
 
   <!-- Stats -->
-  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Total de startups incubadas">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
         Total
@@ -50,19 +50,12 @@
       </div>
       <div class="text-gray-900 text-2xl font-bold">{{ stats.incubacao|default:0 }}</div>
     </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Startups graduadas">
+    <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Startups suspensas">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
-        Graduadas
+        Suspensas
         <i class="fas fa-question-circle text-gray-400 text-xs"></i>
       </div>
-      <div class="text-gray-900 text-2xl font-bold">{{ stats.graduada|default:0 }}</div>
-    </div>
-    <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Taxa de graduação">
-      <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
-        Taxa de Graduação
-        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
-      </div>
-      <div class="text-gray-900 text-2xl font-bold">{{ stats.graduation_rate|default:"0%" }}</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ stats.suspensa|default:0 }}</div>
     </div>
   </div>
 
@@ -96,7 +89,6 @@
         <option value="">Todos</option>
         <option value="pré-incubação" {% if status_filter|lower == 'pré-incubação' or status_filter|lower == 'pre-incubacao' %}selected{% endif %}>Pré-Incubação</option>
         <option value="incubação" {% if status_filter|lower == 'incubação' or status_filter|lower == 'incubacao' %}selected{% endif %}>Incubação</option>
-        <option value="graduada" {% if status_filter|lower == 'graduada' %}selected{% endif %}>Graduada</option>
         <option value="suspensa" {% if status_filter|lower == 'suspensa' %}selected{% endif %}>Suspensa</option>
       </select>
 
@@ -211,11 +203,13 @@
       <!-- Card Footer -->
       <div class="flex items-center justify-between pt-4 border-t border-gray-100">
         <div class="flex gap-2">
+          {% if user.is_staff or project.proponente == user %}
+          <a href="{% url 'dashboard_startup_update' project.pk %}" class="p-2 rounded-lg transition-all hover:bg-gray-100 text-gray-600 hover:text-blue-600" title="Editar startup" aria-label="Editar startup">
+            <i class="fas fa-edit"></i>
+          </a>
+          {% endif %}
           <button class="p-2 rounded-lg transition-all opacity-50 cursor-not-allowed" title="Em breve" aria-label="Visualizar projeto (em breve)" disabled>
             <i class="fas fa-eye text-gray-400"></i>
-          </button>
-          <button class="p-2 rounded-lg transition-all opacity-50 cursor-not-allowed" title="Em breve" aria-label="Download do projeto (em breve)" disabled>
-            <i class="fas fa-download text-gray-400"></i>
           </button>
         </div>
         <span class="text-xs text-gray-400">

@@ -44,10 +44,46 @@
     window.performSearch = function() {
         if (isLoading) return;
 
-        // Get form data
+        // Get form data from both search form and filter form
         const formData = new FormData(searchForm);
+        const filterForm = document.getElementById('filter-form');
+        
+        if (filterForm) {
+            const filterFormData = new FormData(filterForm);
+            // Merge filter form data to search form data (use set to avoid duplicates)
+            // Also read directly from form elements to ensure we get all values
+            const filterValues = {};
+            const filterInputs = filterForm.querySelectorAll('input, select, textarea');
+            
+            // Read from FormData first
+            for (const [key, value] of filterFormData.entries()) {
+                filterValues[key] = value;
+            }
+            
+            // Also read directly from form elements to catch any values FormData might miss
+            filterInputs.forEach(input => {
+                if (input.name) {
+                    let value = '';
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        value = input.checked ? input.value : '';
+                    } else {
+                        value = input.value || '';
+                    }
+                    // Only update if we have a value (don't overwrite FormData with empty)
+                    if (value && value.trim() !== '') {
+                        filterValues[input.name] = value;
+                    }
+                }
+            });
+            
+            // Add all filter values to formData (use set to avoid duplicates)
+            for (const [key, value] of Object.entries(filterValues)) {
+                if (value && String(value).trim() !== '') { // Only add non-empty values
+                    formData.set(key, value);
+                }
+            }
+        }
         const params = new URLSearchParams(formData);
-
         const url = `${window.location.pathname}?${params.toString()}`;
 
         // Show skeleton loading
@@ -58,16 +94,31 @@
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
             .then(html => {
                 // Server now returns partial HTML (only grid and pagination) for AJAX requests
                 // Parse it to extract the grid and pagination sections
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
 
+                // Check for parsing errors (DOMParser may create error elements for malformed HTML)
+                const parserError = doc.querySelector('parsererror');
+                if (parserError) {
+                    throw new Error('Failed to parse HTML response');
+                }
+
                 const newGrid = doc.querySelector('.editais-grid');
                 const newPagination = doc.querySelector('.pagination-container');
-                const noResults = doc.querySelector('#no-results');
+                        // Check for empty state - try multiple selectors
+                        const noResults = doc.querySelector('#no-results') || 
+                                        doc.querySelector('.empty-state') || 
+                                        doc.querySelector('.empty-state-container') ||
+                                        doc.querySelector('div.empty-state');
 
                 // Note: search-results-count element may not exist in all templates
                 // This is safe - it just won't update if the element doesn't exist
@@ -89,6 +140,12 @@
                     editaisGrid.innerHTML = noResults.outerHTML;
                     isLoading = false;
                     announceToScreenReader('Nenhum resultado encontrado.');
+                } else {
+                    // Fallback: Clear loading state and show error message
+                    editaisGrid.classList.remove('loading');
+                    isLoading = false;
+                    editaisGrid.innerHTML = '<div class="text-center py-12 text-red-500">Erro ao carregar resultados. Por favor, recarregue a página.</div>';
+                    showToast('Erro ao processar resposta do servidor. Tente novamente.', 'error');
                 }
 
                 if (newPagination && paginationContainer) {
@@ -113,10 +170,14 @@
                 history.pushState({search: params.toString()}, '', url);
 
                 // Smooth scroll to top of results
+                if (editaisGrid) {
                 editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
+                }
             })
             .catch(error => {
+                if (editaisGrid) {
                 editaisGrid.classList.remove('loading');
+                }
                 isLoading = false;
                 
                 // Remove loading states on error
@@ -244,8 +305,81 @@
     }
 
     // Filter change handlers with loading states
-    const filterSelects = document.querySelectorAll('select[name="tipo"], select[name="status"], select[name="edital"]');
-    filterSelects.forEach(select => {
+    // Handle all filter inputs: status, orgao, start_date, end_date
+    // Use a function to setup filters that can be called when DOM is ready
+    function setupFilterHandlers() {
+        const filterForm = document.getElementById('filter-form');
+        
+        if (!filterForm) {
+            return;
+        }
+        
+        // Get all filter inputs - use more specific selectors
+        // Use querySelectorAll to get all selects and date inputs in the filter form
+        const filterInputs = Array.from(filterForm.querySelectorAll('select[name], input[type="date"][name]'));
+        
+        filterInputs.forEach(input => {
+            // Check if listener already attached (avoid duplicates)
+            if (input.hasAttribute('data-filter-listener-attached')) {
+                return;
+            }
+            input.setAttribute('data-filter-listener-attached', 'true');
+            
+            input.addEventListener('change', function() {
+                // Note: We no longer sync to search form hidden inputs to avoid duplicates
+                // The performSearch function now reads directly from filterForm
+                
+                // Add loading state to the input itself
+                this.classList.add('loading');
+                this.disabled = true;
+
+                const wrapper = this.closest('form');
+                if (wrapper) {
+                    wrapper.classList.add('searching');
+                }
+                
+                // Add loading state to clear button if it exists
+                const clearBtn = document.querySelector('.clear-filters-btn');
+                if (clearBtn) {
+                    clearBtn.classList.add('loading');
+                }
+                
+                // Perform search after a short delay
+                setTimeout(() => {
+                    if (window.performSearch) {
+                        window.performSearch();
+                    } else {
+                        const form = this.closest('form');
+                        if (form) {
+                            form.dispatchEvent(new Event('submit', { cancelable: true }));
+                        }
+                    }
+                    
+                    // Remove loading states
+                    if (wrapper) {
+                        wrapper.classList.remove('searching');
+                    }
+                    if (clearBtn) {
+                        clearBtn.classList.remove('loading');
+                    }
+                    this.classList.remove('loading');
+                    this.disabled = false;
+                }, 300);
+            });
+        });
+    }
+    
+    // Setup filters when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupFilterHandlers);
+    } else {
+        // DOM already loaded, but wait a bit for dynamic content
+        setTimeout(setupFilterHandlers, 100);
+    }
+
+    // Legacy support for old filter selectors (if they exist)
+    const legacyFilterSelects = document.querySelectorAll('select[name="tipo"], select[name="status"], select[name="edital"]');
+    legacyFilterSelects.forEach(select => {
         select.addEventListener('change', function() {
             // Add loading state to the select itself
             this.classList.add('loading');
@@ -339,16 +473,28 @@
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
-                })
-                    .then(response => response.text())
+                                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.text();
+                    })
                     .then(html => {
                         // Server now returns partial HTML for AJAX requests
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(html, 'text/html');
 
+                        // Check for parsing errors
+                        const parserError = doc.querySelector('parsererror');
+                        if (parserError) {
+                            throw new Error('Failed to parse HTML response');
+                        }
+
                         const newGrid = doc.querySelector('.editais-grid');
                         const newPagination = doc.querySelector('.pagination-container');
-                        const noResults = doc.querySelector('#no-results');
+                        // Check for both #no-results and .empty-state (empty_state component)
+                        const noResults = doc.querySelector('#no-results') || doc.querySelector('.empty-state');
 
                         if (newGrid) {
                             editaisGrid.classList.remove('loading');
@@ -366,6 +512,11 @@
                             editaisGrid.innerHTML = noResults.outerHTML;
                             isLoading = false;
                             announceToScreenReader('Nenhum resultado encontrado.');
+                        } else {
+                            // Fallback: Clear loading state
+                            editaisGrid.classList.remove('loading');
+                            isLoading = false;
+                            showToast('Erro ao processar resposta. Tente novamente.', 'error');
                         }
 
                         if (newPagination && paginationContainer) {
@@ -378,10 +529,14 @@
                         history.pushState({}, '', url);
 
                         // Smooth scroll to top of results
+                        if (editaisGrid) {
                         editaisGrid.scrollIntoView({behavior: 'smooth', block: 'start'});
+                        }
                     })
                     .catch(error => {
+                        if (editaisGrid) {
                         editaisGrid.classList.remove('loading');
+                        }
                         isLoading = false;
                         showToast('Erro ao carregar página. Tente novamente.', 'error');
                     });
@@ -1504,6 +1659,7 @@ window.showConfirmDialog = showConfirmDialog;
     // Wait for showToast function to be available
     function processMessages() {
         const messages = document.querySelectorAll(".messages .alert");
+        
         if (messages.length === 0) return;
 
         // If showToast is not available yet, wait a bit

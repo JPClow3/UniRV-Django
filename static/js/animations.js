@@ -53,8 +53,8 @@
         scrollTrigger: { trigger: elem, start: 'top 92%' },
         y: 0,
         opacity: 1,
-        duration: 0.4,
-        ease: 'power2.out',
+        duration: 0.5,
+        ease: 'power1.out',
         onComplete: function() {
           // Mark as animated to prevent fallback
           elem.classList.add('animated');
@@ -73,9 +73,9 @@
         },
         opacity: 1,
         y: 0,
-        duration: 0.5,
-        stagger: 0.2,
-        ease: 'back.out(1.7)'
+        duration: 0.7,
+        stagger: 0.15,
+        ease: 'power1.out'
       });
     }
 
@@ -106,11 +106,45 @@
     });
 
     // Timeline progress line
-    if (document.querySelector('#progress-line')) {
-      gsap.to('#progress-line', {
+    const progressLine = document.querySelector('#progress-line');
+    const timelineSection = document.querySelector('.timeline-wrapper');
+    if (progressLine && timelineSection) {
+      // Ensure progress line is visible
+      gsap.set(progressLine, { width: '0%', opacity: 1 });
+      // Stop at 50% (phase 2 is current, so progress should stop at 1/2, not 2/3)
+      gsap.to(progressLine, {
         width: '50%',
-        duration: 1.2,
-        scrollTrigger: { trigger: '#progress-line', start: 'top 80%' }
+        duration: 0.8,
+        ease: 'power2.out',
+        scrollTrigger: { 
+          trigger: timelineSection, 
+          start: 'top 75%',
+          once: true
+        }
+      });
+      
+      // Animate timeline items
+      const timelineItems = document.querySelectorAll('.timeline-item');
+      timelineItems.forEach((item, index) => {
+        // Check if item should remain at reduced opacity (future phases)
+        const shouldKeepOpacity = item.classList.contains('opacity-60');
+        const targetOpacity = shouldKeepOpacity ? 0.6 : 1;
+        
+        gsap.fromTo(item,
+          { opacity: 0, y: 30 },
+          {
+            opacity: targetOpacity,
+            y: 0,
+            duration: 0.7,
+            delay: index * 0.12,
+            ease: 'power1.out',
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 85%',
+              once: true
+            }
+          }
+        );
       });
     }
 
@@ -149,9 +183,9 @@
       gsap.from(heroElems, {
         y: 30,
         opacity: 0,
-        duration: 0.5,
-        stagger: 0.06,
-        ease: 'power2.out',
+        duration: 0.7,
+        stagger: 0.08,
+        ease: 'power1.out',
         onComplete: function() {
           // Mark as animated to prevent fallback
           heroElems.forEach(elem => {
@@ -193,9 +227,9 @@
           y: 0,
           opacity: 1,
           scale: 1,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: 'back.out(1.2)',
+          duration: 0.8,
+          stagger: 0.12,
+          ease: 'power1.out',
           clearProps: 'transform',
           onComplete: function() {
             // Remove will-change after animation completes
@@ -219,8 +253,9 @@
           {
             opacity: 1,
             y: 0,
-            duration: 0.6,
-            delay: index * 0.1,
+            duration: 0.7,
+            delay: index * 0.12,
+            ease: 'power1.out',
             scrollTrigger: {
               trigger: card,
               start: 'top 88%',
@@ -288,9 +323,9 @@
           gsap.to(headerRevealElements, {
             y: 0,
             opacity: 1,
-            duration: 0.4,
-            stagger: 0.04,
-            ease: 'power2.out',
+            duration: 0.6,
+            stagger: 0.06,
+            ease: 'power1.out',
             delay: 0.05,
             onComplete: function() {
               headerRevealElements.forEach(elem => {
@@ -315,8 +350,8 @@
             scrollTrigger: { trigger: elem, start: 'top 88%' },
             y: 0,
             opacity: 1,
-            duration: 0.4,
-            ease: 'power2.out',
+            duration: 0.6,
+            ease: 'power1.out',
             onComplete: function() {
               elem.classList.add('animated');
             }
@@ -353,9 +388,9 @@
         const animCfg = {
           opacity: 1,
           y: 0,
-          duration: 0.35,
-          stagger: 0.04,
-          ease: 'power2.out',
+          duration: 0.6,
+          stagger: 0.08,
+          ease: 'power1.out',
           onComplete: function() {
             // Remove will-change after animation completes
             editalCards.forEach(card => {
@@ -389,8 +424,8 @@
         opacity: 0,
         scale: 0.95,
         y: 20,
-        duration: 0.8,
-        ease: 'back.out(1.7)'
+        duration: 0.9,
+        ease: 'power1.out'
       });
     }
 
@@ -403,6 +438,22 @@
           const newCards = document.querySelectorAll('.edital-card:not(.animated)');
           if (!newCards.length) return;
 
+          // Safety check: ensure GSAP is available before using it
+          if (!hasGSAP()) {
+            // Fallback: use CSS classes for animation
+            newCards.forEach((card) => {
+              card.style.opacity = '0';
+              card.style.transform = 'translateY(30px)';
+              setTimeout(() => {
+                card.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+                card.classList.add('animated');
+              }, 10);
+            });
+            return;
+          }
+
           newCards.forEach((card) => {
             card.style.willChange = 'transform, opacity';
             gsap.set(card, { opacity: 0, y: 30 });
@@ -411,9 +462,9 @@
           gsap.to(newCards, {
             opacity: 1,
             y: 0,
-            duration: 0.4,
-            stagger: 0.05,
-            ease: 'power2.out',
+            duration: 0.6,
+            stagger: 0.08,
+            ease: 'power1.out',
             onComplete: () => {
               newCards.forEach((card) => {
                 card.classList.add('animated');
@@ -432,7 +483,14 @@
         allCards.forEach((card) => {
           const opacity = parseFloat(window.getComputedStyle(card).opacity || '1');
           if (opacity < 0.5) {
-            gsap.set(card, { opacity: 1, y: 0, clearProps: 'all' });
+            if (hasGSAP()) {
+              gsap.set(card, { opacity: 1, y: 0, clearProps: 'all' });
+            } else {
+              // Fallback: use CSS
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(0)';
+              card.style.transition = 'none';
+            }
           }
         });
       }, 2000);
@@ -456,6 +514,35 @@
     initStartupShowcaseAnimations,
     initEditaisIndexAnimations
   };
+
+  // Initialize animations when GSAP is ready
+  function initAnimationsWhenReady() {
+    if (hasGSAP()) {
+      // GSAP is available, initialize animations
+      const currentURL = window.location.pathname;
+      if (currentURL === '/' || currentURL === '/home/') {
+        initHomeAnimations();
+      } else if (currentURL.includes('startups')) {
+        initStartupShowcaseAnimations();
+      } else if (currentURL.includes('editais')) {
+        initEditaisIndexAnimations();
+      }
+    } else {
+      // GSAP not available yet, wait and retry
+      window._gsapRetryCount = (window._gsapRetryCount || 0) + 1;
+      if (window._gsapRetryCount < 10) { // Max 10 retries (5 seconds)
+        setTimeout(initAnimationsWhenReady, 500);
+      }
+    }
+    }
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnimationsWhenReady);
+  } else {
+    initAnimationsWhenReady();
+  }
 })(window);
 
 

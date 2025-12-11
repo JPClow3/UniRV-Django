@@ -47,6 +47,7 @@ urlpatterns = [
     path('dashboard/editais/novo/', views.dashboard_novo_edital, name='dashboard_novo_edital'),
     path('dashboard/startups/', views.dashboard_projetos, name='dashboard_startups'),
     path('dashboard/startups/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_startup'),
+    path('dashboard/startups/<int:pk>/editar/', views.dashboard_startup_update, name='dashboard_startup_update'),
     # URL aliases for backward compatibility
     path('dashboard/projetos/', views.dashboard_projetos, name='dashboard_projetos'),
     path('dashboard/projetos/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_projeto'),

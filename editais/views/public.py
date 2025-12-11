@@ -26,7 +26,7 @@ from ..constants import (
     MAX_SEARCH_LENGTH, MAX_STARTUPS_DISPLAY
 )
 from ..models import Edital, Project
-from ..utils import mark_edital_fields_safe, parse_date_filter, apply_tipo_filter, get_search_suggestions
+from ..utils import mark_edital_fields_safe, parse_date_filter, get_search_suggestions
 from ..cache_utils import get_index_cache_key, get_detail_cache_key, get_cached_response, cache_response
 from ..exceptions import EditalNotFoundError
 
@@ -56,8 +56,6 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         'search_query': '',
         'stats': {
             'total_active': 0,
-            'graduadas': 0,
-            'total_valuation': 0,
         },
     }
     
@@ -82,17 +80,14 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         try:
             stats = base_queryset.aggregate(
                 total_active=Count('id'),
-                graduadas=Count('id', filter=Q(status='graduada')),
             )
         except DatabaseError as stats_error:
             logger.warning(f"Error calculating stats, using defaults: {stats_error}")
-            stats = {'total_active': 0, 'graduadas': 0}
+            stats = {'total_active': 0}
         
         startups = base_queryset
         if category_filter and category_filter != 'all':
             startups = startups.filter(category=category_filter)
-        
-        total_valuation = (stats.get('graduadas') or 0) * 1.0
         
         startups = startups.order_by('-submitted_on')[:MAX_STARTUPS_DISPLAY]
         
@@ -102,8 +97,6 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
             'search_query': search_query,
             'stats': {
                 'total_active': stats.get('total_active') or 0,
-                'graduadas': stats.get('graduadas') or 0,
-                'total_valuation': int(total_valuation),
             },
         }
         
@@ -189,7 +182,7 @@ def index(request: HttpRequest) -> HttpResponse:
     try:
         search_query = request.GET.get('search', '')
         status_filter = request.GET.get('status', '')
-        tipo_filter = request.GET.get('tipo', '')
+        orgao_filter = request.GET.get('orgao', '')
         start_date_filter = request.GET.get('start_date', '')
         end_date_filter = request.GET.get('end_date', '')
         only_open = request.GET.get('only_open', '') == '1'
@@ -207,7 +200,7 @@ def index(request: HttpRequest) -> HttpResponse:
             messages.warning(request, f'A busca foi truncada para {MAX_SEARCH_LENGTH} caracteres.')
 
         # Cache only for anonymous users without filters
-        has_filters = search_query or status_filter or tipo_filter or start_date_filter or end_date_filter or only_open
+        has_filters = search_query or status_filter or orgao_filter or start_date_filter or end_date_filter or only_open
         use_cache = not has_filters and not request.user.is_authenticated
         cache_ttl = getattr(settings, 'EDITAIS_CACHE_TTL', CACHE_TTL_INDEX)
 
@@ -239,7 +232,9 @@ def index(request: HttpRequest) -> HttpResponse:
         elif only_open:
             editais = editais.filter(status='aberto')
         
-        editais = apply_tipo_filter(editais, tipo_filter)
+        if orgao_filter:
+            # Use exact match for better filter consistency with dropdown
+            editais = editais.filter(entidade_principal=orgao_filter)
 
         start_date = parse_date_filter(start_date_filter)
         if start_date:
@@ -262,15 +257,27 @@ def index(request: HttpRequest) -> HttpResponse:
                 # Log but don't fail - suggestions are nice-to-have
                 logger.warning(f"Error generating search suggestions: {e}", exc_info=True)
 
+        # Get unique orgãos for filter dropdown (only from active editais for non-staff)
+        base_queryset_for_orgaos = Edital.objects
+        if not request.user.is_authenticated or not request.user.is_staff:
+            base_queryset_for_orgaos = base_queryset_for_orgaos.active()
+        
+        unique_orgaos = base_queryset_for_orgaos.exclude(
+            entidade_principal__isnull=True
+        ).exclude(
+            entidade_principal=''
+        ).values_list('entidade_principal', flat=True).distinct().order_by('entidade_principal')
+        
         context = {
             'page_obj': page_obj,
             'search_query': search_query,
             'status_filter': status_filter,
-            'tipo_filter': tipo_filter,
+            'orgao_filter': orgao_filter,
             'start_date_filter': start_date_filter,
             'end_date_filter': end_date_filter,
             'only_open': only_open,
             'status_choices': Edital.STATUS_CHOICES,
+            'unique_orgaos': unique_orgaos,
             'total_count': page_obj.paginator.count,
             'search_suggestions': search_suggestions,
         }
@@ -310,11 +317,12 @@ def index(request: HttpRequest) -> HttpResponse:
             'page_obj': page_obj,
             'search_query': '',
             'status_filter': '',
-            'tipo_filter': '',
+            'orgao_filter': '',
             'start_date_filter': '',
             'end_date_filter': '',
             'only_open': False,
             'status_choices': Edital.STATUS_CHOICES,
+            'unique_orgaos': [],
             'total_count': 0,
             'search_suggestions': [],
         }

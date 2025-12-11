@@ -16,7 +16,7 @@
     />
     <meta
       name="keywords"
-      content="{% block meta_keywords %}AgroHub, UniRV, inovação, agronegócio, startups, incubadora, FabLab, FINEP, Rio Verde{% endblock %}"
+      content="{% block meta_keywords %}AgroHub, UniRV, inovação, agronegócio, startups, incubadora, InovaLab, FINEP, Rio Verde{% endblock %}"
     />
     <meta name="author" content="UniRV - Universidade de Rio Verde" />
     <meta name="robots" content="index, follow" />
@@ -153,9 +153,9 @@
             <img 
               src="{% static 'img/Logo.svg' %}" 
               alt="AgroHub UniRV Logo" 
-              class="w-16 h-16 shrink-0" 
-              width="64" 
-              height="64" 
+              class="w-24 h-24 shrink-0" 
+              width="96" 
+              height="96" 
               fetchpriority="high"
               loading="eager"
               decoding="async"
@@ -299,10 +299,9 @@
         <div class="content-area" id="main-content">
           {% if messages %}
           <div
-            class="messages"
+            class="messages hidden"
             role="alert"
             aria-live="polite"
-            class="hidden"
           >
             {% for message in messages %}
             <div

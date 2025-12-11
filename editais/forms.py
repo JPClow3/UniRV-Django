@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
-from .models import Edital
+from .models import Edital, Project
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -149,3 +149,80 @@ class EditalForm(forms.ModelForm):
         # Allow same dates (end_date == start_date is valid)
         
         return cleaned_data
+
+
+class ProjectForm(forms.ModelForm):
+    """Form for creating and editing Project (Startup) instances"""
+    
+    class Meta:
+        model = Project
+        fields = ['name', 'description', 'category', 'edital', 'contato', 'logo']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'placeholder': 'Ex: AgroTech Solutions',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'
+            }),
+            'description': forms.Textarea(attrs={
+                'rows': 6,
+                'placeholder': 'Descreva a startup, problema que resolve e solução proposta...',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'
+            }),
+            'edital': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'
+            }),
+            'contato': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Email, telefone, website, etc.',
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none'
+            }),
+            'logo': forms.FileInput(attrs={
+                'accept': 'image/jpeg,image/png,image/gif',
+                'class': 'hidden'
+            }),
+        }
+    
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        # Make edital optional and add empty option
+        self.fields['edital'].required = False
+        self.fields['edital'].queryset = Edital.objects.all().order_by('-data_atualizacao')
+        self.fields['edital'].empty_label = 'Selecione um edital (opcional)'
+        
+        # Make logo optional
+        self.fields['logo'].required = False
+        
+        # Add aria labels for accessibility
+        for field_name, field in self.fields.items():
+            if field.required:
+                field.widget.attrs['aria-required'] = 'true'
+            if self.is_bound and self.errors.get(field_name):
+                if self.auto_id:
+                    field_id = self.auto_id % field_name
+                else:
+                    field_id = f'id_{field_name}'
+                field.widget.attrs['aria-describedby'] = f'{field_id}_error'
+                field.widget.attrs['aria-invalid'] = 'true'
+    
+    def clean_logo(self) -> Optional[Any]:
+        """Validate logo file"""
+        logo = self.cleaned_data.get('logo')
+        
+        # If no new logo is uploaded, Django will automatically keep the existing one
+        # (for ImageField/FileField, if no file is provided, existing file is preserved)
+        # So we only need to validate if a new file is actually uploaded
+        if logo:
+            # Check file size (5MB limit)
+            if logo.size > 5 * 1024 * 1024:
+                raise ValidationError('O arquivo de logo é muito grande. Tamanho máximo: 5MB.')
+            
+            # Check file extension
+            import os
+            ext = os.path.splitext(logo.name)[1].lower()
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            if ext not in allowed_extensions:
+                raise ValidationError(f'Formato de arquivo não permitido. Use: {", ".join(allowed_extensions)}')
+        
+        return logo

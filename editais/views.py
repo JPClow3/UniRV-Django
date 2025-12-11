@@ -30,6 +30,7 @@ from .views.dashboard import (
     dashboard_projetos,
     dashboard_usuarios,
     dashboard_submeter_projeto,
+    dashboard_startup_update,
     dashboard_novo_edital,
     admin_dashboard,
 )
@@ -59,6 +60,7 @@ __all__ = [
     'dashboard_projetos',
     'dashboard_usuarios',
     'dashboard_submeter_projeto',
+    'dashboard_startup_update',
     'dashboard_novo_edital',
     'admin_dashboard',
     # CRUD views

@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.db.models import Q, Count, Avg
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.utils import timezone
 
 from ..constants import (
@@ -23,7 +23,7 @@ from ..constants import (
     CACHE_TTL_5_MINUTES
 )
 from ..decorators import rate_limit, staff_required
-from ..forms import EditalForm
+from ..forms import EditalForm, ProjectForm
 from ..models import Edital, Project
 from ..services import EditalService
 from ..utils import apply_tipo_filter
@@ -76,7 +76,6 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
             'total_usuarios': User.objects.count(),
             'editais_ativos': Edital.objects.filter(status='aberto').count(),
             'startups_incubadas': Project.objects.count(),
-            'startups_graduadas': Project.objects.filter(status='graduada').count(),
             'recent_activities': activities,
         }
     else:
@@ -222,7 +221,6 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
             total=Count('id'),
             pre_incubacao=Count('id', filter=Q(status='pre_incubacao')),
             incubacao=Count('id', filter=Q(status='incubacao')),
-            graduada=Count('id', filter=Q(status='graduada')),
             suspensa=Count('id', filter=Q(status='suspensa')),
         )
         
@@ -239,15 +237,6 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
         
         # Get available editais for dropdown (all editais, ordered by most recent)
         available_editais = Edital.objects.all().order_by('-data_atualizacao')
-        
-        # Calculate graduation rate (startups that graduated)
-        total_projects = stats['total'] or 0
-        if total_projects > 0:
-            graduadas = stats['graduada'] or 0
-            graduation_rate = round((graduadas / total_projects) * 100)
-            stats['graduation_rate'] = f"{graduation_rate}%"
-        else:
-            stats['graduation_rate'] = "0%"
         
         recent_update_cutoff = timezone.now() - timedelta(days=2)
 
@@ -282,9 +271,7 @@ def dashboard_projetos(request: HttpRequest) -> HttpResponse:
                 'total': 0,
                 'pre_incubacao': 0,
                 'incubacao': 0,
-                'graduada': 0,
                 'suspensa': 0,
-                'graduation_rate': '0%',
             },
             'available_editais': Edital.objects.none(),
             'recent_update_cutoff': timezone.now() - timedelta(days=2),
@@ -321,10 +308,47 @@ def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def dashboard_submeter_projeto(request: HttpRequest) -> HttpResponse:
+def dashboard_submeter_projeto(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
     """Dashboard submeter startup page - Add new startups to the incubator"""
     from django.shortcuts import render
-    return render(request, 'dashboard/submeter_projeto.html')
+    
+    try:
+        if request.method == 'POST':
+            form = ProjectForm(request.POST, request.FILES)
+            if form.is_valid():
+                project = form.save(commit=False)
+                # Set proponente to current user if not staff, otherwise use form data
+                if not request.user.is_staff:
+                    project.proponente = request.user
+                elif not project.proponente:
+                    # Staff must specify proponente
+                    project.proponente = request.user
+                project.save()
+                
+                logger.info(
+                    f"Startup criada com sucesso - ID: {project.pk}, "
+                    f"nome: {project.name}, usuário: {request.user.username}"
+                )
+                
+                messages.success(request, 'Startup cadastrada com sucesso!')
+                return redirect('dashboard_startups')
+        else:
+            form = ProjectForm()
+        
+        return render(request, 'dashboard/submeter_projeto.html', {'form': form})
+    
+    except (DatabaseError, ValidationError, ValueError) as e:
+        logger.error(
+            f"Erro ao criar startup - usuário: {request.user.username}, "
+            f"erro: {str(e)}",
+            exc_info=True
+        )
+        messages.error(request, 'Erro ao cadastrar startup. Tente novamente.')
+        if request.method == 'POST':
+            form = ProjectForm(request.POST, request.FILES)
+        else:
+            form = ProjectForm()
+        return render(request, 'dashboard/submeter_projeto.html', {'form': form})
 
 
 @login_required
@@ -458,4 +482,54 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
         )
         messages.error(request, 'Erro ao carregar dashboard. Tente novamente.')
         return redirect('editais_index')
+
+
+@login_required
+def dashboard_startup_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResponseRedirect]:
+    """Dashboard page to update an existing startup"""
+    from django.shortcuts import render
+    
+    project = get_object_or_404(Project, pk=pk)
+    
+    # Check permissions: staff can edit any startup, users can only edit their own
+    if not request.user.is_staff and project.proponente != request.user:
+        messages.error(request, 'Você não tem permissão para editar esta startup.')
+        return redirect('dashboard_startups')
+    
+    try:
+        if request.method == 'POST':
+            form = ProjectForm(request.POST, request.FILES, instance=project)
+            if form.is_valid():
+                project = form.save()
+                
+                logger.info(
+                    f"Startup atualizada com sucesso - ID: {project.pk}, "
+                    f"nome: {project.name}, usuário: {request.user.username}"
+                )
+                
+                messages.success(request, 'Startup atualizada com sucesso!')
+                return redirect('dashboard_startups')
+        else:
+            form = ProjectForm(instance=project)
+        
+        return render(request, 'dashboard/startup_update.html', {
+            'form': form,
+            'project': project
+        })
+    
+    except (DatabaseError, ValidationError, ValueError) as e:
+        logger.error(
+            f"Erro ao atualizar startup - ID: {pk}, usuário: {request.user.username}, "
+            f"erro: {str(e)}",
+            exc_info=True
+        )
+        messages.error(request, 'Erro ao atualizar startup. Tente novamente.')
+        if request.method == 'POST':
+            form = ProjectForm(request.POST, request.FILES, instance=project)
+        else:
+            form = ProjectForm(instance=project)
+        return render(request, 'dashboard/startup_update.html', {
+            'form': form,
+            'project': project
+        })
 

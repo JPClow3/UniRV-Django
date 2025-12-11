@@ -12,10 +12,10 @@
         
         <!-- Icon Area & Type Badge -->
         <div class="flex items-start justify-between mb-4">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br 
+        <div class="w-14 h-14 rounded-xl bg-gradient-to-br 
             {% if edital.end_date %}from-blue-50 to-indigo-100 border border-blue-100
             {% else %}from-blue-50 to-agrohubBlue/20 border border-blue-100{% endif %}
-            flex items-center justify-center text-2xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
+            flex items-center justify-center text-lg border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
             {% if edital.end_date %}
               <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
             {% else %}
@@ -61,12 +61,6 @@
               <span>Encerramento: <span class="font-medium text-gray-900">{{ edital.end_date|date:"d/m/Y" }}</span></span>
             </div>
           {% endif %}
-          {% if edital.entidade_principal %}
-            <div class="flex items-center gap-2">
-              <i class="fas fa-building text-gray-400"></i>
-              <span class="font-medium text-gray-700">{{ edital.entidade_principal|truncatewords:3 }}</span>
-            </div>
-          {% endif %}
         </div>
       </a>
     {% endfor %}
@@ -99,7 +93,7 @@
 
 {% else %}
   <!-- Empty State -->
-  {% if search_query or status_filter or tipo_filter %}
+  {% if search_query or status_filter or orgao_filter or start_date_filter or end_date_filter %}
     <div id="no-results" class="text-center py-20 max-w-lg mx-auto">
       <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400 text-3xl">
         <i class="fas fa-search"></i>

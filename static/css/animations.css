@@ -4,7 +4,7 @@
 .reveal-up {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
 .reveal-up.animated {
@@ -25,7 +25,7 @@
 .bg-white.rounded-xl {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
 
 .bg-white.rounded-xl.animated {
@@ -55,20 +55,33 @@
   to   { transform: rotate(0deg); }
 }
 
+/* Counter-rotation animations for icons to stay upright while ring rotates */
 @keyframes icon-counter-spin-right {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+@keyframes icon-counter-spin-left {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to   { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-@keyframes icon-counter-spin-left {
-  from { transform: translate(-50%, -50%) rotate(360deg); }
-  to   { transform: translate(-50%, -50%) rotate(0deg); }
+/* Counter-rotation animations - icons rotate opposite to ring to stay upright */
+/* The ring's rotation makes the icon orbit, we just counter-rotate to keep it upright */
+@keyframes icon-counter-spin-right {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(-360deg); }
 }
 
+@keyframes icon-counter-spin-left {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Float animation for vertical movement - separate from rotation */
 @keyframes float-bob {
-  0%   { transform: translate(-50%, -50%) translateY(0); }
-  50%  { transform: translate(-50%, -50%) translateY(-6px); }
-  100% { transform: translate(-50%, -50%) translateY(0); }
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50%      { transform: translate(-50%, -50%) translateY(-8px); }
 }
 
 .orbit-container {
@@ -93,29 +106,34 @@
 }
 
 /* Ring sizing and spin */
+/* The ring rotates, which makes the icon inside orbit around the center */
 .orbit-ring.ring-1 {
   width: 90%;
   height: 90%;
   border-color: rgba(118, 184, 42, 0.3);
-  animation: orbit-spin-right 24s linear infinite;
+  animation: orbit-spin-right 24s linear infinite !important;
+  animation-play-state: running !important;
 }
 .orbit-ring.ring-2 {
   width: 72%;
   height: 72%;
   border-color: rgba(39, 52, 139, 0.35);
-  animation: orbit-spin-left 20s linear infinite;
+  animation: orbit-spin-left 20s linear infinite !important;
+  animation-play-state: running !important;
 }
 .orbit-ring.ring-3 {
   width: 54%;
   height: 54%;
   border-color: rgba(234, 179, 8, 0.35);
-  animation: orbit-spin-right 16s linear infinite;
+  animation: orbit-spin-right 16s linear infinite !important;
+  animation-play-state: running !important;
 }
 .orbit-ring.ring-4 {
   width: 36%;
   height: 36%;
   border-color: rgba(168, 85, 247, 0.35);
-  animation: orbit-spin-left 12s linear infinite;
+  animation: orbit-spin-left 12s linear infinite !important;
+  animation-play-state: running !important;
 }
 
 .orbit-container.is-paused .orbit-ring,
@@ -127,7 +145,6 @@
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translate(-50%, -50%);
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 9999px;
@@ -138,18 +155,48 @@
   justify-content: center;
   box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
   will-change: transform;
-  animation: float-bob 4s ease-in-out infinite;
+  /* Initial transform - will be overridden by animation */
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  /* Ensure animation is applied */
+  animation-play-state: running;
 }
 
-.orbit-ring.ring-1 .floating-icon { animation: icon-counter-spin-left 24s linear infinite, float-bob 4s ease-in-out infinite; }
-.orbit-ring.ring-2 .floating-icon { animation: icon-counter-spin-right 20s linear infinite, float-bob 4s ease-in-out infinite; }
-.orbit-ring.ring-3 .floating-icon { animation: icon-counter-spin-left 16s linear infinite, float-bob 4s ease-in-out infinite; }
-.orbit-ring.ring-4 .floating-icon { animation: icon-counter-spin-right 12s linear infinite, float-bob 4s ease-in-out infinite; }
+/* Icons orbit around the center of the container */
+/* The ring rotates (making the icon orbit), and the icon counter-rotates to stay upright */
+/* Float animation is applied separately but conflicts with transform, so we use a wrapper approach */
+/* Since multiple transform animations don't combine, we need to use a single animation that combines both */
+/* But we can't combine counter-rotation with float easily, so let's use a different approach */
+/* The icon will counter-rotate, and the float will be subtle */
+.orbit-container .orbit-ring.ring-1 .floating-icon,
+.orbit-ring.ring-1 .floating-icon { 
+  animation: icon-counter-spin-left 24s linear infinite !important;
+  animation-play-state: running !important;
+}
+.orbit-container .orbit-ring.ring-2 .floating-icon,
+.orbit-ring.ring-2 .floating-icon { 
+  animation: icon-counter-spin-right 20s linear infinite !important;
+  animation-play-state: running !important;
+}
+.orbit-container .orbit-ring.ring-3 .floating-icon,
+.orbit-ring.ring-3 .floating-icon { 
+  animation: icon-counter-spin-left 16s linear infinite !important;
+  animation-play-state: running !important;
+}
+.orbit-container .orbit-ring.ring-4 .floating-icon,
+.orbit-ring.ring-4 .floating-icon { 
+  animation: icon-counter-spin-right 12s linear infinite !important;
+  animation-play-state: running !important;
+}
 
 .floating-icon:hover {
-  transform: translate(-50%, -50%) scale(1.1);
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
   z-index: 5;
+}
+
+.floating-icon:hover i {
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
 }
 
 .orbit-icon-academia:hover { background: var(--color-agrohubGreen, #76b82a); color: white; }
@@ -162,10 +209,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orbit-ring,
-  .floating-icon {
+  .orbit-ring {
     animation: none !important;
     will-change: auto;
+  }
+  /* Keep icon animations but make them slower/less noticeable */
+  .floating-icon {
+    animation-duration: 60s !important;
+    animation-timing-function: linear !important;
   }
 }
 

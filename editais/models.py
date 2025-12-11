@@ -37,6 +37,70 @@ class EditalQuerySet(models.QuerySet):
     def active(self):
         """Filter editais that are not drafts."""
         return self.exclude(status='draft')
+    
+    def search(self, query: str):
+        """
+        Search editais by query string.
+        
+        Uses PostgreSQL full-text search when available (with GIN indexes for performance),
+        falls back to icontains for SQLite/other databases.
+        
+        Args:
+            query: Search query string (will be truncated if too long)
+            
+        Returns:
+            QuerySet: Filtered and ranked queryset
+        """
+        if not query:
+            return self
+        
+        if len(query) > MAX_SEARCH_LENGTH:
+            query = query[:MAX_SEARCH_LENGTH]
+        
+        # Check if we're using PostgreSQL
+        db_engine = settings.DATABASES['default'].get('ENGINE', '')
+        is_postgres = 'postgresql' in db_engine or 'postgis' in db_engine
+        
+        if is_postgres:
+            # Use PostgreSQL full-text search with Portuguese language configuration
+            # This enables stemming (e.g., "startup" matches "startups") and ranking
+            try:
+                # Create search vector from all searchable fields
+                search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
+                    'titulo', 'entidade_principal', 'numero_edital',
+                    'analise', 'objetivo', 'etapas', 'recursos',
+                    'itens_financiaveis', 'criterios_elegibilidade',
+                    'criterios_avaliacao', 'itens_essenciais_observacoes',
+                    'detalhes_unirv'
+                ])
+                
+                # Build search vector with Portuguese language configuration
+                # 'portuguese' config provides stemming and stop word removal
+                search_vector = SearchVector(*search_fields, config='portuguese')
+                
+                # Create search query with Portuguese config
+                search_query_obj = SearchQuery(query, config='portuguese')
+                
+                # Annotate queryset with search rank for relevance ordering
+                return self.annotate(
+                    search=search_vector,
+                    rank=SearchRank(search_vector, search_query_obj)
+                ).filter(search=search_query_obj).order_by('-rank', '-data_atualizacao')
+            except Exception as e:
+                # Fallback to icontains if full-text search fails
+                logger.warning(f"PostgreSQL full-text search failed, falling back to icontains: {e}")
+                is_postgres = False
+        
+        # Fallback: Use icontains for SQLite or if PostgreSQL search fails
+        q_objects = Q()
+        search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
+            'titulo', 'entidade_principal', 'numero_edital'
+        ])
+        
+        for field in search_fields:
+            q_objects |= Q(**{f'{field}__icontains': query})
+        
+        return self.filter(q_objects)
 
 
 class EditalManager(models.Manager):
