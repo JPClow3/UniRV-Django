@@ -1,168 +1,262 @@
-# UniRV Django - YPETEC
+# UniRV Django - Sistema de Gerenciamento de Editais de Fomento
 
-Sistema de gerenciamento de editais de fomento para a YPETEC - Incubadora UniRV.
+**Sistema completo para gerenciamento e divulgação de editais de fomento para a YPETEC - Incubadora UniRV**
 
-**Status do Projeto**: ✅ **Produção Ready** - Otimizado e seguro para deploy
+**Status do Projeto**: ✅ **Produção Ready** - Otimizado, seguro e pronto para deploy
 
 ---
 
 ## 📋 Índice
 
-- [Funcionalidades](#-funcionalidades)
-- [Setup Rápido](#-setup-rápido)
-- [Configuração](#-configuração)
-- [Uso](#-uso)
-- [Testes](#-testes)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Segurança](#-segurança)
-- [Deploy](#-deploy)
-- [Contribuindo](#-contribuindo)
+1. [Visão Geral](#-visão-geral)
+2. [Stack Tecnológica](#-stack-tecnológica)
+3. [Pré-requisitos](#-pré-requisitos)
+4. [Instalação e Setup](#-instalação-e-setup)
+5. [Configuração](#-configuração)
+6. [Estrutura do Projeto](#-estrutura-do-projeto)
+7. [Funcionalidades](#-funcionalidades)
+8. [Banco de Dados](#-banco-de-dados)
+9. [APIs e URLs](#-apis-e-urls)
+10. [Management Commands](#-management-commands)
+11. [Desenvolvimento](#-desenvolvimento)
+12. [Testes](#-testes)
+13. [Deploy](#-deploy)
+14. [Docker](#-docker)
+15. [Performance e Otimização](#-performance-e-otimização)
+16. [Segurança](#-segurança)
+17. [Troubleshooting](#-troubleshooting)
+18. [Contribuindo](#-contribuindo)
+19. [Licença e Autores](#-licença-e-autores)
 
 ---
 
-## ✨ Funcionalidades
+## 🎯 Visão Geral
 
-### Funcionalidades Principais
+O **UniRV Django** é uma plataforma web completa desenvolvida para gerenciar, divulgar e facilitar o acesso a editais de fomento para startups e projetos de inovação. O sistema oferece uma interface intuitiva para administradores gerenciarem editais e uma experiência otimizada para usuários descobrirem oportunidades de financiamento.
 
-- ✅ **Listagem de Editais**: Busca, filtros por status/data/tipo, paginação (12 itens por página)
-- ✅ **Detalhes do Edital**: Visualização completa com cronogramas e valores
-- ✅ **URLs Amigáveis**: URLs baseadas em slug com redirecionamento automático de URLs antigas
-- ✅ **CRUD Completo**: Criar, editar e excluir editais (restrito a usuários `is_staff`)
-- ✅ **Dashboard Completo**: Home, Editais, Projetos, Usuários, Avaliações, Relatórios, Publicações
-- ✅ **Histórico de Alterações**: Rastreamento completo de mudanças em editais
-- ✅ **Atualização Automática de Status**: Comando para atualizar status baseado em datas
-- ✅ **Registro de Usuários**: Sistema de cadastro com validação de email e senha
-- ✅ **Página de Comunidade**: Feed de publicações com interações (curtir/compartilhar)
-- ✅ **Projetos Aprovados**: Listagem de projetos aprovados
-- ✅ **Passo a Passo**: Guia de como participar dos editais
+### Principais Características
 
-### Recursos de Segurança
-
-- ✅ **Sanitização de HTML**: Prevenção de XSS em views web e Django Admin
-- ✅ **Controle de Acesso**: Operações administrativas restritas a usuários `is_staff`
-- ✅ **Validação de Dados**: Validação de datas e campos obrigatórios
-- ✅ **Headers de Segurança**: Configurados para produção
-
-### Recursos de UX/UI
-
-- ✅ **Design Responsivo**: Interface adaptável para mobile e desktop
-- ✅ **Notificações Toast**: Feedback visual para ações do usuário
-- ✅ **Indicador de Prazo Próximo**: Alerta visual para editais com prazo nos próximos 7 dias
-- ✅ **Filtros Preservados**: Filtros mantidos durante paginação
-- ✅ **Acessibilidade**: Suporte a leitores de tela e navegação por teclado
+- 🎨 **Interface Moderna**: Design responsivo com Tailwind CSS v4
+- 🔍 **Busca Avançada**: Sistema de busca full-text com PostgreSQL ou fallback para SQLite
+- 📊 **Dashboard Completo**: Painel administrativo com estatísticas e gerenciamento
+- 🔒 **Segurança Robusta**: Proteção XSS, CSRF, rate limiting e sanitização de dados
+- ⚡ **Performance Otimizada**: Cache, queries otimizadas, minificação de assets
+- 📱 **Responsivo**: Interface adaptável para desktop, tablet e mobile
+- 🔐 **Auditoria Completa**: Histórico de alterações em todos os editais
+- 🚀 **Deploy Fácil**: Configuração Docker pronta para produção
 
 ---
 
-## 🚀 Setup Rápido
+## 🛠 Stack Tecnológica
 
-### Pré-requisitos
+### Backend
 
-- Python 3.9 ou superior
-- pip (gerenciador de pacotes Python)
-- Node.js 18+ e npm (para Tailwind CSS)
-- Git
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **Python** | 3.12+ | Linguagem principal |
+| **Django** | >=5.2.8 | Framework web |
+| **PostgreSQL** | Qualquer | Banco de dados (produção) |
+| **SQLite** | 3.x | Banco de dados (desenvolvimento) |
+| **Redis** | 5.0+ | Cache (opcional, recomendado para produção) |
 
-### 1. Clone o repositório
+### Frontend
+
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **Tailwind CSS** | 4.1.16 | Framework CSS utilitário |
+| **PostCSS** | 8.5.6 | Processamento de CSS |
+| **JavaScript (Vanilla)** | ES6+ | Interatividade e animações |
+| **Terser** | 5.36.0 | Minificação de JavaScript |
+
+### Infraestrutura e Ferramentas
+
+| Tecnologia | Versão | Finalidade |
+|------------|--------|------------|
+| **Gunicorn** | >=23.0.0 | Servidor WSGI (produção) |
+| **WhiteNoise** | >=6.11.0 | Servir arquivos estáticos |
+| **Docker** | Latest | Containerização |
+| **Node.js** | 20 LTS | Build de assets frontend |
+| **Nginx** | Latest | Reverse proxy (opcional) |
+
+### Bibliotecas Python Principais
+
+- **django-simple-history** (>=3.4.0): Auditoria e histórico de alterações
+- **django-redis** (>=6.0.0): Backend de cache Redis
+- **django-ratelimit** (>=4.1.0): Limitação de taxa de requisições
+- **django-compressor** (>=4.6.0): Minificação de CSS/JS
+- **django-tailwind** (>=3.8.0): Integração Tailwind CSS
+- **django-widget-tweaks** (>=1.5.0): Customização de formulários
+- **bleach** (>=6.3.0): Sanitização HTML (prevenção XSS)
+- **Pillow** (>=11.0.0): Processamento de imagens
+- **psycopg2-binary** (>=2.9.9): Driver PostgreSQL
+
+### Ferramentas de Desenvolvimento
+
+- **django-browser-reload** (>=1.11.0): Auto-reload em desenvolvimento
+- **pip-audit** (>=2.6.0): Auditoria de segurança de dependências
+- **@lhci/cli** (^0.12.0): Lighthouse CI para auditorias de performance
+
+---
+
+## 📦 Pré-requisitos
+
+### Obrigatórios
+
+- **Python 3.12** ou superior
+- **pip** (gerenciador de pacotes Python)
+- **Node.js 18+** e **npm** (para compilar Tailwind CSS)
+- **Git** para versionamento
+- **PostgreSQL** (produção) ou **SQLite** (desenvolvimento)
+- **Redis** (opcional, mas recomendado para produção)
+
+### Opcionais (para produção)
+
+- **Docker** e **Docker Compose** (para containerização)
+- **Nginx** (para reverse proxy)
+- **Certbot** (para SSL/HTTPS)
+
+### Verificação de Versões
+
+```bash
+# Verificar Python
+python --version  # Deve ser 3.12 ou superior
+
+# Verificar pip
+pip --version
+
+# Verificar Node.js
+node --version  # Deve ser 18 ou superior
+
+# Verificar npm
+npm --version
+
+# Verificar Git
+git --version
+```
+
+---
+
+## 🚀 Instalação e Setup
+
+### 1. Clone o Repositório
 
 ```bash
 git clone <repository-url>
 cd UniRV-Django
 ```
 
-### 2. Crie e ative o ambiente virtual
+### 2. Crie e Ative o Ambiente Virtual
 
+**Windows:**
 ```bash
-# Criar ambiente virtual
 python -m venv .venv
-
-# Ativar ambiente virtual
-# Windows
 .venv\Scripts\activate
-# Linux/Mac
+```
+
+**Linux/Mac:**
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Instale as dependências Python
+**Verificar ativação:**
+O prompt deve mostrar `(.venv)` no início da linha.
+
+### 3. Instale as Dependências Python
 
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Instale as dependências npm (Tailwind CSS)
-
-**Opção 1: Usando o script de setup automático (recomendado)**
+### 4. Instale as Dependências Node.js (Tailwind CSS)
 
 ```bash
-# Windows
-setup.bat
-
-# Linux/Mac
-chmod +x setup.sh
-./setup.sh
-
-# Ou usando Python
-python setup.py
+cd theme/static_src
+npm ci
+cd ../..
 ```
 
-**Opção 2: Usando django-tailwind diretamente**
-
+**Alternativa usando django-tailwind:**
 ```bash
 python manage.py tailwind install
 ```
 
+### 5. Compile os Assets Frontend
+
+```bash
+cd theme/static_src
+npm run build
+cd ../..
+```
+
 Isso irá:
-- Instalar automaticamente todas as dependências npm necessárias
-- Compilar o CSS do Tailwind para produção
+- Limpar arquivos antigos de build
+- Compilar Tailwind CSS para produção (minificado)
+- Minificar arquivos JavaScript
 
-> **Nota:** Se você não tiver Node.js instalado, baixe em https://nodejs.org/
+### 6. Configure as Variáveis de Ambiente
 
-### 5. Configure as variáveis de ambiente
-
-**IMPORTANTE:** Copie o arquivo `.env.example` para `.env` e configure as variáveis:
+Copie o arquivo de exemplo e configure:
 
 ```bash
 # Windows
-copy .env.example .env
+copy env.production.example .env
 
 # Linux/Mac
-cp .env.example .env
+cp env.production.example .env
 ```
 
-Edite o arquivo `.env` e configure as variáveis necessárias (veja seção [Configuração](#-configuração)).
+Edite o arquivo `.env` com suas configurações (veja seção [Configuração](#-configuração)).
 
-#### Gerando uma SECRET_KEY segura
+#### Gerando SECRET_KEY Segura
 
 ```bash
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-### 6. Execute as migrações
+Copie o resultado e adicione ao `.env`:
+```
+SECRET_KEY=seu-secret-key-aqui
+```
+
+### 7. Execute as Migrações do Banco de Dados
 
 ```bash
 python manage.py migrate
 ```
 
-### 7. Crie um superusuário
+### 8. Crie um Superusuário
 
 ```bash
 python manage.py createsuperuser
 ```
 
-Siga as instruções para criar um usuário administrador.
+Siga as instruções para criar o primeiro usuário administrador.
 
-### 8. (Opcional) Popular o banco com dados de exemplo
+### 9. (Opcional) Popule o Banco com Dados de Exemplo
 
 ```bash
+# Popular editais de exemplo
 python manage.py seed_editais
+
+# Popular startups de exemplo
+python manage.py seed_startups
 ```
 
-### 9. Inicie o servidor
+### 10. Colete Arquivos Estáticos
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+### 11. Inicie o Servidor de Desenvolvimento
 
 ```bash
 python manage.py runserver
 ```
 
-Acesse: <http://127.0.0.1:8000/>
+Acesse: **http://127.0.0.1:8000/**
 
 ---
 
@@ -170,207 +264,706 @@ Acesse: <http://127.0.0.1:8000/>
 
 ### Variáveis de Ambiente
 
-O projeto usa variáveis de ambiente para configuração. Veja `.env.example` para referência completa.
+O projeto usa variáveis de ambiente para configuração. Todas as variáveis são opcionais exceto em produção (onde `SECRET_KEY` e `ALLOWED_HOSTS` são obrigatórias).
 
-#### Variáveis Obrigatórias
+#### Variáveis Críticas (Produção)
 
-- `SECRET_KEY`: Chave secreta do Django (gerar com comando acima)
-- `DJANGO_DEBUG`: `True` para desenvolvimento, `False` para produção
-- `ALLOWED_HOSTS`: Domínios permitidos (separados por vírgula)
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `SECRET_KEY` | Chave secreta do Django (obrigatória em produção) | Gerar com comando acima |
+| `DJANGO_DEBUG` | Modo debug (`False` em produção) | `False` |
+| `ALLOWED_HOSTS` | Domínios permitidos (separados por vírgula) | `example.com,www.example.com` |
 
-### Variáveis Opcionais
+#### Banco de Dados
 
-- `EMAIL_BACKEND`: Backend de email (padrão: `console` para desenvolvimento)
-- `EMAIL_HOST`: Servidor SMTP
-- `EMAIL_PORT`: Porta SMTP (padrão: 587)
-- `EMAIL_USE_TLS`: Usar TLS (padrão: `True`)
-- `EMAIL_HOST_USER`: Usuário SMTP
-- `EMAIL_HOST_PASSWORD`: Senha SMTP
-- `DEFAULT_FROM_EMAIL`: Email remetente padrão
-- `SITE_URL`: URL base do site (para links em emails)
-- `DJANGO_LOG_LEVEL`: Nível de log (padrão: `INFO`)
-- `REDIS_HOST`: Host do Redis para cache (opcional, usa LocMemCache se não configurado)
-- `REDIS_PORT`: Porta do Redis (padrão: `6379`)
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `DB_NAME` | Nome do banco de dados | `db.sqlite3` (dev) |
+| `DB_USER` | Usuário do banco | - |
+| `DB_PASSWORD` | Senha do banco | - |
+| `DB_HOST` | Host do banco | `localhost` |
+| `DB_PORT` | Porta do banco | `5432` |
+
+**Nota:** Se `DB_NAME` não estiver configurado, o sistema usa SQLite para desenvolvimento.
+
+#### Cache (Redis)
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `REDIS_HOST` | Host do Redis | - |
+| `REDIS_PORT` | Porta do Redis | `6379` |
+
+**Nota:** Se `REDIS_HOST` não estiver configurado, usa LocMemCache em desenvolvimento.
+
+#### Email
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `EMAIL_BACKEND` | Backend de email | `console` (dev) |
+| `EMAIL_HOST` | Servidor SMTP | `localhost` |
+| `EMAIL_PORT` | Porta SMTP | `587` |
+| `EMAIL_USE_TLS` | Usar TLS | `True` |
+| `EMAIL_HOST_USER` | Usuário SMTP | - |
+| `EMAIL_HOST_PASSWORD` | Senha SMTP | - |
+| `DEFAULT_FROM_EMAIL` | Email remetente | `noreply@agrohub.unirv.edu.br` |
+
+#### Opcionais
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `SITE_URL` | URL base do site | `http://localhost:8000` |
+| `DJANGO_LOG_LEVEL` | Nível de log | `INFO` |
+| `DJANGO_LOG_TO_FILE` | Habilitar logs em arquivo | `False` |
+| `DJANGO_LOG_DIR` | Diretório de logs | `./logs` |
+| `COOKIE_DOMAIN` | Domínio dos cookies | - |
+| `COMPRESS_ENABLED` | Habilitar compressão CSS/JS | `False` (dev) |
+| `WHITENOISE_MAX_AGE` | Cache de arquivos estáticos (segundos) | `3600` (dev) |
+| `CDN_BASE_URL` | URL base do CDN para imagens | - |
 
 ### Configurações do Django
 
-As principais configurações estão em `UniRV_Django/settings.py`:
+Principais configurações em `UniRV_Django/settings.py`:
 
-- **Idioma**: Português (pt-BR)
-- **Fuso Horário**: America/Sao_Paulo
-- **Paginação**: 12 itens por página
-- **Cache**: Redis (produção) ou LocMemCache (desenvolvimento) com TTL de 5 minutos
-- **Logging**: Estruturado com rotação de arquivos, logs de segurança e performance
-- **Minificação**: CSS/JS minificados em produção via django-compressor
-- **SSL/HTTPS**: Configurado para produção com headers de segurança
+#### Idioma e Localização
+
+- **Idioma:** Português (pt-BR)
+- **Fuso Horário:** America/Sao_Paulo
+- **Formato de Data:** DD/MM/YYYY
+
+#### Paginação
+
+- **Editais por página:** 12 itens
+- Configurável via `EDITAIS_PER_PAGE` em settings.py
+
+#### Cache
+
+- **Desenvolvimento:** LocMemCache (memória local)
+- **Produção:** Redis (se configurado)
+- **TTL padrão:** 5 minutos (300 segundos)
+- Configurável via `EDITAIS_CACHE_TTL`
+
+#### Logging
+
+- **Desenvolvimento:** Console
+- **Produção:** Arquivos rotativos (opcional)
+- **Logs separados:** Aplicação, segurança, performance
+- **Tamanho máximo:** 10MB por arquivo
+- **Backup count:** 5 arquivos
+
+#### Segurança
+
+As configurações de segurança são habilitadas automaticamente quando `DEBUG=False`:
+
+- SSL/HTTPS obrigatório
+- Headers de segurança (HSTS, X-Frame-Options, etc.)
+- Cookies seguros (HttpOnly, Secure, SameSite)
+- CSRF protection
+- XSS protection (sanitização HTML)
 
 ---
 
-## 📖 Uso
+## 📁 Estrutura do Projeto
 
-### Acessando o Sistema
+```
+UniRV-Django/
+├── editais/                          # App principal de editais
+│   ├── __init__.py
+│   ├── apps.py                       # Configuração do app
+│   ├── admin.py                      # Configuração do Django Admin
+│   ├── models.py                     # Modelos de dados
+│   ├── views.py                      # Views principais
+│   ├── views/                        # Views organizadas por módulo
+│   │   ├── __init__.py
+│   │   ├── public.py                 # Views públicas
+│   │   ├── dashboard.py              # Views do dashboard
+│   │   ├── editais_crud.py           # CRUD de editais
+│   │   └── mixins.py                 # Mixins reutilizáveis
+│   ├── forms.py                      # Formulários
+│   ├── urls.py                       # URLs do app
+│   ├── utils.py                      # Funções utilitárias
+│   ├── services.py                   # Lógica de negócio
+│   ├── decorators.py                 # Decoradores customizados
+│   ├── exceptions.py                 # Exceções customizadas
+│   ├── constants.py                  # Constantes do app
+│   ├── constants/                    # Módulos de constantes
+│   │   ├── __init__.py
+│   │   ├── cache.py                  # Constantes de cache
+│   │   ├── limits.py                 # Limites e rate limiting
+│   │   └── status.py                 # Status de editais
+│   ├── cache_utils.py                # Utilitários de cache
+│   ├── templatetags/                 # Template tags customizados
+│   │   ├── __init__.py
+│   │   ├── editais_filters.py        # Filtros para templates
+│   │   └── image_helpers.py          # Helpers de imagem
+│   ├── management/                   # Management commands
+│   │   └── commands/
+│   │       ├── seed_editais.py       # Popular editais de exemplo
+│   │       ├── seed_startups.py      # Popular startups de exemplo
+│   │       ├── update_edital_status.py  # Atualizar status automaticamente
+│   │       ├── run_lighthouse.py     # Auditorias Lighthouse
+│   │       ├── run_lighthouse_audit.py
+│   │       ├── get_auth_cookie.py    # Utilitário de autenticação
+│   │       └── populate_from_pdfs.py # Popular de PDFs
+│   ├── migrations/                   # Migrações do banco de dados
+│   │   ├── 0001_initial.py
+│   │   └── ...                       # Outras migrações
+│   └── tests/                        # Testes
+│       ├── __init__.py
+│       ├── test_admin.py             # Testes do admin
+│       ├── test_permissions.py       # Testes de permissões
+│       ├── test_public_views.py      # Testes de views públicas
+│       ├── test_dashboard_views.py   # Testes do dashboard
+│       ├── test_security.py          # Testes de segurança
+│       ├── test_cache.py             # Testes de cache
+│       ├── test_forms.py             # Testes de formulários
+│       └── ...                       # Outros testes
+│
+├── UniRV_Django/                     # Configurações do projeto Django
+│   ├── __init__.py
+│   ├── settings.py                   # Configurações principais
+│   ├── urls.py                       # URLs raiz do projeto
+│   ├── wsgi.py                       # WSGI para produção
+│   └── asgi.py                       # ASGI (não usado atualmente)
+│
+├── theme/                            # App do tema Tailwind
+│   ├── __init__.py
+│   ├── apps.py
+│   ├── static/                       # Assets estáticos compilados
+│   │   └── fonts/                    # Fontes
+│   └── static_src/                   # Código fonte dos assets
+│       ├── package.json              # Dependências npm
+│       ├── package-lock.json         # Lock de dependências
+│       ├── tailwind.config.js        # Configuração Tailwind
+│       ├── postcss.config.js         # Configuração PostCSS
+│       └── src/
+│           ├── styles.css            # CSS principal
+│           └── fonts/                # Fontes fonte
+│
+├── templates/                        # Templates HTML
+│   ├── base.html                     # Template base
+│   ├── home.html                     # Página inicial
+│   ├── 403.html                      # Erro 403
+│   ├── 404.html                      # Erro 404
+│   ├── 500.html                      # Erro 500
+│   ├── components/                   # Componentes reutilizáveis
+│   │   ├── button.html
+│   │   ├── edital_skeleton_card.html
+│   │   └── empty_state.html
+│   ├── editais/                      # Templates de editais
+│   │   ├── index.html                # Listagem
+│   │   ├── detail.html               # Detalhes
+│   │   ├── create.html               # Criar
+│   │   ├── update.html               # Editar
+│   │   ├── delete.html               # Excluir
+│   │   ├── dashboard.html            # Dashboard
+│   │   └── index_partial.html        # Partial para AJAX
+│   ├── dashboard/                    # Templates do dashboard
+│   │   ├── base.html                 # Base do dashboard
+│   │   ├── home.html                 # Home do dashboard
+│   │   ├── editais.html              # Lista de editais
+│   │   ├── novo_edital.html          # Novo edital
+│   │   ├── projetos.html             # Projetos
+│   │   ├── startup_update.html       # Atualizar startup
+│   │   ├── submeter_projeto.html     # Submeter projeto
+│   │   └── usuarios.html             # Usuários
+│   ├── registration/                 # Templates de autenticação
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   ├── password_reset_*.html     # Recuperação de senha
+│   │   └── password_reset_subject.txt
+│   ├── startups/                     # Templates de startups
+│   │   └── detail.html
+│   ├── startups.html                 # Listagem de startups
+│   ├── projetos_aprovados.html       # Projetos aprovados
+│   ├── ambientes_inovacao.html       # Ambientes de inovação
+│   └── admin/                        # Templates do admin
+│       └── login.html
+│
+├── static/                           # Arquivos estáticos não compilados
+│   ├── css/                          # CSS adicional
+│   │   ├── animations.css
+│   │   ├── detail.css
+│   │   └── print.css
+│   ├── js/                           # JavaScript
+│   │   ├── main.js                   # JavaScript principal
+│   │   ├── animations.js             # Animações
+│   │   ├── detail.js                 # Detalhes
+│   │   └── *.min.js                  # Versões minificadas
+│   ├── img/                          # Imagens
+│   │   ├── hero/                     # Imagens hero
+│   │   ├── favicon.svg
+│   │   ├── Logo.svg
+│   │   └── Logo Inovalab.svg
+│   └── fonts/                        # Fontes (Montserrat)
+│       ├── Montserrat-Regular.ttf
+│       └── Montserrat-SemiBold.ttf
+│
+├── staticfiles/                      # Arquivos estáticos coletados (gerado)
+│   └── ...                           # Arquivos coletados pelo collectstatic
+│
+├── media/                            # Arquivos de mídia (uploaded) (gerado)
+│   └── ...                           # Uploads de usuários
+│
+├── logs/                             # Logs da aplicação (gerado)
+│   ├── django.log                    # Log principal
+│   ├── security.log                  # Logs de segurança
+│   └── performance.log               # Logs de performance
+│
+├── scripts/                          # Scripts utilitários
+│   └── generate_hero_images.py       # Gerar imagens hero
+│
+├── manage.py                         # Utilitário de gerenciamento Django
+├── requirements.txt                  # Dependências Python
+├── Dockerfile                        # Configuração Docker
+├── docker-entrypoint.sh              # Script de entrada Docker
+├── .dockerignore                     # Arquivos ignorados pelo Docker
+├── .gitignore                        # Arquivos ignorados pelo Git
+├── env.production.example            # Exemplo de variáveis de ambiente
+└── README.md                         # Este arquivo
+```
 
-1. **Página Inicial**: `/` - Landing page com hero, estatísticas e features
-2. **Listagem de Editais**: `/editais/` - Lista todos os editais públicos
-3. **Detalhes**: `/editais/edital/<slug>/` - Visualizar edital específico
-4. **Comunidade**: `/comunidade/` - Feed de publicações da comunidade
-5. **Projetos Aprovados**: `/projetos-aprovados/` - Lista de projetos aprovados
-6. **Como Participar**: `/passo-a-passo/` - Guia passo a passo
-7. **Registro**: `/register/` - Criar nova conta
-8. **Login**: `/login/` - Fazer login
-9. **Admin Django**: `/admin/` - Interface administrativa completa
-10. **Dashboard**: `/dashboard/home/` - Dashboard principal (requer autenticação)
+### Descrição dos Diretórios Principais
 
-### Operações Administrativas
+#### `editais/`
+App principal do Django contendo toda a lógica de negócio relacionada a editais, projetos e startups.
 
-Todas as operações administrativas (criar, editar, excluir) requerem que o usuário seja `is_staff`.
+#### `UniRV_Django/`
+Configurações do projeto Django, incluindo settings, URLs principais e configurações WSGI.
 
-#### Criar Edital
+#### `theme/`
+App Django para o tema Tailwind CSS. Contém o código fonte dos assets frontend e a configuração de build.
 
-1. Faça login como usuário `is_staff`
-2. Acesse "Cadastrar Edital" no menu
-3. Preencha os campos obrigatórios (título, URL)
-4. Configure datas de abertura e encerramento
-5. Salve o edital
+#### `templates/`
+Templates HTML organizados por funcionalidade. Usa herança de templates com `base.html` como template principal.
 
-#### Editar Edital
+#### `static/`
+Arquivos estáticos não compilados (CSS adicional, JavaScript, imagens, fontes).
 
-1. Acesse o edital que deseja editar
-2. Clique em "Editar" (visível apenas para `is_staff`)
-3. Faça as alterações necessárias
-4. Salve as alterações
+#### `staticfiles/`
+Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos coletados e processados.
 
-### Management Commands
+---
 
-#### Atualizar Status dos Editais
+## ✨ Funcionalidades
 
-Atualiza automaticamente o status dos editais baseado nas datas:
+### Funcionalidades Principais
+
+#### 1. Gerenciamento de Editais
+
+- **Criação**: Criar novos editais com todos os campos necessários
+- **Edição**: Editar editais existentes com validação
+- **Exclusão**: Excluir editais (soft delete recomendado)
+- **Visualização**: Visualizar editais com informações completas
+- **Status Automático**: Atualização automática de status baseado em datas
+
+#### 2. Sistema de Busca Avançada
+
+- **Busca Full-Text**: Usa PostgreSQL full-text search quando disponível
+- **Busca por Múltiplos Campos**: Busca em título, entidade, número, análise, etc.
+- **Ranking de Resultados**: Resultados ordenados por relevância
+- **Sugestões de Busca**: Sugestões usando trigram similarity (PostgreSQL)
+- **Fallback Inteligente**: Fallback para `icontains` em SQLite
+
+#### 3. Dashboard Administrativo
+
+- **Home**: Estatísticas e visão geral
+- **Editais**: Gerenciamento completo de editais
+- **Projetos/Startups**: Gerenciamento de projetos aprovados
+- **Usuários**: Gerenciamento de usuários
+- **Relatórios**: Estatísticas e relatórios (futuro)
+
+#### 4. Sistema de Autenticação
+
+- **Registro de Usuários**: Cadastro com validação de email
+- **Login/Logout**: Autenticação segura
+- **Recuperação de Senha**: Reset de senha via email
+- **Permissões**: Controle de acesso baseado em roles (`is_staff`)
+
+#### 5. Páginas Públicas
+
+- **Home**: Landing page com hero, estatísticas e features
+- **Listagem de Editais**: Página com busca, filtros e paginação
+- **Detalhes do Edital**: Página completa com todas as informações
+- **Startups/Projetos Aprovados**: Vitrine de projetos aprovados
+- **Ambientes de Inovação**: Informações sobre ambientes
+- **Passo a Passo**: Guia para participação em editais
+
+#### 6. Histórico e Auditoria
+
+- **Histórico de Alterações**: Todas as mudanças em editais são rastreadas
+- **Rastreamento de Usuário**: Registro de quem fez cada alteração
+- **Timestamps**: Datas de criação e atualização
+
+### Recursos de Segurança
+
+#### Sanitização HTML (XSS Prevention)
+- Sanitização automática com `bleach` em todos os campos HTML
+- Configuração de tags e atributos permitidos
+- Proteção no Django Admin e nas views web
+
+#### Rate Limiting
+- Limitação de taxa de requisições por IP
+- Proteção contra abuso de APIs e formulários
+- Configurável por rota
+
+#### Headers de Segurança
+- HSTS (HTTP Strict Transport Security)
+- X-Frame-Options: DENY
+- X-Content-Type-Options: nosniff
+- Referrer-Policy
+- Content-Security-Policy (futuro)
+
+#### Controle de Acesso
+- Operações administrativas restritas a `is_staff`
+- Editais em draft ocultos para não-autenticados
+- Validação de permissões em todas as views
+
+### Recursos de Performance
+
+#### Cache
+- **Cache de Páginas**: Cache de páginas de listagem
+- **Cache de Consultas**: Cache de resultados de busca
+- **Cache de Sugestões**: Cache de sugestões de busca
+- **TTL Configurável**: Tempos de cache configuráveis
+
+#### Otimização de Queries
+- **select_related**: Para relações ForeignKey
+- **prefetch_related**: Para relações ManyToMany e Reverse ForeignKey
+- **QuerySets Customizados**: Métodos otimizados para queries comuns
+
+#### Minificação
+- **CSS Minificado**: Tailwind CSS compilado e minificado
+- **JavaScript Minificado**: Terser para minificação JS
+- **Compressão**: django-compressor para compressão adicional
+
+### Recursos de UX/UI
+
+#### Design Responsivo
+- Layout adaptável para mobile, tablet e desktop
+- Breakpoints do Tailwind CSS
+- Navegação otimizada para mobile
+
+#### Animações
+- Animações suaves para transições
+- Loading states e skeletons
+- Feedback visual para ações do usuário
+
+#### Acessibilidade
+- Suporte a leitores de tela
+- Navegação por teclado
+- Contraste adequado
+- Labels e ARIA attributes
+
+---
+
+## 🗄️ Banco de Dados
+
+### Modelos Principais
+
+#### Edital
+Modelo principal representando um edital de fomento.
+
+**Campos Principais:**
+- `titulo`: Título do edital
+- `slug`: URL amigável (único)
+- `status`: Status (draft, programado, aberto, fechado)
+- `numero_edital`: Número do edital
+- `entidade_principal`: Entidade responsável
+- `url`: URL do edital original
+- `data_abertura`: Data de abertura
+- `data_encerramento`: Data de encerramento
+- `analise`: Análise do edital (HTML)
+- `objetivo`: Objetivo (HTML)
+- `etapas`: Etapas (HTML)
+- `recursos`: Recursos disponíveis (HTML)
+- Campos de metadados: `created_by`, `updated_by`, `created_at`, `updated_at`
+
+**Relações:**
+- `valores`: Relacionamento 1:N com EditalValor
+- `cronogramas`: Relacionamento 1:N com Cronograma
+- `created_by`: ForeignKey para User
+- `updated_by`: ForeignKey para User
+
+#### EditalValor
+Valores financeiros do edital.
+
+**Campos:**
+- `edital`: ForeignKey para Edital
+- `tipo`: Tipo de valor (total, por projeto, etc.)
+- `valor_total`: Valor total
+- `moeda`: Moeda (BRL, USD, etc.)
+
+#### Cronograma
+Cronograma de atividades do edital.
+
+**Campos:**
+- `edital`: ForeignKey para Edital
+- `atividade`: Nome da atividade
+- `data`: Data da atividade
+- `observacoes`: Observações adicionais
+
+#### Project (Startup)
+Projeto/Startup aprovado em editais.
+
+**Campos:**
+- `nome`: Nome do projeto
+- `slug`: URL amigável
+- `categoria`: Categoria do projeto
+- `descricao`: Descrição (HTML)
+- `logo`: Logo do projeto
+- `status`: Status do projeto
+- `contato`: Informações de contato
+- `submitted_on`: Data de submissão
+- `created_by`: ForeignKey para User
+
+### Índices do Banco de Dados
+
+#### PostgreSQL
+
+- **Índices GIN**: Para busca full-text
+- **Índices Trigram**: Para sugestões de busca (pg_trgm)
+- **Índices B-tree**: Para campos frequentemente consultados (status, data_atualizacao)
+
+#### Migrações Especiais
+
+- `0018_enable_pg_trgm_extension.py`: Habilita extensão pg_trgm
+- `0019_add_trigram_indexes.py`: Adiciona índices trigram
+- `0020_add_fulltext_search_index.py`: Adiciona índice full-text search
+
+### Backup e Migração
+
+#### Backup Manual
+```bash
+# PostgreSQL
+pg_dump -U usuario -d nome_banco > backup.sql
+
+# SQLite
+cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
+```
+
+#### Restore
+```bash
+# PostgreSQL
+psql -U usuario -d nome_banco < backup.sql
+
+# SQLite
+cp backup.sqlite3 db.sqlite3
+```
+
+---
+
+## 🔗 APIs e URLs
+
+### URLs Públicas
+
+| URL | Nome | Descrição |
+|-----|------|-----------|
+| `/` | `home` | Página inicial |
+| `/editais/` | `editais_index` | Listagem de editais |
+| `/edital/<slug>/` | `edital_detail_slug` | Detalhes do edital (por slug) |
+| `/edital/<int:pk>/` | `edital_detail` | Detalhes do edital (por ID, redireciona) |
+| `/startups/` | `startups_showcase` | Vitrine de startups |
+| `/startup/<slug>/` | `startup_detail_slug` | Detalhes da startup |
+| `/projetos-aprovados/` | `projetos_aprovados` | Projetos aprovados |
+| `/ambientes-inovacao/` | `ambientes_inovacao` | Ambientes de inovação |
+| `/register/` | `register` | Registro de usuário |
+| `/login/` | `login` | Login |
+| `/logout/` | `logout` | Logout |
+
+### URLs de Autenticação
+
+| URL | Nome | Descrição |
+|-----|------|-----------|
+| `/password-reset/` | `password_reset` | Solicitar reset de senha |
+| `/password-reset/done/` | `password_reset_done` | Confirmação de solicitação |
+| `/password-reset-confirm/<uidb64>/<token>/` | `password_reset_confirm` | Confirmar reset |
+| `/password-reset-complete/` | `password_reset_complete` | Reset completo |
+
+### URLs do Dashboard (Requer Autenticação)
+
+| URL | Nome | Descrição | Permissão |
+|-----|------|-----------|-----------|
+| `/dashboard/home/` | `dashboard_home` | Home do dashboard | Autenticado |
+| `/dashboard/editais/` | `dashboard_editais` | Lista de editais | Autenticado |
+| `/dashboard/editais/novo/` | `dashboard_novo_edital` | Novo edital | `is_staff` |
+| `/dashboard/startups/` | `dashboard_startups` | Projetos/Startups | Autenticado |
+| `/dashboard/startups/submeter/` | `dashboard_submeter_startup` | Submeter projeto | Autenticado |
+| `/dashboard/startups/<pk>/editar/` | `dashboard_startup_update` | Editar startup | Autenticado |
+| `/dashboard/usuarios/` | `dashboard_usuarios` | Usuários | `is_staff` |
+
+### URLs Administrativas (Requer `is_staff`)
+
+| URL | Nome | Descrição |
+|-----|------|-----------|
+| `/cadastrar/` | `edital_create` | Criar edital |
+| `/edital/<pk>/editar/` | `edital_update` | Editar edital |
+| `/edital/<pk>/excluir/` | `edital_delete` | Excluir edital |
+| `/admin/` | - | Django Admin |
+
+### URLs Utilitárias
+
+| URL | Nome | Descrição |
+|-----|------|-----------|
+| `/health/` | `health_check` | Health check da aplicação |
+
+---
+
+## 🛠️ Management Commands
+
+### Comandos Disponíveis
+
+#### `seed_editais`
+Popula o banco de dados com editais de exemplo.
+
+```bash
+python manage.py seed_editais
+```
+
+**Opções:**
+- `--count N`: Número de editais a criar (padrão: 10)
+
+#### `seed_startups`
+Popula o banco de dados com startups de exemplo.
+
+```bash
+python manage.py seed_startups
+```
+
+**Opções:**
+- `--count N`: Número de startups a criar (padrão: 5)
+
+#### `update_edital_status`
+Atualiza automaticamente o status dos editais baseado nas datas.
 
 ```bash
 python manage.py update_edital_status
 ```
 
 **Opções:**
+- `--dry-run`: Executa sem fazer alterações (apenas mostra)
+- `--verbose`: Mostra informações detalhadas
 
-- `--dry-run`: Executa sem fazer alterações (apenas mostra o que seria alterado)
-- `--verbose`: Mostra informações detalhadas sobre cada edital atualizado
-
-**Configuração para execução automática (cron/task scheduler):**
-
+**Uso em Produção:**
+Configure no cron para executar diariamente:
 ```bash
-# Linux (crontab -e)
+# Crontab (Linux)
 0 0 * * * cd /path/to/UniRV-Django && /path/to/venv/bin/python manage.py update_edital_status
-
-# Windows Task Scheduler
-# Criar tarefa agendada para executar diariamente
 ```
 
-#### Enviar Notificações de Prazo
+#### `run_lighthouse`
+Executa auditorias Lighthouse CI.
+
+```bash
+python manage.py run_lighthouse
+```
+
+**Opções:**
+- `--all-pages`: Auditar todas as páginas (incluindo protegidas)
+- `--url URL`: URL específica para auditar (pode repetir)
+- `--output-dir DIR`: Diretório de saída (padrão: `./lighthouse_reports`)
+- `--thresholds KEY=VALUE`: Thresholds customizados
+- `--port PORT`: Porta do servidor (padrão: 7000)
+- `--no-server`: Não iniciar servidor (já está rodando)
+- `--no-auth`: Pular autenticação
+
+### Criando Novos Commands
+
+1. Crie um arquivo em `editais/management/commands/`
+2. Estenda `BaseCommand` do Django
+3. Implemente o método `handle()`
+
+Exemplo:
+```python
+from django.core.management.base import BaseCommand
+
+class Command(BaseCommand):
+    help = 'Descrição do comando'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--option', type=str, help='Descrição')
+
+    def handle(self, *args, **options):
+        # Lógica do comando
+        pass
+```
 
 ---
 
-## 🔍 Lighthouse CI - Performance Audits
+## 💻 Desenvolvimento
 
-O projeto inclui integração com Lighthouse CI para auditorias automatizadas de performance, acessibilidade, SEO e boas práticas.
+### Workflow de Desenvolvimento
 
-### Executar Auditorias Localmente
+1. **Criar branch**: `git checkout -b feature/nova-funcionalidade`
+2. **Fazer alterações**: Desenvolver a funcionalidade
+3. **Rodar testes**: `python manage.py test`
+4. **Verificar lint**: Verificar código
+5. **Commit**: `git commit -m "Adiciona nova funcionalidade"`
+6. **Push**: `git push origin feature/nova-funcionalidade`
+7. **Pull Request**: Abrir PR para revisão
 
-#### Pré-requisitos
+### Desenvolvimento Frontend
 
-Certifique-se de ter instalado as dependências npm:
-
-```bash
-cd theme/static_src
-npm install
-```
-
-#### Usando o Management Command (Recomendado)
-
-O comando Django gerencia automaticamente o servidor e executa as auditorias:
-
-```bash
-# Executar auditorias em todas as URLs configuradas
-python manage.py run_lighthouse
-
-# Auditar TODAS as páginas (incluindo páginas protegidas com autenticação)
-python manage.py run_lighthouse --all-pages
-
-# Auditar URLs específicas
-python manage.py run_lighthouse --url /editais/ --url /login/
-
-# Especificar diretório de saída
-python manage.py run_lighthouse --output-dir ./custom_reports
-
-# Ajustar thresholds
-python manage.py run_lighthouse --thresholds performance=0.85,accessibility=0.95
-
-# Usar servidor já em execução
-python manage.py run_lighthouse --no-server
-
-# Pular autenticação (apenas páginas públicas)
-python manage.py run_lighthouse --no-auth
-```
-
-**Opções disponíveis:**
-
-- `--all-pages`: Auditar todas as páginas incluindo páginas protegidas (dashboard, admin, etc.). Usa superuser automaticamente
-- `--url`: URL específica para auditar (pode ser usado múltiplas vezes)
-- `--output-dir`: Diretório para salvar os relatórios (padrão: `./lighthouse_reports`)
-- `--thresholds`: Sobrescrever thresholds no formato `performance=0.85,accessibility=0.90`
-- `--port`: Porta para executar o servidor Django (padrão: 7000)
-- `--no-server`: Não iniciar servidor Django (assume que já está rodando)
-- `--no-auth`: Pular autenticação (apenas páginas públicas serão auditadas)
-
-#### Usando Lighthouse CI diretamente
+#### Modo Desenvolvimento (Watch Mode)
 
 ```bash
 cd theme/static_src
-npx @lhci/cli autorun
+npm run dev
 ```
 
-### Configuração
+Isso compila Tailwind CSS em modo watch, recarregando automaticamente ao salvar.
 
-A configuração do Lighthouse CI está em `.lighthouserc.js` na raiz do projeto. Você pode:
+#### Build de Produção
 
-- **Ajustar URLs auditadas**: Edite o array `url` em `ci.collect`
-- **Modificar thresholds**: Edite os valores em `ci.assert.assertions`
-- **Configurar via variáveis de ambiente**:
-  - `LHCI_PERFORMANCE_THRESHOLD`: Threshold de performance (padrão: 0.80)
-  - `LHCI_ACCESSIBILITY_THRESHOLD`: Threshold de acessibilidade (padrão: 0.90)
-  - `LHCI_BEST_PRACTICES_THRESHOLD`: Threshold de boas práticas (padrão: 0.90)
-  - `LHCI_SEO_THRESHOLD`: Threshold de SEO (padrão: 0.90)
+```bash
+cd theme/static_src
+npm run build
+```
 
-### Thresholds Padrão
+Isso:
+- Limpa arquivos antigos
+- Compila Tailwind CSS minificado
+- Minifica JavaScript
 
-- **Performance**: 80+
-- **Acessibilidade**: 90+
-- **Boas Práticas**: 90+
-- **SEO**: 90+
+#### Estrutura de Build
 
-### CI/CD Integration
+```
+theme/static_src/
+├── src/styles.css                    # CSS fonte
+└── (build) → ../../static/css/dist/styles.css  # CSS compilado
 
-O Lighthouse CI é executado automaticamente via GitHub Actions em:
+static/js/
+├── main.js                           # JS fonte
+└── main.min.js                       # JS minificado (build)
 
-- Pull requests para `main` ou `master`
-- Pushes para `main` ou `master`
-- Manualmente via `workflow_dispatch`
+static/js/
+├── animations.js                     # JS fonte
+└── animations.min.js                 # JS minificado (build)
+```
 
-Os relatórios são:
-- Salvos como artifacts do workflow
-- Comentados automaticamente em Pull Requests com os scores
-- Falham o build se os thresholds não forem atingidos
+### Django Browser Reload
 
-### URLs Auditadas
+Em desenvolvimento (`DEBUG=True`), o `django-browser-reload` está habilitado para auto-reload do navegador ao salvar arquivos Python ou templates.
 
-Por padrão, as seguintes URLs são auditadas:
+**URL:** `http://localhost:8000/__reload__/`
 
-- `/` (home)
-- `/editais/` (index)
-- `/login/`
-- `/register/`
-- `/dashboard/home/`
-- `/dashboard/editais/`
-- `/health/` (health check)
+### Debugging
+
+#### Django Debug Toolbar (Opcional)
+
+Para instalar:
+```bash
+pip install django-debug-toolbar
+```
+
+Adicionar ao `INSTALLED_APPS` e `MIDDLEWARE` em desenvolvimento.
+
+#### Logging em Desenvolvimento
+
+Os logs são exibidos no console. Para logs mais detalhados:
+```bash
+export DJANGO_LOG_LEVEL=DEBUG
+python manage.py runserver
+```
 
 ---
 
@@ -378,39 +971,60 @@ Por padrão, as seguintes URLs são auditadas:
 
 ### Executar Testes
 
+#### Todos os Testes
 ```bash
-# Executar todos os testes
 python manage.py test editais
+```
 
-# Executar testes específicos
-python manage.py test editais.tests.EditaisCrudTest
+#### Testes Específicos
+```bash
+# Teste específico
+python manage.py test editais.tests.test_public_views.EditaisIndexTest
+
+# Módulo de testes
 python manage.py test editais.tests.test_permissions
+
+# Arquivo de testes
 python manage.py test editais.tests.test_admin
 ```
 
-### Cobertura de Testes
-
-**Status Atual**: 69% (Meta: 85%)
-
-Para verificar a cobertura:
+#### Com Cobertura
 
 ```bash
-# Instalar coverage (se ainda não instalado)
+# Instalar coverage
 pip install coverage
 
 # Executar testes com cobertura
 coverage run --source='editais' --omit='*/migrations/*' manage.py test editais
 
-# Ver relatório
+# Relatório no terminal
 coverage report
 
-# Gerar relatório HTML
+# Relatório HTML
 coverage html
 # Abrir htmlcov/index.html no navegador
 ```
 
-**Testes Implementados** (34+ testes):
+### Estrutura de Testes
 
+```
+editais/tests/
+├── test_admin.py              # Testes do Django Admin
+├── test_permissions.py        # Testes de permissões
+├── test_public_views.py       # Testes de views públicas
+├── test_dashboard_views.py    # Testes do dashboard
+├── test_security.py           # Testes de segurança
+├── test_cache.py              # Testes de cache
+├── test_forms.py              # Testes de formulários
+├── test_integration.py        # Testes de integração
+└── ...
+```
+
+### Cobertura Atual
+
+**Status:** 69% (Meta: 85%)
+
+**Testes Implementados:**
 - ✅ CRUD de editais (7 testes)
 - ✅ Busca e filtros (6 testes)
 - ✅ Detalhes e redirecionamento (4 testes)
@@ -420,308 +1034,790 @@ coverage html
 - ✅ Management commands (8 testes)
 - ✅ Admin interface (15 testes)
 
-**Áreas que precisam de mais testes** (para atingir 85%):
-
-- ⚠️ View `admin_dashboard()` (não testada)
-- ⚠️ Método `save_model()` no Admin (sanitização XSS)
+**Áreas que Precisam de Mais Testes:**
+- ⚠️ View `admin_dashboard()` 
+- ⚠️ Método `save_model()` no Admin
 - ⚠️ Edge cases em views e models
 
----
+### Testes de Performance
 
-## 📁 Estrutura do Projeto
-
-```text
-UniRV-Django/
-├── editais/                      # App principal de editais
-│   ├── management/
-│   │   └── commands/
-│   │       ├── seed_editais.py              # Popular banco com dados de exemplo
-│   │       └── update_edital_status.py      # Atualizar status automaticamente
-│   ├── migrations/               # Migrações do banco de dados
-│   ├── templatetags/
-│   │   └── editais_filters.py   # Template tags customizados
-│   ├── tests/                    # Testes organizados por módulo
-│   │   ├── test_admin.py
-│   │   ├── test_permissions.py
-│   │   └── test_management_commands.py
-│   ├── models.py                 # Modelos (Edital, EditalValor, Cronograma, EditalHistory)
-│   ├── views.py                  # Views públicas e administrativas
-│   ├── forms.py                  # Formulários
-│   ├── urls.py                   # URLs do app
-│   ├── admin.py                  # Configuração do Django Admin
-│   └── tests.py                  # Testes principais
-├── UniRV_Django/                 # Configurações do projeto
-│   ├── settings.py               # Configurações Django
-│   ├── urls.py                   # URLs principais
-│   └── wsgi.py                   # WSGI para produção
-├── templates/                    # Templates HTML
-│   ├── base.html                 # Template base
-│   └── editais/                  # Templates do app editais
-│       ├── index.html            # Listagem de editais
-│       ├── detail.html           # Detalhes do edital
-│       ├── create.html           # Criar edital
-│       ├── update.html           # Editar edital
-│       ├── delete.html           # Excluir edital
-│       ├── dashboard.html        # Dashboard administrativo
-│       └── emails/               # Templates de email
-├── static/                       # Arquivos estáticos
-│   ├── css/
-│   │   └── style.css             # Estilos principais
-│   └── js/
-│       └── main.js               # JavaScript principal
-├── specs/                        # Documentação de especificação
-│   └── 001-hub-editais/          # Especificação do módulo
-│       ├── spec.md               # Especificação completa
-│       ├── plan.md                # Plano de implementação
-│       ├── tasks.md               # Lista de tarefas
-│       ├── checklist.md           # Checklist de implementação
-│       ├── analysis.md            # Análise do projeto
-│       └── clarifications.md     # Clarificações
-├── logs/                         # Logs da aplicação (gerado automaticamente)
-├── requirements.txt              # Dependências do projeto
-├── .env.example                  # Exemplo de variáveis de ambiente
-├── .gitignore                    # Arquivos ignorados pelo Git
-├── COVERAGE_REPORT.md            # Relatório de cobertura de testes
-└── manage.py                     # Utilitário de gerenciamento Django
+Para testar performance de queries:
+```bash
+python manage.py test editais.tests.test_performance
 ```
-
----
-
-## 🔒 Segurança
-
-### Melhorias de Segurança Implementadas
-
-#### Sanitização de HTML (XSS Prevention)
-
-- Sanitização com `bleach` em todas as views web
-- Sanitização também no Django Admin (método `save_model()`)
-- Tags e atributos HTML permitidos configurados
-
-#### Controle de Acesso
-
-- Operações administrativas restritas a usuários `is_staff`
-- Editais em status 'draft' ocultos para não-autenticados
-- Verificação de permissões em todas as views administrativas
-
-#### Validação de Dados
-
-- Validação de datas (end_date > start_date)
-- Validação de campos obrigatórios
-- Validação de slug (garantia de unicidade)
-
-#### Headers de Segurança (em produção)
-
-- `SECURE_REFERRER_POLICY`
-- `SECURE_CROSS_ORIGIN_OPENER_POLICY`
-- `X_FRAME_OPTIONS = 'DENY'`
-- `SECURE_BROWSER_XSS_FILTER`
-- `SECURE_CONTENT_TYPE_NOSNIFF`
-
-#### Sessões Seguras
-
-- `SESSION_COOKIE_HTTPONLY = True`
-- `SESSION_COOKIE_SAMESITE = 'Lax'`
-- `SESSION_EXPIRE_AT_BROWSER_CLOSE = True`
-
-#### SECRET_KEY em variável de ambiente
-
-- Nunca commit a `SECRET_KEY` no código
-- Use `.env` para desenvolvimento local
-- Configure variáveis de ambiente no servidor de produção
-
-#### ALLOWED_HOSTS configurado corretamente
-
-- Em desenvolvimento: `localhost`, `127.0.0.1`, `[::1]`
-- Em produção: especifique seus domínios no `.env`
-
-#### Arquivo .env no .gitignore
-
-- Garante que credenciais não sejam commitadas
-
-### Checklist de Segurança para Produção
-
-Antes de fazer deploy em produção, certifique-se de:
-
-- [ ] `DEBUG=False` no ambiente de produção
-- [ ] `SECRET_KEY` única e segura configurada
-- [ ] `ALLOWED_HOSTS` configurado com seus domínios
-- [ ] HTTPS habilitado
-- [ ] Database backup configurado
-- [ ] Logs de aplicação monitorados
-- [ ] Atualizar dependências regularmente: `pip list --outdated`
-- [ ] Configurar email para notificações (se necessário)
-- [ ] Revisar permissões de usuários (`is_staff`)
-
----
-
-## 📦 Dependências
-
-### Principais
-
-- **Django 5.2.7**: Framework web
-- **WhiteNoise 6.7.0**: Servir arquivos estáticos em produção
-- **Bleach 6.1.0**: Sanitização de HTML (prevenção XSS)
-- **Gunicorn 23.0.0**: WSGI server (produção)
-- **django-compressor 4.6.0**: Minificação de CSS/JS em produção
-- **django-tailwind 3.8.0+**: Integração do Tailwind CSS com Django
-  - Fornece comandos de gerenciamento: `tailwind install`, `tailwind build`, `tailwind dev`
-  - Gerencia automaticamente as dependências npm do Tailwind CSS
-  - **Necessário** para compilar o CSS do projeto
-
-### Opcionais (não utilizadas atualmente)
-
-- **Requests 2.32.3**: HTTP client
-- **BeautifulSoup4 4.12.3**: Web scraping
-- **Markdown2 2.5.1**: Renderização de Markdown
-- **Uvicorn 0.34.0**: ASGI server
 
 ---
 
 ## 🚀 Deploy
 
+### Checklist Pré-Deploy
+
+- [ ] Todas as variáveis de ambiente configuradas
+- [ ] `DEBUG=False` em produção
+- [ ] `SECRET_KEY` única e segura
+- [ ] `ALLOWED_HOSTS` configurado
+- [ ] Banco de dados PostgreSQL configurado
+- [ ] Redis configurado (recomendado)
+- [ ] Email SMTP configurado
+- [ ] SSL/HTTPS configurado
+- [ ] Arquivos estáticos coletados
+- [ ] Migrações aplicadas
+- [ ] Superusuário criado
+- [ ] Logs configurados
+- [ ] Backup do banco de dados configurado
+
 ### Preparação
 
-1. Configure todas as variáveis de ambiente no servidor (veja `.env.example`)
-2. Execute `python manage.py collectstatic` para coletar e minificar arquivos estáticos
-3. Execute `python manage.py compress` para comprimir CSS/JS (se usando django-compressor)
-4. Execute `python manage.py migrate` para aplicar migrações
-5. Crie um superusuário: `python manage.py createsuperuser`
-6. Configure Redis para cache (opcional, mas recomendado para produção)
-7. Configure SSL/HTTPS com certificado válido (Let's Encrypt recomendado)
+1. **Coletar arquivos estáticos:**
+```bash
+python manage.py collectstatic --noinput
+```
 
-### Heroku
+2. **Aplicar migrações:**
+```bash
+python manage.py migrate
+```
+
+3. **Criar superusuário:**
+```bash
+python manage.py createsuperuser
+```
+
+4. **Verificar configurações:**
+```bash
+python manage.py check --deploy
+```
+
+### Deploy com Docker
+
+#### Build da Imagem
 
 ```bash
-# Instalar Heroku CLI e fazer login
+docker build -t unirv-django:latest .
+```
+
+#### Executar Container
+
+```bash
+docker run -d \
+  --name unirv-django \
+  -p 8000:8000 \
+  -e SECRET_KEY="sua-secret-key" \
+  -e DJANGO_DEBUG=False \
+  -e ALLOWED_HOSTS="seu-dominio.com" \
+  -e DB_NAME="nome_banco" \
+  -e DB_USER="usuario" \
+  -e DB_PASSWORD="senha" \
+  -e DB_HOST="host" \
+  unirv-django:latest
+```
+
+#### Docker Compose (Recomendado)
+
+Crie um arquivo `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DJANGO_DEBUG=False
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+Execute:
+```bash
+docker-compose up -d
+```
+
+### Deploy em VPS (Ubuntu/Debian)
+
+#### 1. Instalar Dependências do Sistema
+
+```bash
+sudo apt update
+sudo apt install -y python3.12 python3-pip python3-venv nginx redis-server postgresql postgresql-contrib
+```
+
+#### 2. Configurar PostgreSQL
+
+```bash
+sudo -u postgres psql
+
+# No PostgreSQL:
+CREATE DATABASE nome_banco;
+CREATE USER usuario WITH PASSWORD 'senha';
+ALTER ROLE usuario SET client_encoding TO 'utf8';
+ALTER ROLE usuario SET default_transaction_isolation TO 'read committed';
+ALTER ROLE usuario SET timezone TO 'America/Sao_Paulo';
+GRANT ALL PRIVILEGES ON DATABASE nome_banco TO usuario;
+\q
+```
+
+#### 3. Configurar Aplicação
+
+```bash
+# Clonar repositório
+cd /var/www
+sudo git clone <repository-url> unirv-django
+cd unirv-django
+
+# Criar ambiente virtual
+sudo python3.12 -m venv .venv
+sudo chown -R $USER:$USER .
+
+# Ativar e instalar dependências
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Configurar variáveis de ambiente
+cp env.production.example .env
+nano .env  # Editar configurações
+
+# Coletar estáticos e migrar
+python manage.py collectstatic --noinput
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+#### 4. Configurar Gunicorn
+
+Criar arquivo `/etc/systemd/system/unirv-django.service`:
+
+```ini
+[Unit]
+Description=UniRV Django Gunicorn daemon
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/unirv-django
+ExecStart=/var/www/unirv-django/.venv/bin/gunicorn \
+    --bind 127.0.0.1:8000 \
+    --workers 3 \
+    --timeout 120 \
+    UniRV_Django.wsgi:application
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Ativar serviço:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable unirv-django
+sudo systemctl start unirv-django
+sudo systemctl status unirv-django
+```
+
+#### 5. Configurar Nginx
+
+Criar arquivo `/etc/nginx/sites-available/unirv-django`:
+
+```nginx
+server {
+    listen 80;
+    server_name seu-dominio.com www.seu-dominio.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static/ {
+        alias /var/www/unirv-django/staticfiles/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /media/ {
+        alias /var/www/unirv-django/media/;
+        expires 1y;
+        add_header Cache-Control "public";
+    }
+}
+```
+
+Ativar site:
+```bash
+sudo ln -s /etc/nginx/sites-available/unirv-django /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+#### 6. Configurar SSL com Let's Encrypt
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d seu-dominio.com -d www.seu-dominio.com
+```
+
+O Certbot irá configurar SSL automaticamente e renovação automática.
+
+### Deploy em Plataformas Cloud
+
+#### Heroku
+
+```bash
+# Instalar Heroku CLI
+# Fazer login
 heroku login
 
 # Criar app
-heroku create your-app-name
+heroku create seu-app-name
 
-# Configurar variáveis de ambiente
-heroku config:set SECRET_KEY="your-secret-key"
+# Configurar variáveis
+heroku config:set SECRET_KEY="sua-secret-key"
 heroku config:set DJANGO_DEBUG=False
-heroku config:set ALLOWED_HOSTS="your-app-name.herokuapp.com"
+heroku config:set ALLOWED_HOSTS="seu-app-name.herokuapp.com"
+
+# Adicionar add-ons
+heroku addons:create heroku-postgresql:mini
+heroku addons:create heroku-redis:mini
 
 # Deploy
 git push heroku main
 
-# Executar migrações
+# Migrar banco
 heroku run python manage.py migrate
 heroku run python manage.py createsuperuser
 ```
 
-### Render / Railway / Fly.io
+#### Render
 
-- Configure as variáveis de ambiente no painel
-- Certifique-se de que `requirements.txt` está na raiz
-- Configure o comando de start: `gunicorn UniRV_Django.wsgi:application`
-- Configure o comando de migração: `python manage.py migrate`
+1. Conectar repositório GitHub
+2. Configurar variáveis de ambiente no painel
+3. Definir build command: `pip install -r requirements.txt && cd theme/static_src && npm ci && npm run build && cd ../.. && python manage.py collectstatic --noinput`
+4. Definir start command: `gunicorn UniRV_Django.wsgi:application`
+5. Deploy automático
 
-### Servidor VPS (Ubuntu/Debian)
+#### Railway
 
-```bash
-# Instalar dependências do sistema
-sudo apt update
-sudo apt install python3-pip python3-venv nginx redis-server
-
-# Configurar Nginx como reverse proxy (veja nginx.conf.example)
-# Copiar nginx.conf.example para /etc/nginx/sites-available/ypetec
-sudo cp nginx.conf.example /etc/nginx/sites-available/ypetec
-sudo ln -s /etc/nginx/sites-available/ypetec /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-
-# Configurar SSL com Let's Encrypt
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d ypetec.unirv.edu.br
-
-# Usar Gunicorn como servidor WSGI
-gunicorn UniRV_Django.wsgi:application --bind 127.0.0.1:8000
-
-# Configurar systemd service para Gunicorn
-# (criar arquivo de serviço em /etc/systemd/system/)
-```
-
-Veja `nginx.conf.example` para configuração completa do Nginx com SSL/HTTPS.
+1. Conectar repositório
+2. Configurar variáveis de ambiente
+3. Adicionar serviços PostgreSQL e Redis
+4. Deploy automático
 
 ---
 
-## 📊 Status do Projeto
+## 🐳 Docker
 
-### Implementação
+### Estrutura do Dockerfile
 
-- ✅ **100% das funcionalidades principais implementadas**
-- ✅ **34+ testes passando**
-- ✅ **Otimizações de performance**: Cache, query optimization, minificação
-- ✅ **Segurança**: CSRF, XSS, SQL injection prevention, security headers
-- ✅ **Logging**: Rotação de logs, logs de segurança e performance
-- ✅ **Produção Ready**: SSL/HTTPS, caching, monitoring
-- ⚠️ **Cobertura de testes**: 69% (meta: 85%)
+O Dockerfile usa **multi-stage build** com 3 estágios:
 
-### Melhorias Recentes
+1. **node-builder**: Compila assets frontend (Tailwind CSS, JavaScript)
+2. **python-builder**: Instala dependências Python e coleta arquivos estáticos
+3. **runtime**: Imagem final otimizada apenas com runtime
 
-**Data**: 2025-01-XX
+### Build da Imagem
 
-- ✅ Migração completa do design React/TypeScript para Django
-- ✅ Sistema de registro de usuários implementado
-- ✅ Dashboard completo com todas as páginas (home, editais, projetos, usuários, avaliações, relatórios, publicações)
-- ✅ Páginas públicas: Comunidade, Projetos Aprovados, Passo a Passo
-- ✅ Otimização de queries: select_related/prefetch_related em todas as views
-- ✅ Sistema de cache: Redis (produção) ou LocMemCache (desenvolvimento)
-- ✅ Minificação de CSS/JS em produção via django-compressor
-- ✅ Logging aprimorado: rotação de arquivos, logs de segurança e performance
-- ✅ Configuração SSL/HTTPS com exemplo de Nginx
-- ✅ Correção de vulnerabilidade XSS no Django Admin
-- ✅ Melhorias no banco de dados (índices, validações)
-- ✅ Arquivos de suporte completos (`.gitignore`, `.env.example`, `nginx.conf.example`)
+```bash
+docker build -t unirv-django:latest .
+```
 
-### Próximos Passos
+### Executar Container
 
-1. Aumentar cobertura de testes para 85%+
-2. Implementar testes para views do dashboard
-3. Implementar testes para registro de usuários
-4. Implementar testes de segurança (CSRF, XSS, SQL injection)
-5. Testes de performance (query counts)
+```bash
+docker run -d \
+  --name unirv-django \
+  -p 8000:8000 \
+  -e SECRET_KEY="sua-secret-key" \
+  -e DJANGO_DEBUG=False \
+  -e ALLOWED_HOSTS="localhost" \
+  unirv-django:latest
+```
+
+### Variáveis de Ambiente no Docker
+
+Passe variáveis via `-e` ou use arquivo `.env`:
+
+```bash
+docker run -d \
+  --env-file .env \
+  -p 8000:8000 \
+  unirv-django:latest
+```
+
+### Docker Compose
+
+Veja exemplo completo na seção [Deploy com Docker](#deploy-com-docker).
+
+### Entrypoint Script
+
+O Dockerfile usa `docker-entrypoint.sh` que:
+- Executa migrações automaticamente
+- Fornece mensagens de erro claras
+- Inicia o servidor Gunicorn
+
+---
+
+## ⚡ Performance e Otimização
+
+### Cache
+
+#### Cache de Páginas
+- Cache de páginas de listagem de editais
+- TTL: 5 minutos (configurável)
+- Invalidação automática ao criar/editar editais
+
+#### Cache de Consultas
+- Cache de resultados de busca
+- Cache de sugestões de busca
+- Cache de estatísticas
+
+#### Estratégias de Cache
+
+```python
+# Cache manual
+from django.core.cache import cache
+
+cache.set('key', 'value', 300)  # 5 minutos
+value = cache.get('key')
+```
+
+### Otimização de Queries
+
+#### select_related (ForeignKey)
+```python
+editais = Edital.objects.select_related('created_by', 'updated_by')
+```
+
+#### prefetch_related (ManyToMany, Reverse FK)
+```python
+editais = Edital.objects.prefetch_related('valores', 'cronogramas')
+```
+
+#### QuerySets Customizados
+```python
+# Usar métodos otimizados
+editais = Edital.objects.with_related().with_prefetch().active()
+```
+
+### Minificação e Compressão
+
+#### CSS
+- Tailwind CSS compilado e minificado
+- Compressão adicional via django-compressor (opcional)
+
+#### JavaScript
+- Minificação via Terser
+- Compressão adicional via django-compressor (opcional)
+
+#### HTML
+- GZip compression habilitado
+- Configurável via middleware
+
+### Índices do Banco de Dados
+
+#### PostgreSQL
+- **GIN indexes**: Para busca full-text
+- **Trigram indexes**: Para sugestões de busca
+- **B-tree indexes**: Para campos frequentemente consultados
+
+### Monitoramento
+
+#### Logs de Performance
+- Query time logging (quando `DEBUG=True`)
+- Logs de cache hits/misses
+- Logs de tempo de resposta
+
+#### Ferramentas
+- Django Debug Toolbar (desenvolvimento)
+- Django Silk (profiling)
+- Lighthouse CI (auditorias automatizadas)
+
+---
+
+## 🔒 Segurança
+
+### Medidas de Segurança Implementadas
+
+#### 1. Sanitização HTML (XSS Prevention)
+
+- **Biblioteca**: `bleach`
+- **Aplicação**: Todos os campos HTML em editais
+- **Configuração**: Tags e atributos permitidos definidos
+
+```python
+# Em utils.py
+ALLOWED_TAGS = ['p', 'br', 'strong', 'em', ...]
+ALLOWED_ATTRIBUTES = {'a': ['href', 'title'], ...}
+```
+
+#### 2. Rate Limiting
+
+- **Biblioteca**: `django-ratelimit`
+- **Aplicação**: Views de login, criação de editais
+- **Configuração**: 5 requisições por minuto por IP
+
+#### 3. CSRF Protection
+
+- Habilitado por padrão no Django
+- Tokens CSRF em todos os formulários
+- Verificação automática em requisições POST
+
+#### 4. SQL Injection Prevention
+
+- Django ORM previne SQL injection automaticamente
+- Queries parametrizadas
+- Nunca usar strings SQL diretas
+
+#### 5. Headers de Segurança
+
+Habilitados automaticamente quando `DEBUG=False`:
+
+- **HSTS**: HTTP Strict Transport Security (1 ano)
+- **X-Frame-Options**: DENY
+- **X-Content-Type-Options**: nosniff
+- **Referrer-Policy**: strict-origin-when-cross-origin
+- **X-XSS-Protection**: Enabled
+
+#### 6. Sessões Seguras
+
+- **HttpOnly**: Impede acesso JavaScript
+- **Secure**: Apenas HTTPS (produção)
+- **SameSite**: Lax (proteção CSRF)
+- **Expiração**: 1 hora ou ao fechar navegador
+
+#### 7. Autenticação
+
+- Senhas hasheadas com algoritmo seguro (PBKDF2)
+- Validação de senha forte
+- Proteção contra brute force (rate limiting)
+
+#### 8. Controle de Acesso
+
+- Operações administrativas restritas a `is_staff`
+- Editais em draft ocultos para não-autenticados
+- Validação de permissões em todas as views
+
+### Checklist de Segurança
+
+Antes de deploy em produção:
+
+- [ ] `DEBUG=False`
+- [ ] `SECRET_KEY` única e segura
+- [ ] `ALLOWED_HOSTS` configurado
+- [ ] HTTPS habilitado
+- [ ] Senhas fortes para banco de dados
+- [ ] Firewall configurado
+- [ ] Backup do banco de dados
+- [ ] Logs monitorados
+- [ ] Dependências atualizadas (`pip-audit`)
+- [ ] Usuários com permissões mínimas necessárias
+
+### Auditoria de Segurança
+
+#### pip-audit
+
+```bash
+pip-audit -r requirements.txt
+```
+
+#### npm audit
+
+```bash
+cd theme/static_src
+npm audit
+```
+
+#### Atualizar Dependências
+
+```bash
+# Verificar dependências desatualizadas
+pip list --outdated
+
+# Atualizar (cuidado com breaking changes)
+pip install --upgrade package-name
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Problemas Comuns
+
+#### 1. Erro: "No module named 'django'"
+
+**Solução:**
+```bash
+# Verificar se ambiente virtual está ativado
+which python  # Deve apontar para .venv
+
+# Reinstalar dependências
+pip install -r requirements.txt
+```
+
+#### 2. Erro: "TemplateDoesNotExist"
+
+**Solução:**
+```bash
+# Verificar se templates estão no diretório correto
+# Verificar INSTALLED_APPS em settings.py
+# Verificar TEMPLATES['DIRS'] em settings.py
+```
+
+#### 3. Erro: "Static files not found"
+
+**Solução:**
+```bash
+# Coletar arquivos estáticos
+python manage.py collectstatic --noinput
+
+# Verificar STATIC_ROOT e STATIC_URL em settings.py
+# Verificar se WhiteNoise está no MIDDLEWARE
+```
+
+#### 4. Erro de Migração
+
+**Solução:**
+```bash
+# Verificar estado das migrações
+python manage.py showmigrations
+
+# Fazer fake migration (cuidado!)
+python manage.py migrate --fake
+
+# Ou resetar migrações (desenvolvimento apenas)
+# Deletar arquivos de migração (exceto __init__.py)
+# python manage.py makemigrations
+# python manage.py migrate
+```
+
+#### 5. Erro: "Connection refused" (PostgreSQL)
+
+**Solução:**
+```bash
+# Verificar se PostgreSQL está rodando
+sudo systemctl status postgresql
+
+# Verificar credenciais no .env
+# Verificar se banco existe
+psql -U usuario -d nome_banco
+```
+
+#### 6. Tailwind CSS não compila
+
+**Solução:**
+```bash
+# Limpar node_modules e reinstalar
+cd theme/static_src
+rm -rf node_modules package-lock.json
+npm ci
+npm run build
+```
+
+#### 7. Cache não funciona
+
+**Solução:**
+```bash
+# Limpar cache
+python manage.py shell
+>>> from django.core.cache import cache
+>>> cache.clear()
+
+# Verificar configuração de cache em settings.py
+# Verificar se Redis está rodando (se usando)
+```
+
+#### 8. Erro 500 em Produção
+
+**Solução:**
+```bash
+# Verificar logs
+tail -f logs/django.log
+
+# Verificar variáveis de ambiente
+# Verificar DEBUG=False
+# Verificar ALLOWED_HOSTS
+# Verificar permissões de arquivos
+```
+
+### Logs
+
+#### Localização dos Logs
+
+- **Desenvolvimento**: Console
+- **Produção**: `logs/` (se `DJANGO_LOG_TO_FILE=true`)
+  - `logs/django.log`: Log principal
+  - `logs/security.log`: Logs de segurança
+  - `logs/performance.log`: Logs de performance
+
+#### Verificar Logs
+
+```bash
+# Últimas 100 linhas
+tail -n 100 logs/django.log
+
+# Seguir logs em tempo real
+tail -f logs/django.log
+
+# Filtrar erros
+grep ERROR logs/django.log
+```
+
+### Debug Mode
+
+**Nunca deixe `DEBUG=True` em produção!**
+
+Para debug em desenvolvimento:
+```bash
+export DJANGO_DEBUG=True
+export DJANGO_LOG_LEVEL=DEBUG
+python manage.py runserver
+```
+
+### Suporte
+
+Para problemas não resolvidos:
+1. Verificar logs
+2. Verificar documentação do Django
+3. Abrir issue no repositório
+4. Contatar equipe de desenvolvimento
 
 ---
 
 ## 🤝 Contribuindo
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+### Como Contribuir
+
+1. **Fork o projeto**
+2. **Crie uma branch**: `git checkout -b feature/nova-funcionalidade`
+3. **Desenvolva**: Implemente sua funcionalidade
+4. **Teste**: Certifique-se de que os testes passam
+5. **Commit**: `git commit -m "Adiciona nova funcionalidade"`
+6. **Push**: `git push origin feature/nova-funcionalidade`
+7. **Pull Request**: Abra um PR para revisão
 
 ### Padrões de Código
 
-- Siga as convenções do Django
-- Escreva testes para novas funcionalidades
-- Mantenha cobertura de testes acima de 85%
-- Documente mudanças significativas
+#### Python
+
+- Seguir PEP 8
+- Usar type hints quando possível
+- Documentar funções e classes
+- Máximo 120 caracteres por linha
+
+#### Django
+
+- Seguir convenções do Django
+- Usar class-based views quando apropriado
+- Separar lógica de negócio em services.py
+- Validar dados em forms.py
+
+#### Frontend
+
+- Usar Tailwind CSS para estilização
+- JavaScript vanilla (sem frameworks)
+- Seguir convenções de nomenclatura
+- Comentar código complexo
+
+### Testes
+
+- Escrever testes para novas funcionalidades
+- Manter cobertura acima de 85%
+- Testar casos de erro e edge cases
+- Usar nomes descritivos para testes
+
+### Documentação
+
+- Atualizar README.md se necessário
+- Documentar novas funcionalidades
+- Adicionar comentários em código complexo
+- Atualizar docstrings
+
+### Code Review
+
+- PRs são revisados antes de merge
+- Responder a comentários de revisão
+- Fazer alterações solicitadas
+- Manter PRs pequenos e focados
 
 ---
 
-## 📝 Licença
+## 📝 Licença e Autores
 
-[Adicionar licença aqui]
+### Licença
 
----
+[Especificar licença aqui]
 
-## 👥 Autores
+### Autores
 
-### UniRV - Universidade de Rio Verde
+**UniRV - Universidade de Rio Verde**
+- YPETEC - Incubadora UniRV
+- Departamento de Tecnologia
+
+### Agradecimentos
+
+- Comunidade Django
+- Desenvolvedores de todas as bibliotecas utilizadas
+- Contribuidores do projeto
 
 ---
 
 ## 📚 Documentação Adicional
 
-- [Especificação Completa](./specs/001-hub-editais/spec.md)
+- [Documentação do Django](https://docs.djangoproject.com/)
+- [Documentação do Tailwind CSS](https://tailwindcss.com/docs)
+- [Especificação Completa do Projeto](./specs/001-hub-editais/spec.md)
 - [Plano de Implementação](./specs/001-hub-editais/plan.md)
-- [Análise do Projeto](./specs/001-hub-editais/analysis.md)
 - [Relatório de Cobertura](./COVERAGE_REPORT.md)
 
 ---
 
-**Última atualização**: 2025-01-15
+## 📞 Contato
+
+Para dúvidas, sugestões ou problemas:
+
+- **Email**: [email de contato]
+- **Repositório**: [URL do repositório]
+- **Documentação**: [URL da documentação]
+
+---
+
+**Última atualização**: 2025-01-15  
+**Versão**: 1.0.0
+
+---
+
+**Desenvolvido com ❤️ pela equipe UniRV**

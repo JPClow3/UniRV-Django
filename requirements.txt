@@ -2,7 +2,7 @@
 Django>=5.2.8
 whitenoise>=6.11.0
 gunicorn>=23.0.0
-uvicorn>=0.38.0
+# uvicorn>=0.38.0  # Optional: ASGI server for WebSockets/async support (not currently used - project uses WSGI with gunicorn)
 
 # Content processing
 bleach>=6.3.0
@@ -24,7 +24,9 @@ psycopg2-binary>=2.9.9  # PostgreSQL adapter
 # Cache backend (used as fallback in settings)
 redis>=5.0.0
 
-# Security auditing (optional, for deployment)
+# Security auditing tool (for CI/CD and security checks, not a runtime dependency)
+# Run with: pip-audit -r requirements.txt
+# See: https://pypi.org/project/pip-audit/
 pip-audit>=2.6.0
 
 # Audit logging

@@ -125,6 +125,11 @@
 
                 if (newGrid) {
                     editaisGrid.classList.remove('loading');
+                    // Restore grid classes if they were removed (for empty state)
+                    if (!editaisGrid.classList.contains('grid')) {
+                        editaisGrid.classList.remove('flex', 'justify-center');
+                        editaisGrid.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                    }
                     editaisGrid.innerHTML = newGrid.innerHTML;
                     isLoading = false;
 
@@ -137,6 +142,9 @@
                 } else if (noResults) {
                     // Handle empty state
                     editaisGrid.classList.remove('loading');
+                    // Remove grid classes to allow proper centering
+                    editaisGrid.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                    editaisGrid.classList.add('flex', 'justify-center');
                     editaisGrid.innerHTML = noResults.outerHTML;
                     isLoading = false;
                     announceToScreenReader('Nenhum resultado encontrado.');
@@ -498,6 +506,11 @@
 
                         if (newGrid) {
                             editaisGrid.classList.remove('loading');
+                            // Restore grid classes if they were removed (for empty state)
+                            if (!editaisGrid.classList.contains('grid')) {
+                                editaisGrid.classList.remove('flex', 'justify-center');
+                                editaisGrid.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                            }
                             editaisGrid.innerHTML = newGrid.innerHTML;
                             isLoading = false;
 
@@ -509,6 +522,9 @@
                             announceToScreenReader(`Página atualizada. ${cardCount} editais exibidos.`);
                         } else if (noResults) {
                             editaisGrid.classList.remove('loading');
+                            // Remove grid classes to allow proper centering
+                            editaisGrid.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3');
+                            editaisGrid.classList.add('flex', 'justify-center');
                             editaisGrid.innerHTML = noResults.outerHTML;
                             isLoading = false;
                             announceToScreenReader('Nenhum resultado encontrado.');

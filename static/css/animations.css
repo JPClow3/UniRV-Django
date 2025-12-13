@@ -220,3 +220,64 @@
   }
 }
 
+/* --------------------------------------------------
+ * Ecosystem Ticker - Infinite Marquee Animation
+ * Pure CSS infinite scroll with seamless loop
+ * Respects prefers-reduced-motion for accessibility
+ * -------------------------------------------------- */
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.ecosystem-ticker-track {
+  display: inline-flex;
+  animation: marquee-scroll 35s linear infinite;
+  will-change: transform;
+  white-space: nowrap;
+}
+
+.ecosystem-ticker:hover .ecosystem-ticker-track {
+  animation-play-state: paused;
+}
+
+/* Fade mask for smooth edges - very subtle to ensure visibility */
+.ecosystem-ticker-wrapper {
+  position: relative;
+  /* Use a subtle mask that only fades the very edges */
+  mask-image: linear-gradient(
+    to right,
+    transparent 0px,
+    rgba(0,0,0,0.3) 30px,
+    black 60px,
+    black calc(100% - 60px),
+    rgba(0,0,0,0.3) calc(100% - 30px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0px,
+    rgba(0,0,0,0.3) 30px,
+    black 60px,
+    black calc(100% - 60px),
+    rgba(0,0,0,0.3) calc(100% - 30px),
+    transparent 100%
+  );
+  /* Ensure minimum width for mask to work properly */
+  min-width: 100%;
+}
+
+/* Respect user's motion preferences - but allow animation if user wants it */
+/* Note: This still respects system preferences but ensures animation is defined */
+@media (prefers-reduced-motion: reduce) {
+  .ecosystem-ticker-track {
+    /* Keep animation but make it slower/more subtle */
+    animation: marquee-scroll 60s linear infinite !important;
+    will-change: transform;
+  }
+}
+

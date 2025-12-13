@@ -534,7 +534,6 @@
         setTimeout(initAnimationsWhenReady, 500);
       }
     }
-    }
   }
 
   // Initialize when DOM is ready

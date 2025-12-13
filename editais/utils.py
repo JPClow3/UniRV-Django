@@ -163,12 +163,27 @@ def generate_unique_slug(
     Returns:
         str: Slug único
     """
+    # #region agent log
+    with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
+        import json, time
+        f.write(json.dumps({"id":f"log_{int(time.time())}_slug_entry","timestamp":int(time.time()*1000),"location":"utils.py:166","message":"generate_unique_slug entry","data":{"text_type":str(type(text)),"text_repr":str(text)[:50] if text else "None","has_text":bool(text),"prefix":prefix,"pk":pk},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"B"}) + '\n')
+    # #endregion
     # Gerar slug base
     if not text:
         # Se texto está vazio, usar apenas o prefixo ou padrão
         base_slug = prefix or 'item'
+        # #region agent log
+        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
+            import json, time
+            f.write(json.dumps({"id":f"log_{int(time.time())}_slug_empty_text","timestamp":int(time.time()*1000),"location":"utils.py:169","message":"Text is empty, using prefix","data":{"base_slug":base_slug},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"B"}) + '\n')
+        # #endregion
     else:
         base_slug = slugify(text)
+        # #region agent log
+        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
+            import json, time
+            f.write(json.dumps({"id":f"log_{int(time.time())}_slug_generated","timestamp":int(time.time()*1000),"location":"utils.py:172","message":"Slug generated from text","data":{"base_slug_before_prefix":base_slug},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"B"}) + '\n')
+        # #endregion
         if prefix:
             base_slug = f"{prefix}-{base_slug}"
     
@@ -177,6 +192,11 @@ def generate_unique_slug(
     if not base_slug:
         # Se o slug base está vazio, usar um padrão
         base_slug = prefix or 'item'
+        # #region agent log
+        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
+            import json, time
+            f.write(json.dumps({"id":f"log_{int(time.time())}_slug_was_empty","timestamp":int(time.time()*1000),"location":"utils.py:177","message":"Base slug was empty after truncation, using fallback","data":{"base_slug":base_slug},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"B"}) + '\n')
+        # #endregion
     
     slug = base_slug
     attempt = 0
@@ -190,6 +210,11 @@ def generate_unique_slug(
             queryset = queryset.exclude(pk=pk)
         
         if not queryset.exists():
+            # #region agent log
+            with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
+                import json, time
+                f.write(json.dumps({"id":f"log_{int(time.time())}_slug_unique","timestamp":int(time.time()*1000),"location":"utils.py:193","message":"Slug is unique, returning","data":{"slug":slug,"attempt":attempt},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"B"}) + '\n')
+            # #endregion
             return slug
         
         # Tentar com sufixo numérico
@@ -200,6 +225,11 @@ def generate_unique_slug(
         slug = f"{base_slug[:available_length]}{suffix}"
     
     # Se todas as tentativas falharam, usar timestamp
+    # #region agent log
+    with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
+        import json, time
+        f.write(json.dumps({"id":f"log_{int(time.time())}_slug_max_attempts_reached","timestamp":int(time.time()*1000),"location":"utils.py:227","message":"Max attempts reached, using timestamp fallback","data":{"base_slug":base_slug,"max_attempts":max_attempts,"attempt":attempt},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"B"}) + '\n')
+    # #endregion
     timestamp_suffix = f'-{int(time.time())}'
     available_length = max_length - len(timestamp_suffix)
     return f"{base_slug[:available_length]}{timestamp_suffix}"

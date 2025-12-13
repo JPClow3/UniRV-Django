@@ -82,8 +82,12 @@ RUN chown -R django-user:django-user /home/django-user
 # Copy application code and collected static files from builder stage
 COPY --from=python-builder /app /app
 
-# Set ownership of app directory to django-user
-RUN chown -R django-user:django-user /app
+# Copy entrypoint script
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+
+# Set ownership of app directory to django-user and make entrypoint executable
+RUN chown -R django-user:django-user /app && \
+    chmod +x /app/docker-entrypoint.sh
 
 # Switch to non-root user
 USER django-user
@@ -91,5 +95,8 @@ USER django-user
 # Expose port
 EXPOSE 8000
 
-# Simple entrypoint: run DB migrations then server
-CMD ["sh", "-c", "python manage.py migrate && gunicorn UniRV_Django.wsgi:application --bind 0.0.0.0:8000"]
+# Set entrypoint script
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
+# Default command (can be overridden)
+CMD []
