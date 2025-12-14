@@ -120,25 +120,7 @@
     {% block content %}{% endblock %}
   </main>
 
-  <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const userMenuToggle = document.getElementById('user-menu-toggle');
-    const userMenu = document.getElementById('user-menu');
-    
-    if (userMenuToggle && userMenu) {
-      userMenuToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        userMenu.classList.toggle('hidden');
-      });
-      
-      document.addEventListener('click', function(e) {
-        if (!userMenu.contains(e.target) && !userMenuToggle.contains(e.target)) {
-          userMenu.classList.add('hidden');
-        }
-      });
-    }
-  });
-  </script>
+  <!-- User menu toggle is handled by main.js to avoid conflicts -->
   {% compress js %}
   <script src="{% static 'js/main.js' %}"></script>
   {% endcompress %}

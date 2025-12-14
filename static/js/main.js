@@ -1593,7 +1593,12 @@ window.showConfirmDialog = showConfirmDialog;
     function toggleMenu() {
         const isExpanded = userMenuToggle.getAttribute('aria-expanded') === 'true';
         userMenuToggle.setAttribute('aria-expanded', !isExpanded);
-        userMenuDropdown.classList.toggle('show');
+        // Support both 'hidden' (Tailwind) and 'show' (Bootstrap) class patterns
+        if (userMenuDropdown.classList.contains('hidden')) {
+            userMenuDropdown.classList.toggle('hidden');
+        } else {
+            userMenuDropdown.classList.toggle('show');
+        }
     }
     
     userMenuToggle.addEventListener('click', function(e) {
@@ -1605,7 +1610,12 @@ window.showConfirmDialog = showConfirmDialog;
     document.addEventListener('click', function(e) {
         if (!userMenuToggle.contains(e.target) && !userMenuDropdown.contains(e.target)) {
             userMenuToggle.setAttribute('aria-expanded', 'false');
-            userMenuDropdown.classList.remove('show');
+            // Support both class patterns
+            if (userMenuDropdown.classList.contains('show')) {
+                userMenuDropdown.classList.remove('show');
+            } else {
+                userMenuDropdown.classList.add('hidden');
+            }
         }
     });
     
@@ -1622,7 +1632,12 @@ window.showConfirmDialog = showConfirmDialog;
     menuItems.forEach(item => {
         item.addEventListener('click', function() {
             userMenuToggle.setAttribute('aria-expanded', 'false');
-            userMenuDropdown.classList.remove('show');
+            // Support both class patterns
+            if (userMenuDropdown.classList.contains('show')) {
+                userMenuDropdown.classList.remove('show');
+            } else {
+                userMenuDropdown.classList.add('hidden');
+            }
         });
     });
 

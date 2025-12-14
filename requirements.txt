@@ -33,6 +33,10 @@ pip-audit>=2.6.0
 # Audit logging
 django-simple-history>=3.4.0
 
+# Testing
+factory_boy>=3.3.0
+coverage[toml]>=7.5.0
+
 # Note: Regularly update dependencies for security patches
 # Use 'pip list --outdated' to check for updates
 # Review changelogs before updating major versions

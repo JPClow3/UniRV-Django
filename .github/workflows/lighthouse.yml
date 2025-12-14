@@ -25,7 +25,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set environment variables
         run: |
@@ -37,7 +37,7 @@ jobs:
           echo "  ALLOWED_HOSTS: $ALLOWED_HOSTS"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -230,6 +230,12 @@ jobs:
             fi
           fi
 
+      - name: Track Lighthouse scores
+        run: |
+          echo "Tracking Lighthouse scores..."
+          python scripts/track_lighthouse_scores.py || echo "Score tracking failed (non-critical)"
+        continue-on-error: true
+
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -237,6 +243,15 @@ jobs:
           name: lighthouse-reports
           path: lighthouse_reports/
           retention-days: 7
+          
+      - name: Upload Lighthouse score history
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-score-history
+          path: lighthouse_scores_history.json
+          retention-days: 30
+          if-no-files-found: ignore
           
       - name: Upload server logs
         uses: actions/upload-artifact@v4

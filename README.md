@@ -1,6 +1,6 @@
 # UniRV Django - Sistema de Gerenciamento de Editais de Fomento
 
-**Sistema completo para gerenciamento e divulgação de editais de fomento para a YPETEC - Incubadora UniRV**
+Sistema completo para gerenciamento e divulgação de editais de fomento para a YPETEC - Incubadora UniRV
 
 **Status do Projeto**: ✅ **Produção Ready** - Otimizado, seguro e pronto para deploy
 
@@ -216,7 +216,8 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 ```
 
 Copie o resultado e adicione ao `.env`:
-```
+
+```text
 SECRET_KEY=seu-secret-key-aqui
 ```
 
@@ -256,7 +257,7 @@ python manage.py collectstatic --noinput
 python manage.py runserver
 ```
 
-Acesse: **http://127.0.0.1:8000/**
+Acesse: <http://127.0.0.1:8000/>
 
 ---
 
@@ -364,7 +365,7 @@ As configurações de segurança são habilitadas automaticamente quando `DEBUG=
 
 ## 📁 Estrutura do Projeto
 
-```
+```text
 UniRV-Django/
 ├── editais/                          # App principal de editais
 │   ├── __init__.py
@@ -434,7 +435,7 @@ UniRV-Django/
 │       ├── package.json              # Dependências npm
 │       ├── package-lock.json         # Lock de dependências
 │       ├── tailwind.config.js        # Configuração Tailwind
-│       ├── postcss.config.js         # Configuração PostCSS
+│       ├── postcss.config.js        # Configuração PostCSS
 │       └── src/
 │           ├── styles.css            # CSS principal
 │           └── fonts/                # Fontes fonte
@@ -926,7 +927,7 @@ Isso:
 
 #### Estrutura de Build
 
-```
+```text
 theme/static_src/
 ├── src/styles.css                    # CSS fonte
 └── (build) → ../../static/css/dist/styles.css  # CSS compilado
@@ -1007,16 +1008,16 @@ coverage html
 
 ### Estrutura de Testes
 
-```
+```text
 editais/tests/
 ├── test_admin.py              # Testes do Django Admin
-├── test_permissions.py        # Testes de permissões
-├── test_public_views.py       # Testes de views públicas
-├── test_dashboard_views.py    # Testes do dashboard
-├── test_security.py           # Testes de segurança
-├── test_cache.py              # Testes de cache
+├── test_permissions.py         # Testes de permissões
+├── test_public_views.py        # Testes de views públicas
+├── test_dashboard_views.py     # Testes do dashboard
+├── test_security.py            # Testes de segurança
+├── test_cache.py               # Testes de cache
 ├── test_forms.py              # Testes de formulários
-├── test_integration.py        # Testes de integração
+├── test_integration.py         # Testes de integração
 └── ...
 ```
 
@@ -1069,24 +1070,28 @@ python manage.py test editais.tests.test_performance
 ### Preparação
 
 1. **Coletar arquivos estáticos:**
-```bash
-python manage.py collectstatic --noinput
-```
+
+   ```bash
+   python manage.py collectstatic --noinput
+   ```
 
 2. **Aplicar migrações:**
-```bash
-python manage.py migrate
-```
+
+   ```bash
+   python manage.py migrate
+   ```
 
 3. **Criar superusuário:**
-```bash
-python manage.py createsuperuser
-```
+
+   ```bash
+   python manage.py createsuperuser
+   ```
 
 4. **Verificar configurações:**
-```bash
-python manage.py check --deploy
-```
+
+   ```bash
+   python manage.py check --deploy
+   ```
 
 ### Deploy com Docker
 
@@ -1783,8 +1788,9 @@ Para problemas não resolvidos:
 
 ### Autores
 
-**UniRV - Universidade de Rio Verde**
-- YPETEC - Incubadora UniRV
+UniRV - Universidade de Rio Verde
+
+- YPETEC - UniRV Incubator
 - Departamento de Tecnologia
 
 ### Agradecimentos
@@ -1820,4 +1826,4 @@ Para dúvidas, sugestões ou problemas:
 
 ---
 
-**Desenvolvido com ❤️ pela equipe UniRV**
+Desenvolvido com ❤️ pela equipe UniRV

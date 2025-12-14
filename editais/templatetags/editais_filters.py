@@ -159,3 +159,32 @@ def is_svg(file_field) -> bool:
     import os
     ext = os.path.splitext(filename)[1].lower()
     return ext in ['.svg', '.svgz']
+
+
+@register.filter
+def total_error_count(form) -> int:
+    """
+    Count the total number of errors in a form (including multiple errors per field).
+    
+    Usage in templates:
+        Há {{ form|total_error_count }} erro{{ form|total_error_count|pluralize }} no formulário
+    
+    Args:
+        form: Django form instance
+        
+    Returns:
+        int: Total number of errors (field errors + non-field errors)
+    """
+    if not form or not hasattr(form, 'errors'):
+        return 0
+    
+    count = 0
+    # Count field errors
+    for field in form:
+        if field.errors:
+            count += len(field.errors)
+    # Count non-field errors
+    if form.non_field_errors():
+        count += len(form.non_field_errors())
+    
+    return count

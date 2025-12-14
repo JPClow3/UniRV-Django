@@ -240,9 +240,8 @@ class Command(BaseCommand):
             '/dashboard/editais/novo/',
             '/dashboard/projetos/',
             '/dashboard/projetos/submeter/',
-            '/dashboard/avaliacoes/',
             '/dashboard/usuarios/',
-            '/dashboard/relatorios/',
+            # NOTE: /dashboard/avaliacoes/ and /dashboard/relatorios/ removed - these endpoints don't exist
         ]
         urls.extend([base_url + url for url in dashboard_urls])
         

@@ -285,9 +285,12 @@ class XSSPreventionInFormsTest(TestCase):
         edital.created_by = self.user
         edital.save()
         
-        # Verify form accepts the data (markdown/HTML fields may contain HTML)
-        # The important thing is that it's escaped when rendered
-        self.assertIn('<img', edital.analise)
+        # Verify that dangerous HTML is sanitized/removed
+        # The sanitization removes img tags and dangerous attributes
+        # This is the correct behavior - XSS is prevented
+        self.assertNotIn('onerror', edital.analise)
+        self.assertNotIn('alert', edital.analise)
+        # The img tag itself may be removed (which is safe) or sanitized
     
     def test_form_with_xss_attempt_in_objetivo(self):
         """Test that XSS attempts in objetivo field are handled"""
@@ -303,8 +306,12 @@ class XSSPreventionInFormsTest(TestCase):
         edital.created_by = self.user
         edital.save()
         
-        # Form should accept the data
-        self.assertIn('<svg', edital.objetivo)
+        # Verify that dangerous HTML is sanitized/removed
+        # The sanitization removes svg tags and dangerous attributes
+        # This is the correct behavior - XSS is prevented
+        self.assertNotIn('onload', edital.objetivo)
+        self.assertNotIn('alert', edital.objetivo)
+        # The svg tag itself may be removed (which is safe) or sanitized
     
     def test_user_registration_with_xss_in_name(self):
         """Test that XSS attempts in user registration form are handled"""

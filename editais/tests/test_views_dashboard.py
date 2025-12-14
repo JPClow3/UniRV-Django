@@ -3,13 +3,13 @@ Testes para a view admin_dashboard.
 """
 
 from datetime import timedelta
-from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from ..models import Edital
+from .factories import UserFactory, StaffUserFactory, EditalFactory
 
 
 class AdminDashboardViewTest(TestCase):
@@ -21,32 +21,22 @@ class AdminDashboardViewTest(TestCase):
         cache.clear()
         
         # Criar usuário staff
-        self.staff_user = User.objects.create_user(
-            username='staff',
-            password='testpass123',
-            is_staff=True
-        )
+        self.staff_user = StaffUserFactory(username='staff')
         
         # Criar usuário não-staff
-        self.regular_user = User.objects.create_user(
-            username='regular',
-            password='testpass123',
-            is_staff=False
-        )
+        self.regular_user = UserFactory(username='regular')
         
         # Criar alguns editais para testes
-        self.edital1 = Edital.objects.create(
+        self.edital1 = EditalFactory(
             titulo='Edital Teste 1',
-            url='https://example.com/1',
             status='aberto',
             start_date=timezone.now().date(),
             end_date=timezone.now().date() + timedelta(days=5),
             created_by=self.staff_user
         )
         
-        self.edital2 = Edital.objects.create(
+        self.edital2 = EditalFactory(
             titulo='Edital Teste 2',
-            url='https://example.com/2',
             status='fechado',
             created_by=self.staff_user
         )
@@ -109,9 +99,8 @@ class AdminDashboardViewTest(TestCase):
         
         # Criar mais editais para testar eficiência
         for i in range(5):
-            Edital.objects.create(
+            EditalFactory(
                 titulo=f'Edital {i}',
-                url=f'https://example.com/{i}',
                 status='aberto',
                 created_by=self.staff_user
             )

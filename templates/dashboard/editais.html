@@ -263,19 +263,35 @@ document.addEventListener('DOMContentLoaded', function() {
       const menu = this.nextElementSibling;
       const isOpen = !menu.classList.contains('hidden');
       
-      // Close all menus
-      document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+      // Close all menus and reset aria-expanded
+      document.querySelectorAll('.action-menu').forEach(m => {
+        m.classList.add('hidden');
+        const toggleBtn = m.previousElementSibling;
+        if (toggleBtn && toggleBtn.classList.contains('action-menu-toggle')) {
+          toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
       
       // Toggle current menu
       if (!isOpen) {
         menu.classList.remove('hidden');
+        this.setAttribute('aria-expanded', 'true');
+      } else {
+        this.setAttribute('aria-expanded', 'false');
       }
     });
   });
   
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.action-menu-toggle') && !e.target.closest('.action-menu')) {
-      document.querySelectorAll('.action-menu').forEach(m => m.classList.add('hidden'));
+      document.querySelectorAll('.action-menu').forEach(m => {
+        m.classList.add('hidden');
+        // Reset aria-expanded when closing menu
+        const toggleBtn = m.previousElementSibling;
+        if (toggleBtn && toggleBtn.classList.contains('action-menu-toggle')) {
+          toggleBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
     }
   });
 

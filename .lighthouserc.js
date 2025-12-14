@@ -26,9 +26,8 @@ const collectConfig = {
         'http://localhost:7000/dashboard/editais/novo/',
         'http://localhost:7000/dashboard/projetos/',
         'http://localhost:7000/dashboard/projetos/submeter/',
-        'http://localhost:7000/dashboard/avaliacoes/',
         'http://localhost:7000/dashboard/usuarios/',
-        'http://localhost:7000/dashboard/relatorios/',
+        // NOTE: /dashboard/avaliacoes/ and /dashboard/relatorios/ removed - these endpoints don't exist
         // Admin pages excluded from Lighthouse CI scanning
         // CRUD pages (require authentication)
         'http://localhost:7000/cadastrar/',
