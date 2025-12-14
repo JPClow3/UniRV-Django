@@ -117,6 +117,7 @@ INSTALLED_APPS = [
     'widget_tweaks',  # For form field styling in templates
     'tailwind',
     'theme',  # Tailwind theme app
+    'easy_thumbnails',  # Image thumbnails generation
     'editais.apps.EditaisConfig',
 ]
 
@@ -129,6 +130,17 @@ try:
     INSTALLED_APPS.insert(-1, 'compressor')  # Insert before editais app
 except ImportError:
     # Compressor not installed, skip it
+    pass
+
+# Check if easy-thumbnails is available (optional dependency)
+HAS_THUMBNAILS = False
+try:
+    import easy_thumbnails
+    HAS_THUMBNAILS = True
+except ImportError:
+    # easy-thumbnails not installed, remove from INSTALLED_APPS
+    if 'easy_thumbnails' in INSTALLED_APPS:
+        INSTALLED_APPS.remove('easy_thumbnails')
     pass
 
 # Add django_browser_reload only in DEBUG mode and not during testing
@@ -159,10 +171,11 @@ if DEBUG and not TESTING:
 
 ROOT_URLCONF = 'UniRV_Django.urls'
 
-# Custom context processor to make HAS_COMPRESSOR and DEBUG available in templates
+# Custom context processor to make HAS_COMPRESSOR, HAS_THUMBNAILS and DEBUG available in templates
 def compressor_context(request):
     return {
         'HAS_COMPRESSOR': HAS_COMPRESSOR,
+        'HAS_THUMBNAILS': HAS_THUMBNAILS,
         'DEBUG': DEBUG
     }
 
@@ -303,6 +316,39 @@ if not DEBUG:
         SecurityWarning
     )
 
+# Easy Thumbnails configuration
+# Thumbnails are generated on-demand and cached for performance
+# Using max dimensions instead of fixed size to preserve aspect ratio
+# crop=False prevents cutting logos, upscale=False prevents enlarging small images
+THUMBNAIL_ALIASES = {
+    '': {
+        'card_thumb': {
+            'size': (150, 150),  # Max dimensions, not fixed
+            'crop': False,  # Don't crop - preserve aspect ratio
+            'upscale': False,  # Don't enlarge small images
+            'quality': 85,
+        },
+        'detail_thumb': {
+            'size': (256, 256),  # Max dimensions, not fixed
+            'crop': False,  # Don't crop - preserve aspect ratio
+            'upscale': False,  # Don't enlarge small images
+            'quality': 90,
+        },
+        'hero_thumb': {
+            'size': (128, 128),  # Max dimensions, not fixed
+            'crop': False,  # Don't crop - preserve aspect ratio
+            'upscale': False,  # Don't enlarge small images
+            'quality': 85,
+        },
+    },
+}
+
+# Thumbnail storage: use same storage as media files
+# Thumbnails will be stored in MEDIA_ROOT/thumbnails/ by default
+# If you need custom location, uncomment and set:
+# THUMBNAIL_ROOT = MEDIA_ROOT / 'thumbnails'
+# THUMBNAIL_BASEDIR = 'thumbnails'
+
 # Tailwind CSS configuration
 TAILWIND_APP_NAME = 'theme'
 
@@ -378,6 +424,9 @@ else:
 # In development, use simple storage to avoid slow manifest lookups
 if TESTING:
     STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
         'staticfiles': {
             'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         },
@@ -386,6 +435,9 @@ elif DEBUG:
     # Development: Use simple storage for faster static file serving
     # CompressedManifestStaticFilesStorage is slow because it checks manifest on every request
     STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
         'staticfiles': {
             'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
         },
@@ -393,6 +445,9 @@ elif DEBUG:
 else:
     # Production: Use manifest storage for cache busting
     STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
         'staticfiles': {
             'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
         },

@@ -10,6 +10,12 @@
 
 {% block og_description %}{{ edital.objetivo|truncatewords:25|striptags }}{% endblock %}
 
+{% block twitter_title %}{{ edital.titulo }} - AgroHub UniRV{% endblock %}
+
+{% block twitter_description %}{{ edital.objetivo|truncatewords:25|striptags|default:"Edital de fomento disponível no AgroHub UniRV" }}{% endblock %}
+
+{% block og_type %}article{% endblock %}
+
 {% block extra_head %}
   <link rel="stylesheet" href="{% static 'css/detail.css' %}">
 {% endblock %}

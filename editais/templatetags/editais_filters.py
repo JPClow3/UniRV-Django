@@ -126,3 +126,36 @@ def is_select_widget(widget) -> bool:
     """
     from django.forms import Select, SelectMultiple
     return isinstance(widget, (Select, SelectMultiple))
+
+
+@register.filter
+def is_svg(file_field) -> bool:
+    """
+    Check if a FileField or ImageField value is an SVG file.
+    
+    Usage in templates:
+        {% if startup.logo|is_svg %}
+            <img src="{{ startup.logo.url }}" />
+        {% else %}
+            {% safe_thumbnail startup.logo "card_thumb" as thumb %}
+        {% endif %}
+    
+    Args:
+        file_field: FileField or ImageField value (FileFieldFile/ImageFieldFile instance)
+        
+    Returns:
+        bool: True if the file is an SVG file (by extension)
+    """
+    if not file_field:
+        return False
+    
+    # Get the filename from the field
+    # FileField and ImageField both have a .name attribute
+    filename = getattr(file_field, 'name', '')
+    if not filename:
+        return False
+    
+    # Check file extension
+    import os
+    ext = os.path.splitext(filename)[1].lower()
+    return ext in ['.svg', '.svgz']

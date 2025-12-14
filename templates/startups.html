@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static thumbnail_safe editais_filters %}
 
 {% block title %}Startups - AgroHub UniRV{% endblock %}
 {% block page_id %}startups{% endblock %}
@@ -129,7 +129,16 @@
           
         <div class="flex items-start justify-between mb-6 overflow-hidden">
             {% if startup.logo %}
-              <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0" width="64" height="64" loading="lazy" />
+              {% if startup.logo|is_svg %}
+                <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0" loading="lazy" />
+              {% else %}
+                {% safe_thumbnail startup.logo "card_thumb" as thumb %}
+                {% if thumb %}
+                  <img src="{{ thumb.url }}" alt="{{ startup.name }} logo" class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0" width="{{ thumb.width }}" height="{{ thumb.height }}" loading="lazy" />
+                {% else %}
+                  <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0" loading="lazy" />
+                {% endif %}
+              {% endif %}
             {% else %}
           <div class="startup-logo-fallback w-16 h-16 rounded-2xl bg-gradient-to-br 
               {% if startup.category == 'agtech' %}from-green-50 to-emerald-100 border border-green-100

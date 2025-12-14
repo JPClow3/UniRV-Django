@@ -36,14 +36,19 @@ logger = logging.getLogger(__name__)
 def home(request: HttpRequest) -> HttpResponse:
     """Home page - landing page with hero, stats, features, etc."""
     # Fetch active startups for Innovation Deck
+    # Use ACTIVE_PROJECT_STATUSES constant which includes pre_incubacao, incubacao, and graduada
     active_startups = Project.objects.filter(
-        status__in=['incubacao', 'graduada']
+        status__in=ACTIVE_PROJECT_STATUSES
     ).only(
         'id', 'name', 'logo', 'category', 'slug'
     ).order_by('-submitted_on')[:12]
     
+    # Partners list - single source of truth for marquee
+    PARTNERS = ['SENAI', 'SEBRAE', 'FAPEG', 'FINEP', 'UNIRV', 'INOVALAB']
+    
     context = {
         'startups': active_startups,
+        'partners': PARTNERS,
     }
     return render(request, 'home.html', context)
 
@@ -377,22 +382,8 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
             if not request.user.is_authenticated or not request.user.is_staff:
                 raise Http404("Edital não encontrado")
         
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            from django.db import connection
-            queries_before = len(connection.queries)
-            f.write(json.dumps({"id":f"log_{int(time.time())}_detail_before_related","timestamp":int(time.time()*1000),"location":"views/public.py:420","message":"Before accessing valores/cronogramas","data":{"queries_count":queries_before,"edital_id":edital.pk},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"C"}) + '\n')
-        # #endregion
         valores = edital.valores.all()
         cronogramas = edital.cronogramas.all()
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            from django.db import connection
-            queries_after = len(connection.queries)
-            f.write(json.dumps({"id":f"log_{int(time.time())}_detail_after_related","timestamp":int(time.time()*1000),"location":"views/public.py:422","message":"After accessing valores/cronogramas","data":{"queries_count":queries_after,"new_queries":queries_after-queries_before,"valores_count":len(valores) if hasattr(valores,'__len__') else "N/A","cronogramas_count":len(cronogramas) if hasattr(cronogramas,'__len__') else "N/A"},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"C"}) + '\n')
-        # #endregion
         mark_edital_fields_safe(edital)
 
         is_recent_update = False
@@ -419,11 +410,6 @@ def edital_detail(request: HttpRequest, slug: Optional[str] = None, pk: Optional
     except Http404:
         raise
     except (DatabaseError, ValidationError) as e:
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_edital_detail_error","timestamp":int(time.time()*1000),"location":"views/public.py:421","message":"DatabaseError/ValidationError in edital_detail","data":{"error_type":type(e).__name__,"error_msg":str(e)[:200]},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"G"}) + '\n')
-        # #endregion
         logger.error(f"Erro inesperado em edital_detail: {e}", exc_info=True)
         raise Http404("Erro ao carregar edital")
 

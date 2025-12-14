@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-{% load widget_tweaks %}
+{% load widget_tweaks thumbnail_safe editais_filters %}
 
 {% block title %}Editar Startup - Dashboard AgroHub{% endblock %}
 
@@ -121,7 +121,16 @@
         {% if project.logo %}
         <div class="mb-4">
           <p class="text-sm text-gray-600 mb-2">Logo atual:</p>
-          <img src="{{ project.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
+          {% if project.logo|is_svg %}
+            <img src="{{ project.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
+          {% else %}
+            {% safe_thumbnail project.logo "detail_thumb" as thumb %}
+            {% if thumb %}
+              <img src="{{ thumb.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200" width="{{ thumb.width }}" height="{{ thumb.height }}">
+            {% else %}
+              <img src="{{ project.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
+            {% endif %}
+          {% endif %}
         </div>
         {% endif %}
         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">

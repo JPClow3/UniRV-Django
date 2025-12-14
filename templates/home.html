@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% load static %}
+{% load static thumbnail_safe editais_filters %}
 
 {% block title %}AgroHub UniRV - Conceito Visual Moderno{% endblock %}
 
@@ -9,7 +9,8 @@
 
 {% block extra_head %}
   <!-- Preload LCP hero image with responsive srcset for optimal candidate selection -->
-  <!-- AVIF preload (best compression, modern browsers) -->
+  <!-- Only preload AVIF (preferred format) - browser will fallback to WebP/JPEG automatically if needed -->
+  <!-- Preloading both formats causes warnings when browser only uses one -->
   <link
     rel="preload"
     as="image"
@@ -21,19 +22,7 @@
     imagesizes="100vw"
     type="image/avif"
     fetchpriority="high"
-  />
-  <!-- WebP fallback preload (for browsers that don't support AVIF) -->
-  <link
-    rel="preload"
-    as="image"
-    imagesrcset="{% static 'img/hero/agrohub-hero-480w.webp' %} 480w,
-                 {% static 'img/hero/agrohub-hero-768w.webp' %} 768w,
-                 {% static 'img/hero/agrohub-hero-1024w.webp' %} 1024w,
-                 {% static 'img/hero/agrohub-hero-1600w.webp' %} 1600w,
-                 {% static 'img/hero/agrohub-hero-2400w.webp' %} 2400w"
-    imagesizes="100vw"
-    type="image/webp"
-    fetchpriority="high"
+    id="preload-avif-hero"
   />
 {% endblock %}
 
@@ -76,7 +65,7 @@
         fetchpriority="high"
         decoding="async"
         alt="AgroHub UniRV - Centro de Inovação e Tecnologia com infraestrutura moderna para pesquisa e desenvolvimento no agronegócio"
-        onload="this.classList.add('is-loaded')"
+        onload="this.classList.add('is-loaded');"
         style="background: radial-gradient(circle at top, #1f2a6b, #0b122c);"
       />
     </picture>
@@ -214,22 +203,51 @@
         </div>
 
         <!-- Scrollable Cards Container -->
-        <div class="relative">
-          <div class="overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-6 px-6" style="scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory;">
-            <div class="flex gap-6 pb-4">
+        <div class="relative overflow-y-visible overflow-x-hidden z-0">
+          <!-- Desktop Navigation Buttons -->
+          <button id="startup-carousel-prev" class="carousel-nav-button hidden md:flex absolute left-0 top-1/2 z-10 bg-white/90 border border-gray-200 rounded-full p-3 shadow-lg" aria-label="Anterior">
+            <i class="fas fa-chevron-left text-unirvBlue"></i>
+          </button>
+          <button id="startup-carousel-next" class="carousel-nav-button hidden md:flex absolute right-0 top-1/2 z-10 bg-white/90 border border-gray-200 rounded-full p-3 shadow-lg" aria-label="Próximo">
+            <i class="fas fa-chevron-right text-unirvBlue"></i>
+          </button>
+          <!-- Ambient Glow: Blob de gradiente para glassmorphism -->
+          <div id="ambient-glow-blob" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-50/50 via-green-50/50 to-blue-50/50 blur-3xl rounded-full opacity-60 pointer-events-none" style="width: 120%; min-width: 120%; height: 300px; min-height: 300px; z-index: -10;"></div>
+          <div id="startup-carousel" class="overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-6 px-6" style="scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory; overflow-y: visible; scroll-behavior: smooth;">
+            <div class="flex gap-6 pb-4 pt-2">
               {% for startup in startups %}
               <a href="{% if startup.slug %}{% url 'startup_detail_slug' slug=startup.slug %}{% else %}#{% endif %}" 
                  class="flex-shrink-0 snap-center snap-always group"
                  style="width: 85vw; max-width: 320px;"
                  aria-label="Ver detalhes de {{ startup.name }}">
-                <div class="bg-white/70 backdrop-blur-xl border border-white/20 rounded-2xl p-6 h-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                <div class="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-6 h-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
                   <!-- Logo Container -->
-                  <div class="flex items-center justify-center h-32 mb-4 bg-gray-50 rounded-xl overflow-hidden">
+                  <div class="flex items-center justify-center h-32 mb-4 bg-gray-50 rounded-xl overflow-hidden p-4">
                     {% if startup.logo %}
-                      <img src="{{ startup.logo.url }}" 
-                           alt="{{ startup.name }} logo" 
-                           class="max-h-24 max-w-full object-contain"
-                           loading="lazy">
+                      {% if startup.logo|is_svg %}
+                        <img src="{{ startup.logo.url }}" 
+                             alt="{{ startup.name }} logo" 
+                             class="h-20 w-auto max-w-full object-contain mx-auto"
+                             loading="lazy"
+                             style="max-height: 5rem;">
+                      {% else %}
+                        {% safe_thumbnail startup.logo "card_thumb" as thumb %}
+                        {% if thumb %}
+                          <img src="{{ thumb.url }}" 
+                               alt="{{ startup.name }} logo" 
+                               class="h-20 w-auto max-w-full object-contain mx-auto"
+                               width="{{ thumb.width }}"
+                               height="{{ thumb.height }}"
+                               loading="lazy"
+                               style="max-height: 5rem;">
+                        {% else %}
+                          <img src="{{ startup.logo.url }}" 
+                               alt="{{ startup.name }} logo" 
+                               class="h-20 w-auto max-w-full object-contain mx-auto"
+                               loading="lazy"
+                               style="max-height: 5rem;">
+                        {% endif %}
+                      {% endif %}
                     {% else %}
                       <!-- Placeholder with initials -->
                       <div class="w-20 h-20 rounded-full bg-gradient-to-br from-unirvBlue to-agrohubGreen flex items-center justify-center text-white font-bold text-2xl">
@@ -245,27 +263,9 @@
                   
                   <!-- Category Badge -->
                   <div class="flex items-center gap-2">
-                    {% if startup.category == 'agtech' %}
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
-                        AgTech
-                      </span>
-                    {% elif startup.category == 'biotech' %}
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200">
-                        BioTech
-                      </span>
-                    {% elif startup.category == 'iot' %}
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 border border-purple-200">
-                        IoT & Hardware
-                      </span>
-                    {% elif startup.category == 'edtech' %}
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200">
-                        EdTech
-                      </span>
-                    {% else %}
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ startup.get_badge_color }}">
                         {{ startup.get_category_display }}
                       </span>
-                    {% endif %}
                   </div>
                 </div>
               </a>
@@ -306,44 +306,18 @@
           <div class="ecosystem-ticker overflow-hidden">
             <div class="ecosystem-ticker-track flex items-center gap-12">
               <!-- First set of partner logos (duplicated for seamless loop) -->
+              {% for partner in partners %}
               <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">SENAI</div>
+                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">{{ partner }}</div>
               </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">SEBRAE</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">FAPEG</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">FINEP</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">UNIRV</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">INOVALAB</div>
-              </div>
+              {% endfor %}
               
               <!-- Duplicate set for seamless infinite loop -->
+              {% for partner in partners %}
               <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">SENAI</div>
+                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">{{ partner }}</div>
               </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">SEBRAE</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">FAPEG</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">FINEP</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">UNIRV</div>
-              </div>
-              <div class="flex-shrink-0 h-12 flex items-center justify-center px-4">
-                <div class="text-gray-500 hover:text-gray-900 font-bold text-lg tracking-wider transition-colors opacity-70 hover:opacity-100">INOVALAB</div>
-              </div>
+              {% endfor %}
             </div>
           </div>
         </div>
@@ -351,17 +325,6 @@
 
     </div>
   </section>
-  
-  <!-- Hide scrollbar styles -->
-  <style>
-    .scrollbar-hide::-webkit-scrollbar {
-      display: none;
-    }
-    .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  </style>
 
   <!-- MISSION / HELIX SECTION -->
   <section class="py-8 md:py-10 bg-unirvBlue text-white relative fold-section">
@@ -490,8 +453,8 @@
             <div class="timeline-icon-mobile md:static w-14 h-14 md:w-20 md:h-20 bg-agrohubGreen border-4 border-white text-white rounded-full flex items-center justify-center font-bold text-xl md:text-3xl shadow-lg z-10 transition-transform transform group-hover:scale-110">
               <i class="fas fa-check"></i>
             </div>
-            <div class="mt-2 md:mt-8 bg-white border border-gray-100 p-6 rounded-xl shadow-md w-full md:text-center hover:shadow-xl transition-all relative">
-              <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rotate-45 border-t border-l border-gray-100"></div>
+            <div class="mt-2 md:mt-8 bg-white border border-gray-200 p-6 rounded-xl shadow-xl w-full md:text-center hover:shadow-xl transition-all relative">
+              <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rotate-45 border-t border-l border-gray-200"></div>
               <h3 class="font-bold text-unirvBlue text-lg">Fase 1: Fundação</h3>
               <p class="text-sm text-gray-500 mt-2">Estruturação da Incubadora YpeTech, InovaLab e espaços de coworking.</p>
               <div class="mt-4">
@@ -543,4 +506,129 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+<script>
+  // Desktop carousel navigation for startup cards
+  document.addEventListener('DOMContentLoaded', function() {
+    const carousel = document.getElementById('startup-carousel');
+    const prevBtn = document.getElementById('startup-carousel-prev');
+    const nextBtn = document.getElementById('startup-carousel-next');
+    
+    if (!carousel || !prevBtn || !nextBtn) return;
+    
+    const cardWidth = 320; // max-width from template
+    const gap = 24; // gap-6 = 1.5rem = 24px
+    
+    // Smooth scroll function with custom easing
+    let isScrolling = false;
+    let currentAnimationFrame = null;
+    
+    const smoothScrollTo = function(targetScrollLeft) {
+      // Cancel any ongoing scroll animation
+      if (currentAnimationFrame) {
+        cancelAnimationFrame(currentAnimationFrame);
+        isScrolling = false;
+      }
+      
+      const startScrollLeft = carousel.scrollLeft;
+      const distance = targetScrollLeft - startScrollLeft;
+      
+      // If distance is very small, just scroll directly
+      if (Math.abs(distance) < 1) {
+        return;
+      }
+      
+      // Calculate duration based on distance (longer distance = longer duration, but capped)
+      const baseDuration = 1000; // Base 1000ms for smoother scroll
+      const distanceFactor = Math.min(Math.abs(distance) / 400, 1.5); // Scale up to 1.5x for longer distances
+      const duration = baseDuration * distanceFactor;
+      
+      const startTime = performance.now();
+      isScrolling = true;
+      
+      // Very smooth easing function (ease-in-out-expo - smoother than quart)
+      const easeInOutExpo = function(t) {
+        return t === 0 ? 0 : t === 1 ? 1 : t < 0.5 
+          ? Math.pow(2, 20 * t - 10) / 2 
+          : (2 - Math.pow(2, -20 * t + 10)) / 2;
+      };
+      
+      // Fallback to ease-in-out-quart if expo is too extreme
+      const easeInOutQuart = function(t) {
+        return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+      };
+      
+      // Use quart for more predictable smoothness
+      const easingFunction = easeInOutQuart;
+      
+      // Disable scroll snap and scroll-behavior during animation
+      // Remove Tailwind classes that might interfere
+      const originalSnapType = carousel.style.scrollSnapType;
+      const originalScrollBehavior = carousel.style.scrollBehavior;
+      const hadSnapX = carousel.classList.contains('snap-x');
+      const hadSnapMandatory = carousel.classList.contains('snap-mandatory');
+      
+      // Add CSS class to disable scroll snap with !important
+      carousel.classList.add('carousel-smooth-scrolling');
+      
+      // Prevent any scroll events from interfering
+      let scrollBlocked = false;
+      
+      const scrollBlocker = function(e) {
+        if (scrollBlocked && isScrolling) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      };
+      
+      // Temporarily remove scroll listeners that might interfere
+      carousel.addEventListener('scroll', scrollBlocker, { passive: false, capture: true });
+      scrollBlocked = true;
+      
+      const animateScroll = function(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easingFunction(progress);
+        const targetScrollLeft = startScrollLeft + (distance * easedProgress);
+        
+        // Direct assignment is more reliable than scrollTo for smooth animations
+        // Temporarily disable scroll snap to prevent interference
+        carousel.style.scrollSnapType = 'none';
+        carousel.scrollLeft = targetScrollLeft;
+        
+        if (progress < 1) {
+          currentAnimationFrame = requestAnimationFrame(animateScroll);
+        } else {
+          // Re-enable scroll blocking removal
+          scrollBlocked = false;
+          carousel.removeEventListener('scroll', scrollBlocker, { capture: true });
+          // Re-enable scroll snap and scroll-behavior after animation completes
+          carousel.classList.remove('carousel-smooth-scrolling');
+          carousel.style.scrollSnapType = originalSnapType || '';
+          carousel.style.scrollBehavior = originalScrollBehavior || '';
+          if (hadSnapX) carousel.classList.add('snap-x');
+          if (hadSnapMandatory) carousel.classList.add('snap-mandatory');
+          isScrolling = false;
+          currentAnimationFrame = null;
+        }
+      };
+      
+      currentAnimationFrame = requestAnimationFrame(animateScroll);
+    };
+    
+    prevBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetScroll = carousel.scrollLeft - (cardWidth + gap);
+      smoothScrollTo(Math.max(0, targetScroll));
+    });
+    
+    nextBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetScroll = carousel.scrollLeft + (cardWidth + gap);
+      const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+      smoothScrollTo(Math.min(maxScroll, targetScroll));
+    });
+  });
+</script>
+{% endblock %}

@@ -770,7 +770,7 @@ body {
     @apply text-red-500 text-xs mt-1 font-medium;
   }
   .has-date-error {
-    @apply border-red-500! ring-1! ring-red-500!;
+    @apply border-red-500 ring-1 ring-red-500;
   }
 
   /* Search & Grid */
@@ -1260,12 +1260,50 @@ body {
     @apply shadow-lg;
   }
 
-  /* Icon hover effects */
+  /* Icon hover effects - using advanced selectors */
   i[class*="fa-"] {
     @apply transition-transform duration-200;
   }
-  button:hover i[class*="fa-"], a:hover i[class*="fa-"] {
+  button:hover > i[class*="fa-"],
+  a:hover > i[class*="fa-"],
+  button:hover i[class*="fa-"],
+  a:hover i[class*="fa-"] {
     @apply transform scale-110;
+  }
+  
+  /* Advanced selector patterns for better specificity */
+  /* Direct child icon in buttons */
+  .btn > i[class*="fa-"] {
+    transition: transform 0.2s ease;
+  }
+  .btn:hover > i[class*="fa-"] {
+    transform: scale(1.1);
+  }
+  
+  /* Adjacent sibling patterns */
+  .form-label + input,
+  .form-label + textarea,
+  .form-label + select {
+    margin-top: 0.5rem;
+  }
+  
+  /* General sibling patterns */
+  .error-message {
+    display: none;
+  }
+  input:invalid ~ .error-message,
+  textarea:invalid ~ .error-message {
+    display: block;
+  }
+  
+  /* Universal selector for consistent box-sizing */
+  .form-group * {
+    box-sizing: border-box;
+  }
+  
+  /* Child selector for nested elements */
+  .card > .card-body > * + * {
+    margin-top: 1rem;
   }
 
   /* Last updated indicator */
@@ -2096,6 +2134,9 @@ body {
     @apply text-2xl font-bold text-white md:text-unirvBlue;
   }
 
+  /* Note: bg-gradient-to-r is the correct Tailwind CSS class name.
+     The linter suggestion for bg-linear-to-r is incorrect - bg-linear-to-* classes
+     were removed in favor of standard bg-gradient-to-* classes (see line 1870). */
   .auth-gradient-cta {
     @apply w-full h-12 rounded-full bg-gradient-to-r from-agrohubGreen to-unirvBlue
     text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-blue-700
@@ -2247,9 +2288,393 @@ body {
     }
   }
 
-  .animate-blob {
-    animation: blob 7s infinite;
-    will-change: transform;
+  /* =========================================
+     ATOMIC CSS UTILITIES - Common Patterns
+     ========================================= */
+  
+  /* Transition utilities */
+  .transition-base {
+    transition: all 0.2s ease;
+  }
+  .transition-slow {
+    transition: all 0.3s ease;
+  }
+  .transition-fast {
+    transition: all 0.15s ease;
+  }
+  .transition-transform {
+    transition: transform 0.2s ease;
+  }
+  .transition-colors {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .transition-opacity {
+    transition: opacity 0.2s ease;
+  }
+  .transition-shadow {
+    transition: box-shadow 0.2s ease;
+  }
+
+  /* Shadow utilities */
+  .shadow-soft {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .shadow-medium {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .shadow-strong {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  .shadow-hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .shadow-hover:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Border radius utilities */
+  .radius-sm {
+    border-radius: var(--radius-sm);
+  }
+  .radius-md {
+    border-radius: var(--radius-md);
+  }
+  .radius-lg {
+    border-radius: var(--radius-lg);
+  }
+  .radius-xl {
+    border-radius: var(--radius-xl);
+  }
+  .radius-2xl {
+    border-radius: var(--radius-2xl);
+  }
+  .radius-full {
+    border-radius: var(--radius-full);
+  }
+
+  /* Z-index utilities */
+  .z-dropdown {
+    z-index: var(--z-dropdown);
+  }
+  .z-sticky {
+    z-index: var(--z-sticky);
+  }
+  .z-modal {
+    z-index: var(--z-modal);
+  }
+  .z-popover {
+    z-index: var(--z-popover);
+  }
+  .z-tooltip {
+    z-index: var(--z-tooltip);
+  }
+
+  /* Transform utilities */
+  .translate-up {
+    transform: translateY(-4px);
+  }
+  .translate-down {
+    transform: translateY(4px);
+  }
+  .scale-hover:hover {
+    transform: scale(1.05);
+  }
+  .scale-active:active {
+    transform: scale(0.95);
+  }
+
+  /* =========================================
+     FLEXBOX UTILITY CLASSES
+     ========================================= */
+  
+  /* Flex container */
+  .flex {
+    display: flex;
+  }
+  .flex-inline {
+    display: inline-flex;
+  }
+  .flex-col {
+    flex-direction: column;
+  }
+  .flex-row {
+    flex-direction: row;
+  }
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  .flex-nowrap {
+    flex-wrap: nowrap;
+  }
+  .flex-reverse {
+    flex-direction: row-reverse;
+  }
+  .flex-col-reverse {
+    flex-direction: column-reverse;
+  }
+
+  /* Justify content */
+  .justify-start {
+    justify-content: flex-start;
+  }
+  .justify-end {
+    justify-content: flex-end;
+  }
+  .justify-center {
+    justify-content: center;
+  }
+  .justify-between {
+    justify-content: space-between;
+  }
+  .justify-around {
+    justify-content: space-around;
+  }
+  .justify-evenly {
+    justify-content: space-evenly;
+  }
+
+  /* Align items */
+  .items-start {
+    align-items: flex-start;
+  }
+  .items-end {
+    align-items: flex-end;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .items-baseline {
+    align-items: baseline;
+  }
+  .items-stretch {
+    align-items: stretch;
+  }
+
+  /* Align self */
+  .self-start {
+    align-self: flex-start;
+  }
+  .self-end {
+    align-self: flex-end;
+  }
+  .self-center {
+    align-self: center;
+  }
+  .self-stretch {
+    align-self: stretch;
+  }
+
+  /* Align content */
+  .content-start {
+    align-content: flex-start;
+  }
+  .content-end {
+    align-content: flex-end;
+  }
+  .content-center {
+    align-content: center;
+  }
+  .content-between {
+    align-content: space-between;
+  }
+  .content-around {
+    align-content: space-around;
+  }
+  .content-stretch {
+    align-content: stretch;
+  }
+
+  /* Flex grow/shrink */
+  .flex-grow {
+    flex-grow: 1;
+  }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
+  .flex-no-grow {
+    flex-grow: 0;
+  }
+  .flex-no-shrink {
+    flex-shrink: 0;
+  }
+
+  /* Flex basis */
+  .flex-auto {
+    flex: 1 1 auto;
+  }
+  .flex-1 {
+    flex: 1 1 0%;
+  }
+  .flex-none {
+    flex: none;
+  }
+
+  /* Gap utilities */
+  .gap-0 { gap: 0; }
+  .gap-1 { gap: 0.25rem; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-3 { gap: 0.75rem; }
+  .gap-4 { gap: 1rem; }
+  .gap-5 { gap: 1.25rem; }
+  .gap-6 { gap: 1.5rem; }
+  .gap-8 { gap: 2rem; }
+
+  /* Common flexbox combinations */
+  .flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .flex-start {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .flex-end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .flex-col-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .flex-col-start {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  /* =========================================
+     ADVANCED CSS SELECTORS
+     ========================================= */
+  
+  /* Child selector (>) - Direct children */
+  .card > .card-header {
+    margin-bottom: 1rem;
+  }
+  .nav > .nav-item {
+    margin: 0 0.5rem;
+  }
+  .list > li {
+    margin-bottom: 0.5rem;
+  }
+  .form-group > label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Adjacent sibling selector (+) - Immediate next sibling */
+  .btn + .btn {
+    margin-left: 0.5rem;
+  }
+  .form-group + .form-group {
+    margin-top: 1.5rem;
+  }
+  h2 + p,
+  h3 + p {
+    margin-top: 0.5rem;
+  }
+  .nav-link + .nav-link {
+    margin-left: 1rem;
+  }
+
+  /* General sibling selector (~) - All following siblings */
+  .error ~ .form-group {
+    margin-top: 1rem;
+  }
+  .active ~ .nav-item {
+    opacity: 0.7;
+  }
+  .card-header ~ .card-body {
+    padding-top: 1rem;
+  }
+  input:checked ~ label {
+    font-weight: 600;
+  }
+  input:checked ~ .toggle-content {
+    display: block;
+  }
+
+  /* Universal selector (*) - All elements */
+  .card * {
+    box-sizing: border-box;
+  }
+  .form-group * + * {
+    margin-top: 0.5rem;
+  }
+  .nav-list > * {
+    flex: 1;
+  }
+  .grid > * {
+    min-width: 0;
+  }
+
+  /* Combined selectors for common patterns */
+  /* Direct child with class */
+  .menu > .menu-item.active {
+    background-color: var(--color-primary);
+    color: white;
+  }
+  
+  /* Adjacent sibling with hover */
+  .btn:hover + .tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* General sibling with state */
+  input:focus ~ .error-message {
+    display: block;
+  }
+  
+  /* Nested patterns */
+  .card:hover > .card-image {
+    transform: scale(1.05);
+  }
+  .nav-item.active + .nav-item {
+    border-left: 2px solid var(--color-primary);
+  }
+  .form-group:has(input:invalid) ~ .form-actions {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* List patterns with advanced selectors */
+  ul > li:not(:last-child) {
+    margin-bottom: 0.5rem;
+  }
+  .nav-list > li:first-child {
+    margin-left: 0;
+  }
+  .nav-list > li:last-child {
+    margin-right: 0;
+  }
+  .card-list > * + * {
+    margin-top: 1rem;
+  }
+
+  /* Form patterns */
+  input:focus + label,
+  textarea:focus + label {
+    color: var(--color-primary);
+  }
+  input:invalid ~ .error-text {
+    display: block;
+  }
+  input:valid ~ .success-icon {
+    display: inline-block;
+  }
+  .checkbox:checked ~ .content {
+    display: block;
   }
 }
 

@@ -27,6 +27,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{% block twitter_title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}" />
     <meta name="twitter:description" content="{% block twitter_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}" />
+    <meta name="twitter:image" content="{% block twitter_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}{% endblock %}" />
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta
@@ -37,7 +38,7 @@
       property="og:description"
       content="{% block og_description %}Centro de Inovação e Tecnologia da UniRV. Transformação digital, automação e sustentabilidade no campo.{% endblock %}"
     />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
     <meta
       property="og:url"
       content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}"
@@ -46,7 +47,9 @@
     {% block og_image %}
     <meta property="og:image" content="{% block og_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}{% endblock %}" />
     <meta property="og:image:alt" content="{% block og_image_alt %}AgroHub UniRV - Logo do Centro de Inovação e Tecnologia{% endblock %}" />
-    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:width" content="{% block og_image_width %}512{% endblock %}" />
+    <meta property="og:image:height" content="{% block og_image_height %}512{% endblock %}" />
+    <meta property="og:image:type" content="{% block og_image_type %}image/svg+xml{% endblock %}" />
     {% endblock %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
@@ -297,21 +300,69 @@
     <main class="flex-1 w-full">
       <div>
         <div class="content-area" id="main-content">
+          <!-- Toast Container -->
+          <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-3 max-w-md w-full md:w-auto" role="region" aria-live="polite" aria-label="Notificações"></div>
+          
           {% if messages %}
-          <div
-            class="messages hidden"
-            role="alert"
-            aria-live="polite"
-          >
-            {% for message in messages %}
-            <div
-              class="alert alert-{{ message.tags }}"
-              data-message-tag="{{ message.tags }}"
-            >
-              {{ message }}
-            </div>
-            {% endfor %}
-          </div>
+          <script>
+            // Initialize toasts from Django messages
+            // Wait for showToast function to be available (loaded from main.js)
+            function initDjangoMessages() {
+              const messages = [
+                {% for message in messages %}
+                {
+                  text: {{ message|escapejs }},
+                  type: '{{ message.tags|default:"info" }}'
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              ];
+              
+              // Check if showToast is available, if not wait and retry
+              if (typeof showToast === 'function') {
+                // Small delay to ensure DOM is ready
+                setTimeout(function() {
+                  messages.forEach(function(msg) {
+                    // Map Django message tags to toast types
+                    let toastType = 'success';
+                    if (msg.type === 'error' || msg.type === 'danger') {
+                      toastType = 'error';
+                    } else if (msg.type === 'warning') {
+                      toastType = 'warning';
+                    } else if (msg.type === 'info' || msg.type === 'debug') {
+                      toastType = 'info';
+                    } else if (msg.type === 'success') {
+                      toastType = 'success';
+                    }
+                    
+                    // Set duration based on type
+                    let duration = 5000;
+                    if (toastType === 'error') {
+                      duration = 7000;
+                    } else if (toastType === 'warning') {
+                      duration = 5000;
+                    } else if (toastType === 'info') {
+                      duration = 4000;
+                    }
+                    
+                    showToast(msg.text, toastType, duration);
+                  });
+                  }, 100);
+              } else {
+                window._toastRetryCount = (window._toastRetryCount || 0) + 1;
+                // Retry after a short delay if showToast is not yet loaded
+                if (window._toastRetryCount < 50) { // Max 5 seconds
+                  setTimeout(initDjangoMessages, 100);
+                }
+              }
+            }
+            
+            // Start initialization when DOM is ready
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', initDjangoMessages);
+            } else {
+              initDjangoMessages();
+            }
+          </script>
           {% endif %} {% block content %}{% endblock %}
         </div>
       </div>

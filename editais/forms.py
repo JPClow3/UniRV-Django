@@ -179,7 +179,7 @@ class ProjectForm(forms.ModelForm):
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg resize-none'
             }),
             'logo': forms.FileInput(attrs={
-                'accept': 'image/jpeg,image/png,image/gif',
+                'accept': 'image/jpeg,image/png,image/gif,image/svg+xml',
                 'class': 'hidden'
             }),
         }
@@ -221,7 +221,7 @@ class ProjectForm(forms.ModelForm):
             # Check file extension
             import os
             ext = os.path.splitext(logo.name)[1].lower()
-            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.svgz']
             if ext not in allowed_extensions:
                 raise ValidationError(f'Formato de arquivo não permitido. Use: {", ".join(allowed_extensions)}')
         

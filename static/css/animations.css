@@ -281,3 +281,268 @@
   }
 }
 
+/* --------------------------------------------------
+ * Scrollbar Hide Utility
+ * Hides scrollbar while maintaining scroll functionality
+ * -------------------------------------------------- */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Fix for startup carousel hover clipping */
+#startup-carousel {
+  overflow-y: visible !important;
+}
+
+#startup-carousel > div {
+  padding-top: 0.5rem; /* pt-2 equivalent - space for hover translate */
+}
+
+/* --------------------------------------------------
+ * Carousel Navigation Buttons - Smooth Animations
+ * Continuous subtle animations similar to marquee but slower
+ * Respects prefers-reduced-motion for accessibility
+ * -------------------------------------------------- */
+@keyframes button-combined {
+  0%, 100% {
+    transform: translateY(-50%) translateZ(0) scale(1);
+  }
+  50% {
+    transform: translateY(calc(-50% - 2px)) translateZ(0) scale(1.02);
+  }
+}
+
+@keyframes icon-glow {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.carousel-nav-button {
+  /* Combined smooth animation - pulse + float effect */
+  animation: button-combined 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite !important;
+  will-change: transform;
+  /* Remove transition to avoid conflicts with animation */
+  transform-origin: center center;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  transform-style: preserve-3d;
+  /* Force GPU acceleration */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Ensure animation works even with Tailwind classes - use same animation as base */
+button.carousel-nav-button,
+button.carousel-nav-button.hidden.md\:flex {
+  animation: button-combined 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.carousel-nav-button i {
+  animation: icon-glow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  transition: transform 0.3s ease-out;
+}
+
+.carousel-nav-button:hover {
+  animation-play-state: paused;
+  transform: translateY(-50%) translateZ(0) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  background-color: rgba(255, 255, 255, 1);
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, background-color 0.3s ease-out;
+}
+
+.carousel-nav-button:hover i {
+  animation-play-state: paused;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.carousel-nav-button:active {
+  transform: translateY(-50%) translateZ(0) scale(0.95);
+  transition: transform 0.15s ease-in-out;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .carousel-nav-button {
+    animation: none;
+  }
+  
+  .carousel-nav-button i {
+    animation: none;
+    opacity: 1;
+  }
+  
+  /* Keep hover transitions for tactile feedback */
+  .carousel-nav-button:hover {
+    transform: translateY(-50%) scale(1.05);
+  }
+}
+
+/* Disable scroll snap during smooth scroll animation */
+.carousel-smooth-scrolling {
+  scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+}
+
+.carousel-smooth-scrolling.snap-x {
+  scroll-snap-type: none !important;
+}
+
+.carousel-smooth-scrolling.snap-mandatory {
+  scroll-snap-type: none !important;
+}
+
+/* --------------------------------------------------
+ * Toast Notifications
+ * Animated toast notifications with auto-dismiss
+ * Respects prefers-reduced-motion for accessibility
+ * -------------------------------------------------- */
+#toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 28rem;
+  width: 100%;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  #toast-container {
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  border-left: 4px solid;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #1f2937;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.toast-close:hover {
+  color: #1f2937;
+  background-color: #f3f4f6;
+}
+
+.toast-close:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Toast types */
+.toast-success {
+  border-left-color: #10b981;
+}
+
+.toast-success .toast-icon {
+  color: #10b981;
+}
+
+.toast-error {
+  border-left-color: #ef4444;
+}
+
+.toast-error .toast-icon {
+  color: #ef4444;
+}
+
+.toast-warning {
+  border-left-color: #f59e0b;
+}
+
+.toast-warning .toast-icon {
+  color: #f59e0b;
+}
+
+.toast-info {
+  border-left-color: #3b82f6;
+}
+
+.toast-info .toast-icon {
+  color: #3b82f6;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: opacity 0.2s ease-out;
+    transform: none;
+  }
+  
+  .toast.show {
+    transform: none;
+  }
+}
+

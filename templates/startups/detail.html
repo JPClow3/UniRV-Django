@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static thumbnail_safe editais_filters %}
 
 {% block title %}{{ startup.name }} - AgroHub UniRV{% endblock %}
 
@@ -8,6 +8,45 @@
 {% block og_title %}{{ startup.name }}{% endblock %}
 
 {% block og_description %}{{ startup.description|truncatewords:25|striptags|default:"Startup incubada no AgroHub UniRV" }}{% endblock %}
+
+{% block twitter_title %}{{ startup.name }} - AgroHub UniRV{% endblock %}
+
+{% block twitter_description %}{{ startup.description|truncatewords:25|striptags|default:"Startup incubada no AgroHub UniRV" }}{% endblock %}
+
+{% block og_image %}
+  {% if startup.logo %}
+    {% if startup.logo|is_svg %}
+      {# SVG files: use original URL directly #}
+      {% with base_url=request.build_absolute_uri|default:""|slice:":-1" %}
+        <meta property="og:image" content="{{ base_url }}{{ startup.logo.url }}" />
+        <meta property="og:image:alt" content="{{ startup.name }} - Logo da Startup" />
+        <meta name="twitter:image" content="{{ base_url }}{{ startup.logo.url }}" />
+      {% endwith %}
+    {% else %}
+      {# Raster images: try thumbnail first, fallback to original #}
+      {% safe_thumbnail startup.logo "detail_thumb" as thumb %}
+      {% if thumb %}
+        {% with base_url=request.build_absolute_uri|default:""|slice:":-1" %}
+          <meta property="og:image" content="{{ base_url }}{{ thumb.url }}" />
+          <meta property="og:image:alt" content="{{ startup.name }} - Logo da Startup" />
+          <meta property="og:image:width" content="{{ thumb.width }}" />
+          <meta property="og:image:height" content="{{ thumb.height }}" />
+          <meta property="og:image:type" content="image/jpeg" />
+          <meta name="twitter:image" content="{{ base_url }}{{ thumb.url }}" />
+        {% endwith %}
+      {% else %}
+        {# Thumbnail generation failed or unavailable, use original image #}
+        {% with base_url=request.build_absolute_uri|default:""|slice:":-1" %}
+          <meta property="og:image" content="{{ base_url }}{{ startup.logo.url }}" />
+          <meta property="og:image:alt" content="{{ startup.name }} - Logo da Startup" />
+          <meta name="twitter:image" content="{{ base_url }}{{ startup.logo.url }}" />
+        {% endwith %}
+      {% endif %}
+    {% endif %}
+  {% else %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 <!-- Hero Header -->
@@ -20,7 +59,16 @@
       </div>
       <div class="flex items-start gap-6 mb-6">
         {% if startup.logo %}
-          <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover border-4 border-white/20 shadow-xl" width="128" height="128" loading="eager" fetchpriority="high" />
+          {% if startup.logo|is_svg %}
+            <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-contain border-4 border-white/20 shadow-xl bg-white/10 p-2" loading="eager" fetchpriority="high" />
+          {% else %}
+            {% safe_thumbnail startup.logo "detail_thumb" as thumb %}
+            {% if thumb %}
+              <img src="{{ thumb.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-contain border-4 border-white/20 shadow-xl bg-white/10 p-2" width="{{ thumb.width }}" height="{{ thumb.height }}" loading="eager" fetchpriority="high" onerror="this.onerror=null; this.src='{{ startup.logo.url }}';" />
+            {% else %}
+              <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-contain border-4 border-white/20 shadow-xl bg-white/10 p-2" loading="eager" fetchpriority="high" />
+            {% endif %}
+          {% endif %}
         {% endif %}
         <div class="flex-1">
           <h1 class="reveal-up text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4">{{ startup.name }}</h1>
@@ -118,9 +166,9 @@
           Voltar para Startups
         </a>
         {% if user.is_staff %}
-        <a href="{% url 'admin:editais_project_change' startup.pk %}" class="inline-flex items-center gap-2 px-6 py-3 bg-unirvBlue text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <a href="{% url 'dashboard_startup_update' startup.pk %}" class="inline-flex items-center gap-2 px-6 py-3 bg-unirvBlue text-white rounded-lg hover:bg-blue-700 transition-colors">
           <i class="fas fa-edit"></i>
-          Editar no Admin
+          Editar Startup
         </a>
         {% endif %}
       </div>

@@ -51,11 +51,6 @@ class EditalQuerySet(models.QuerySet):
         Returns:
             QuerySet: Filtered and ranked queryset
         """
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_search_entry","timestamp":int(time.time()*1000),"location":"models.py:54","message":"search() entry","data":{"query_type":str(type(query)),"query_repr":str(query)[:50] if query else "None","query_len":len(query) if hasattr(query, '__len__') else "N/A"},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"A"}) + '\n')
-        # #endregion
         if not query:
             return self
         
@@ -66,11 +61,6 @@ class EditalQuerySet(models.QuerySet):
             if not query:
                 return self
         
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_search_before_len","timestamp":int(time.time()*1000),"location":"models.py:67","message":"Before len() check","data":{"query":str(query)[:50] if query else "None","has_len":hasattr(query,'__len__')},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"A"}) + '\n')
-        # #endregion
         if len(query) > MAX_SEARCH_LENGTH:
             query = query[:MAX_SEARCH_LENGTH]
         
@@ -109,20 +99,10 @@ class EditalQuerySet(models.QuerySet):
                 is_postgres = False
         
         # Fallback: Use icontains for SQLite or if PostgreSQL search fails
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_search_fallback","timestamp":int(time.time()*1000),"location":"models.py:94","message":"Using fallback search","data":{"query":str(query)[:50] if query else "None"},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"A"}) + '\n')
-        # #endregion
         q_objects = Q()
         search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
             'titulo', 'entidade_principal', 'numero_edital'
         ])
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_search_fields","timestamp":int(time.time()*1000),"location":"models.py:118","message":"Search fields for fallback","data":{"fields":search_fields},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"D"}) + '\n')
-        # #endregion
         
         # Validate fields exist on the model to prevent FieldError
         # Only use concrete fields (not reverse relations, many-to-many, etc.) that support text search
@@ -133,21 +113,10 @@ class EditalQuerySet(models.QuerySet):
                 if hasattr(f, 'get_internal_type') and f.get_internal_type() in ('CharField', 'TextField')
             }
         except Exception as e:
-            # #region agent log
-            with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                import json, time
-                f.write(json.dumps({"id":f"log_{int(time.time())}_field_validation_error","timestamp":int(time.time()*1000),"location":"models.py:132","message":"Error validating fields","data":{"error":str(e),"error_type":type(e).__name__},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"D"}) + '\n')
-            # #endregion
             # Fallback: use all field names if validation fails
             model_fields = {f.name for f in self.model._meta.get_fields() if hasattr(f, 'name')}
         
         valid_search_fields = [f for f in search_fields if f in model_fields]
-        
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_search_fields_validated","timestamp":int(time.time()*1000),"location":"models.py:142","message":"Validated search fields","data":{"valid_fields":valid_search_fields,"invalid_fields":list(set(search_fields) - set(valid_search_fields))},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"D"}) + '\n')
-        # #endregion
         
         if not valid_search_fields:
             # If no valid fields, return empty queryset
@@ -157,11 +126,6 @@ class EditalQuerySet(models.QuerySet):
         for field in valid_search_fields:
             q_objects |= Q(**{f'{field}__icontains': query})
         
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_search_return","timestamp":int(time.time()*1000),"location":"models.py:103","message":"Returning filtered queryset","data":{},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"A"}) + '\n')
-        # #endregion
         return self.filter(q_objects)
 
 
@@ -263,11 +227,6 @@ class EditalManager(models.Manager):
                 if hasattr(f, 'get_internal_type') and f.get_internal_type() in ('CharField', 'TextField')
             }
         except Exception as e:
-            # #region agent log
-            with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                import json, time
-                f.write(json.dumps({"id":f"log_{int(time.time())}_field_validation_error","timestamp":int(time.time()*1000),"location":"models.py:252","message":"Error validating fields in manager","data":{"error":str(e),"error_type":type(e).__name__},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"D"}) + '\n')
-            # #endregion
             # Fallback: use all field names if validation fails
             model_fields = {f.name for f in self.model._meta.get_fields() if hasattr(f, 'name')}
         
@@ -427,30 +386,13 @@ class Edital(models.Model):
                 # Re-raise validation errors (not race conditions)
                 raise
             except IntegrityError as e:
-                # #region agent log
-                with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                    import json, time
-                    error_str = str(e).lower()
-                    is_slug_error = 'slug' in error_str or 'unique' in error_str
-                    f.write(json.dumps({"id":f"log_{int(time.time())}_integrity_error","timestamp":int(time.time()*1000),"location":"models.py:429","message":"IntegrityError caught during save","data":{"attempt":attempt,"max_retries":max_retries,"error_msg":str(e)[:200],"is_slug_error":is_slug_error,"has_slug_keyword":"slug" in error_str,"has_unique_keyword":"unique" in error_str},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"F"}) + '\n')
-                # #endregion
                 # Check if it's an IntegrityError related to slug uniqueness
                 if 'slug' in str(e).lower() or 'unique' in str(e).lower():
                     if attempt < max_retries - 1:
                         # Regenerate slug and retry (handles race condition)
                         self.slug = self._generate_unique_slug()
-                        # #region agent log
-                        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                            import json, time
-                            f.write(json.dumps({"id":f"log_{int(time.time())}_slug_retry","timestamp":int(time.time()*1000),"location":"models.py:438","message":"Retrying with new slug","data":{"new_slug":str(self.slug)[:100],"attempt":attempt+1},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"F"}) + '\n')
-                        # #endregion
                         continue
                 # Re-raise other IntegrityErrors (not slug-related)
-                # #region agent log
-                with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                    import json, time
-                    f.write(json.dumps({"id":f"log_{int(time.time())}_integrity_error_reraising","timestamp":int(time.time()*1000),"location":"models.py:444","message":"Re-raising non-slug IntegrityError","data":{"error_msg":str(e)[:200]},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"F"}) + '\n')
-                # #endregion
                 raise
 
     @property
@@ -487,33 +429,11 @@ class Edital(models.Model):
 
     def get_absolute_url(self) -> str:
         """Return URL using slug if available, otherwise use PK"""
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_get_abs_url","timestamp":int(time.time()*1000),"location":"models.py:378","message":"get_absolute_url called","data":{"has_slug":bool(self.slug),"has_pk":bool(self.pk),"pk":self.pk if self.pk else None},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"E"}) + '\n')
-        # #endregion
         if self.slug:
-            url = reverse('edital_detail_slug', kwargs={'slug': self.slug})
-            # #region agent log
-            with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                import json, time
-                f.write(json.dumps({"id":f"log_{int(time.time())}_get_abs_url_slug","timestamp":int(time.time()*1000),"location":"models.py:381","message":"Returning slug URL","data":{"url":url},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"E"}) + '\n')
-            # #endregion
-            return url
+            return reverse('edital_detail_slug', kwargs={'slug': self.slug})
         if self.pk:
-            url = reverse('edital_detail', kwargs={'pk': self.pk})
-            # #region agent log
-            with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                import json, time
-                f.write(json.dumps({"id":f"log_{int(time.time())}_get_abs_url_pk","timestamp":int(time.time()*1000),"location":"models.py:383","message":"Returning PK URL","data":{"url":url},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"E"}) + '\n')
-            # #endregion
-            return url
+            return reverse('edital_detail', kwargs={'pk': self.pk})
         # If object is not saved yet, return empty string
-        # #region agent log
-        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-            import json, time
-            f.write(json.dumps({"id":f"log_{int(time.time())}_get_abs_url_empty","timestamp":int(time.time()*1000),"location":"models.py:385","message":"Returning empty string (no slug, no pk)","data":{},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"E"}) + '\n')
-        # #endregion
         return ''
 
     history = HistoricalRecords()  # Automatic audit logging via django-simple-history
@@ -627,6 +547,12 @@ class Project(models.Model):
         ('suspensa', 'Suspensa'),
     ]
     
+    # Status constants for use in code (avoid magic strings)
+    STATUS_PRE_INCUBACAO = 'pre_incubacao'
+    STATUS_INCUBACAO = 'incubacao'
+    STATUS_GRADUADA = 'graduada'
+    STATUS_SUSPENSA = 'suspensa'
+    
     CATEGORY_CHOICES = [
         ('agtech', 'AgTech'),
         ('biotech', 'BioTech'),
@@ -683,16 +609,16 @@ class Project(models.Model):
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True, null=True, editable=False, verbose_name='Slug')
-    logo = models.ImageField(
+    logo = models.FileField(
         upload_to='startups/logos/',
         blank=True,
         null=True,
         verbose_name='Logo',
-        help_text='Logo da startup (máximo 5MB, formatos: JPG, PNG, GIF)'
+        help_text='Logo da startup (máximo 5MB, formatos: JPG, PNG, GIF, SVG)'
     )
     
     def clean(self) -> None:
-        """Validate model fields including image upload"""
+        """Validate model fields including logo file upload"""
         super().clean()
         
         # Validate logo file if provided
@@ -706,19 +632,19 @@ class Project(models.Model):
             # Check file extension
             import os
             ext = os.path.splitext(self.logo.name)[1].lower()
-            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.svgz']
             if ext not in allowed_extensions:
                 raise ValidationError({
                     'logo': f'Formato de arquivo não permitido. Use: {", ".join(allowed_extensions)}'
                 })
             
-            # Check content type if available
-            if hasattr(self.logo, 'content_type'):
+            # Check content type if available (for FileField, content_type may not always be available)
+            if hasattr(self.logo, 'content_type') and self.logo.content_type:
                 content_type = self.logo.content_type
-                allowed_types = ['image/jpeg', 'image/png', 'image/gif']
+                allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
                 if content_type not in allowed_types:
                     raise ValidationError({
-                        'logo': 'Tipo de arquivo não permitido. Use apenas imagens JPG, PNG ou GIF.'
+                        'logo': 'Tipo de arquivo não permitido. Use apenas imagens JPG, PNG, GIF ou SVG.'
                     })
     
     class Meta:
@@ -754,6 +680,16 @@ class Project(models.Model):
             'suspensa': 'bg-gray-100 text-gray-700 border-gray-200',
         }
         return phase_classes.get(self.status, 'bg-gray-100 text-gray-700 border-gray-200')
+    
+    def get_badge_color(self):
+        """Get CSS classes for category badge based on category"""
+        category_classes = {
+            'agtech': 'bg-green-100 text-green-700 border-green-200',
+            'biotech': 'bg-blue-100 text-blue-700 border-blue-200',
+            'iot': 'bg-purple-100 text-purple-700 border-purple-200',
+            'edtech': 'bg-orange-100 text-orange-700 border-orange-200',
+        }
+        return category_classes.get(self.category, 'bg-gray-100 text-gray-700 border-gray-200')
     
     def __str__(self):
         edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''
@@ -791,30 +727,13 @@ class Project(models.Model):
                 # Re-raise validation errors
                 raise
             except IntegrityError as e:
-                # #region agent log
-                with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                    import json, time
-                    error_str = str(e).lower()
-                    is_slug_error = 'slug' in error_str or 'unique' in error_str
-                    f.write(json.dumps({"id":f"log_{int(time.time())}_project_integrity_error","timestamp":int(time.time()*1000),"location":"models.py:793","message":"IntegrityError caught during Project save","data":{"attempt":attempt,"max_retries":max_retries,"error_msg":str(e)[:200],"is_slug_error":is_slug_error,"has_slug_keyword":"slug" in error_str,"has_unique_keyword":"unique" in error_str},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"F"}) + '\n')
-                # #endregion
                 # Check if it's an IntegrityError related to slug uniqueness
                 if 'slug' in str(e).lower() or 'unique' in str(e).lower():
                     if attempt < max_retries - 1:
                         # Regenerate slug and retry
                         self.slug = self._generate_unique_slug()
-                        # #region agent log
-                        with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                            import json, time
-                            f.write(json.dumps({"id":f"log_{int(time.time())}_project_slug_retry","timestamp":int(time.time()*1000),"location":"models.py:805","message":"Retrying Project save with new slug","data":{"new_slug":str(self.slug)[:100],"attempt":attempt+1},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"F"}) + '\n')
-                        # #endregion
                         continue
                 # Re-raise other exceptions
-                # #region agent log
-                with open(r'c:\Github\UniRV-Django\.cursor\debug.log', 'a', encoding='utf-8') as f:
-                    import json, time
-                    f.write(json.dumps({"id":f"log_{int(time.time())}_project_integrity_error_reraising","timestamp":int(time.time()*1000),"location":"models.py:813","message":"Re-raising non-slug IntegrityError in Project","data":{"error_msg":str(e)[:200]},"sessionId":"debug-session","runId":"bug-hunt","hypothesisId":"F"}) + '\n')
-                # #endregion
                 raise
     
     def get_absolute_url(self) -> str:
