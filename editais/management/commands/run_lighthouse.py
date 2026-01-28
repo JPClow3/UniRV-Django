@@ -223,7 +223,6 @@ class Command(BaseCommand):
             '/login/',
             '/register/',
             '/ambientes-inovacao/',
-            '/projetos-aprovados/',
             '/startups/',
             '/health/',
             '/password-reset/',
@@ -238,8 +237,8 @@ class Command(BaseCommand):
             '/dashboard/home/',
             '/dashboard/editais/',
             '/dashboard/editais/novo/',
-            '/dashboard/projetos/',
-            '/dashboard/projetos/submeter/',
+            '/dashboard/startups/',
+            '/dashboard/startups/submeter/',
             '/dashboard/usuarios/',
             # NOTE: /dashboard/avaliacoes/ and /dashboard/relatorios/ removed - these endpoints don't exist
         ]

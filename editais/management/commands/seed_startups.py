@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.contrib.auth.models import User
 from datetime import timedelta
-from editais.models import Project, Edital
+from editais.models import Startup, Edital
 
 
 class Command(BaseCommand):
@@ -119,7 +119,7 @@ class Command(BaseCommand):
 
         created_count = 0
         for data in startups_data:
-            startup, created = Project.objects.get_or_create(
+            startup, created = Startup.objects.get_or_create(
                 name=data['name'],
                 defaults=data,
             )

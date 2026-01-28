@@ -1,5 +1,62 @@
 {
-  "extends": [
-    "development"
-  ]
+  "extends": ["web-recommended"],
+  "hints": {
+    // Accessibility - Focus on static HTML structure
+    "axe": "warning",
+    "html-checker": "warning",
+    
+    // Performance
+    "http-cache": "off",
+    "no-bom": "error",
+    "no-inline-styles": "warning",
+    "no-protocol-relative-urls": "error",
+    
+    // Security
+    "content-security-policy": "off",
+    "disown-opener": "error",
+    "no-disallowed-headers": "off",
+    "no-html-only-headers": "off",
+    "no-http-redirects": "off",
+    "no-password-autocomplete": "error",
+    "sri": "warning",
+    "strict-transport-security": "off",
+    "x-content-type-options": "off",
+    
+    // Compatibility
+    "highest-available-document-mode": "error",
+    "no-broken-links": "off",
+    
+    // PWA - Not applicable for this project
+    "manifest-app-name": "off",
+    "manifest-exists": "off",
+    "manifest-file-extension": "off",
+    "manifest-is-valid": "off",
+    
+    // Development
+    "no-console-log": "off",
+    "no-debugger": "warning",
+    
+    // Best Practices
+    "button-type": "error",
+    "chakra-ui": "off",
+    "compat-api/css": "warning",
+    "compat-api/html": "warning",
+    "compat-api/js": "warning",
+    "meta-charset-utf-8": "warning",
+    "meta-viewport": "warning",
+    "no-conditional-comment": "error",
+    "no-css-tables": "warning",
+    "no-document-write": "warning",
+    "no-inline-styles": "warning",
+    "no-p3p": "error",
+    "no-unknown": "off",
+    "no-vulnerable-javascript-libraries": "warning",
+    "typescript-config": "off",
+    "validate-set-cookie-header": "off"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11"
+  ],
+  "formatters": ["summary", "codeframe"]
 }

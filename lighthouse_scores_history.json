@@ -1,0 +1,35 @@
+[
+  {
+    "timestamp": "2026-01-28T07:13:22.474663",
+    "report_file": "login.json",
+    "scores": {
+      "performance": 67.0,
+      "accessibility": 0,
+      "best_practices": 100,
+      "seo": 100,
+      "average": 66.8
+    },
+    "comparison": {
+      "performance": {
+        "change": 0,
+        "status": "new"
+      },
+      "accessibility": {
+        "change": 0,
+        "status": "new"
+      },
+      "best_practices": {
+        "change": 0,
+        "status": "new"
+      },
+      "seo": {
+        "change": 0,
+        "status": "new"
+      },
+      "average": {
+        "change": 0,
+        "status": "new"
+      }
+    }
+  }
+]

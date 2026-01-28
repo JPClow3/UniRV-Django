@@ -1,4 +1,18 @@
 # Generated migration to update Project model to represent startups in incubation process
+#
+# BUSINESS LOGIC CHANGE: This migration transforms the Project model from a
+# submission-based system to represent startups in an incubation process.
+#
+# Key changes:
+# - Status choices changed from submission states (em_avaliacao, aprovado, etc.)
+#   to incubation stages (pre_incubacao, incubacao, graduada, suspensa)
+# - Edital field made nullable: startups can exist without being tied to a specific edital
+#   (some startups may enter incubation through other means)
+# - Model renamed from "Project" to "Startup" to reflect new purpose
+# - Field names updated to match startup terminology
+#
+# A data migration is included to map existing project statuses to the new
+# incubation stages, ensuring no data is lost during the transition.
 
 from django.db import migrations, models
 import django.db.models.deletion

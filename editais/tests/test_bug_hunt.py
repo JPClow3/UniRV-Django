@@ -15,14 +15,16 @@ from django.http import Http404
 from django.utils import timezone
 from django.urls import reverse
 
-from editais.models import Edital, EditalValor, Cronograma, Project
+from django.db import IntegrityError, transaction
+
+from editais.models import Edital, EditalValor, Cronograma, Startup
 from editais.forms import EditalForm, UserRegistrationForm
 from editais.utils import (
     determine_edital_status, sanitize_html, sanitize_edital_fields,
     mark_edital_fields_safe, get_project_status_mapping, clear_index_cache
 )
 from editais.decorators import get_client_ip, rate_limit
-from editais.constants import HTML_FIELDS
+from editais.constants import HTML_FIELDS, SLUG_GENERATION_MAX_RETRIES
 
 
 class SecurityTests(TestCase):
@@ -153,50 +155,53 @@ class DataIntegrityTests(TransactionTestCase):
         self.user = User.objects.create_user('testuser', 'test@example.com', 'password')
     
     def test_slug_uniqueness_under_concurrent_load(self):
-        """Test slug generation under concurrent load"""
+        """Test slug generation under concurrent load (create+retry at call site)"""
         import threading
         import time
-        
+
         results = []
         errors = []
-        
+
         def create_edital(title):
             try:
-                # Add retry logic for SQLite database locking
-                max_retries = 5
-                for attempt in range(max_retries):
+                for attempt in range(5):  # SQLite lock retries
                     try:
-                        edital = Edital.objects.create(
+                        edital = Edital(
                             titulo=title,
                             url='https://example.com',
                             created_by=self.user
                         )
-                        results.append(edital.slug)
-                        return
+                        for slug_attempt in range(SLUG_GENERATION_MAX_RETRIES):
+                            try:
+                                with transaction.atomic():
+                                    edital.save()
+                                results.append(edital.slug)
+                                return
+                            except IntegrityError as e:
+                                if ('slug' in str(e).lower() or 'unique' in str(e).lower()) and slug_attempt < SLUG_GENERATION_MAX_RETRIES - 1:
+                                    edital.slug = edital._generate_unique_slug()
+                                    continue
+                                raise
+                        break
                     except Exception as e:
-                        if 'locked' in str(e).lower() and attempt < max_retries - 1:
-                            time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                        if 'locked' in str(e).lower() and attempt < 4:
+                            time.sleep(0.1 * (attempt + 1))
                             continue
                         raise
             except Exception as e:
                 errors.append(str(e))
-        
-        # Create multiple editais with same title concurrently
+
         threads = []
         for i in range(10):
             thread = threading.Thread(target=create_edital, args=('Test Edital',))
             threads.append(thread)
             thread.start()
-            # Small delay between thread starts to reduce lock contention
-            if i < 9:  # Don't delay after last thread
+            if i < 9:
                 time.sleep(0.05)
-        
         for thread in threads:
             thread.join()
-        
-        # All should succeed without IntegrityError
+
         self.assertEqual(len(errors), 0, f"Errors occurred: {errors}")
-        # All slugs should be unique
         self.assertEqual(len(results), len(set(results)), "Duplicate slugs generated")
     
     def test_user_registration_email_uniqueness_race_condition(self):
@@ -280,7 +285,7 @@ class DataIntegrityTests(TransactionTestCase):
         # Create related objects
         valor = EditalValor.objects.create(edital=edital, valor_total=1000)
         cronograma = Cronograma.objects.create(edital=edital, descricao='Test')
-        project = Project.objects.create(
+        project = Startup.objects.create(
             name='Test Project',
             proponente=self.user,
             edital=edital

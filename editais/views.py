@@ -13,7 +13,6 @@ All views are re-exported here for backward compatibility with existing URL conf
 from .views.public import (
     home,
     ambientes_inovacao,
-    projetos_aprovados,
     startups_showcase,
     login_view,
     register_view,
@@ -27,9 +26,9 @@ from .views.public import (
 from .views.dashboard import (
     dashboard_home,
     dashboard_editais,
-    dashboard_projetos,
+    dashboard_startups,
     dashboard_usuarios,
-    dashboard_submeter_projeto,
+    dashboard_submeter_startup,
     dashboard_startup_update,
     dashboard_novo_edital,
     admin_dashboard,
@@ -44,7 +43,6 @@ __all__ = [
     # Public views
     'home',
     'ambientes_inovacao',
-    'projetos_aprovados',
     'startups_showcase',
     'login_view',
     'register_view',
@@ -57,9 +55,9 @@ __all__ = [
     # Dashboard views
     'dashboard_home',
     'dashboard_editais',
-    'dashboard_projetos',
+    'dashboard_startups',
     'dashboard_usuarios',
-    'dashboard_submeter_projeto',
+    'dashboard_submeter_startup',
     'dashboard_startup_update',
     'dashboard_novo_edital',
     'admin_dashboard',

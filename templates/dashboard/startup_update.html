@@ -15,7 +15,7 @@
       <div>
         <h1 class="text-gray-900 text-2xl font-semibold">Editar Startup</h1>
         <p class="text-gray-600">
-          Edite as informações da startup: {{ project.name }}
+          Edite as informações da startup: {{ startup.name }}
         </p>
       </div>
     </div>
@@ -91,6 +91,16 @@
       </div>
 
       <div class="space-y-2">
+        <label for="{{ form.status.id_for_label }}" class="text-sm font-medium text-gray-700">
+          {{ form.status.label }} {% if form.status.field.required %}<span class="text-red-500">*</span>{% endif %}
+        </label>
+        {% if form.status.help_text %}
+        <p class="text-xs text-gray-500 mb-1">{{ form.status.help_text }}</p>
+        {% endif %}
+        {% render_field form.status class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" %}
+      </div>
+
+      <div class="space-y-2">
         <label for="{{ form.description.id_for_label }}" class="text-sm font-medium text-gray-700">
           {{ form.description.label }} {% if form.description.field.required %}<span class="text-red-500">*</span>{% endif %}
         </label>
@@ -102,6 +112,27 @@
           {{ form.contato.label }}
         </label>
         {% render_field form.contato class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" %}
+      </div>
+
+      <div class="space-y-2">
+        <label for="{{ form.website.id_for_label }}" class="text-sm font-medium text-gray-700">
+          {{ form.website.label }}
+        </label>
+        {% render_field form.website class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" %}
+      </div>
+
+      <div class="space-y-2">
+        <label for="{{ form.incubacao_start_date.id_for_label }}" class="text-sm font-medium text-gray-700">
+          {{ form.incubacao_start_date.label }}
+        </label>
+        {% render_field form.incubacao_start_date class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" %}
+      </div>
+
+      <div class="space-y-2">
+        <label for="{{ form.tags.id_for_label }}" class="text-sm font-medium text-gray-700">
+          {{ form.tags.label }}
+        </label>
+        {% render_field form.tags class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" %}
       </div>
     </div>
 
@@ -118,17 +149,17 @@
         <label for="{{ form.logo.id_for_label }}" class="text-sm font-medium text-gray-700">
           {{ form.logo.label }}
         </label>
-        {% if project.logo %}
+        {% if startup.logo %}
         <div class="mb-4">
           <p class="text-sm text-gray-600 mb-2">Logo atual:</p>
-          {% if project.logo|is_svg %}
-            <img src="{{ project.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
+          {% if startup.logo|is_svg %}
+            <img src="{{ startup.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
           {% else %}
-            {% safe_thumbnail project.logo "detail_thumb" as thumb %}
+            {% safe_thumbnail startup.logo "detail_thumb" as thumb %}
             {% if thumb %}
               <img src="{{ thumb.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200" width="{{ thumb.width }}" height="{{ thumb.height }}">
             {% else %}
-              <img src="{{ project.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
+              <img src="{{ startup.logo.url }}" alt="Logo atual" class="max-w-48 max-h-48 object-contain rounded-lg border border-gray-200">
             {% endif %}
           {% endif %}
         </div>
@@ -140,7 +171,7 @@
           </p>
           {% render_field form.logo class="hidden" %}
           <label for="{{ form.logo.id_for_label }}" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-block cursor-pointer">
-            {% if project.logo %}Alterar Logo{% else %}Selecionar Logo{% endif %}
+            {% if startup.logo %}Alterar Logo{% else %}Selecionar Logo{% endif %}
           </label>
           <p class="text-xs text-gray-500 mt-2">
             JPG, PNG ou GIF, máximo 5MB

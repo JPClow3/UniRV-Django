@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Edital, EditalValor, Cronograma, Project
+from .models import Edital, EditalValor, Cronograma, Startup, Tag
 from simple_history.admin import SimpleHistoryAdmin
 
 
@@ -73,27 +73,29 @@ class EditalAdmin(SimpleHistoryAdmin):
 
 @admin.register(EditalValor)
 class EditalValorAdmin(admin.ModelAdmin):
-    list_display = ('edital', 'valor_total', 'moeda')
-    list_filter = ('moeda',)
+    list_display = ('edital', 'valor_total', 'moeda', 'tipo')
+    list_filter = ('moeda', 'tipo')
 
 
 @admin.register(Cronograma)
 class CronogramaAdmin(admin.ModelAdmin):
-    list_display = ('edital', 'descricao', 'data_inicio', 'data_fim', 'data_publicacao')
+    list_display = ('edital', 'descricao', 'ordem', 'data_inicio', 'data_fim', 'data_publicacao')
     list_filter = ('data_inicio', 'data_fim', 'data_publicacao')
+    ordering = ('ordem', 'data_inicio')
 
 
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+@admin.register(Startup)
+class StartupAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'edital',
         'proponente',
         'status',
-        'contato',
+        'website',
+        'incubacao_start_date',
         'submitted_on'
     )
-    list_filter = ('status', 'edital', 'submitted_on')
+    list_filter = ('status', 'edital', 'submitted_on', 'tags', 'category')
     search_fields = (
         'name',
         'edital__titulo',
@@ -101,19 +103,31 @@ class ProjectAdmin(admin.ModelAdmin):
         'proponente__username',
         'proponente__email',
         'proponente__first_name',
-        'proponente__last_name'
+        'proponente__last_name',
+        'tags__name'
     )
     readonly_fields = ('data_criacao', 'data_atualizacao', 'submitted_on')
     date_hierarchy = 'submitted_on'
+    filter_horizontal = ('tags',)
     
     fieldsets = (
         ('Informações da Startup', {
-            'fields': ('name', 'description', 'category', 'edital', 'proponente', 'status', 'contato', 'logo')
+            'fields': ('name', 'description', 'category', 'edital', 'proponente', 'status', 'tags')
+        }),
+        ('Contato e Website', {
+            'fields': ('contato', 'website', 'logo')
         }),
         ('Datas', {
-            'fields': ('submitted_on', 'data_criacao', 'data_atualizacao'),
+            'fields': ('incubacao_start_date', 'submitted_on', 'data_criacao', 'data_atualizacao'),
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'created_at')
+    search_fields = ('name', 'slug')
+    readonly_fields = ('created_at',)
 
 

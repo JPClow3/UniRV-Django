@@ -19,7 +19,7 @@ Tests are organized by functionality:
 - `test_management_commands.py` - Management command tests
 - `test_performance.py` - Performance and query optimization tests
 - `test_permissions.py` - Permission and authorization tests
-- `test_project_model.py` - Project/Startup model tests
+- `test_project_model.py` - Startup model tests
 - `test_public_views.py` - Public-facing view tests
 - `test_security.py` - Security tests (CSRF, XSS, SQL injection)
 - `test_startup_showcase.py` - Startup showcase view tests
@@ -43,7 +43,7 @@ We use **factory_boy** for test data generation instead of manual object creatio
 - `StaffUserFactory` - Creates staff users
 - `SuperUserFactory` - Creates superusers
 - `EditalFactory` - Creates edital instances
-- `ProjectFactory` - Creates project/startup instances
+- `StartupFactory` - Creates startup instances
 
 ### Usage Examples
 
@@ -69,8 +69,8 @@ Factories support traits for common variations:
 
 - `EditalFactory(open_edital=True)` - Creates an open edital
 - `EditalFactory(closed_edital=True)` - Creates a closed edital
-- `ProjectFactory(active_startup=True)` - Creates an active startup
-- `ProjectFactory(without_edital=True)` - Creates a project without edital
+- `StartupFactory(active_startup=True)` - Creates an active startup
+- `StartupFactory(without_edital=True)` - Creates a startup without edital
 
 ## Performance Testing
 
@@ -89,7 +89,7 @@ Integration tests cover full user workflows:
 
 - User registration → login → dashboard
 - Edital CRUD workflows
-- Project submission workflows
+- Startup submission workflows
 - Search and filter combinations
 
 ## Running Tests

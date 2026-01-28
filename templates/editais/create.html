@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load editais_filters widget_tweaks %}
+{% load static editais_filters widget_tweaks %}
 
 {% block title %}Cadastrar Edital - AgroHub UniRV{% endblock %}
 
@@ -139,5 +139,9 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/edital-form.js' %}" defer></script>
 {% endblock %}
 

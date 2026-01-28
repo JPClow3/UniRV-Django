@@ -7,7 +7,7 @@ Tests startup detail view with slug and ID, 404 handling.
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
-from editais.models import Project
+from editais.models import Startup
 
 
 class StartupDetailViewTestCase(TestCase):
@@ -20,7 +20,7 @@ class StartupDetailViewTestCase(TestCase):
             email='test@example.com',
             password='testpass123'
         )
-        self.project = Project.objects.create(
+        self.project = Startup.objects.create(
             name='Test Startup',
             description='A test startup',
             proponente=self.user,

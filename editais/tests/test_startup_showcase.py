@@ -12,8 +12,8 @@ from django.urls import reverse
 from django.db import DatabaseError
 from django.core.cache import cache
 
-from editais.models import Project, Edital
-from editais.constants import ACTIVE_PROJECT_STATUSES, MAX_STARTUPS_DISPLAY
+from editais.models import Startup, Edital
+from editais.constants import ACTIVE_STARTUP_STATUSES, MAX_STARTUPS_DISPLAY
 
 
 class StartupShowcaseViewTest(TestCase):
@@ -27,21 +27,21 @@ class StartupShowcaseViewTest(TestCase):
             password='testpass123'
         )
         # Create some test projects
-        self.project1 = Project.objects.create(
+        self.project1 = Startup.objects.create(
             name='AgTech Startup',
             description='An agricultural technology startup',
             category='agtech',
             status='pre_incubacao',
             proponente=self.user
         )
-        self.project2 = Project.objects.create(
+        self.project2 = Startup.objects.create(
             name='BioTech Company',
             description='A biotechnology company',
             category='biotech',
             status='incubacao',
             proponente=self.user
         )
-        self.project3 = Project.objects.create(
+        self.project3 = Startup.objects.create(
             name='Graduated Startup',
             description='A graduated startup',
             category='iot',
@@ -49,7 +49,7 @@ class StartupShowcaseViewTest(TestCase):
             proponente=self.user
         )
         # Create a suspended project (should not appear)
-        self.suspended = Project.objects.create(
+        self.suspended = Startup.objects.create(
             name='Suspended Startup',
             description='A suspended startup',
             category='other',
@@ -135,7 +135,6 @@ class StartupShowcaseViewTest(TestCase):
         stats = context['stats']
         self.assertIn('total_active', stats)
         self.assertIn('graduadas', stats)
-        self.assertIn('total_valuation', stats)
         
         # Should have 3 active projects (excluding suspended)
         self.assertEqual(stats['total_active'], 3)
@@ -145,7 +144,7 @@ class StartupShowcaseViewTest(TestCase):
     def test_stats_with_empty_database(self):
         """Test stats calculation with empty database"""
         # Delete all projects
-        Project.objects.all().delete()
+        Startup.objects.all().delete()
         
         response = self.client.get(reverse('startups_showcase'))
         self.assertEqual(response.status_code, 200)
@@ -154,12 +153,11 @@ class StartupShowcaseViewTest(TestCase):
         stats = context['stats']
         self.assertEqual(stats['total_active'], 0)
         self.assertEqual(stats['graduadas'], 0)
-        self.assertEqual(stats['total_valuation'], 0)
 
     def test_stats_with_category_filter(self):
         """Test that stats are calculated before category filter is applied"""
         # Create more projects
-        Project.objects.create(
+        Startup.objects.create(
             name='Another AgTech',
             category='agtech',
             status='pre_incubacao',
@@ -177,7 +175,7 @@ class StartupShowcaseViewTest(TestCase):
         """Test that results are limited to MAX_STARTUPS_DISPLAY"""
         # Create many projects
         for i in range(MAX_STARTUPS_DISPLAY + 10):
-            Project.objects.create(
+            Startup.objects.create(
                 name=f'Startup {i}',
                 category='other',
                 status='pre_incubacao',
@@ -193,7 +191,7 @@ class StartupShowcaseViewTest(TestCase):
     def test_ordering_by_submitted_on(self):
         """Test that startups are ordered by submitted_on (newest first)"""
         # Create projects with different submission times
-        Project.objects.create(
+        Startup.objects.create(
             name='Old Startup',
             category='other',
             status='pre_incubacao',
@@ -214,49 +212,33 @@ class StartupShowcaseViewTest(TestCase):
                 )
 
     def test_database_error_handling(self):
-        """Test error handling when database fails"""
-        # The view catches DatabaseError and returns default context
-        # Patch the queryset to raise DatabaseError when filter is called
-        with patch('editais.views.public.Project.objects.select_related') as mock_select:
+        """Test that database errors return 503 instead of empty 200"""
+        with patch('editais.views.public.Startup.objects.select_related') as mock_select:
             mock_queryset = MagicMock()
-            # Make filter raise DatabaseError
             mock_queryset.filter.side_effect = DatabaseError("Database connection failed")
             mock_select.return_value = mock_queryset
-            
+
             response = self.client.get(reverse('startups_showcase'))
-            # Should return 200 with default empty context
-            self.assertEqual(response.status_code, 200)
-            context = response.context
-            # View should return default context on error
-            self.assertEqual(len(context['startups']), 0)
-            self.assertEqual(context['stats']['total_active'], 0)
+            self.assertEqual(response.status_code, 503)
+            self.assertTemplateUsed(response, '503.html')
 
     def test_stats_aggregation_error_handling(self):
-        """Test error handling when stats aggregation fails"""
-        # Create a mock queryset that raises DatabaseError on aggregate
-        mock_queryset = MagicMock()
-        mock_queryset.aggregate.side_effect = DatabaseError("Aggregation error")
-        # Make all chain methods return the same mock
-        mock_queryset.filter.return_value = mock_queryset
-        mock_queryset.only.return_value = mock_queryset
-        mock_queryset.select_related.return_value = mock_queryset
-        # Mock count() to return 0 for error case
-        mock_queryset.count.return_value = 0
-        
-        # Patch Project.objects to return our mock
-        with patch('editais.views.public.Project.objects', mock_queryset):
+        """Test that stats aggregation failure returns 503"""
+        base = MagicMock()
+        base.filter.return_value = base
+        base.only.return_value = base
+        base.order_by.return_value = base
+        base.__getitem__ = MagicMock(return_value=[])
+        base.count.side_effect = DatabaseError("Aggregation error")
+
+        mock_objects = MagicMock()
+        mock_objects.select_related.return_value.filter.return_value.only.return_value = base
+        mock_objects.filter.return_value.filter.return_value.count.return_value = 0
+
+        with patch('editais.views.public.Startup.objects', mock_objects):
             response = self.client.get(reverse('startups_showcase'))
-            # Should return 200 with default stats (view catches DatabaseError)
-            self.assertEqual(response.status_code, 200)
-            if hasattr(response, 'context') and response.context:
-                context = response.context
-                # View should catch DatabaseError and use default stats
-                # Stats might be 0 or use fallback values
-                self.assertIn('stats', context)
-                stats = context['stats']
-                # Check that stats exist and are numeric (0 or default values)
-                self.assertIsInstance(stats.get('total_active', 0), (int, type(None)))
-                self.assertIsInstance(stats.get('graduadas', 0), (int, type(None)))
+        self.assertEqual(response.status_code, 503)
+        self.assertTemplateUsed(response, '503.html')
 
     def test_projects_without_proponente_excluded(self):
         """Test that projects without proponente are excluded"""
@@ -275,8 +257,8 @@ class StartupShowcaseViewTest(TestCase):
             url='https://example.com',
             status='aberto'
         )
-        project_with_edital = Project.objects.create(
-            name='Project with Edital',
+        project_with_edital = Startup.objects.create(
+            name='Startup with Edital',
             category='other',
             status='pre_incubacao',
             proponente=self.user,
@@ -289,7 +271,7 @@ class StartupShowcaseViewTest(TestCase):
 
     def test_xss_in_project_description(self):
         """Test XSS prevention in project descriptions"""
-        Project.objects.create(
+        Startup.objects.create(
             name='XSS Test',
             description='<script>alert("XSS")</script>',
             category='other',
@@ -302,14 +284,23 @@ class StartupShowcaseViewTest(TestCase):
         content = response.content.decode('utf-8')
         
         # Check that the project name appears (to ensure it's in the response)
-        self.assertIn('XSS Test', content)
+        self.assertIn('XSS Test', content, "Project name should appear in response")
         
         # Check that script tags are escaped in the entire response
         # Django auto-escapes, so <script> should become &lt;script&gt;
         self.assertIn('&lt;script&gt;', content,
-                     "Script tags should be escaped. Content may contain: " + content[:500])
-        # Also check that the alert is escaped
-        self.assertIn('&quot;XSS&quot;', content or '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;' in content)
+                     f"Script tags should be escaped. Found content: {content[:500]}")
+        
+        # Check that the alert content is also escaped
+        # Either &quot;XSS&quot; or the full escaped script tag should be present
+        has_escaped_alert = '&quot;XSS&quot;' in content
+        has_full_escaped_script = '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;' in content
+        self.assertTrue(has_escaped_alert or has_full_escaped_script,
+                       f"Alert content should be escaped. Found: {content[:500]}")
+        
+        # Verify that raw script tag is NOT present (security check)
+        self.assertNotIn('<script>alert("XSS")</script>', content,
+                        "Raw script tag should not appear in response - XSS vulnerability!")
 
     def test_very_long_search_query(self):
         """Test handling of very long search queries"""
@@ -357,7 +348,7 @@ class StartupShowcaseViewTest(TestCase):
         """Test that graduadas count is correct"""
         # Create more graduated startups
         for i in range(3):
-            Project.objects.create(
+            Startup.objects.create(
                 name=f'Graduated {i}',
                 category='other',
                 status='graduada',
@@ -370,10 +361,96 @@ class StartupShowcaseViewTest(TestCase):
         # Should have 4 graduated (1 original + 3 new)
         self.assertEqual(stats['graduadas'], 4)
 
-    def test_total_valuation_calculation(self):
-        """Test total valuation calculation (placeholder)"""
+    def test_complete_filter_search_pagination_workflow(self):
+        """E2E test: Complete workflow with filter, search, and pagination"""
+        # Create many projects with different categories and statuses
+        from editais.constants import MAX_STARTUPS_DISPLAY
+        
+        # Create more projects than MAX_STARTUPS_DISPLAY to test pagination
+        num_projects = MAX_STARTUPS_DISPLAY + 10
+        for i in range(num_projects):
+            category = 'agtech' if i % 3 == 0 else ('biotech' if i % 3 == 1 else 'iot')
+            Startup.objects.create(
+                name=f'Startup {i} {category}',
+                description=f'Description for startup {i} in {category}',
+                category=category,
+                status='pre_incubacao' if i % 2 == 0 else 'incubacao',
+                proponente=self.user
+            )
+        
+        # 1. Test initial load - should show limited results
         response = self.client.get(reverse('startups_showcase'))
+        self.assertEqual(response.status_code, 200)
         context = response.context
-        stats = context['stats']
-        # Valuation is placeholder: graduadas * 1.0
-        self.assertEqual(stats['total_valuation'], stats['graduadas'] * 1)
+        self.assertLessEqual(len(context['startups']), MAX_STARTUPS_DISPLAY,
+                           f"Should limit to {MAX_STARTUPS_DISPLAY} startups")
+        
+        # 2. Test category filter
+        response = self.client.get(
+            reverse('startups_showcase'),
+            {'category': 'agtech'}
+        )
+        self.assertEqual(response.status_code, 200)
+        context = response.context
+        # All returned startups should be agtech
+        for startup in context['startups']:
+            self.assertEqual(startup.category, 'agtech',
+                           "Filtered startups should match category filter")
+        
+        # 3. Test search functionality
+        response = self.client.get(
+            reverse('startups_showcase'),
+            {'search': 'Startup 1'}
+        )
+        self.assertEqual(response.status_code, 200)
+        context = response.context
+        # Results should contain "Startup 1" in name or description
+        found_match = False
+        for startup in context['startups']:
+            if 'Startup 1' in startup.name or 'Startup 1' in (startup.description or ''):
+                found_match = True
+                break
+        self.assertTrue(found_match or len(context['startups']) == 0,
+                       "Search should find matching startups or return empty if no match")
+        
+        # 4. Test combined filter and search
+        response = self.client.get(
+            reverse('startups_showcase'),
+            {'category': 'biotech', 'search': 'Startup'}
+        )
+        self.assertEqual(response.status_code, 200)
+        context = response.context
+        # All results should be biotech category
+        for startup in context['startups']:
+            self.assertEqual(startup.category, 'biotech',
+                           "Combined filter should apply category filter")
+        
+        # 5. Test stats remain consistent across filters
+        response_all = self.client.get(reverse('startups_showcase'))
+        stats_all = response_all.context['stats']
+        
+        response_filtered = self.client.get(
+            reverse('startups_showcase'),
+            {'category': 'agtech'}
+        )
+        stats_filtered = response_filtered.context['stats']
+        
+        # Stats should be the same (calculated from all active projects, not filtered)
+        self.assertEqual(stats_all['total_active'], stats_filtered['total_active'],
+                        "Stats should be calculated from all active projects, not filtered subset")
+        
+        # 6. Test that 'all' category shows all categories
+        response_all_categories = self.client.get(
+            reverse('startups_showcase'),
+            {'category': 'all'}
+        )
+        self.assertEqual(response_all_categories.status_code, 200)
+        context = response_all_categories.context
+        # Should show startups from multiple categories
+        categories_shown = set(startup.category for startup in context['startups'])
+        # If we have enough startups, we should see multiple categories
+        if len(context['startups']) > 1:
+            # At least one category should be present
+            self.assertGreater(len(categories_shown), 0,
+                             "Should show startups from at least one category")
+

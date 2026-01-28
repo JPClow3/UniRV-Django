@@ -6,53 +6,8 @@
 
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
-  <!-- HERO SECTION: O Ecossistema -->
-  <section class="relative pt-24 pb-12 md:pt-28 md:pb-16 bg-unirvBlue overflow-hidden">
-    <!-- Elementos de Fundo Animados -->
-    <!-- Z-Index Hierarchy Documentation:
-         - Blobs: z-0 (background layer)
-         - Content: z-10 (foreground layer)
-         - NOTE: If adding modals or dropdowns in the future, ensure they use z-50 or higher
-         - CAUTION: mix-blend-overlay on blobs can affect text readability on certain backgrounds
-         - Consider testing text contrast when adding new interactive elements above z-10 -->
-    <div class="absolute inset-0 z-0 overflow-hidden" style="contain: layout;">
-      <div class="absolute inset-0 bg-gradient-to-br from-unirvBlue via-blue-900 to-darkBlue opacity-95"></div>
-      <!-- Blob elements with fixed dimensions and containment to prevent layout shifts -->
-      <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob" style="contain: layout style paint;"></div>
-      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-2s" style="contain: layout style paint;"></div>
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500 rounded-full mix-blend-overlay filter blur-3xl opacity-20 animate-blob animation-delay-4s" style="contain: layout style paint;"></div>
-      <!-- Grid Overlay -->
-      <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
-    </div>
-
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div class="max-w-4xl">
-        <!-- Badge -->
-        <div class="reveal-hero inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-green-300 text-xs font-bold uppercase tracking-widest mb-4">
-          <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-          Incubadora YpeTech
-        </div>
-        
-        <h1 class="reveal-hero text-4xl md:text-6xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg">
-          Nossas <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300">Startups</span>
-        </h1>
-        
-        <p class="reveal-hero text-base md:text-lg text-white max-w-2xl mb-8 leading-relaxed border-l-4 border-agrohubGreen pl-6 drop-shadow-md">
-          Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado.
-        </p>
-      </div>
-
-      <!-- Stats Bar (Glassmorphism) - Fixed min-height to prevent layout shifts -->
-      <div class="reveal-hero inline-flex flex-wrap justify-center gap-8 md:gap-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl px-6 md:px-8 py-4 md:py-6 shadow-2xl startups-stats-bar" role="group" aria-label="Indicadores da incubadora">
-        <div class="text-center px-3 md:px-4">
-          <div class="stat-value text-2xl md:text-4xl font-bold text-white mb-1 leading-tight">
-            <span class="stat-value-number counter" data-target="{{ stats.total_active }}" aria-live="polite">{{ stats.total_active }}</span>
-          </div>
-          <div class="text-[9px] md:text-xs text-white/90 uppercase tracking-widest font-medium drop-shadow-sm">Startups Ativas</div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- HERO SECTION -->
+  {% include 'components/page_hero.html' with badge_label="Incubadora YpeTech" title="Nossas Startups" subtitle="Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado." stats=stats %}
 
   <!-- CONTENT SECTION: Filtros e Grid -->
   <section class="py-16 relative bg-gray-50 fold-section">
@@ -115,7 +70,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]" id="startups-grid">
         {% for startup in startups %}
         <a href="{% url 'startup_detail_slug' startup.slug %}" class="startup-card group rounded-3xl p-8 pb-10 h-full flex flex-col cursor-pointer no-underline" data-category="{{ startup.category }}" aria-label="Ver detalhes de {{ startup.name }}">
-          <span class="phase-badge {{ startup.get_phase_badge_class }}">
+          <span class="phase-badge inline-flex w-fit self-start px-3 py-1 rounded-full border mb-4 {{ startup.status|phase_badge_class }}">
             {% if startup.status == 'pre_incubacao' %}
               <i class="fas fa-lightbulb mr-1"></i> Ideação
             {% elif startup.status == 'incubacao' %}
@@ -123,7 +78,7 @@
             {% elif startup.status == 'graduada' %}
               <i class="fas fa-rocket mr-1"></i> Escala
             {% else %}
-              <i class="fas fa-pause-circle mr-1"></i> {{ startup.get_status_display }}
+              <i class="fas fa-pause-circle mr-1"></i> {{ startup.get_phase_display }}
             {% endif %}
           </span>
           
@@ -258,14 +213,7 @@
 
     gsap.registerPlugin(ScrollTrigger);
 
-    // 1. Hero Animations - Use transform instead of y to prevent layout shifts
-    gsap.from(".reveal-hero", {
-      transform: "translateY(40px)",
-      opacity: 0,
-      duration: 1.2,
-      stagger: 0.15,
-      ease: "power3.out"
-    });
+    // 1. Hero uses .reveal-up; global animations.js handles those.
 
     // 2. Counters - Animate without causing layout shifts
     // Batch DOM reads before writes to prevent forced reflows

@@ -1,0 +1,16 @@
+<div class="reveal-up flex flex-wrap gap-4 text-white/90 text-sm items-center mt-6">
+  <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20">
+    <i class="fas fa-tag mr-2" aria-hidden="true"></i>
+    {{ startup.get_category_display }}
+  </span>
+  <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20">
+    <i class="fas fa-chart-line mr-2" aria-hidden="true"></i>
+    {{ startup.get_phase_display }}
+  </span>
+  {% if startup.submitted_on %}
+  <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20">
+    <i class="fas fa-calendar-alt mr-2" aria-hidden="true"></i>
+    Desde {{ startup.submitted_on|date:"d/m/Y" }}
+  </span>
+  {% endif %}
+</div>

@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ..forms import EditalForm, UserRegistrationForm
-from ..models import Project
+from ..models import Startup
 
 
 class EditalFormValidationTest(TestCase):
@@ -161,8 +161,8 @@ class UserRegistrationFormValidationTest(TestCase):
         self.assertIn('email', form.errors)
 
 
-class ProjectModelValidationTest(TestCase):
-    """Test Project model validation, especially image upload"""
+class StartupModelValidationTest(TestCase):
+    """Test Startup model validation, especially image upload"""
     
     def setUp(self):
         self.user = User.objects.create_user(
@@ -179,15 +179,15 @@ class ProjectModelValidationTest(TestCase):
             content_type="image/jpeg"
         )
         
-        project = Project(
-            name='Test Project',
+        startup = Startup(
+            name='Test Startup',
             proponente=self.user,
             status='pre_incubacao',
             logo=large_file
         )
         
         with self.assertRaises(ValidationError):
-            project.clean()
+            startup.clean()
     
     def test_image_file_extension_validation(self):
         """Test that non-image file extensions are rejected"""
@@ -197,15 +197,15 @@ class ProjectModelValidationTest(TestCase):
             content_type="application/pdf"
         )
         
-        project = Project(
-            name='Test Project',
+        startup = Startup(
+            name='Test Startup',
             proponente=self.user,
             status='pre_incubacao',
             logo=invalid_file
         )
         
         with self.assertRaises(ValidationError):
-            project.clean()
+            startup.clean()
     
     def test_valid_image_upload(self):
         """Test that valid image uploads are accepted"""
@@ -215,8 +215,8 @@ class ProjectModelValidationTest(TestCase):
             content_type="image/jpeg"
         )
         
-        project = Project(
-            name='Test Project',
+        startup = Startup(
+            name='Test Startup',
             proponente=self.user,
             status='pre_incubacao',
             logo=valid_file
@@ -224,23 +224,23 @@ class ProjectModelValidationTest(TestCase):
         
         # Should not raise validation error
         try:
-            project.clean()
+            startup.clean()
         except ValidationError:
             self.fail("Valid image should not raise ValidationError")
     
-    def test_project_without_logo(self):
-        """Test that project without logo is valid"""
-        project = Project(
-            name='Test Project',
+    def test_startup_without_logo(self):
+        """Test that startup without logo is valid"""
+        startup = Startup(
+            name='Test Startup',
             proponente=self.user,
             status='pre_incubacao'
         )
         
         # Should not raise validation error
         try:
-            project.clean()
+            startup.clean()
         except ValidationError:
-            self.fail("Project without logo should be valid")
+            self.fail("Startup without logo should be valid")
 
 
 class XSSPreventionInFormsTest(TestCase):

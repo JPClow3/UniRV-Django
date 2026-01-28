@@ -1,0 +1,25 @@
+{% load humanize %}
+<div class="reveal-up flex flex-wrap gap-4 text-white/90 text-sm items-center mt-6">
+  {% if edital.numero_edital %}
+  <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors">
+    <i class="fas fa-file-alt" aria-hidden="true"></i>
+    Edital {{ edital.numero_edital }}
+  </span>
+  {% endif %}
+  <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors">
+    <i class="fas fa-tag" aria-hidden="true"></i>
+    {{ edital.get_status_display }}
+  </span>
+  {% if edital.entidade_principal %}
+  <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors">
+    <i class="fas fa-building" aria-hidden="true"></i>
+    {{ edital.entidade_principal }}
+  </span>
+  {% endif %}
+  {% if edital.data_atualizacao %}
+  <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors last-updated {% if is_recent_update %}recent{% endif %}" title="Atualizado em {{ edital.data_atualizacao|date:'d/m/Y H:i' }}">
+    <i class="fas fa-clock" aria-hidden="true"></i>
+    <span>Atualizado {{ edital.data_atualizacao|timesince }} atrás</span>
+  </span>
+  {% endif %}
+</div>

@@ -27,7 +27,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{% block twitter_title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}" />
     <meta name="twitter:description" content="{% block twitter_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}" />
-    <meta name="twitter:image" content="{% block twitter_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}{% endblock %}" />
+    <meta name="twitter:image" content="{% block twitter_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo AgroHub.svg' %}{% endblock %}" />
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta
@@ -45,7 +45,7 @@
     />
     <meta property="og:site_name" content="AgroHub UniRV" />
     {% block og_image %}
-    <meta property="og:image" content="{% block og_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}{% endblock %}" />
+    <meta property="og:image" content="{% block og_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo AgroHub.svg' %}{% endblock %}" />
     <meta property="og:image:alt" content="{% block og_image_alt %}AgroHub UniRV - Logo do Centro de Inovação e Tecnologia{% endblock %}" />
     <meta property="og:image:width" content="{% block og_image_width %}512{% endblock %}" />
     <meta property="og:image:height" content="{% block og_image_height %}512{% endblock %}" />
@@ -53,13 +53,6 @@
     {% endblock %}
     {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
     
-    <!-- Resource Hints for Performance - Early DNS resolution and connection -->
-    <!-- DNS prefetch for external domains (happens early, before connection) -->
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
-    <!-- Preconnect to establish early connections to CDNs -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-    <!-- Preconnect to FontAwesome CDN for faster font loading -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <!-- Prefetch likely next-page resources for better navigation performance -->
     <link rel="prefetch" href="{% url 'editais_index' %}" as="document" />
     <!-- Prefetch login page for faster navigation -->
@@ -73,18 +66,6 @@
       href="{% static 'fonts/Montserrat-Regular.ttf' %}"
       crossorigin="anonymous"
     />
-    <!-- Preload FontAwesome font file for faster loading -->
-    <link
-      rel="preload"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/webfonts/fa-solid-900.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin="anonymous"
-    />
-    <script>
-      // Polyfill for browsers that don't support onload on link tags - minified inline
-      !function(e){"use strict";var t=function(t,n,o){var i,r=e.document,a=r.createElement("link");if(o)i=o;else{var l=(r.body||r.getElementsByTagName("head")[0]).childNodes;i=l[l.length-1]}var d=r.styleSheets;a.rel="stylesheet",a.href=t,a.media="only x",function e(t){if(r.body)return t();setTimeout(function(){e(t)})}(function(){i.parentNode.insertBefore(a,o?i:i.nextSibling)});var f=function(e){for(var t=a.href,n=d.length;n--;)if(d[n].href===t)return e();setTimeout(function(){f(e)})};return a.addEventListener&&a.addEventListener("load",function(){this.media=o||"all"}),a.onloadcssdefined=f,f(function(){a.media!==o&&(a.media=o||"all")}),a};"undefined"!=typeof exports?exports.loadCSS=t:e.loadCSS=t}("undefined"!=typeof global?global:this);
-    </script>
     <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}" />
     
     <!-- Structured Data (JSON-LD) for SEO -->
@@ -94,7 +75,7 @@
       "@type": "Organization",
       "name": "AgroHub UniRV",
       "url": "{{ request.build_absolute_uri|slice:":-1" }}{% url 'home' %}",
-      "logo": "{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo.svg' %}",
+      "logo": "{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo AgroHub.svg' %}",
       "description": "Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.",
       "contactPoint": {
         "@type": "ContactPoint",
@@ -113,20 +94,8 @@
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <!-- Print styles -->
     <link rel="stylesheet" href="{% static 'css/print.css' %}" media="print">
-    <!-- Font Awesome - Loaded asynchronously to prevent render blocking -->
-    <script>
-      // Async CSS loader for Font Awesome (fallback if loadCSS not available)
-      (function() {
-        var faLink = document.createElement('link');
-        faLink.rel = 'stylesheet';
-        faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css';
-        faLink.crossOrigin = 'anonymous';
-        faLink.media = 'print';
-        faLink.onload = function() { this.media = 'all'; };
-        document.head.appendChild(faLink);
-      })();
-    </script>
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" /></noscript>
+    <!-- Font Awesome (local vendor assets - no CDN) -->
+    <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}" crossorigin="anonymous" />
     {% block extra_head %}{% endblock %}
   </head>
   {% with current_url=request.resolver_match.url_name|default:"" transparent_header=request.resolver_match.url_name|is_transparent_header %}
@@ -134,11 +103,6 @@
     class="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden{% if transparent_header %} page-detail{% endif %}"
     data-page="{% block page_id %}{% endblock %}"
   >
-    <!-- Skip to main content link for accessibility -->
-    <a href="#main-content" class="skip-link"
-      >Pular para o conteúdo principal</a
-    >
-
     <header
       class="site-header no-print bg-white/80 backdrop-blur-lg text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
@@ -154,9 +118,9 @@
             aria-label="AgroHub UniRV - Centro de Inovação e Tecnologia"
           >
             <img 
-              src="{% static 'img/Logo.svg' %}" 
+              src="{% static 'img/Logo AgroHub.svg' %}" 
               alt="AgroHub UniRV Logo" 
-              class="w-24 h-24 shrink-0" 
+              class="w-16 h-16 md:w-24 md:h-24 shrink-0" 
               width="96" 
               height="96" 
               fetchpriority="high"
@@ -187,7 +151,7 @@
             </a>
             <a
               href="{% url 'startups_showcase' %}"
-              class="nav-link transition-colors font-medium text-sm whitespace-nowrap shrink-0 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_startups' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
+              class="nav-link transition-colors font-medium text-sm whitespace-nowrap shrink-0 {% if current_url == 'startups_showcase' or current_url == 'dashboard_startups' %}text-unirvBlue font-semibold{% else %}text-gray-800 hover:text-green-600{% endif %}"
             >
               Startups
             </a>
@@ -237,28 +201,28 @@
           <ul class="flex flex-col"><li>
               <a
                 href="{% url 'home' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'home' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-3 min-h-[44px] flex items-center {% if current_url == 'home' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Início</a
               >
             </li>
             <li>
               <a
                 href="{% url 'ambientes_inovacao' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-3 min-h-[44px] flex items-center {% if current_url == 'ambientes_inovacao' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Ambientes de Inovação</a
               >
             </li>
             <li>
               <a
                 href="{% url 'editais_index' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-3 min-h-[44px] flex items-center {% if current_url == 'editais_index' or current_url|startswith:'edital_' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Editais</a
               >
             </li>
             <li>
               <a
                 href="{% url 'startups_showcase' %}"
-                class="nav-link block px-4 py-2 {% if current_url == 'startups_showcase' or current_url == 'projetos_aprovados' or current_url == 'dashboard_startups' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
+                class="nav-link block px-4 py-3 min-h-[44px] flex items-center {% if current_url == 'startups_showcase' or current_url == 'dashboard_startups' %}text-unirvBlue font-semibold bg-green-50{% else %}text-gray-700 hover:text-green-600 hover:bg-green-50{% endif %}"
                 >Startups</a
               >
             </li>
@@ -266,7 +230,7 @@
             <li>
               <a
                 href="{% url 'dashboard_home' %}"
-                class="nav-cta block mx-4 mt-4 text-center"
+                class="nav-cta block mx-4 mt-4 text-center min-h-[44px] flex items-center justify-center"
               >
                 Dashboard
               </a>
@@ -276,9 +240,10 @@
                 {% csrf_token %}
                 <button
                   type="submit"
-                  class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                  class="w-full text-left px-4 py-3 min-h-[44px] flex items-center text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                  aria-label="Sair da conta"
                 >
-                  <i class="fas fa-sign-out-alt mr-2"></i>Sair
+                  <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i>Sair
                 </button>
               </form>
             </li>
@@ -286,7 +251,7 @@
             <li>
               <a
                 href="{% url 'login' %}"
-                class="nav-cta block mx-4 mt-4 text-center"
+                class="nav-cta block mx-4 mt-4 text-center min-h-[44px] flex items-center justify-center"
               >
                 Login
               </a>
@@ -377,7 +342,7 @@
           <div class="md:col-span-2">
             <div class="flex items-center gap-3 mb-6">
               <img 
-                src="{% static 'img/Logo.svg' %}" 
+                src="{% static 'img/Logo AgroHub.svg' %}" 
                 alt="AgroHub UniRV Logo" 
                 class="w-12 h-12" 
                 width="48" 
@@ -517,10 +482,10 @@
     {% if DEBUG %}<script src="{% static 'js/animations-native.js' %}" defer></script>{% else %}<script src="{% static 'js/animations-native.min.js' %}" defer></script>{% endif %}
     {% endif %}
     
-    <!-- GSAP only for complex animations (counters, timeline progress) on home page -->
+    <!-- GSAP only for complex animations (counters, timeline progress) on home page (local vendor) -->
     {% if current_url == 'home' %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer crossorigin="anonymous"></script>
+    <script src="{% static 'vendor/gsap/gsap.min.js' %}" defer crossorigin="anonymous"></script>
+    <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}" defer crossorigin="anonymous"></script>
     {% if HAS_COMPRESSOR %}
     {% compress js %}
     {% if DEBUG %}<script src="{% static 'js/animations.js' %}" defer></script>{% else %}<script src="{% static 'js/animations.min.js' %}" defer></script>{% endif %}

@@ -1,0 +1,13 @@
+{% load thumbnail_safe editais_filters %}
+{% if startup.logo %}
+  {% if startup.logo|is_svg %}
+    <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-contain border-2 border-white/20 shadow-lg bg-white/10 p-2" loading="eager" fetchpriority="high" />
+  {% else %}
+    {% safe_thumbnail startup.logo "detail_thumb" as thumb %}
+    {% if thumb %}
+      <img src="{{ thumb.url }}" alt="{{ startup.name }} logo" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-contain border-2 border-white/20 shadow-lg bg-white/10 p-2" width="{{ thumb.width }}" height="{{ thumb.height }}" loading="eager" fetchpriority="high" onerror="this.onerror=null; this.src='{{ startup.logo.url }}';" />
+    {% else %}
+      <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-contain border-2 border-white/20 shadow-lg bg-white/10 p-2" loading="eager" fetchpriority="high" />
+    {% endif %}
+  {% endif %}
+{% endif %}

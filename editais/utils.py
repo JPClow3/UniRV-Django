@@ -16,6 +16,9 @@ from django.db import models, connection
 from django.db.models import QuerySet
 
 from .constants import HTML_FIELDS, CACHE_FALLBACK_PAGE_RANGE, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, CACHE_TTL_15_MINUTES
+from .cache_utils import (
+    get_index_cache_key as _get_index_cache_key,
+)
 
 if TYPE_CHECKING:
     from .models import Edital
@@ -72,7 +75,9 @@ def sanitize_html(text: Optional[str]) -> str:
         sanitized = re.sub(r'data:text/html', '', sanitized, flags=re.IGNORECASE)
         
         return sanitized
-    except Exception as e:
+    except (TypeError, AttributeError, ValueError) as e:
+        # bleach.clean() can raise TypeError (invalid type), AttributeError (missing attribute),
+        # or ValueError (invalid value). Catch these specifically.
         logger.error(f"Erro ao sanitizar HTML: {e}", exc_info=True)
         # Return empty string on error to prevent XSS
         return ''
@@ -283,27 +288,40 @@ def parse_date_filter(date_string: Optional[str]) -> Optional[date]:
         return None
 
 
+# Phase labels for startup maturity (symbolic, not pass/fail). Used in forms, filters, UI.
+PHASE_CHOICES = [
+    ('pre_incubacao', 'Ideação'),
+    ('incubacao', 'MVP'),
+    ('graduada', 'Escala'),
+    ('suspensa', 'Suspensa'),
+]
+
+
+def get_phase_to_status_mapping() -> dict:
+    """
+    Maps phase display labels (lowercase) to model status values.
+    Used for filters and any UI that uses phase labels (Ideação, MVP, Escala, Suspensa).
+    """
+    return {label.lower(): code for code, label in PHASE_CHOICES}
+
+
 def get_project_status_mapping() -> dict:
     """
     Retorna mapeamento de labels de status para valores de status.
     Mapeia nomes de exibição (case-insensitive) para valores do modelo.
-    
-    Returns:
-        dict: Mapeamento de labels (lowercase) para valores de status
+    Inclui tanto labels de fase (Ideação, MVP, Escala) quanto labels antigas (Pré-Incubação, etc.).
     """
-    from .models import Project
-    return {
-        label.lower(): status
-        for status, label in Project.STATUS_CHOICES
-    }
+    from .models import Startup
+    mapping = {label.lower(): status for status, label in Startup.STATUS_CHOICES}
+    # Add phase labels so filter dropdown can use them
+    for code, label in PHASE_CHOICES:
+        mapping[label.lower()] = code
+    return mapping
 
 
 def get_project_sort_mapping() -> dict:
     """
-    Retorna mapeamento de opções de ordenação para projetos.
-    
-    Returns:
-        dict: Mapeamento de chaves de ordenação para campos do modelo
+    Retorna mapeamento de opções de ordenação para startups.
     """
     return {
         'submitted_on_desc': '-submitted_on',
@@ -312,8 +330,8 @@ def get_project_sort_mapping() -> dict:
         'name_desc': '-name',
         'status_asc': 'status',
         'status_desc': '-status',
-        'updated_on_desc': '-updated_on',
-        'updated_on_asc': 'updated_on',
+        'updated_on_desc': '-data_atualizacao',
+        'updated_on_asc': 'data_atualizacao',
     }
 
 
@@ -370,6 +388,18 @@ def clear_index_cache() -> None:
     except Exception:
         # Cache delete failed - log but don't raise
         logger.warning("Failed to delete old cache keys - cache unavailable", exc_info=True)
+
+
+def get_index_cache_key(page_number: str, cache_version: Optional[int] = None) -> str:
+    """
+    Backwards-compatible helper for generating index cache keys.
+
+    Historically, tests imported get_index_cache_key from this module.
+    The implementation now lives in editais.cache_utils, so this thin
+    wrapper simply forwards to the canonical implementation to avoid
+    breaking existing callers.
+    """
+    return _get_index_cache_key(page_number, cache_version)
 
 
 def get_search_suggestions(query: str, limit: int = 3) -> List[str]:

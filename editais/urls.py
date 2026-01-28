@@ -25,7 +25,7 @@ urlpatterns = [
     ), name='password_reset_complete'),
     path('editais/', views.index, name='editais_index'),
     path('ambientes-inovacao/', views.ambientes_inovacao, name='ambientes_inovacao'),
-    path('projetos-aprovados/', views.projetos_aprovados, name='projetos_aprovados'),
+    path('projetos-aprovados/', RedirectView.as_view(url='/startups/', permanent=True)),
     path('startups/', views.startups_showcase, name='startups_showcase'),
     path('startup/<slug:slug>/', views.startup_detail, name='startup_detail_slug'),
     path('startup/<int:pk>/', views.startup_detail_redirect, name='startup_detail'),
@@ -45,11 +45,11 @@ urlpatterns = [
     path('dashboard/home/', views.dashboard_home, name='dashboard_home'),
     path('dashboard/editais/', views.dashboard_editais, name='dashboard_editais'),
     path('dashboard/editais/novo/', views.dashboard_novo_edital, name='dashboard_novo_edital'),
-    path('dashboard/startups/', views.dashboard_projetos, name='dashboard_startups'),
-    path('dashboard/startups/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_startup'),
+    path('dashboard/startups/', views.dashboard_startups, name='dashboard_startups'),
+    path('dashboard/startups/submeter/', views.dashboard_submeter_startup, name='dashboard_submeter_startup'),
     path('dashboard/startups/<int:pk>/editar/', views.dashboard_startup_update, name='dashboard_startup_update'),
-    # URL aliases for backward compatibility
-    path('dashboard/projetos/', views.dashboard_projetos, name='dashboard_projetos'),
-    path('dashboard/projetos/submeter/', views.dashboard_submeter_projeto, name='dashboard_submeter_projeto'),
+    # Redirect legacy /dashboard/projetos/ URLs to /dashboard/startups/
+    path('dashboard/projetos/', RedirectView.as_view(pattern_name='dashboard_startups', permanent=True)),
+    path('dashboard/projetos/submeter/', RedirectView.as_view(pattern_name='dashboard_submeter_startup', permanent=True)),
     path('dashboard/usuarios/', views.dashboard_usuarios, name='dashboard_usuarios'),
 ]

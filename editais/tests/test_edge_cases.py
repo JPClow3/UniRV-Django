@@ -8,10 +8,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
 
-from ..models import Edital, Project
+from ..models import Edital, Startup
 from ..utils import determine_edital_status
-from ..views.public import build_search_query
-from django.db.models import Q
 
 
 class PaginationEdgeCasesTest(TestCase):
@@ -72,16 +70,14 @@ class SearchQueryEdgeCasesTest(TestCase):
     
     def test_empty_search_query(self):
         """Test that empty search query returns all results"""
-        q = build_search_query('')
-        self.assertIsInstance(q, Q)
-        # Empty Q() should match all
+        qs = Edital.objects.search('')
+        self.assertEqual(list(qs), list(Edital.objects.all()))
     
     def test_very_long_search_query(self):
         """Test that very long search queries are truncated"""
         long_query = 'a' * 1000
-        q = build_search_query(long_query)
-        # Should not crash and should be truncated to 500 chars
-        self.assertIsInstance(q, Q)
+        qs = Edital.objects.search(long_query)
+        self.assertIsNotNone(qs)
     
     def test_search_with_special_characters(self):
         """Test search with special characters"""
@@ -101,10 +97,10 @@ class SearchQueryEdgeCasesTest(TestCase):
         self.assertEqual(response.status_code, 200)
     
     def test_search_query_length_limit(self):
-        """Test that search query length is limited in build_search_query"""
+        """Test that search query length is limited (manager search)"""
         long_query = 'x' * 600
-        q = build_search_query(long_query)
-        self.assertIsInstance(q, Q)
+        qs = Edital.objects.search(long_query)
+        self.assertIsNotNone(qs)
 
 
 class StatusDeterminationEdgeCasesTest(TestCase):
@@ -299,13 +295,13 @@ class URLRedirectEdgeCasesTest(TestCase):
             username='proponente',
             password='testpass123'
         )
-        project = Project.objects.create(
+        project = Startup.objects.create(
             name='Test Startup',
             proponente=user,
             status='pre_incubacao'
         )
         # Manually set slug to None (bypassing save() which generates it)
-        Project.objects.filter(pk=project.pk).update(slug=None)
+        Startup.objects.filter(pk=project.pk).update(slug=None)
         project.refresh_from_db()
         
         # Verify slug is actually None

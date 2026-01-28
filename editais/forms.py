@@ -4,7 +4,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
-from .models import Edital, Project
+from .models import Edital, Startup
+from .utils import PHASE_CHOICES
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -151,12 +152,12 @@ class EditalForm(forms.ModelForm):
         return cleaned_data
 
 
-class ProjectForm(forms.ModelForm):
-    """Form for creating and editing Project (Startup) instances"""
-    
+class StartupForm(forms.ModelForm):
+    """Form for creating and editing Startup instances"""
+
     class Meta:
-        model = Project
-        fields = ['name', 'description', 'category', 'edital', 'contato', 'logo']
+        model = Startup
+        fields = ['name', 'description', 'category', 'edital', 'contato', 'website', 'incubacao_start_date', 'tags', 'logo', 'status']
         widgets = {
             'name': forms.TextInput(attrs={
                 'placeholder': 'Ex: AgroTech Solutions',
@@ -182,17 +183,34 @@ class ProjectForm(forms.ModelForm):
                 'accept': 'image/jpeg,image/png,image/gif,image/svg+xml',
                 'class': 'hidden'
             }),
+            'status': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'
+            }),
         }
-    
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         # Make edital optional and add empty option
         self.fields['edital'].required = False
         self.fields['edital'].queryset = Edital.objects.all().order_by('-data_atualizacao')
         self.fields['edital'].empty_label = 'Selecione um edital (opcional)'
-        
-        # Make logo optional
+
+        # Make optional fields not required
         self.fields['logo'].required = False
+        self.fields['website'].required = False
+        self.fields['incubacao_start_date'].required = False
+        self.fields['tags'].required = False
+        
+        # Import Tag model for tags queryset
+        from .models import Tag
+        self.fields['tags'].queryset = Tag.objects.all().order_by('name')
+
+        # Phase (maturity) – symbolic, not pass/fail. Use phase labels instead of status labels.
+        self.fields['status'].label = 'Fase de maturidade'
+        self.fields['status'].help_text = (
+            'Estágio da startup (ideação, MVP, escala). Indicador de maturidade, não de aprovação.'
+        )
+        self.fields['status'].choices = PHASE_CHOICES
         
         # Add aria labels for accessibility
         for field_name, field in self.fields.items():

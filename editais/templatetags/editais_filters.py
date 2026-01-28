@@ -161,6 +161,46 @@ def is_svg(file_field) -> bool:
     return ext in ['.svg', '.svgz']
 
 
+# Semantic token → Tailwind CSS mapping (single source of truth for badge styling)
+PHASE_BADGE_CLASSES = {
+    'pre_incubacao': 'bg-purple-100 text-purple-700 border-purple-200',
+    'incubacao': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    'graduada': 'bg-blue-100 text-blue-700 border-blue-200',
+    'suspensa': 'bg-gray-100 text-gray-700 border-gray-200',
+}
+DEFAULT_PHASE_BADGE = 'bg-gray-100 text-gray-700 border-gray-200'
+
+CATEGORY_BADGE_CLASSES = {
+    'agtech': 'bg-green-100 text-green-700 border-green-200',
+    'biotech': 'bg-blue-100 text-blue-700 border-blue-200',
+    'iot': 'bg-purple-100 text-purple-700 border-purple-200',
+    'edtech': 'bg-orange-100 text-orange-700 border-orange-200',
+}
+DEFAULT_CATEGORY_BADGE = 'bg-gray-100 text-gray-700 border-gray-200'
+
+
+@register.filter
+def phase_badge_class(status: Optional[str]) -> str:
+    """
+    Map startup phase/status to Tailwind badge classes.
+    Use in templates: {{ startup.status|phase_badge_class }}
+    """
+    if not status:
+        return DEFAULT_PHASE_BADGE
+    return PHASE_BADGE_CLASSES.get(status, DEFAULT_PHASE_BADGE)
+
+
+@register.filter
+def category_badge_class(category: Optional[str]) -> str:
+    """
+    Map startup category to Tailwind badge classes.
+    Use in templates: {{ startup.category|category_badge_class }}
+    """
+    if not category:
+        return DEFAULT_CATEGORY_BADGE
+    return CATEGORY_BADGE_CLASSES.get(category, DEFAULT_CATEGORY_BADGE)
+
+
 @register.filter
 def total_error_count(form) -> int:
     """

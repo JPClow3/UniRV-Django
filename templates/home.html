@@ -29,7 +29,7 @@
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- HERO SECTION -->
-  <header class="relative min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden" style="background-image: url('{% static 'img/hero/agrohub-hero-lqip.jpg' %}'); background-size: cover; background-position: center;">
+  <header class="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden" style="background-image: url('{% static 'img/hero/agrohub-hero-lqip.jpg' %}'); background-size: cover; background-position: center;">
     <picture class="hero-media">
       <!-- AVIF sources (best compression, modern browsers) -->
       <source
@@ -141,7 +141,7 @@
   </section>
 
   <!-- PILLARS SECTION -->
-  <section id="pillars-section" class="py-20 bg-gray-50 relative overflow-hidden fold-section">
+  <section id="pillars-section" class="py-20 pb-24 bg-gray-50 relative fold-section">
     <div class="container mx-auto px-6 relative z-10">
       <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="text-green-700 font-bold tracking-widest uppercase text-sm">Nossos Fundamentos</span>
@@ -218,7 +218,7 @@
               {% for startup in startups %}
               <a href="{% if startup.slug %}{% url 'startup_detail_slug' slug=startup.slug %}{% else %}#{% endif %}" 
                  class="flex-shrink-0 snap-center snap-always group"
-                 style="width: 85vw; max-width: 320px;"
+                 style="width: min(90vw, 320px);"
                  aria-label="Ver detalhes de {{ startup.name }}">
                 <div class="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-6 h-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
                   <!-- Logo Container -->
@@ -228,7 +228,10 @@
                         <img src="{{ startup.logo.url }}" 
                              alt="{{ startup.name }} logo" 
                              class="h-20 w-auto max-w-full object-contain mx-auto"
+                             width="80"
+                             height="80"
                              loading="lazy"
+                             decoding="async"
                              style="max-height: 5rem;">
                       {% else %}
                         {% safe_thumbnail startup.logo "card_thumb" as thumb %}
@@ -239,12 +242,16 @@
                                width="{{ thumb.width }}"
                                height="{{ thumb.height }}"
                                loading="lazy"
+                               decoding="async"
                                style="max-height: 5rem;">
                         {% else %}
                           <img src="{{ startup.logo.url }}" 
                                alt="{{ startup.name }} logo" 
                                class="h-20 w-auto max-w-full object-contain mx-auto"
+                               width="150"
+                               height="150"
                                loading="lazy"
+                               decoding="async"
                                style="max-height: 5rem;">
                         {% endif %}
                       {% endif %}
@@ -263,7 +270,7 @@
                   
                   <!-- Category Badge -->
                   <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ startup.get_badge_color }}">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border {{ startup.category|category_badge_class }}">
                         {{ startup.get_category_display }}
                       </span>
                   </div>
@@ -274,7 +281,7 @@
               <!-- CTA Card: "Sua Startup Aqui" -->
               <a href="{% url 'register' %}" 
                  class="flex-shrink-0 snap-center snap-always group"
-                 style="width: 85vw; max-width: 320px;"
+                 style="width: min(90vw, 320px);"
                  aria-label="Cadastre sua startup">
                 <div class="bg-gradient-to-br from-unirvBlue to-agrohubGreen border-2 border-dashed border-white/30 rounded-2xl p-6 h-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col items-center justify-center min-h-[280px] text-white">
                   <div class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">

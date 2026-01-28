@@ -22,19 +22,19 @@
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
     <div class="bg-white rounded-xl border border-gray-200 p-4">
       <div class="text-gray-600 mb-1 text-sm">Total de Editais</div>
-      <div class="text-gray-900 text-2xl font-bold">4</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ total_editais|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4">
       <div class="text-gray-600 mb-1 text-sm">Publicados</div>
-      <div class="text-gray-900 text-2xl font-bold">2</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ publicados|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4">
       <div class="text-gray-600 mb-1 text-sm">Rascunhos</div>
-      <div class="text-gray-900 text-2xl font-bold">1</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ rascunhos|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4">
       <div class="text-gray-600 mb-1 text-sm">Total de Submissões</div>
-      <div class="text-gray-900 text-2xl font-bold">85</div>
+      <div class="text-gray-900 text-2xl font-bold">{{ total_submissoes|default:0 }}</div>
     </div>
   </div>
 

@@ -11,8 +11,8 @@ from django.utils import timezone
 from django.core.cache import cache
 from datetime import timedelta
 
-from ..models import Edital, Project
-from .factories import StaffUserFactory, EditalFactory, ProjectFactory
+from ..models import Edital, Startup
+from .factories import StaffUserFactory, EditalFactory, StartupFactory
 
 
 class QueryOptimizationTest(TestCase):
@@ -108,7 +108,7 @@ class QueryOptimizationTest(TestCase):
         cache.clear()
         # Create some projects
         for i in range(5):
-            ProjectFactory(
+            StartupFactory(
                 name=f'Startup {i}',
                 proponente=self.staff_user,
                 status='incubacao'

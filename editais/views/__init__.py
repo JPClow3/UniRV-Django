@@ -10,7 +10,6 @@ This package contains all views organized by functionality:
 from .public import (
     home,
     ambientes_inovacao,
-    projetos_aprovados,
     startups_showcase,
     startup_detail,
     startup_detail_redirect,
@@ -24,9 +23,9 @@ from .public import (
 from .dashboard import (
     dashboard_home,
     dashboard_editais,
-    dashboard_projetos,
+    dashboard_startups,
     dashboard_usuarios,
-    dashboard_submeter_projeto,
+    dashboard_submeter_startup,
     dashboard_startup_update,
     dashboard_novo_edital,
     admin_dashboard,
@@ -41,7 +40,6 @@ __all__ = [
     # Public views
     'home',
     'ambientes_inovacao',
-    'projetos_aprovados',
     'startups_showcase',
     'startup_detail',
     'startup_detail_redirect',
@@ -54,9 +52,9 @@ __all__ = [
     # Dashboard views
     'dashboard_home',
     'dashboard_editais',
-    'dashboard_projetos',
+    'dashboard_startups',
     'dashboard_usuarios',
-    'dashboard_submeter_projeto',
+    'dashboard_submeter_startup',
     'dashboard_startup_update',
     'dashboard_novo_edital',
     'admin_dashboard',

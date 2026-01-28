@@ -59,6 +59,11 @@ jobs:
           cd theme/static_src
           npm ci
 
+      - name: Build vendor assets (Font Awesome, GSAP)
+        run: |
+          cd theme/static_src
+          npm run build:vendor
+
       - name: Run database migrations
         run: |
           echo "Running database migrations..."

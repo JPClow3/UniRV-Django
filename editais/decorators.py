@@ -164,8 +164,6 @@ def rate_limit(key: str = 'ip', rate: int = RATE_LIMIT_REQUESTS, window: int = R
     def decorator(view_func: Callable) -> Callable:
         @wraps(view_func)
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> Any:
-            if getattr(settings, 'TESTING', False):
-                return view_func(request, *args, **kwargs)
             # Aplicar rate limiting apenas para o método especificado
             if method and request.method != method:
                 return view_func(request, *args, **kwargs)

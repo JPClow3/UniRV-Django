@@ -50,54 +50,13 @@
 
 {% block content %}
 <!-- Hero Header -->
-<section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
-  <div class="container relative z-10 px-6 pt-12">
-    <div class="max-w-6xl">
-      <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
-        <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
-        Startup
-      </div>
-      <div class="flex items-start gap-6 mb-6">
-        {% if startup.logo %}
-          {% if startup.logo|is_svg %}
-            <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-contain border-4 border-white/20 shadow-xl bg-white/10 p-2" loading="eager" fetchpriority="high" />
-          {% else %}
-            {% safe_thumbnail startup.logo "detail_thumb" as thumb %}
-            {% if thumb %}
-              <img src="{{ thumb.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-contain border-4 border-white/20 shadow-xl bg-white/10 p-2" width="{{ thumb.width }}" height="{{ thumb.height }}" loading="eager" fetchpriority="high" onerror="this.onerror=null; this.src='{{ startup.logo.url }}';" />
-            {% else %}
-              <img src="{{ startup.logo.url }}" alt="{{ startup.name }} logo" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl object-contain border-4 border-white/20 shadow-xl bg-white/10 p-2" loading="eager" fetchpriority="high" />
-            {% endif %}
-          {% endif %}
-        {% endif %}
-        <div class="flex-1">
-          <h1 class="reveal-up text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4">{{ startup.name }}</h1>
-          {% if startup.description %}
-          <p class="reveal-up text-lg md:text-xl text-gray-200 mb-6 leading-relaxed border-l-4 border-agrohubGreen pl-6">
-            {{ startup.description|truncatewords:30 }}
-          </p>
-          {% endif %}
-        </div>
-      </div>
-      <div class="flex flex-wrap gap-4 text-white/90 text-sm items-center">
-        <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20">
-          <i class="fas fa-tag mr-2" aria-hidden="true"></i>
-          {{ startup.get_category_display }}
-        </span>
-        <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20">
-          <i class="fas fa-chart-line mr-2" aria-hidden="true"></i>
-          {{ startup.get_status_display }}
-        </span>
-        {% if startup.submitted_on %}
-        <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 border border-white/20">
-          <i class="fas fa-calendar-alt mr-2" aria-hidden="true"></i>
-          Desde {{ startup.submitted_on|date:"d/m/Y" }}
-        </span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</section>
+{% with subtitle=startup.description|truncatewords:30|default:"" %}
+{% if startup.logo %}
+{% include 'components/page_hero.html' with badge_label="Startup" title=startup.name subtitle=subtitle logo_template="startups/detail_hero_logo.html" meta_template="components/hero_meta_startup.html" %}
+{% else %}
+{% include 'components/page_hero.html' with badge_label="Startup" title=startup.name subtitle=subtitle meta_template="components/hero_meta_startup.html" %}
+{% endif %}
+{% endwith %}
 
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="max-w-6xl mx-auto">
@@ -116,9 +75,9 @@
           <p class="text-gray-600">{{ startup.get_category_display }}</p>
         </div>
         <div>
-          <h3 class="text-gray-900 font-semibold mb-2">Status</h3>
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ startup.get_phase_badge_class }}">
-            {{ startup.get_status_display }}
+          <h3 class="text-gray-900 font-semibold mb-2">Fase de maturidade</h3>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ startup.status|phase_badge_class }}">
+            {{ startup.get_phase_display }}
           </span>
         </div>
         {% if startup.proponente %}
@@ -133,10 +92,55 @@
           <p class="text-gray-600">{{ startup.submitted_on|date:"d/m/Y" }}</p>
         </div>
         {% endif %}
-        {% if startup.contato %}
+        {% if startup.website %}
+        <div>
+          <h3 class="text-gray-900 font-semibold mb-2">Website</h3>
+          <p class="text-gray-600">
+            <a href="{{ startup.website }}" target="_blank" rel="noopener noreferrer" class="text-unirvBlue hover:text-agrohubBlue font-medium">
+              {{ startup.website }}
+            </a>
+          </p>
+        </div>
+        {% endif %}
+        {% if startup.contato or startup.proponente.email %}
         <div>
           <h3 class="text-gray-900 font-semibold mb-2">Contato</h3>
-          <p class="text-gray-600">{{ startup.contato|linebreaks }}</p>
+          <div class="text-gray-600 space-y-2">
+            {% if startup.proponente and startup.proponente.email %}
+              <div class="flex items-start gap-2">
+                <i class="fas fa-envelope text-secondary mt-0.5" aria-hidden="true"></i>
+                <a href="mailto:{{ startup.proponente.email }}" class="text-unirvBlue hover:text-agrohubBlue font-medium break-all">
+                  {{ startup.proponente.email }}
+                </a>
+              </div>
+            {% endif %}
+            {% if startup.contato %}
+              <div class="flex items-start gap-2">
+                <i class="fas fa-address-card text-secondary mt-0.5" aria-hidden="true"></i>
+                <div class="min-w-0">
+                  {{ startup.contato|linebreaks }}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+        {% if startup.incubacao_start_date %}
+        <div>
+          <h3 class="text-gray-900 font-semibold mb-2">Data de Início da Incubação</h3>
+          <p class="text-gray-600">{{ startup.incubacao_start_date|date:"d/m/Y" }}</p>
+        </div>
+        {% endif %}
+        {% if startup.tags.all %}
+        <div>
+          <h3 class="text-gray-900 font-semibold mb-2">Tags</h3>
+          <div class="flex flex-wrap gap-2">
+            {% for tag in startup.tags.all %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+              {{ tag.name }}
+            </span>
+            {% endfor %}
+          </div>
         </div>
         {% endif %}
         {% if startup.edital %}

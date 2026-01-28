@@ -11,7 +11,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
-from ..models import Edital, Project, EditalValor
+from ..models import Edital, Startup, EditalValor
 from ..forms import UserRegistrationForm
 
 
@@ -28,22 +28,32 @@ class SlugUniquenessTest(TransactionTestCase):
         results = []
         errors = []
         
+        from ..constants import SLUG_GENERATION_MAX_RETRIES
+
         def create_edital():
             try:
-                # Add retry logic for SQLite database locking
-                max_retries = 5
-                for attempt in range(max_retries):
+                for attempt in range(5):  # SQLite lock retries
                     try:
-                        edital = Edital.objects.create(
+                        edital = Edital(
                             titulo=title,
                             url='https://example.com',
                             status='aberto'
                         )
-                        results.append(edital.slug)
-                        return
+                        for slug_attempt in range(SLUG_GENERATION_MAX_RETRIES):
+                            try:
+                                with transaction.atomic():
+                                    edital.save()
+                                results.append(edital.slug)
+                                return
+                            except IntegrityError as e:
+                                if ('slug' in str(e).lower() or 'unique' in str(e).lower()) and slug_attempt < SLUG_GENERATION_MAX_RETRIES - 1:
+                                    edital.slug = edital._generate_unique_slug()
+                                    continue
+                                raise
+                        break
                     except Exception as e:
-                        if 'locked' in str(e).lower() and attempt < max_retries - 1:
-                            time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                        if 'locked' in str(e).lower() and attempt < 4:
+                            time.sleep(0.1 * (attempt + 1))
                             continue
                         raise
             except Exception as e:
@@ -91,8 +101,8 @@ class SlugUniquenessTest(TransactionTestCase):
         self.assertIsNotNone(edital.slug)
         self.assertTrue(edital.slug.startswith('edital-'))
     
-    def test_project_slug_uniqueness(self):
-        """Test Project slug uniqueness"""
+    def test_startup_slug_uniqueness(self):
+        """Test Startup slug uniqueness"""
         user = User.objects.create_user(
             username='testuser',
             password='testpass123'
@@ -102,22 +112,32 @@ class SlugUniquenessTest(TransactionTestCase):
         results = []
         errors = []
         
-        def create_project():
+        from ..constants import SLUG_GENERATION_MAX_RETRIES
+
+        def create_startup():
             try:
-                # Add retry logic for SQLite database locking
-                max_retries = 5
-                for attempt in range(max_retries):
+                for attempt in range(5):  # SQLite lock retries
                     try:
-                        project = Project.objects.create(
+                        startup = Startup(
                             name=name,
                             proponente=user,
                             status='pre_incubacao'
                         )
-                        results.append(project.slug)
-                        return
+                        for slug_attempt in range(SLUG_GENERATION_MAX_RETRIES):
+                            try:
+                                with transaction.atomic():
+                                    startup.save()
+                                results.append(startup.slug)
+                                return
+                            except IntegrityError as e:
+                                if ('slug' in str(e).lower() or 'unique' in str(e).lower()) and slug_attempt < SLUG_GENERATION_MAX_RETRIES - 1:
+                                    startup.slug = startup._generate_unique_slug()
+                                    continue
+                                raise
+                        break
                     except Exception as e:
-                        if 'locked' in str(e).lower() and attempt < max_retries - 1:
-                            time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                        if 'locked' in str(e).lower() and attempt < 4:
+                            time.sleep(0.1 * (attempt + 1))
                             continue
                         raise
             except Exception as e:
@@ -125,7 +145,7 @@ class SlugUniquenessTest(TransactionTestCase):
         
         threads = []
         for i in range(3):
-            thread = threading.Thread(target=create_project)
+            thread = threading.Thread(target=create_startup)
             threads.append(thread)
             thread.start()
             # Small delay between thread starts to reduce lock contention
@@ -226,36 +246,36 @@ class ForeignKeyIntegrityTest(TestCase):
             status='aberto'
         )
     
-    def test_edital_deletion_with_projects(self):
-        """Test that projects are preserved when edital is deleted"""
-        project = Project.objects.create(
-            name='Test Project',
+    def test_edital_deletion_with_startups(self):
+        """Test that startups are preserved when edital is deleted"""
+        startup = Startup.objects.create(
+            name='Test Startup',
             proponente=self.user,
             edital=self.edital,
             status='pre_incubacao'
         )
         
-        project_id = project.pk
+        startup_id = startup.pk
         self.edital.delete()
         
-        # Project should still exist with edital set to None
-        project.refresh_from_db()
-        self.assertIsNone(project.edital)
-        self.assertEqual(project.pk, project_id)
+        # Startup should still exist with edital set to None
+        startup.refresh_from_db()
+        self.assertIsNone(startup.edital)
+        self.assertEqual(startup.pk, startup_id)
     
-    def test_user_deletion_with_projects(self):
-        """Test that projects are deleted when user is deleted"""
-        project = Project.objects.create(
-            name='Test Project',
+    def test_user_deletion_with_startups(self):
+        """Test that startups are deleted when user is deleted"""
+        startup = Startup.objects.create(
+            name='Test Startup',
             proponente=self.user,
             status='pre_incubacao'
         )
         
-        project_id = project.pk
+        startup_id = startup.pk
         self.user.delete()
         
-        # Project should be deleted (CASCADE)
-        self.assertFalse(Project.objects.filter(pk=project_id).exists())
+        # Startup should be deleted (CASCADE)
+        self.assertFalse(Startup.objects.filter(pk=startup_id).exists())
     
     def test_edital_valor_cascade(self):
         """Test that EditalValor is deleted when edital is deleted"""

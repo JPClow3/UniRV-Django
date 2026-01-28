@@ -71,7 +71,7 @@
     <div class="pagination-container mt-12 flex justify-center">
       <nav class="flex items-center gap-2" aria-label="Pagination">
         {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="page-link px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow min-w-[44px] min-h-[44px] inline-flex items-center justify-center">
+          <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if orgao_filter %}&orgao={{ orgao_filter }}{% endif %}{% if start_date_filter %}&start_date={{ start_date_filter }}{% endif %}{% if end_date_filter %}&end_date={{ end_date_filter }}{% endif %}{% if only_open %}&only_open=1{% endif %}" class="page-link px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow min-w-[44px] min-h-[44px] inline-flex items-center justify-center">
             <span class="sr-only">Anterior</span>
             <i class="fas fa-chevron-left"></i>
           </a>
@@ -93,7 +93,7 @@
 
 {% else %}
   <!-- Empty State -->
-  {% if search_query or status_filter or orgao_filter or start_date_filter or end_date_filter %}
+  {% if search_query or status_filter or orgao_filter or start_date_filter or end_date_filter or only_open %}
     <div id="no-results" class="text-center py-20 max-w-lg mx-auto">
       <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400 text-3xl">
         <i class="fas fa-search"></i>
@@ -132,9 +132,17 @@
         <p class="text-gray-600 mb-6">
           Não há editais com status <strong>{{ status_filter|title }}</strong> no momento.
         </p>
-      {% elif tipo_filter %}
+      {% elif orgao_filter %}
         <p class="text-gray-600 mb-6">
-          Não há editais do tipo <strong>{{ tipo_filter }}</strong> no momento.
+          Não há editais do orgão <strong>{{ orgao_filter }}</strong> no momento.
+        </p>
+      {% elif start_date_filter or end_date_filter %}
+        <p class="text-gray-600 mb-6">
+          Não há editais no período selecionado.
+        </p>
+      {% elif only_open %}
+        <p class="text-gray-600 mb-6">
+          Não há editais abertos no momento.
         </p>
       {% endif %}
       

@@ -197,7 +197,7 @@ class AuthenticationAuthorizationTest(TestCase):
         public_views = [
             'home',
             'ambientes_inovacao',
-            'projetos_aprovados',
+            'startups_showcase',
             'editais_index',
         ]
         

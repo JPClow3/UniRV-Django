@@ -1,8 +1,9 @@
 from typing import Optional, Any
 import logging
+import os
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db import models, IntegrityError, transaction
+from django.db import models, ProgrammingError
 from django.db.models import Q
 from django.urls import reverse
 from django.core.exceptions import ValidationError
@@ -12,7 +13,7 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from simple_history.models import HistoricalRecords
 
 from .utils import determine_edital_status, generate_unique_slug, sanitize_edital_fields
-from .constants import SLUG_GENERATION_MAX_RETRIES, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, MAX_SEARCH_LENGTH
+from .constants import SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, MAX_SEARCH_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,9 @@ class EditalQuerySet(models.QuerySet):
                     search=search_vector,
                     rank=SearchRank(search_vector, search_query_obj)
                 ).filter(search=search_query_obj).order_by('-rank', '-data_atualizacao')
-            except Exception as e:
+            except (AttributeError, ValueError, TypeError, ProgrammingError) as e:
+                # PostgreSQL search can raise ProgrammingError (extension not enabled),
+                # AttributeError (missing attribute), ValueError (invalid config), or TypeError (invalid type)
                 # Fallback to icontains if full-text search fails
                 logger.warning(f"PostgreSQL full-text search failed, falling back to icontains: {e}")
                 is_postgres = False
@@ -112,7 +115,8 @@ class EditalQuerySet(models.QuerySet):
                 f.name for f in self.model._meta.get_fields()
                 if hasattr(f, 'get_internal_type') and f.get_internal_type() in ('CharField', 'TextField')
             }
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
+            # Model._meta.get_fields() can raise AttributeError (missing attribute) or TypeError (invalid type)
             # Fallback: use all field names if validation fails
             model_fields = {f.name for f in self.model._meta.get_fields() if hasattr(f, 'name')}
         
@@ -165,82 +169,7 @@ class EditalManager(models.Manager):
         Returns:
             QuerySet: Filtered and ranked queryset
         """
-        if not query:
-            return self.get_queryset()
-        
-        # Convert query to string if it's not already (defensive programming)
-        # This handles edge cases where query might be passed as int, None, etc.
-        if not isinstance(query, str):
-            query = str(query) if query is not None else ''
-            if not query:
-                return self.get_queryset()
-        
-        if len(query) > MAX_SEARCH_LENGTH:
-            query = query[:MAX_SEARCH_LENGTH]
-        
-        # Check if we're using PostgreSQL
-        db_engine = settings.DATABASES['default'].get('ENGINE', '')
-        is_postgres = 'postgresql' in db_engine or 'postgis' in db_engine
-        
-        if is_postgres:
-            # Use PostgreSQL full-text search with Portuguese language configuration
-            # This enables stemming (e.g., "startup" matches "startups") and ranking
-            try:
-                # Create search vector from all searchable fields
-                search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
-                    'titulo', 'entidade_principal', 'numero_edital',
-                    'analise', 'objetivo', 'etapas', 'recursos',
-                    'itens_financiaveis', 'criterios_elegibilidade',
-                    'criterios_avaliacao', 'itens_essenciais_observacoes',
-                    'detalhes_unirv'
-                ])
-                
-                # Build search vector with Portuguese language configuration
-                # 'portuguese' config provides stemming and stop word removal
-                search_vector = SearchVector(*search_fields, config='portuguese')
-                
-                # Create search query with Portuguese config
-                search_query_obj = SearchQuery(query, config='portuguese')
-                
-                # Annotate queryset with search rank for relevance ordering
-                return self.get_queryset().annotate(
-                    search=search_vector,
-                    rank=SearchRank(search_vector, search_query_obj)
-                ).filter(search=search_query_obj).order_by('-rank', '-data_atualizacao')
-            except Exception as e:
-                # Fallback to icontains if full-text search fails
-                logger.warning(f"PostgreSQL full-text search failed, falling back to icontains: {e}")
-                is_postgres = False
-        
-        # Fallback: Use icontains for SQLite or if PostgreSQL search fails
-        q_objects = Q()
-        search_fields = getattr(settings, 'EDITAL_SEARCH_FIELDS', [
-            'titulo', 'entidade_principal', 'numero_edital'
-        ])
-        
-        # Validate fields exist on the model to prevent FieldError
-        # Only use concrete fields (not reverse relations, many-to-many, etc.) that support text search
-        # get_fields() includes reverse relations, so we filter to only concrete CharField/TextField fields
-        try:
-            model_fields = {
-                f.name for f in self.model._meta.get_fields()
-                if hasattr(f, 'get_internal_type') and f.get_internal_type() in ('CharField', 'TextField')
-            }
-        except Exception as e:
-            # Fallback: use all field names if validation fails
-            model_fields = {f.name for f in self.model._meta.get_fields() if hasattr(f, 'name')}
-        
-        valid_search_fields = [f for f in search_fields if f in model_fields]
-        
-        if not valid_search_fields:
-            # If no valid fields, return empty queryset
-            logger.warning(f"No valid search fields found in EDITAL_SEARCH_FIELDS. Fields checked: {search_fields}")
-            return self.get_queryset().none()
-        
-        for field in valid_search_fields:
-            q_objects |= Q(**{f'{field}__icontains': query})
-        
-        return self.get_queryset().filter(q_objects)
+        return self.get_queryset().search(query)
 
 
 class Edital(models.Model):
@@ -317,6 +246,12 @@ class Edital(models.Model):
             models.Index(fields=['status', 'start_date', 'end_date'], name='idx_status_dates'),
             models.Index(fields=['titulo'], name='idx_titulo'),
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_date__gte=models.F('start_date')) | models.Q(end_date__isnull=True) | models.Q(start_date__isnull=True),
+                name='edital_end_date_after_start_date'
+            ),
+        ]
 
     def _generate_unique_slug(self) -> str:
         """
@@ -348,6 +283,23 @@ class Edital(models.Model):
                 raise ValidationError({
                     'end_date': 'A data de encerramento deve ser posterior à data de abertura.'
                 })
+        
+        # Validate that slug can be generated if title exists
+        if not self.slug and self.titulo:
+            try:
+                test_slug = self._generate_unique_slug()
+                if not test_slug:
+                    raise ValidationError({
+                        'titulo': 'Título inválido para geração de slug. Use um título válido.'
+                    })
+            except ValidationError:
+                # Re-raise ValidationError as-is (don't wrap it)
+                raise
+            except Exception as e:
+                # If slug generation fails with other exceptions, raise validation error
+                raise ValidationError({
+                    'titulo': f'Erro ao gerar slug: {str(e)}'
+                })
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         # Generate slug only if it doesn't exist (on creation)
@@ -369,31 +321,7 @@ class Edital(models.Model):
         # Sanitize HTML fields to prevent XSS attacks
         # This ensures data is sanitized regardless of entry point (admin, views, shell, API, etc.)
         sanitize_edital_fields(self)
-        
-        # RACE CONDITION HANDLING: Slug uniqueness retry logic
-        # When multiple requests create editais with the same title simultaneously,
-        # the database unique constraint on slug may cause IntegrityError.
-        # This retry mechanism regenerates the slug and attempts to save again.
-        # The transaction.atomic() wrapper ensures each attempt is atomic.
-        # This is an acceptable race condition pattern - retry with new slug value.
-        max_retries = SLUG_GENERATION_MAX_RETRIES
-        for attempt in range(max_retries):
-            try:
-                with transaction.atomic():
-                    super().save(*args, **kwargs)
-                break
-            except ValidationError:
-                # Re-raise validation errors (not race conditions)
-                raise
-            except IntegrityError as e:
-                # Check if it's an IntegrityError related to slug uniqueness
-                if 'slug' in str(e).lower() or 'unique' in str(e).lower():
-                    if attempt < max_retries - 1:
-                        # Regenerate slug and retry (handles race condition)
-                        self.slug = self._generate_unique_slug()
-                        continue
-                # Re-raise other IntegrityErrors (not slug-related)
-                raise
+        super().save(*args, **kwargs)
 
     @property
     def days_until_deadline(self):
@@ -449,11 +377,18 @@ class EditalValor(models.Model):
         edital: Edital relacionado (ForeignKey)
         valor_total: Valor total do edital
         moeda: Moeda do valor (BRL, USD, EUR)
+        tipo: Tipo de valor (total, por projeto, etc.)
     """
     MOEDA_CHOICES = [
         ('BRL', 'Real Brasileiro (R$)'),
         ('USD', 'Dólar Americano (US$)'),
         ('EUR', 'Euro (€)'),
+    ]
+    
+    TIPO_CHOICES = [
+        ('total', 'Valor Total'),
+        ('por_projeto', 'Por Projeto'),
+        ('outro', 'Outro'),
     ]
     
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='valores')
@@ -471,6 +406,12 @@ class EditalValor(models.Model):
         default='BRL',
         help_text='Moeda do valor total'
     )
+    tipo = models.CharField(
+        max_length=20,
+        choices=TIPO_CHOICES,
+        default='total',
+        help_text='Tipo de valor (total, por projeto, etc.)'
+    )
 
     class Meta:
         verbose_name = 'Valor do Edital'
@@ -479,12 +420,15 @@ class EditalValor(models.Model):
         indexes = [
             models.Index(fields=['edital', 'moeda'], name='idx_edital_moeda'),
         ]
+        # Constraint única: cada edital pode ter apenas um valor por moeda
+        unique_together = [['edital', 'moeda']]
 
     def __str__(self):
-        return f'{self.edital.titulo} - {self.valor_total} {self.moeda}'
+        tipo_display = self.get_tipo_display()
+        return f'{self.edital.titulo} - {self.valor_total} {self.moeda} ({tipo_display})'
     
     def __repr__(self):
-        return f"<EditalValor: edital_id={self.edital_id}, valor={self.valor_total} {self.moeda}>"
+        return f"<EditalValor: edital_id={self.edital_id}, valor={self.valor_total} {self.moeda}, tipo={self.tipo}>"
 
 
 class Cronograma(models.Model):
@@ -499,22 +443,46 @@ class Cronograma(models.Model):
         data_fim: Data de fim do item
         data_publicacao: Data de publicação
         descricao: Descrição do item do cronograma
+        ordem: Ordem de exibição do item no cronograma
     """
     edital = models.ForeignKey(Edital, on_delete=models.CASCADE, related_name='cronogramas')
     data_inicio = models.DateField(blank=True, null=True)
     data_fim = models.DateField(blank=True, null=True)
     data_publicacao = models.DateField(blank=True, null=True)
     descricao = models.CharField(max_length=300, blank=True)
+    ordem = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text='Ordem de exibição do item no cronograma (opcional)'
+    )
 
     class Meta:
-        ordering = ['data_inicio']
+        ordering = ['ordem', 'data_inicio']
         verbose_name = 'Cronograma'
         verbose_name_plural = 'Cronogramas'
         # Índices para melhorar queries de cronogramas
         indexes = [
             models.Index(fields=['edital', 'data_inicio'], name='idx_cronograma_edital_data'),
             models.Index(fields=['data_inicio'], name='idx_cronograma_data_inicio'),
+            models.Index(fields=['ordem'], name='idx_cronograma_ordem'),
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(data_fim__gte=models.F('data_inicio')) | models.Q(data_fim__isnull=True) | models.Q(data_inicio__isnull=True),
+                name='cronograma_data_fim_after_data_inicio'
+            ),
+        ]
+
+    def clean(self) -> None:
+        """Validate model fields"""
+        super().clean()
+        
+        # Validate dates: data_fim must be >= data_inicio if both are provided
+        if self.data_inicio and self.data_fim:
+            if self.data_fim < self.data_inicio:
+                raise ValidationError({
+                    'data_fim': 'A data de fim deve ser posterior ou igual à data de início.'
+                })
 
     def __str__(self):
         return f'{self.edital.titulo} - {self.descricao}'
@@ -523,7 +491,83 @@ class Cronograma(models.Model):
         return f"<Cronograma: edital_id={self.edital_id}, descricao={self.descricao[:30]}>"
 
 
-class Project(models.Model):
+class Tag(models.Model):
+    """
+    Modelo que representa uma tag para categorização de startups.
+    
+    Tags permitem categorização flexível e múltipla de startups.
+    """
+    name = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name='Nome',
+        help_text='Nome da tag (ex: "AgTech", "Inovação", "Sustentabilidade")'
+    )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True,
+        blank=True,
+        null=True,
+        editable=False,
+        verbose_name='Slug'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Data de Criação')
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'
+        indexes = [
+            models.Index(fields=['name'], name='idx_tag_name'),
+            models.Index(fields=['slug'], name='idx_tag_slug'),
+        ]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Generate slug from name if not provided"""
+        if not self.slug and self.name:
+            self.slug = generate_unique_slug(
+                text=self.name,
+                model_class=Tag,
+                slug_field_name='slug',
+                prefix='tag',
+                pk=self.pk,
+                max_attempts=10
+            )
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+    
+    def __repr__(self):
+        return f"<Tag: {self.name} (slug={self.slug})>"
+
+
+class StartupQuerySet(models.QuerySet):
+    """Custom QuerySet for Startup with search support."""
+
+    def search(self, query: str):
+        """Filter by name or description (icontains). Truncates to MAX_SEARCH_LENGTH."""
+        if not query:
+            return self
+        q = str(query).strip() if query else ''
+        if not q:
+            return self
+        if len(q) > MAX_SEARCH_LENGTH:
+            q = q[:MAX_SEARCH_LENGTH]
+        return self.filter(
+            Q(name__icontains=q) | Q(description__icontains=q)
+        )
+
+
+class StartupManager(models.Manager):
+    def get_queryset(self):
+        return StartupQuerySet(self.model, using=self._db)
+
+    def search(self, query: str):
+        return self.get_queryset().search(query)
+
+
+class Startup(models.Model):
     """
     Modelo que representa uma startup incubada no AgroHub.
     
@@ -535,7 +579,7 @@ class Project(models.Model):
         edital: Edital relacionado (ForeignKey, opcional - pode ser None para startups sem edital)
         proponente: Usuário responsável pela startup (ForeignKey)
         submitted_on: Data de entrada na incubadora
-        status: Status atual no processo de incubação (Pré-Incubação, Incubação, Graduada, Suspensa)
+        status: Fase de maturidade (Ideação, MVP, Escala, Suspensa). Simbólico, não pass/fail.
         contato: Informações de contato da startup (opcional)
         data_criacao: Data de criação do registro
         data_atualizacao: Data da última atualização
@@ -587,7 +631,7 @@ class Project(models.Model):
     proponente = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='startups',
+        related_name='startups_owned',
         verbose_name='Responsável'
     )
     submitted_on = models.DateTimeField(
@@ -598,13 +642,32 @@ class Project(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='pre_incubacao',
-        verbose_name='Status'
+        verbose_name='Fase',
+        help_text='Fase de maturidade (Ideação, MVP, Escala, Suspensa). Indicador simbólico, não avaliação de aprovação.'
     )
     contato = models.TextField(
         blank=True,
         null=True,
         verbose_name='Contato',
-        help_text='Informações de contato da startup (email, telefone, website, etc.)'
+        help_text='Informações de contato da startup (email, telefone, etc.)'
+    )
+    website = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name='Website',
+        help_text='Website da startup (ex: https://www.exemplo.com)'
+    )
+    incubacao_start_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Data de Início da Incubação',
+        help_text='Data em que a startup iniciou o processo de incubação'
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        verbose_name='Tags',
+        help_text='Tags para categorização da startup'
     )
     data_criacao = models.DateTimeField(auto_now_add=True)
     data_atualizacao = models.DateTimeField(auto_now=True)
@@ -630,7 +693,6 @@ class Project(models.Model):
                 })
             
             # Check file extension
-            import os
             ext = os.path.splitext(self.logo.name)[1].lower()
             allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.svgz']
             if ext not in allowed_extensions:
@@ -646,7 +708,26 @@ class Project(models.Model):
                     raise ValidationError({
                         'logo': 'Tipo de arquivo não permitido. Use apenas imagens JPG, PNG, GIF ou SVG.'
                     })
+        
+        # Validate that slug can be generated if name exists
+        if not self.slug and self.name:
+            try:
+                test_slug = self._generate_unique_slug()
+                if not test_slug:
+                    raise ValidationError({
+                        'name': 'Nome inválido para geração de slug. Use um nome válido.'
+                    })
+            except ValidationError:
+                # Re-raise ValidationError as-is (don't wrap it)
+                raise
+            except Exception as e:
+                # If slug generation fails with other exceptions, raise validation error
+                raise ValidationError({
+                    'name': f'Erro ao gerar slug: {str(e)}'
+                })
     
+    objects = StartupManager()
+
     class Meta:
         db_table = 'editais_startup'  # Explicit table name since table was renamed from editais_project
         ordering = ['-submitted_on']
@@ -671,26 +752,6 @@ class Project(models.Model):
         }
         return phase_mapping.get(self.status, 'Ideação')
     
-    def get_phase_badge_class(self):
-        """Get CSS classes for phase badge"""
-        phase_classes = {
-            'pre_incubacao': 'bg-purple-100 text-purple-700 border-purple-200',
-            'incubacao': 'bg-yellow-100 text-yellow-700 border-yellow-200',
-            'graduada': 'bg-blue-100 text-blue-700 border-blue-200',
-            'suspensa': 'bg-gray-100 text-gray-700 border-gray-200',
-        }
-        return phase_classes.get(self.status, 'bg-gray-100 text-gray-700 border-gray-200')
-    
-    def get_badge_color(self):
-        """Get CSS classes for category badge based on category"""
-        category_classes = {
-            'agtech': 'bg-green-100 text-green-700 border-green-200',
-            'biotech': 'bg-blue-100 text-blue-700 border-blue-200',
-            'iot': 'bg-purple-100 text-purple-700 border-purple-200',
-            'edtech': 'bg-orange-100 text-orange-700 border-orange-200',
-        }
-        return category_classes.get(self.category, 'bg-gray-100 text-gray-700 border-gray-200')
-    
     def __str__(self):
         edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''
         return f'{self.name} - {edital_titulo}' if edital_titulo else self.name
@@ -699,7 +760,7 @@ class Project(models.Model):
         """Generate a unique slug from the name - optimized to reduce database queries"""
         return generate_unique_slug(
             text=self.name,
-            model_class=Project,
+            model_class=Startup,
             slug_field_name='slug',
             prefix='startup',
             pk=self.pk,
@@ -714,28 +775,8 @@ class Project(models.Model):
         # Ensure slug is never None after save
         if not self.slug:
             raise ValidationError('Slug não pode ser None. Nome inválido para geração de slug.')
-        
-        # Handle race condition for slug uniqueness (retry if IntegrityError)
-        # Wrap in transaction to ensure atomicity
-        max_retries = SLUG_GENERATION_MAX_RETRIES
-        for attempt in range(max_retries):
-            try:
-                with transaction.atomic():
-                    super().save(*args, **kwargs)
-                break
-            except ValidationError:
-                # Re-raise validation errors
-                raise
-            except IntegrityError as e:
-                # Check if it's an IntegrityError related to slug uniqueness
-                if 'slug' in str(e).lower() or 'unique' in str(e).lower():
-                    if attempt < max_retries - 1:
-                        # Regenerate slug and retry
-                        self.slug = self._generate_unique_slug()
-                        continue
-                # Re-raise other exceptions
-                raise
-    
+        super().save(*args, **kwargs)
+
     def get_absolute_url(self) -> str:
         """Return URL using slug if available, otherwise use PK"""
         if self.slug:
@@ -746,5 +787,5 @@ class Project(models.Model):
         return ''
     
     def __repr__(self):
-        return f"<Project: {self.name} (pk={self.pk}, status={self.status}, edital_id={self.edital_id})>"
+        return f"<Startup: {self.name} (pk={self.pk}, status={self.status}, edital_id={self.edital_id})>"
 

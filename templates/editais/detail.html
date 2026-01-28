@@ -22,50 +22,9 @@
 
 {% block content %}
 <!-- Hero Header -->
-<section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden">
-  <div class="container relative z-10 px-6 pt-12">
-    <div class="max-w-6xl">
-      <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-6">
-        <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
-        Edital
-      </div>
-      <h1 class="reveal-up text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4">{{ edital.titulo }}</h1>
-      {% if edital.objetivo %}
-      <p class="reveal-up text-lg md:text-xl text-gray-200 mb-6 leading-relaxed border-l-4 border-agrohubGreen pl-6">
-        {{ edital.objetivo|striptags|truncatewords:30 }}
-      </p>
-      {% else %}
-      <p class="reveal-up text-lg md:text-xl text-gray-200 mb-6 leading-relaxed border-l-4 border-agrohubGreen pl-6">
-        Confira os detalhes completos deste edital e as oportunidades disponíveis.
-      </p>
-      {% endif %}
-      <div class="flex flex-wrap gap-4 text-white/90 text-sm items-center">
-        {% if edital.numero_edital %}
-        <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors">
-          <i class="fas fa-file-alt" aria-hidden="true"></i>
-          Edital {{ edital.numero_edital }}
-        </span>
-        {% endif %}
-        <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors">
-          <i class="fas fa-tag" aria-hidden="true"></i>
-          {{ edital.get_status_display }}
-        </span>
-        {% if edital.entidade_principal %}
-        <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors">
-          <i class="fas fa-building" aria-hidden="true"></i>
-          {{ edital.entidade_principal }}
-        </span>
-        {% endif %}
-        {% if edital.data_atualizacao %}
-        <span class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full hover:bg-white/20 transition-colors last-updated {% if is_recent_update %}recent{% endif %}" title="Atualizado em {{ edital.data_atualizacao|date:'d/m/Y H:i' }}">
-          <i class="fas fa-clock" aria-hidden="true"></i>
-          <span>Atualizado {{ edital.data_atualizacao|timesince }} atrás</span>
-        </span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</section>
+{% with subtitle=edital.objetivo|default:""|striptags|truncatewords:30|default:"Confira os detalhes completos deste edital e as oportunidades disponíveis." %}
+{% include 'components/page_hero.html' with badge_label="Edital" title=edital.titulo subtitle=subtitle meta_template="components/hero_meta_edital.html" %}
+{% endwith %}
 
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="max-w-6xl mx-auto">

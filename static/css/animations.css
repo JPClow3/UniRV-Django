@@ -421,12 +421,16 @@ button.carousel-nav-button.hidden.md\:flex {
   pointer-events: none;
 }
 
-@media (max-width: 640px) {
+/* Ensure toasts don't overlap with fixed header on mobile */
+@media (max-width: 767px) {
   #toast-container {
-    top: 0.5rem;
+    /* Position below header (header is ~64px tall) + spacing */
+    top: 5.5rem;
     right: 0.5rem;
     left: 0.5rem;
     max-width: none;
+    /* Ensure it's above mobile menu (z-index: 50) but below modals */
+    z-index: 75;
   }
 }
 

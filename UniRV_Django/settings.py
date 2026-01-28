@@ -543,6 +543,12 @@ EDITAL_SEARCH_FIELDS = [
     'detalhes_unirv'
 ]
 
+# Home page partners marquee (configurable via PARTNERS env: comma-separated, e.g. PARTNERS="SENAI,SEBRAE,FAPEG")
+_partners_env = os.environ.get('PARTNERS', '').strip()
+PARTNERS = [p.strip() for p in _partners_env.split(',') if p.strip()] if _partners_env else [
+    'SENAI', 'SEBRAE', 'FAPEG', 'FINEP', 'UNIRV', 'INOVALAB'
+]
+
 # Security settings for production
 # 
 # Production security is automatically enabled when:

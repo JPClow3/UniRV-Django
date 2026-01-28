@@ -1,5 +1,5 @@
 """
-Tests for Project model edge cases.
+Tests for Startup model edge cases.
 
 Tests slug generation, logo field, and concurrent operations.
 """
@@ -7,11 +7,11 @@ Tests slug generation, logo field, and concurrent operations.
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from editais.models import Project, Edital
+from editais.models import Startup, Edital
 
 
-class ProjectSlugGenerationTestCase(TestCase):
-    """Test slug generation edge cases for Project model"""
+class StartupSlugGenerationTestCase(TestCase):
+    """Test slug generation edge cases for Startup model"""
     
     def setUp(self):
         self.user = User.objects.create_user(
@@ -22,7 +22,7 @@ class ProjectSlugGenerationTestCase(TestCase):
     
     def test_slug_generation_from_name(self):
         """Test that slug is generated from project name"""
-        project = Project.objects.create(
+        project = Startup.objects.create(
             name='AgroTech Solutions',
             proponente=self.user
         )
@@ -31,14 +31,14 @@ class ProjectSlugGenerationTestCase(TestCase):
     
     def test_slug_generation_empty_name(self):
         """Test slug generation with empty name (edge case)"""
-        project = Project(name='', proponente=self.user)
+        project = Startup(name='', proponente=self.user)
         project.save()
         self.assertIsNotNone(project.slug)
         self.assertGreater(len(project.slug), 0)
     
     def test_slug_generation_special_characters(self):
         """Test slug generation with special characters"""
-        project = Project.objects.create(
+        project = Startup.objects.create(
             name='Startup @#$% 123!',
             proponente=self.user
         )
@@ -50,11 +50,11 @@ class ProjectSlugGenerationTestCase(TestCase):
     
     def test_slug_uniqueness(self):
         """Test that duplicate names generate unique slugs"""
-        project1 = Project.objects.create(
+        project1 = Startup.objects.create(
             name='Test Startup',
             proponente=self.user
         )
-        project2 = Project.objects.create(
+        project2 = Startup.objects.create(
             name='Test Startup',
             proponente=self.user
         )
@@ -63,7 +63,7 @@ class ProjectSlugGenerationTestCase(TestCase):
     
     def test_logo_field_exists(self):
         """Test that logo field exists and can be set"""
-        project = Project.objects.create(
+        project = Startup.objects.create(
             name='Test Startup',
             proponente=self.user
         )
@@ -73,7 +73,7 @@ class ProjectSlugGenerationTestCase(TestCase):
         self.assertFalse(project.logo)
 
 
-class ProjectConcurrentSlugGenerationTestCase(TestCase):
+class StartupConcurrentSlugGenerationTestCase(TestCase):
     """Test concurrent slug generation scenarios"""
     
     def setUp(self):
@@ -85,20 +85,20 @@ class ProjectConcurrentSlugGenerationTestCase(TestCase):
     
     def test_concurrent_slug_generation(self):
         """Test that concurrent saves with same name generate unique slugs"""
-        # Create multiple projects with same name simultaneously
-        projects = []
+        # Create multiple startups with same name simultaneously
+        startups = []
         for i in range(5):
-            project = Project(name='Concurrent Startup', proponente=self.user)
-            project.save()
-            projects.append(project)
+            startup = Startup(name='Concurrent Startup', proponente=self.user)
+            startup.save()
+            startups.append(startup)
         
         # All slugs should be unique
-        slugs = [p.slug for p in projects]
+        slugs = [s.slug for s in startups]
         self.assertEqual(len(slugs), len(set(slugs)))
 
 
-class ProjectModelValidationTestCase(TestCase):
-    """Test Project model validation"""
+class StartupModelValidationTestCase(TestCase):
+    """Test Startup model validation"""
     
     def setUp(self):
         self.user = User.objects.create_user(
@@ -107,15 +107,15 @@ class ProjectModelValidationTestCase(TestCase):
             password='testpass123'
         )
     
-    def test_project_requires_name(self):
-        """Test that project requires a name"""
-        project = Project(proponente=self.user)
+    def test_startup_requires_name(self):
+        """Test that startup requires a name"""
+        startup = Startup(proponente=self.user)
         with self.assertRaises(ValidationError):
-            project.full_clean()
+            startup.full_clean()
     
-    def test_project_requires_proponente(self):
-        """Test that project requires a proponente"""
-        project = Project(name='Test Startup')
+    def test_startup_requires_proponente(self):
+        """Test that startup requires a proponente"""
+        startup = Startup(name='Test Startup')
         with self.assertRaises(ValidationError):
-            project.full_clean()
+            startup.full_clean()
 

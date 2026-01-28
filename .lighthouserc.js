@@ -9,28 +9,27 @@
 const collectConfig = {
   url: [
         // Public pages
-        'http://localhost:7000/',
-        'http://localhost:7000/editais/',
-        'http://localhost:7000/login/',
-        'http://localhost:7000/register/',
-        'http://localhost:7000/ambientes-inovacao/',
-        'http://localhost:7000/projetos-aprovados/',
-        'http://localhost:7000/startups/',
-        'http://localhost:7000/password-reset/',
-        'http://localhost:7000/password-reset/done/',
-        'http://localhost:7000/password-reset-complete/',
+        'http://localhost:8000/',
+        'http://localhost:8000/editais/',
+        'http://localhost:8000/login/',
+        'http://localhost:8000/register/',
+        'http://localhost:8000/ambientes-inovacao/',
+        'http://localhost:8000/startups/',
+        'http://localhost:8000/password-reset/',
+        'http://localhost:8000/password-reset/done/',
+        'http://localhost:8000/password-reset-complete/',
         // Dashboard pages (require authentication - use --all-pages with run_lighthouse command)
-        'http://localhost:7000/dashboard/',
-        'http://localhost:7000/dashboard/home/',
-        'http://localhost:7000/dashboard/editais/',
-        'http://localhost:7000/dashboard/editais/novo/',
-        'http://localhost:7000/dashboard/projetos/',
-        'http://localhost:7000/dashboard/projetos/submeter/',
-        'http://localhost:7000/dashboard/usuarios/',
+        'http://localhost:8000/dashboard/',
+        'http://localhost:8000/dashboard/home/',
+        'http://localhost:8000/dashboard/editais/',
+        'http://localhost:8000/dashboard/editais/novo/',
+        'http://localhost:8000/dashboard/startups/',
+        'http://localhost:8000/dashboard/startups/submeter/',
+        'http://localhost:8000/dashboard/usuarios/',
         // NOTE: /dashboard/avaliacoes/ and /dashboard/relatorios/ removed - these endpoints don't exist
         // Admin pages excluded from Lighthouse CI scanning
         // CRUD pages (require authentication)
-        'http://localhost:7000/cadastrar/',
+        'http://localhost:8000/cadastrar/',
       ],
       numberOfRuns: parseInt(process.env.LHCI_NUMBER_OF_RUNS || '3', 10),
       // Chrome flags for headless mode (array format for better compatibility)

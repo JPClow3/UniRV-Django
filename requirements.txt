@@ -4,6 +4,10 @@ whitenoise>=6.11.0
 gunicorn>=23.0.0
 # uvicorn>=0.38.0  # Optional: ASGI server for WebSockets/async support (not currently used - project uses WSGI with gunicorn)
 
+# Static compression (Brotli) for WhiteNoise
+# Enables precompressed .br assets when using WhiteNoise Compressed* storage backends.
+Brotli>=1.1.0
+
 # Content processing
 bleach>=6.3.0
 

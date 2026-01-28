@@ -3,8 +3,7 @@ module.exports = {
   content: [
     "./src/**/*.{css,js}",
     "../../templates/**/*.html",
-    "../../templates/**/*.js",
-    "../../static/js/**/*.js",
+    // If you render Tailwind class names from JS, add specific files here.
   ],
   theme: {
     extend: {

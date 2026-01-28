@@ -3,8 +3,8 @@ Status-related constants.
 """
 
 __all__ = [
-    'ACTIVE_PROJECT_STATUSES',
-    'EVALUATION_PROJECT_STATUSES',
+    'ACTIVE_STARTUP_STATUSES',
+    'EVALUATION_STARTUP_STATUSES',
     'DRAFT_STATUSES',
     'OPEN_EDITAL_STATUSES',
     'HTML_FIELDS',
@@ -12,9 +12,9 @@ __all__ = [
     'SECONDS_PER_DAY',
 ]
 
-# Status de Projetos (Startups)
-ACTIVE_PROJECT_STATUSES = ['pre_incubacao', 'incubacao', 'graduada']
-EVALUATION_PROJECT_STATUSES = ['pre_incubacao', 'incubacao']
+# Status de Startups (fases ativas: Ideação, MVP, Escala)
+ACTIVE_STARTUP_STATUSES = ['pre_incubacao', 'incubacao', 'graduada']
+EVALUATION_STARTUP_STATUSES = ['pre_incubacao', 'incubacao']
 
 # Status de Editais
 DRAFT_STATUSES = ['draft', 'programado']

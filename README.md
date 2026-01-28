@@ -463,9 +463,9 @@ UniRV-Django/
 │   │   ├── home.html                 # Home do dashboard
 │   │   ├── editais.html              # Lista de editais
 │   │   ├── novo_edital.html          # Novo edital
-│   │   ├── projetos.html             # Projetos
+│   │   ├── startups.html             # Lista de startups incubadas
 │   │   ├── startup_update.html       # Atualizar startup
-│   │   ├── submeter_projeto.html     # Submeter projeto
+│   │   ├── submeter_startup.html     # Cadastrar startup
 │   │   └── usuarios.html             # Usuários
 │   ├── registration/                 # Templates de autenticação
 │   │   ├── login.html
@@ -474,8 +474,7 @@ UniRV-Django/
 │   │   └── password_reset_subject.txt
 │   ├── startups/                     # Templates de startups
 │   │   └── detail.html
-│   ├── startups.html                 # Listagem de startups
-│   ├── projetos_aprovados.html       # Projetos aprovados
+│   ├── startups.html                 # Vitrine de startups
 │   ├── ambientes_inovacao.html       # Ambientes de inovação
 │   └── admin/                        # Templates do admin
 │       └── login.html
@@ -493,8 +492,8 @@ UniRV-Django/
 │   ├── img/                          # Imagens
 │   │   ├── hero/                     # Imagens hero
 │   │   ├── favicon.svg
-│   │   ├── Logo.svg
-│   │   └── Logo Inovalab.svg
+│   │   ├── logo.svg
+│   │   └── logo_inovalab.svg
 │   └── fonts/                        # Fontes (Montserrat)
 │       ├── Montserrat-Regular.ttf
 │       └── Montserrat-SemiBold.ttf
@@ -526,7 +525,7 @@ UniRV-Django/
 ### Descrição dos Diretórios Principais
 
 #### `editais/`
-App principal do Django contendo toda a lógica de negócio relacionada a editais, projetos e startups.
+App principal do Django contendo toda a lógica de negócio relacionada a editais e startups.
 
 #### `UniRV_Django/`
 Configurações do projeto Django, incluindo settings, URLs principais e configurações WSGI.
@@ -569,7 +568,7 @@ Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos col
 
 - **Home**: Estatísticas e visão geral
 - **Editais**: Gerenciamento completo de editais
-- **Projetos/Startups**: Gerenciamento de projetos aprovados
+- **Startups**: Gerenciamento de startups incubadas
 - **Usuários**: Gerenciamento de usuários
 - **Relatórios**: Estatísticas e relatórios (futuro)
 
@@ -585,7 +584,7 @@ Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos col
 - **Home**: Landing page com hero, estatísticas e features
 - **Listagem de Editais**: Página com busca, filtros e paginação
 - **Detalhes do Edital**: Página completa com todas as informações
-- **Startups/Projetos Aprovados**: Vitrine de projetos aprovados
+- **Vitrine de Startups**: Listagem pública de startups incubadas
 - **Ambientes de Inovação**: Informações sobre ambientes
 - **Passo a Passo**: Guia para participação em editais
 
@@ -703,19 +702,19 @@ Cronograma de atividades do edital.
 - `data`: Data da atividade
 - `observacoes`: Observações adicionais
 
-#### Project (Startup)
-Projeto/Startup aprovado em editais.
+#### Startup
+Startup incubada no AgroHub.
 
 **Campos:**
-- `nome`: Nome do projeto
+- `name`: Nome da startup
 - `slug`: URL amigável
-- `categoria`: Categoria do projeto
-- `descricao`: Descrição (HTML)
-- `logo`: Logo do projeto
-- `status`: Status do projeto
+- `category`: Categoria da startup
+- `description`: Descrição (HTML)
+- `logo`: Logo da startup
+- `status`: Fase de maturidade (Ideação, MVP, Escala, Suspensa)
 - `contato`: Informações de contato
-- `submitted_on`: Data de submissão
-- `created_by`: ForeignKey para User
+- `submitted_on`: Data de entrada
+- `proponente`: ForeignKey para User
 
 ### Índices do Banco de Dados
 
@@ -765,7 +764,7 @@ cp backup.sqlite3 db.sqlite3
 | `/edital/<int:pk>/` | `edital_detail` | Detalhes do edital (por ID, redireciona) |
 | `/startups/` | `startups_showcase` | Vitrine de startups |
 | `/startup/<slug>/` | `startup_detail_slug` | Detalhes da startup |
-| `/projetos-aprovados/` | `projetos_aprovados` | Projetos aprovados |
+| `/projetos-aprovados/` | (redirect) | Redireciona para `/startups/` |
 | `/ambientes-inovacao/` | `ambientes_inovacao` | Ambientes de inovação |
 | `/register/` | `register` | Registro de usuário |
 | `/login/` | `login` | Login |
@@ -787,8 +786,8 @@ cp backup.sqlite3 db.sqlite3
 | `/dashboard/home/` | `dashboard_home` | Home do dashboard | Autenticado |
 | `/dashboard/editais/` | `dashboard_editais` | Lista de editais | Autenticado |
 | `/dashboard/editais/novo/` | `dashboard_novo_edital` | Novo edital | `is_staff` |
-| `/dashboard/startups/` | `dashboard_startups` | Projetos/Startups | Autenticado |
-| `/dashboard/startups/submeter/` | `dashboard_submeter_startup` | Submeter projeto | Autenticado |
+| `/dashboard/startups/` | `dashboard_startups` | Startups incubadas | Autenticado |
+| `/dashboard/startups/submeter/` | `dashboard_submeter_startup` | Cadastrar startup | Autenticado |
 | `/dashboard/startups/<pk>/editar/` | `dashboard_startup_update` | Editar startup | Autenticado |
 | `/dashboard/usuarios/` | `dashboard_usuarios` | Usuários | `is_staff` |
 
@@ -924,6 +923,7 @@ Isso:
 - Limpa arquivos antigos
 - Compila Tailwind CSS minificado
 - Minifica JavaScript
+- Copia Font Awesome e GSAP para `static/vendor/` (uso local, sem CDN)
 
 #### Estrutura de Build
 
@@ -1722,6 +1722,297 @@ Para problemas não resolvidos:
 
 ---
 
+## ❓ Perguntas Frequentes (FAQ)
+
+### Instalação e Setup
+
+#### Como criar o ambiente virtual?
+
+**Windows:**
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**Linux/Mac:**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+#### Erro: "No module named 'django'"
+
+**Solução:**
+1. Verifique se o ambiente virtual está ativado (deve mostrar `(.venv)` no prompt)
+2. Reinstale as dependências: `pip install -r requirements.txt`
+
+#### Tailwind CSS não compila
+
+**Solução:**
+```bash
+cd theme/static_src
+rm -rf node_modules package-lock.json
+npm ci
+npm run build
+```
+
+#### Erro ao instalar dependências Node.js
+
+**Solução:**
+- Verifique se Node.js 18+ está instalado: `node --version`
+- Limpe o cache: `npm cache clean --force`
+- Tente novamente: `npm ci`
+
+### Configuração
+
+#### Como gerar uma SECRET_KEY segura?
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Copie o resultado e adicione ao arquivo `.env`:
+```
+SECRET_KEY=sua-secret-key-aqui
+```
+
+#### Como configurar o banco de dados PostgreSQL?
+
+1. Crie o banco de dados:
+```bash
+sudo -u postgres psql
+CREATE DATABASE nome_banco;
+CREATE USER usuario WITH PASSWORD 'senha';
+GRANT ALL PRIVILEGES ON DATABASE nome_banco TO usuario;
+```
+
+2. Configure no `.env`:
+```
+DB_NAME=nome_banco
+DB_USER=usuario
+DB_PASSWORD=senha
+DB_HOST=localhost
+DB_PORT=5432
+```
+
+#### Erro: "Connection refused" (PostgreSQL)
+
+**Solução:**
+1. Verifique se PostgreSQL está rodando: `sudo systemctl status postgresql`
+2. Verifique credenciais no `.env`
+3. Teste a conexão: `psql -U usuario -d nome_banco`
+
+### Desenvolvimento
+
+#### Como rodar os testes?
+
+```bash
+# Todos os testes
+python manage.py test editais
+
+# Teste específico
+python manage.py test editais.tests.test_public_views
+
+# Com cobertura
+coverage run --source='editais' manage.py test editais
+coverage report
+```
+
+#### Como debugar problemas?
+
+1. Ative o modo debug:
+```bash
+export DJANGO_DEBUG=True
+export DJANGO_LOG_LEVEL=DEBUG
+python manage.py runserver
+```
+
+2. Verifique os logs em `logs/django.log`
+
+3. Use Django Debug Toolbar (opcional):
+```bash
+pip install django-debug-toolbar
+```
+
+#### Como verificar se há problemas no código?
+
+```bash
+# Verificar configurações
+python manage.py check
+
+# Verificar para produção
+python manage.py check --deploy
+
+# Verificar migrações
+python manage.py showmigrations
+```
+
+### Banco de Dados
+
+#### Como aplicar migrações?
+
+```bash
+# Aplicar todas as migrações
+python manage.py migrate
+
+# Aplicar migração específica
+python manage.py migrate editais 0024
+
+# Ver estado das migrações
+python manage.py showmigrations
+```
+
+#### Erro de migração
+
+**Solução:**
+1. Verifique o estado: `python manage.py showmigrations`
+2. Se necessário, faça backup do banco
+3. Tente fazer fake migration (cuidado!): `python manage.py migrate --fake`
+4. Ou resetar migrações (apenas desenvolvimento):
+   - Delete arquivos de migração (exceto `__init__.py`)
+   - `python manage.py makemigrations`
+   - `python manage.py migrate`
+
+#### Como fazer backup do banco?
+
+**PostgreSQL:**
+```bash
+pg_dump -U usuario -d nome_banco > backup_$(date +%Y%m%d).sql
+```
+
+**SQLite:**
+```bash
+cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
+```
+
+### Deployment
+
+#### Arquivos estáticos não aparecem
+
+**Solução:**
+```bash
+# Coletar arquivos estáticos
+python manage.py collectstatic --noinput
+
+# Verificar STATIC_ROOT e STATIC_URL em settings.py
+# Verificar se WhiteNoise está no MIDDLEWARE
+```
+
+#### Erro 500 em produção
+
+**Solução:**
+1. Verifique logs: `tail -f logs/django.log`
+2. Verifique `DEBUG=False` no `.env`
+3. Verifique `ALLOWED_HOSTS` configurado
+4. Verifique permissões de arquivos
+5. Verifique variáveis de ambiente
+
+#### Como configurar SSL/HTTPS?
+
+Use Let's Encrypt com Certbot:
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d seu-dominio.com -d www.seu-dominio.com
+```
+
+#### Docker não inicia
+
+**Solução:**
+1. Verifique logs: `docker logs unirv-django`
+2. Verifique variáveis de ambiente
+3. Verifique se as portas estão disponíveis
+4. Rebuild a imagem: `docker build -t unirv-django:latest .`
+
+### Performance
+
+#### Cache não funciona
+
+**Solução:**
+```bash
+# Limpar cache
+python manage.py shell
+>>> from django.core.cache import cache
+>>> cache.clear()
+
+# Verificar configuração de cache em settings.py
+# Verificar se Redis está rodando (se usando)
+```
+
+#### Queries lentas
+
+**Solução:**
+1. Use `select_related()` para ForeignKey
+2. Use `prefetch_related()` para ManyToMany
+3. Verifique índices no banco de dados
+4. Use Django Debug Toolbar para identificar N+1 queries
+
+### Segurança
+
+#### Como verificar vulnerabilidades?
+
+```bash
+# Python dependencies
+pip-audit -r requirements.txt
+
+# Node.js dependencies
+cd theme/static_src
+npm audit
+```
+
+#### Como atualizar dependências?
+
+```bash
+# Verificar dependências desatualizadas
+pip list --outdated
+
+# Atualizar (cuidado com breaking changes)
+pip install --upgrade package-name
+```
+
+### Troubleshooting
+
+#### Template não encontrado
+
+**Solução:**
+1. Verifique se o template está no diretório correto
+2. Verifique `INSTALLED_APPS` em `settings.py`
+3. Verifique `TEMPLATES['DIRS']` em `settings.py`
+
+#### Erro de importação
+
+**Solução:**
+1. Verifique se o ambiente virtual está ativado
+2. Verifique se o módulo está no `PYTHONPATH`
+3. Verifique `INSTALLED_APPS` em `settings.py`
+
+#### Problemas com timezone
+
+**Solução:**
+- O projeto usa `America/Sao_Paulo`
+- Verifique `TIME_ZONE` em `settings.py`
+- Use `USE_TZ = True` para timezone-aware datetimes
+
+### Outras Perguntas
+
+#### Onde encontrar mais ajuda?
+
+1. Consulte a [documentação do Django](https://docs.djangoproject.com/)
+2. Consulte a [documentação de arquitetura](./docs/architecture/)
+3. Consulte a [revisão do banco de dados](./docs/database/DATABASE_REVIEW.md)
+4. Abra uma issue no repositório
+
+#### Como reportar bugs?
+
+1. Verifique se o bug já foi reportado
+2. Crie uma issue com:
+   - Descrição clara do problema
+   - Passos para reproduzir
+   - Comportamento esperado vs. atual
+   - Versão do Python, Django, etc.
+   - Logs relevantes
+
+---
+
 ## 🤝 Contribuindo
 
 ### Como Contribuir
@@ -1784,7 +2075,7 @@ Para problemas não resolvidos:
 
 ### Licença
 
-[Especificar licença aqui]
+Este projeto é propriedade da Universidade de Rio Verde (UniRV) e está destinado ao uso interno da YPETEC - Incubadora UniRV.
 
 ### Autores
 
@@ -1805,9 +2096,14 @@ UniRV - Universidade de Rio Verde
 
 - [Documentação do Django](https://docs.djangoproject.com/)
 - [Documentação do Tailwind CSS](https://tailwindcss.com/docs)
-- [Especificação Completa do Projeto](./specs/001-hub-editais/spec.md)
-- [Plano de Implementação](./specs/001-hub-editais/plan.md)
-- [Relatório de Cobertura](./COVERAGE_REPORT.md)
+- [Índice da Documentação](./docs/README.md) - Índice completo de toda a documentação
+- [Arquitetura do Sistema](./docs/architecture/system-architecture.md) - Visão geral da arquitetura
+- [Schema do Banco de Dados](./docs/architecture/database-schema.md) - Diagrama do schema
+- [Arquitetura de Deploy](./docs/architecture/deployment.md) - Arquitetura de deployment
+- [Revisão do Banco de Dados](./docs/database/DATABASE_REVIEW.md) - Análise detalhada da estrutura do banco de dados
+- [Revisão das Migrações](./docs/migrations/MIGRATION_REVIEW.md) - Análise completa das migrações do Django
+- [Documentação de Testes](./editais/tests/README.md) - Guia completo para testes
+- [CHANGELOG](./CHANGELOG.md) - Histórico de versões e mudanças
 
 ---
 
@@ -1815,9 +2111,9 @@ UniRV - Universidade de Rio Verde
 
 Para dúvidas, sugestões ou problemas:
 
-- **Email**: [email de contato]
-- **Repositório**: [URL do repositório]
-- **Documentação**: [URL da documentação]
+- **Email**: Entre em contato através do departamento de tecnologia da UniRV
+- **Repositório**: Consulte o repositório Git do projeto
+- **Documentação**: Consulte este README e os documentos de revisão (DATABASE_REVIEW.md, MIGRATION_REVIEW.md)
 
 ---
 

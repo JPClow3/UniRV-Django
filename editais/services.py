@@ -13,7 +13,9 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import Edital
-from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES
+from django.db import IntegrityError
+
+from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES, SLUG_GENERATION_MAX_RETRIES
 from .utils import clear_index_cache, apply_tipo_filter
 
 if TYPE_CHECKING:
@@ -100,18 +102,22 @@ class EditalService:
         """
         if not form.is_valid():
             raise ValueError("Form must be valid before creating edital")
-        
-        with transaction.atomic():
-            edital = form.save(commit=False)
-            edital.created_by = user
-            edital.updated_by = user
-            # sanitize_edital_fields() is called automatically in Edital.save()
-            edital.save()
-            # History tracking is now handled automatically by django-simple-history
-            
-            transaction.on_commit(clear_index_cache)
-        
-        return edital
+        edital = form.save(commit=False)
+        edital.created_by = user
+        edital.updated_by = user
+        for attempt in range(SLUG_GENERATION_MAX_RETRIES):
+            try:
+                with transaction.atomic():
+                    # sanitize_edital_fields() is called automatically in Edital.save()
+                    edital.save()
+                    transaction.on_commit(clear_index_cache)
+                return edital
+            except IntegrityError as e:
+                if 'slug' in str(e).lower() or 'unique' in str(e).lower():
+                    if attempt < SLUG_GENERATION_MAX_RETRIES - 1:
+                        edital.slug = edital._generate_unique_slug()
+                        continue
+                raise
     
     @staticmethod
     def get_editais_by_status(status: str) -> QuerySet:

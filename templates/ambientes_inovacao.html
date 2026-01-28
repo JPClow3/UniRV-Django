@@ -6,22 +6,7 @@
 {% block content %}
 <div class="bg-gray-50 text-gray-800">
   <!-- Header -->
-  <section class="bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-12 md:py-16">
-    <div class="container relative z-10 px-6 pt-16 pb-8">
-      <div class="max-w-4xl">
-        <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-4">
-          <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
-          Infraestrutura
-        </div>
-        <h1 class="reveal-up text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4">
-          Ambientes de Inovação
-        </h1>
-        <p class="reveal-up text-base md:text-lg text-gray-200 mb-6 max-w-2xl leading-relaxed border-l-4 border-agrohubGreen pl-6">
-          Conheça os espaços dedicados ao fomento da inovação e empreendedorismo na UniRV
-        </p>
-      </div>
-    </div>
-  </section>
+  {% include 'components/page_hero.html' with badge_label="Infraestrutura" title="Ambientes de Inovação" subtitle="Conheça os espaços dedicados ao fomento da inovação e empreendedorismo na UniRV" %}
 
   <!-- Environments Grid -->
   <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
@@ -32,7 +17,7 @@
         <div class="environment-card bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full hover:-translate-y-2">
           <div class="h-48 bg-gradient-to-br from-[#12bb20] to-[#1556ce] flex items-center justify-center relative overflow-hidden" style="background: linear-gradient(135deg, #12bb20 0%, #1556ce 100%);">
             <div class="absolute inset-0 bg-gradient-to-br from-[#12bb20]/20 via-[#12bb20]/10 to-[#1556ce]/20 group-hover:from-[#12bb20]/30 group-hover:via-[#12bb20]/15 group-hover:to-[#1556ce]/30 transition-all duration-300"></div>
-            <img src="{% static 'img/Logo Inovalab.svg' %}" alt="InovaLab Logo" class="w-32 h-20 object-contain transform group-hover:scale-110 transition-all duration-500" />
+            <img src="{% static 'img/logo_inovalab.svg' %}" alt="InovaLab Logo" class="w-32 h-20 object-contain transform group-hover:scale-110 transition-all duration-500" />
           </div>
           <div class="p-8 flex flex-col flex-grow">
             <div class="mb-4">

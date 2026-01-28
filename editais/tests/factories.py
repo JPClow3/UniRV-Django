@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 
-from ..models import Edital, Project
+from ..models import Edital, Startup
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -92,11 +92,11 @@ class EditalFactory(factory.django.DjangoModelFactory):
         )
 
 
-class ProjectFactory(factory.django.DjangoModelFactory):
-    """Factory for creating Project (Startup) instances"""
+class StartupFactory(factory.django.DjangoModelFactory):
+    """Factory for creating Startup instances"""
 
     class Meta:
-        model = Project
+        model = Startup
 
     name = factory.Sequence(lambda n: f'Startup {n}')
     description = factory.Faker('text', max_nb_chars=300, locale='pt_BR')

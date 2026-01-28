@@ -1,0 +1,41 @@
+{% comment %}
+  Reusable page hero. Required: badge_label, title, subtitle.
+  Optional: logo_url, logo_alt (stacked above title); logo_template (include path for custom logo, e.g. startup);
+  stats (dict with total_active, left-aligned bar); meta_template (for detail pages).
+  Uses shared spec: gradient, overlay, container, max-w-4xl, text-left, reduced height.
+{% endcomment %}
+<section class="page-hero bg-gradient-to-r from-unirvBlue to-agrohubBlue text-white py-8 md:py-10 relative overflow-hidden fold-section">
+  <div class="page-hero-overlay" aria-hidden="true"></div>
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-12 md:pt-14 pb-6 md:pb-8">
+    <div class="max-w-4xl text-left">
+      {% if logo_template %}
+      <div class="reveal-up mb-4">
+        {% include logo_template %}
+      </div>
+      {% elif logo_url %}
+      <div class="reveal-up mb-4">
+        <img src="{{ logo_url }}" alt="{{ logo_alt|default:'' }}" class="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-contain border-2 border-white/20 shadow-lg bg-white/10 p-2" loading="eager" fetchpriority="high" />
+      </div>
+      {% endif %}
+      <div class="reveal-up inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-xs font-bold uppercase tracking-wider mb-4">
+        <span class="w-2 h-2 rounded-full bg-agrohubGreen animate-pulse"></span>
+        {{ badge_label }}
+      </div>
+      <h1 class="reveal-up text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">{{ title }}</h1>
+      {% if subtitle %}
+      <p class="reveal-up text-base md:text-lg text-gray-200 leading-relaxed border-l-4 border-agrohubGreen pl-6 max-w-2xl mb-6">{{ subtitle }}</p>
+      {% endif %}
+      {% if stats %}
+      <div class="reveal-up mt-4 inline-flex flex-wrap gap-6 md:gap-10 items-center bg-white/5 border border-white/10 backdrop-blur-md rounded-xl px-4 md:px-6 py-3 md:py-4 w-fit startups-stats-bar" role="group" aria-label="Indicadores da incubadora">
+        <div class="flex items-baseline gap-1">
+          <span class="stat-value-number counter text-2xl md:text-3xl font-bold text-white tabular-nums" data-target="{{ stats.total_active }}" aria-live="polite">{{ stats.total_active }}</span>
+          <span class="text-xs text-white/90 uppercase tracking-widest font-medium">Startups Ativas</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if meta_template %}
+        {% include meta_template %}
+      {% endif %}
+    </div>
+  </div>
+</section>
