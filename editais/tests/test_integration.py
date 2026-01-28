@@ -3,7 +3,7 @@ Testes de integração para workflows completos.
 """
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.core.cache import cache
@@ -128,8 +128,9 @@ class EditalWorkflowTest(TestCase):
             has_pagination = (b'P\xc3\xa1gina' in response.content) or (b'Pagina' in response.content)
             self.assertTrue(has_pagination, "Pagination text not found in response")
     
+    @override_settings(TESTING=False)
     def test_rate_limiting(self):
-        """Testa que rate limiting funciona corretamente"""
+        """Testa que rate limiting funciona corretamente (TESTING=False para exercer o limite)."""
         self.client.login(username='staff', password='testpass123')
         
         # Clear cache to ensure rate limiting works
@@ -153,7 +154,7 @@ class EditalWorkflowTest(TestCase):
         # Or it might allow all requests if timing is different, but we should verify behavior
         # At least some requests should succeed (first 5)
         successful_requests = [r for r in status_codes if r in [200, 302, 301]]
-        self.assertGreater(len(successful_requests), 0, 
+        self.assertGreater(len(successful_requests), 0,
                           "At least some requests should succeed")
         
         # Verify that rate limiting is working - either by 429 status or by limiting successful creates

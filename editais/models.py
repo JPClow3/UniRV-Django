@@ -3,7 +3,7 @@ import logging
 import os
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db import models, ProgrammingError
+from django.db import models, ProgrammingError, IntegrityError
 from django.db.models import Q
 from django.urls import reverse
 from django.core.exceptions import ValidationError
@@ -13,7 +13,12 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from simple_history.models import HistoricalRecords
 
 from .utils import determine_edital_status, generate_unique_slug, sanitize_edital_fields
-from .constants import SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, MAX_SEARCH_LENGTH
+from .constants import (
+    SLUG_GENERATION_MAX_ATTEMPTS_EDITAL,
+    SLUG_GENERATION_MAX_ATTEMPTS_PROJECT,
+    SLUG_GENERATION_MAX_RETRIES,
+    MAX_SEARCH_LENGTH,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -302,26 +307,35 @@ class Edital(models.Model):
                 })
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        # Generate slug only if it doesn't exist (on creation)
-        if not self.slug:
-            self.slug = self._generate_unique_slug()
-        
-        # Ensure slug is never None after save (DB-001 fix)
-        if not self.slug:
-            raise ValidationError('Slug não pode ser None. Título inválido para geração de slug.')
-        
-        today = timezone.now().date()
-        self.status = determine_edital_status(
-            current_status=self.status,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            today=today,
-        )
-        
-        # Sanitize HTML fields to prevent XSS attacks
-        # This ensures data is sanitized regardless of entry point (admin, views, shell, API, etc.)
-        sanitize_edital_fields(self)
-        super().save(*args, **kwargs)
+        for attempt in range(SLUG_GENERATION_MAX_RETRIES):
+            try:
+                # Generate slug only if it doesn't exist (on creation)
+                if not self.slug:
+                    self.slug = self._generate_unique_slug()
+                # Ensure slug is never None after save (DB-001 fix)
+                if not self.slug:
+                    raise ValidationError(
+                        'Slug não pode ser None. Título inválido para geração de slug.'
+                    )
+                today = timezone.now().date()
+                self.status = determine_edital_status(
+                    current_status=self.status,
+                    start_date=self.start_date,
+                    end_date=self.end_date,
+                    today=today,
+                )
+                # Sanitize HTML fields to prevent XSS attacks
+                sanitize_edital_fields(self)
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError as e:
+                if (
+                    ('slug' in str(e).lower() or 'unique' in str(e).lower())
+                    and attempt < SLUG_GENERATION_MAX_RETRIES - 1
+                ):
+                    self.slug = self._generate_unique_slug()
+                    continue
+                raise
 
     @property
     def days_until_deadline(self):
@@ -768,14 +782,26 @@ class Startup(models.Model):
         )
     
     def save(self, *args: Any, **kwargs: Any) -> None:
-        # Generate slug only if it doesn't exist (on creation)
-        if not self.slug:
-            self.slug = self._generate_unique_slug()
-        
-        # Ensure slug is never None after save
-        if not self.slug:
-            raise ValidationError('Slug não pode ser None. Nome inválido para geração de slug.')
-        super().save(*args, **kwargs)
+        for attempt in range(SLUG_GENERATION_MAX_RETRIES):
+            try:
+                # Generate slug only if it doesn't exist (on creation)
+                if not self.slug:
+                    self.slug = self._generate_unique_slug()
+                # Ensure slug is never None after save
+                if not self.slug:
+                    raise ValidationError(
+                        'Slug não pode ser None. Nome inválido para geração de slug.'
+                    )
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError as e:
+                if (
+                    ('slug' in str(e).lower() or 'unique' in str(e).lower())
+                    and attempt < SLUG_GENERATION_MAX_RETRIES - 1
+                ):
+                    self.slug = self._generate_unique_slug()
+                    continue
+                raise
 
     def get_absolute_url(self) -> str:
         """Return URL using slug if available, otherwise use PK"""
