@@ -102,7 +102,9 @@ USER django-user
 EXPOSE $PORT
 
 # Health check - verify the application is running and responding
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+# Railway manages its own health checks via railway.toml, so this is optional
+# Increased start-period to allow time for PostgreSQL connection and migrations
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health/ || exit 1
 
 # Set entrypoint script

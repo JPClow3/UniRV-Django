@@ -18,6 +18,9 @@ DB_RETRY_INTERVAL=${DB_RETRY_INTERVAL:-2}
 MAX_REDIS_RETRIES=${MAX_REDIS_RETRIES:-10}
 REDIS_RETRY_INTERVAL=${REDIS_RETRY_INTERVAL:-1}
 
+# Skip PostgreSQL check if SKIP_DB_WAIT is set (useful for Railway builds)
+SKIP_DB_WAIT=${SKIP_DB_WAIT:-false}
+
 # ============================================
 # Logging Functions
 # ============================================
@@ -54,26 +57,36 @@ wait_for_postgres() {
     local retries=0
 
     if [ -n "$DATABASE_URL" ]; then
-        host=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:/]*\).*|\1|p')
-        port=$(echo "$DATABASE_URL" | sed -n 's|.*@[^:]*:\([0-9]*\)/.*|\1|p')
-        user=$(echo "$DATABASE_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
-        db=$(echo "$DATABASE_URL" | sed -n 's|.*/\([^/?]*\).*|\1|p')
+        log_info "Parsing DATABASE_URL for connection details..."
+        # Parse Railway/Heroku style DATABASE_URL: postgres://user:pass@host:port/db
+        # Extract host (between @ and :port or /)
+        host=$(echo "$DATABASE_URL" | sed -E 's|.*@([^:/]+).*|\1|')
+        # Extract port (between last : and /)
+        port=$(echo "$DATABASE_URL" | sed -E 's|.*:([0-9]+)/.*|\1|')
+        # Extract user (between :// and :password)
+        user=$(echo "$DATABASE_URL" | sed -E 's|.*://([^:]+):.*|\1|')
+        # Extract database (after last /, before ? if present)
+        db=$(echo "$DATABASE_URL" | sed -E 's|.*/([^/?]+)(\?.*)?$|\1|')
+        
+        log_info "Parsed from DATABASE_URL: host=$host, port=$port, user=$user"
     else
+        log_info "Using individual DB_* environment variables..."
         host="${DB_HOST:-db}"
         port="${DB_PORT:-5432}"
         user="${DB_USER:-agrohub_user}"
         db="${DB_NAME:-agrohub_production}"
     fi
 
+    # Fallback to individual vars if parsing failed
     host="${host:-${DB_HOST:-db}}"
     port="${port:-${DB_PORT:-5432}}"
     user="${user:-${DB_USER:-agrohub_user}}"
     db="${db:-${DB_NAME:-agrohub_production}}"
 
-    log_info "Waiting for PostgreSQL at $host:$port..."
+    log_info "Waiting for PostgreSQL at $host:$port (database: $db)..."
 
     while [ $retries -lt $MAX_DB_RETRIES ]; do
-        if pg_isready -h "$host" -p "$port" -U "$user" -d "$db" > /dev/null 2>&1; then
+        if pg_isready -h "$host" -p "$port" -U "$user" > /dev/null 2>&1; then
             log_info "PostgreSQL is ready!"
             return 0
         fi
@@ -85,6 +98,7 @@ wait_for_postgres() {
 
     log_error "PostgreSQL did not become ready in time!"
     log_error "Connection details: host=$host, port=$port, user=$user, db=$db"
+    log_error "DATABASE_URL present: $([ -n "$DATABASE_URL" ] && echo 'yes' || echo 'no')"
     return 1
 }
 
@@ -226,9 +240,17 @@ main() {
     log_info "============================================"
     log_info "Starting AgroHub Application"
     log_info "============================================"
+    log_info "Environment: ${RAILWAY_ENVIRONMENT:-local}"
+    log_info "PORT: ${PORT:-8000}"
+    log_info "DATABASE_URL configured: $([ -n "$DATABASE_URL" ] && echo 'yes' || echo 'no')"
+    log_info "REDIS_URL configured: $([ -n "$REDIS_URL" ] && echo 'yes' || echo 'no')"
 
     # Wait for dependencies
-    wait_for_postgres || exit 1
+    if [ "$SKIP_DB_WAIT" = "true" ]; then
+        log_warn "Skipping PostgreSQL wait (SKIP_DB_WAIT=true)"
+    else
+        wait_for_postgres || exit 1
+    fi
     wait_for_redis
 
     # Run migrations
