@@ -52,7 +52,11 @@ trap cleanup EXIT
 wait_for_postgres() {
     log_info "Waiting for database via Django..."
 
-    retries=0
+    local retries=0
+    local host="${DB_HOST:-db}"
+    local port="${DB_PORT:-5432}"
+    local user="${DB_USER:-agrohub_user}"
+    local db="${DB_NAME:-agrohub_production}"
 
     while [ $retries -lt $MAX_DB_RETRIES ]; do
         if python - <<EOF
@@ -67,56 +71,12 @@ EOF
             return 0
         fi
 
-        retries=$((retries+1))
-        log_info "Database not ready ($retries/$MAX_DB_RETRIES)"
+        retries=$((retries + 1))
+        log_info "Database not ready ($retries/$MAX_DB_RETRIES). Retrying in ${DB_RETRY_INTERVAL}s..."
         sleep $DB_RETRY_INTERVAL
     done
 
     log_error "Database never became ready!"
-    return 1
-}
-
-
-    # Fallback to individual vars if parsing failed
-    host="${host:-${DB_HOST:-db}}"
-    port="${port:-${DB_PORT:-5432}}"
-    user="${user:-${DB_USER:-agrohub_user}}"
-    db="${db:-${DB_NAME:-agrohub_production}}"
-
-    log_info "Waiting for PostgreSQL at $host:$port (database: $db)..."
-
-    while [ $retries -lt $MAX_DB_RETRIES ]; do
-        # First check TCP connectivity with pg_isready
-        if pg_isready -h "$host" -p "$port" -U "$user" > /dev/null 2>&1; then
-            # pg_isready may succeed while the database system is still
-            # starting up. Verify with an actual query to ensure full
-            # readiness before proceeding with migrations.
-            db_check_output=$(python -c "
-import django, os, sys
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'UniRV_Django.settings')
-django.setup()
-from django.db import connection
-try:
-    connection.cursor()
-    sys.exit(0)
-except Exception as e:
-    print(str(e), file=sys.stderr)
-    sys.exit(1)
-" 2>&1)
-            if [ $? -eq 0 ]; then
-                log_info "PostgreSQL is ready!"
-                return 0
-            else
-                log_info "PostgreSQL is accepting connections but not fully ready yet: $db_check_output"
-            fi
-        fi
-
-        retries=$((retries + 1))
-        log_info "PostgreSQL not ready (attempt $retries/$MAX_DB_RETRIES). Retrying in ${DB_RETRY_INTERVAL}s..."
-        sleep $DB_RETRY_INTERVAL
-    done
-
-    log_error "PostgreSQL did not become ready in time!"
     log_error "Connection details: host=$host, port=$port, user=$user, db=$db"
     log_error "DATABASE_URL present: $([ -n "$DATABASE_URL" ] && echo 'yes' || echo 'no')"
     return 1
@@ -277,7 +237,12 @@ main() {
 
     # Wait for dependencies
     if [ "$SKIP_DB_WAIT" = "true" ]; then
-        log_warn "Skipping PostgreSQL wait (SKIP_DB_WAIT=true)"
+        if [ -n "$DATABASE_URL" ]; then
+            log_warn "SKIP_DB_WAIT=true but DATABASE_URL is set; waiting for PostgreSQL anyway."
+            wait_for_postgres || exit 1
+        else
+            log_warn "Skipping PostgreSQL wait (SKIP_DB_WAIT=true)"
+        fi
     else
         wait_for_postgres || exit 1
     fi
