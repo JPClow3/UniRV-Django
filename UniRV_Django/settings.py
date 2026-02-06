@@ -215,7 +215,7 @@ database_url = os.environ.get('DATABASE_URL', '').strip()
 if database_url:
     DATABASES = {
         'default': dj_database_url.config(
-            default=database_url,
+            default=os.getenv("DATABASE_URL"),
             conn_max_age=600,
             conn_health_checks=True,
         )
