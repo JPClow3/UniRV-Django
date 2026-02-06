@@ -50,32 +50,32 @@ trap cleanup EXIT
 # Wait for PostgreSQL
 # ============================================
 wait_for_postgres() {
-    local host=""
-    local port=""
-    local user=""
-    local db=""
-    local retries=0
+    log_info "Waiting for database via Django..."
 
-    if [ -n "$DATABASE_URL" ]; then
-        log_info "Parsing DATABASE_URL for connection details..."
-        # Parse Railway/Heroku style DATABASE_URL: postgres://user:pass@host:port/db
-        # Extract host (between @ and :port or /)
-        host=$(echo "$DATABASE_URL" | sed -E 's|.*@([^:/]+).*|\1|')
-        # Extract port (between last : and /)
-        port=$(echo "$DATABASE_URL" | sed -E 's|.*:([0-9]+)/.*|\1|')
-        # Extract user (between :// and :password)
-        user=$(echo "$DATABASE_URL" | sed -E 's|.*://([^:]+):.*|\1|')
-        # Extract database (after last /, before ? if present)
-        db=$(echo "$DATABASE_URL" | sed -E 's|.*/([^/?]+)(\?.*)?$|\1|')
-        
-        log_info "Parsed from DATABASE_URL: host=$host, port=$port, user=$user"
-    else
-        log_info "Using individual DB_* environment variables..."
-        host="${DB_HOST:-db}"
-        port="${DB_PORT:-5432}"
-        user="${DB_USER:-agrohub_user}"
-        db="${DB_NAME:-agrohub_production}"
-    fi
+    retries=0
+
+    while [ $retries -lt $MAX_DB_RETRIES ]; do
+        if python - <<EOF
+import os, django, sys
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "UniRV_Django.settings")
+django.setup()
+from django.db import connection
+connection.ensure_connection()
+EOF
+        then
+            log_info "Database is ready!"
+            return 0
+        fi
+
+        retries=$((retries+1))
+        log_info "Database not ready ($retries/$MAX_DB_RETRIES)"
+        sleep $DB_RETRY_INTERVAL
+    done
+
+    log_error "Database never became ready!"
+    return 1
+}
+
 
     # Fallback to individual vars if parsing failed
     host="${host:-${DB_HOST:-db}}"
