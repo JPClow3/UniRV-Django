@@ -197,10 +197,14 @@ run_migrations() {
 # Collect Static Files (if needed)
 # ============================================
 collect_static() {
-    # Only collect if staticfiles directory is empty or doesn't exist
     if [ ! -d "/app/staticfiles" ] || [ -z "$(ls -A /app/staticfiles 2>/dev/null)" ]; then
         log_info "Collecting static files..."
-        python manage.py collectstatic --noinput
+
+        python manage.py collectstatic --noinput || {
+            log_error "collectstatic failed"
+            return 1
+        }
+
         log_info "Static files collected."
     else
         log_info "Static files already collected, skipping."
