@@ -68,7 +68,7 @@ def add_trigram_indexes_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
+    atomic = False
     dependencies = [
         ('editais', '0018_enable_pg_trgm_extension'),
     ]
