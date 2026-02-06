@@ -13,7 +13,7 @@ set -e  # Exit on any error
 # ============================================
 # Configuration
 # ============================================
-MAX_DB_RETRIES=${MAX_DB_RETRIES:-30}
+MAX_DB_RETRIES=${MAX_DB_RETRIES:-60}
 DB_RETRY_INTERVAL=${DB_RETRY_INTERVAL:-2}
 MAX_REDIS_RETRIES=${MAX_REDIS_RETRIES:-10}
 REDIS_RETRY_INTERVAL=${REDIS_RETRY_INTERVAL:-1}
@@ -97,7 +97,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'UniRV_Django.settings')
 django.setup()
 from django.db import connection
 try:
-    connection.ensure_connection()
+    connection.cursor()
     sys.exit(0)
 except Exception as e:
     print(str(e), file=sys.stderr)
@@ -175,16 +175,22 @@ wait_for_redis() {
 run_migrations() {
     log_info "Running database migrations..."
 
-    if python manage.py migrate --noinput; then
-        log_info "Database migrations completed successfully."
-    else
-        log_error "Database migrations failed!"
-        log_error "This could be due to:"
-        log_error "  - Database connection issues"
-        log_error "  - Invalid migration files"
-        log_error "  - Database permissions"
-        return 1
-    fi
+    local retries=0
+    local max_retries=5
+
+    until python manage.py migrate --noinput; do
+        retries=$((retries + 1))
+
+        if [ $retries -ge $max_retries ]; then
+            log_error "Database migrations failed after $max_retries attempts!"
+            return 1
+        fi
+
+        log_warn "Migration failed (attempt $retries/$max_retries). Retrying in 5 seconds..."
+        sleep 5
+    done
+
+    log_info "Database migrations completed successfully."
 }
 
 # ============================================
