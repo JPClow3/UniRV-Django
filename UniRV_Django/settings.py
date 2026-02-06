@@ -87,6 +87,14 @@ else:
                 "Please set ALLOWED_HOSTS with at least one valid hostname or IP address. "
                 "Example: ALLOWED_HOSTS=example.com,www.example.com"
             )
+            # Railway healthcheck support
+if os.environ.get("RAILWAY_ENVIRONMENT"):
+    if "healthcheck.railway.app" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append("healthcheck.railway.app")
+
+    # Permite qualquer subdomínio Railway
+    ALLOWED_HOSTS.append(".railway.app")
+
     else:
         # Em produção sem ALLOWED_HOSTS configurado, levantar erro para forçar configuração explícita
         raise ImproperlyConfigured(
