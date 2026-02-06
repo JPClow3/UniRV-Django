@@ -1,7 +1,6 @@
 {
   "name": "theme",
   "version": "4.4.0",
-  "description": "",
   "scripts": {
     "start": "npm run dev",
 
@@ -9,25 +8,21 @@
 
     "build:clean": "rimraf ../static/theme/css/dist ../static/css/dist",
 
-    "build:tailwind": "npx tailwindcss -i src/styles.css -o ../static/theme/css/dist/styles.css --minify",
+    "build:tailwind": "npx postcss src/styles.css -o ../static/theme/css/dist/styles.css",
 
-    "watch": "npx tailwindcss -i src/styles.css -o ../static/theme/css/dist/styles.css --watch",
+    "watch": "npx postcss src/styles.css -o ../static/theme/css/dist/styles.css --watch",
 
     "build:js": "npm run build:js:main && npm run build:js:animations && npm run build:js:animations-native && npm run build:js:editais-index && npm run build:js:edital-form",
 
     "build:js:main": "terser ../../static/js/main.js -o ../../static/js/main.min.js -c -m --comments false",
-
     "build:js:animations": "terser ../../static/js/animations.js -o ../../static/js/animations.min.js -c -m --comments false",
-
     "build:js:animations-native": "terser ../../static/js/animations-native.js -o ../../static/js/animations-native.min.js -c -m --comments false",
-
     "build:js:editais-index": "terser ../../static/js/editais-index.js -o ../../static/js/editais-index.min.js -c -m --comments false",
-
     "build:js:edital-form": "terser ../../static/js/edital-form.js -o ../../static/js/edital-form.min.js -c -m --comments false",
 
     "build:vendor": "node scripts/copy-vendor.js",
 
-    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/theme/css/dist/styles.css --watch"
+    "dev": "cross-env NODE_ENV=development npx postcss ./src/styles.css -o ../static/theme/css/dist/styles.css --watch"
   },
   "keywords": [],
   "author": "",
