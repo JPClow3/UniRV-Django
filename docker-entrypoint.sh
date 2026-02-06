@@ -237,7 +237,12 @@ main() {
 
     # Wait for dependencies
     if [ "$SKIP_DB_WAIT" = "true" ]; then
-        log_warn "Skipping PostgreSQL wait (SKIP_DB_WAIT=true)"
+        if [ -n "$DATABASE_URL" ]; then
+            log_warn "SKIP_DB_WAIT=true but DATABASE_URL is set; waiting for PostgreSQL anyway."
+            wait_for_postgres || exit 1
+        else
+            log_warn "Skipping PostgreSQL wait (SKIP_DB_WAIT=true)"
+        fi
     else
         wait_for_postgres || exit 1
     fi
