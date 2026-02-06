@@ -5,8 +5,9 @@
   "scripts": {
     "start": "npm run dev",
     "build": "npm run build:clean && npm run build:tailwind && npm run build:js && npm run build:vendor",
-    "build:clean": "rimraf ../static/css/dist",
-    "build:tailwind": "postcss ./src/styles.css -o ../static/theme/css/dist/styles.css --minify",
+    "build:clean": "rimraf ../static/theme/css/dist ../static/css/dist",
+    "build:tailwind": "tailwindcss -i src/styles.css -o ../static/theme/css/dist/styles.css --minify",
+    "watch": "tailwindcss -i src/styles.css -o ../static/theme/css/dist/styles.css --watch",
     "build:js": "npm run build:js:main && npm run build:js:animations && npm run build:js:animations-native && npm run build:js:editais-index && npm run build:js:edital-form",
     "build:js:main": "terser ../../static/js/main.js -o ../../static/js/main.min.js -c -m --comments false",
     "build:js:animations": "terser ../../static/js/animations.js -o ../../static/js/animations.min.js -c -m --comments false",
@@ -14,7 +15,7 @@
     "build:js:editais-index": "terser ../../static/js/editais-index.js -o ../../static/js/editais-index.min.js -c -m --comments false",
     "build:js:edital-form": "terser ../../static/js/edital-form.js -o ../../static/js/edital-form.min.js -c -m --comments false",
     "build:vendor": "node scripts/copy-vendor.js",
-    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/css/dist/styles.css --watch"
+    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/theme/css/dist/styles.css --watch"
   },
   "keywords": [],
   "author": "",
