@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 
-# ============================================================================
+# ============================================================================ 
 # Stage 1: Node.js build stage - Build Tailwind CSS assets
-# ============================================================================
+# ============================================================================ 
 FROM node:20-slim AS node-builder
 
 WORKDIR /app
@@ -14,18 +14,26 @@ COPY theme/static_src/package*.json ./theme/static_src/
 WORKDIR /app/theme/static_src
 RUN npm ci
 
-# Copy static JavaScript files that need to be minified
+# Copy static JavaScript files that need to be minified (into /app/static/js)
+# This mirrors your repo layout so terser commands can target ../../static/js/...
 COPY static/js/ /app/static/js/
 
-# Copy theme source files
+# Copy theme source files (tailwind src etc)
 COPY theme/static_src/ ./
 
-# Build Tailwind CSS and minify JavaScript
+# Ensure output dirs exist (safety)
+RUN mkdir -p /app/theme/static/theme/css/dist /app/static/css/dist /app/static/js
+
+# Build Tailwind CSS and minify JavaScript (this uses the scripts in package.json)
 RUN npm run build
 
-# ============================================================================
+# Optional sanity check: ensure the expected file exists (non-fatal)
+# If styles.css is not present here, the later stages will reveal that during collectstatic.
+RUN if [ -f /app/theme/static/theme/css/dist/styles.css ]; then echo "Tailwind output OK"; else echo "Tailwind output MISSING (check build)"; fi
+
+# ============================================================================ 
 # Stage 2: Python builder stage - Install dependencies and collect static
-# ============================================================================
+# ============================================================================ 
 FROM python:3.12-slim-bookworm AS python-builder
 
 # Environment variables for Python
@@ -49,15 +57,21 @@ RUN pip install --no-cache-dir --user -r /app/requirements.txt
 COPY . /app
 
 # Copy all built assets from node-builder stage (CSS, minified JS, vendor files)
+# This copies /app/theme/static/* from node-builder into /app/theme/static/ of this stage
 COPY --from=node-builder /app/theme/static/ ./theme/static/
+# Also copy any static/ artifacts produced in node-builder (js minified etc)
 COPY --from=node-builder /app/static/ ./static/
 
-# Collect static files
+# Make sure the theme/static path contains the Tailwind output in the expected place
+RUN ls -la /app/theme/static || true
+RUN ls -la /app/theme/static/theme/css/dist || true
+
+# Collect static files into STATIC_ROOT
 RUN python manage.py collectstatic --noinput
 
-# ============================================================================
+# ============================================================================ 
 # Stage 3: Final runtime stage - Slim production image
-# ============================================================================
+# ============================================================================ 
 FROM python:3.12-slim-bookworm
 
 # Environment variables for Python and Django
@@ -102,8 +116,6 @@ USER django-user
 EXPOSE $PORT
 
 # Health check - verify the application is running and responding
-# Railway manages its own health checks via railway.toml, so this is optional
-# Increased start-period to allow time for PostgreSQL connection and migrations
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health/ || exit 1
 
