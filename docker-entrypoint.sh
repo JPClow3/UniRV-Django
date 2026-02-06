@@ -91,7 +91,7 @@ wait_for_postgres() {
             # pg_isready may succeed while the database system is still
             # starting up. Verify with an actual query to ensure full
             # readiness before proceeding with migrations.
-            if python -c "
+            db_check_output=$(python -c "
 import django, os, sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'UniRV_Django.settings')
 django.setup()
@@ -99,13 +99,15 @@ from django.db import connection
 try:
     connection.ensure_connection()
     sys.exit(0)
-except Exception:
+except Exception as e:
+    print(str(e), file=sys.stderr)
     sys.exit(1)
-" 2>/dev/null; then
+" 2>&1)
+            if [ $? -eq 0 ]; then
                 log_info "PostgreSQL is ready!"
                 return 0
             else
-                log_info "PostgreSQL is accepting connections but not fully ready yet..."
+                log_info "PostgreSQL is accepting connections but not fully ready yet: $db_check_output"
             fi
         fi
 
