@@ -6,7 +6,7 @@
     "start": "npm run dev",
     "build": "npm run build:clean && npm run build:tailwind && npm run build:js && npm run build:vendor",
     "build:clean": "rimraf ../static/css/dist",
-    "build:tailwind": "postcss ./src/styles.css -o ../static/css/dist/styles.css --minify",
+    "build:tailwind": "postcss ./src/styles.css -o ../static/theme/css/dist/styles.css --minify",
     "build:js": "npm run build:js:main && npm run build:js:animations && npm run build:js:animations-native && npm run build:js:editais-index && npm run build:js:edital-form",
     "build:js:main": "terser ../../static/js/main.js -o ../../static/js/main.min.js -c -m --comments false",
     "build:js:animations": "terser ../../static/js/animations.js -o ../../static/js/animations.min.js -c -m --comments false",
