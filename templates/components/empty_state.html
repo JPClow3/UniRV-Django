@@ -1,18 +1,103 @@
 {% comment %}
-Reusable empty state component
-Usage: 
-  For URL names: {% include 'components/empty_state.html' with icon='fa-folder-open' title='Title' description='Description' action_url_name='url_name' action_text='Button Text' %}
-  For direct URLs: {% include 'components/empty_state.html' with icon='fa-folder-open' title='Title' description='Description' action_url='/path' action_text='Button Text' %}
+Reusable empty state component with illustrations
+Usage:
+  For URL names: {% include 'components/empty_state.html' with icon='fa-folder-open' title='Title' description='Description' action_url_name='url_name' action_text='Button Text' illustration='documents' %}
+  For direct URLs: {% include 'components/empty_state.html' with icon='fa-folder-open' title='Title' description='Description' action_url='/path' action_text='Button Text' illustration='search' %}
+
+  Available illustrations: 'documents', 'rocket', 'search', 'default' (abstract pattern)
 {% endcomment %}
 <div class="empty-state glass-card-solid text-center py-10 px-6 md:px-10 relative overflow-hidden">
   <!-- Soft blobs in background -->
-  <div class="pointer-events-none absolute -top-10 -right-10 w-40 h-40 bg-agrohubGreen/10 rounded-full blur-3xl"></div>
-  <div class="pointer-events-none absolute -bottom-16 -left-10 w-48 h-48 bg-unirvBlue/15 rounded-full blur-3xl"></div>
+  <div class="pointer-events-none absolute -top-10 -right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl"></div>
+  <div class="pointer-events-none absolute -bottom-16 -left-10 w-48 h-48 bg-primary/15 rounded-full blur-3xl"></div>
 
   <div class="relative z-10">
-    <div class="empty-state-icon mb-4">
-      <i class="fas {{ icon|default:'fa-folder-open' }} text-5xl md:text-6xl text-gray-300"></i>
+    <!-- SVG Illustration -->
+    <div class="empty-state-illustration mb-6 flex justify-center">
+      {% if illustration == 'documents' %}
+      <!-- Documents/Editais illustration -->
+      <svg class="w-32 h-32 md:w-40 md:h-40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Back document -->
+        <rect x="50" y="30" width="100" height="130" rx="8" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="2"/>
+        <rect x="65" y="50" width="50" height="6" rx="3" fill="#D1D5DB"/>
+        <rect x="65" y="65" width="70" height="4" rx="2" fill="#E5E7EB"/>
+        <rect x="65" y="75" width="60" height="4" rx="2" fill="#E5E7EB"/>
+        <!-- Front document -->
+        <rect x="60" y="45" width="100" height="130" rx="8" fill="white" stroke="#2563EB" stroke-width="2"/>
+        <rect x="75" y="65" width="50" height="6" rx="3" fill="#2563EB"/>
+        <rect x="75" y="80" width="70" height="4" rx="2" fill="#E5E7EB"/>
+        <rect x="75" y="90" width="60" height="4" rx="2" fill="#E5E7EB"/>
+        <rect x="75" y="100" width="65" height="4" rx="2" fill="#E5E7EB"/>
+        <rect x="75" y="115" width="40" height="4" rx="2" fill="#E5E7EB"/>
+        <!-- Green checkmark circle -->
+        <circle cx="140" cy="55" r="18" fill="#22c55e"/>
+        <path d="M132 55L138 61L150 49" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      {% elif illustration == 'rocket' %}
+      <!-- Rocket/Startups illustration -->
+      <svg class="w-32 h-32 md:w-40 md:h-40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Stars -->
+        <circle cx="40" cy="50" r="3" fill="#22c55e" opacity="0.6"/>
+        <circle cx="160" cy="40" r="2" fill="#2563EB" opacity="0.5"/>
+        <circle cx="170" cy="80" r="3" fill="#22c55e" opacity="0.4"/>
+        <circle cx="30" cy="120" r="2" fill="#2563EB" opacity="0.6"/>
+        <!-- Rocket body -->
+        <path d="M100 30C100 30 130 60 130 100C130 140 100 170 100 170C100 170 70 140 70 100C70 60 100 30 100 30Z" fill="white" stroke="#2563EB" stroke-width="3"/>
+        <!-- Rocket window -->
+        <circle cx="100" cy="85" r="15" fill="#2563EB"/>
+        <circle cx="100" cy="85" r="10" fill="#60A5FA"/>
+        <circle cx="96" cy="82" r="3" fill="white" opacity="0.6"/>
+        <!-- Rocket fins -->
+        <path d="M70 120L50 150L70 140Z" fill="#22c55e"/>
+        <path d="M130 120L150 150L130 140Z" fill="#22c55e"/>
+        <!-- Rocket flame -->
+        <ellipse cx="100" cy="175" rx="15" ry="20" fill="#FCD34D"/>
+        <ellipse cx="100" cy="172" rx="10" ry="15" fill="#F97316"/>
+        <ellipse cx="100" cy="170" rx="5" ry="8" fill="#EF4444"/>
+      </svg>
+      {% elif illustration == 'search' %}
+      <!-- Search/No results illustration -->
+      <svg class="w-32 h-32 md:w-40 md:h-40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Magnifying glass -->
+        <circle cx="85" cy="85" r="45" fill="white" stroke="#2563EB" stroke-width="4"/>
+        <circle cx="85" cy="85" r="35" fill="#F3F4F6"/>
+        <!-- Shine on glass -->
+        <path d="M65 65C75 55 95 55 95 65" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+        <!-- Handle -->
+        <line x1="120" y1="120" x2="160" y2="160" stroke="#2563EB" stroke-width="8" stroke-linecap="round"/>
+        <!-- Question mark or X inside -->
+        <text x="85" y="95" text-anchor="middle" fill="#9CA3AF" font-size="30" font-weight="bold">?</text>
+        <!-- Decorative dots -->
+        <circle cx="45" cy="150" r="6" fill="#22c55e" opacity="0.3"/>
+        <circle cx="155" cy="50" r="8" fill="#2563EB" opacity="0.2"/>
+        <circle cx="170" cy="100" r="4" fill="#22c55e" opacity="0.4"/>
+      </svg>
+      {% else %}
+      <!-- Default abstract pattern illustration -->
+      <svg class="w-32 h-32 md:w-40 md:h-40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Abstract circles pattern -->
+        <circle cx="100" cy="100" r="60" fill="none" stroke="#E5E7EB" stroke-width="2" stroke-dasharray="8 4"/>
+        <circle cx="100" cy="100" r="40" fill="none" stroke="#2563EB" stroke-width="2" opacity="0.3"/>
+        <circle cx="100" cy="100" r="20" fill="#2563EB" opacity="0.1"/>
+        <!-- Floating dots -->
+        <circle cx="60" cy="60" r="8" fill="#22c55e" opacity="0.6"/>
+        <circle cx="140" cy="70" r="6" fill="#2563EB" opacity="0.4"/>
+        <circle cx="50" cy="130" r="5" fill="#2563EB" opacity="0.3"/>
+        <circle cx="150" cy="140" r="7" fill="#22c55e" opacity="0.5"/>
+        <circle cx="100" cy="45" r="4" fill="#22c55e" opacity="0.7"/>
+        <circle cx="100" cy="155" r="5" fill="#2563EB" opacity="0.5"/>
+        <!-- Center icon placeholder -->
+        <circle cx="100" cy="100" r="25" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+        <rect x="90" y="90" width="20" height="20" rx="4" fill="#E5E7EB"/>
+      </svg>
+      {% endif %}
     </div>
+
+    <!-- Icon (smaller now, complementary to illustration) -->
+    <div class="empty-state-icon mb-4">
+      <i class="fas {{ icon|default:'fa-folder-open' }} text-3xl md:text-4xl text-gray-400"></i>
+    </div>
+
     <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">
       {{ title|default:'Nenhum item encontrado' }}
     </h3>
@@ -30,12 +115,12 @@ Usage:
       {% if action_text %}
       <div class="flex flex-col sm:flex-row justify-center gap-3">
         {% if action_url_name %}
-        <a href="{% url action_url_name %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
+        <a href="{% url action_url_name %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
           <i class="fas fa-plus"></i>
           {{ action_text }}
         </a>
         {% elif action_url %}
-        <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
+        <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 text-white rounded-full font-medium transition-all shadow-md hover:shadow-lg text-sm">
           <i class="fas fa-plus"></i>
           {{ action_text }}
         </a>

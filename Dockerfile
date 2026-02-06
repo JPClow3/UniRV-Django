@@ -14,10 +14,13 @@ COPY theme/static_src/package*.json ./theme/static_src/
 WORKDIR /app/theme/static_src
 RUN npm ci
 
+# Copy static JavaScript files that need to be minified
+COPY static/js/ /app/static/js/
+
 # Copy theme source files
 COPY theme/static_src/ ./
 
-# Build Tailwind CSS
+# Build Tailwind CSS and minify JavaScript
 RUN npm run build
 
 # ============================================================================
@@ -45,8 +48,9 @@ RUN pip install --no-cache-dir --user -r /app/requirements.txt
 # Copy application code
 COPY . /app
 
-# Copy built Tailwind assets from node-builder stage
+# Copy all built assets from node-builder stage (CSS, minified JS, vendor files)
 COPY --from=node-builder /app/theme/static_src/dist ./theme/static_src/dist
+COPY --from=node-builder /app/static/ ./static/
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
@@ -60,6 +64,7 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DJANGO_DEBUG=False \
+    PORT=8000 \
     PATH="/home/django-user/.local/bin:$PATH"
 
 WORKDIR /app
@@ -67,6 +72,7 @@ WORKDIR /app
 # Install runtime dependencies only (no build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
+    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -93,7 +99,11 @@ RUN chown -R django-user:django-user /app && \
 USER django-user
 
 # Expose port
-EXPOSE 8000
+EXPOSE $PORT
+
+# Health check - verify the application is running and responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health/ || exit 1
 
 # Set entrypoint script
 ENTRYPOINT ["/app/docker-entrypoint.sh"]

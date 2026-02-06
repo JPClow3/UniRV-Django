@@ -5,7 +5,7 @@ Tests cache invalidation on all CRUD operations for editais and projects,
 verifying that cache version increments and cached responses are cleared.
 """
 
-from django.test import TestCase, Client
+from django.test import TestCase, TransactionTestCase, Client
 from django.core.cache import cache
 from django.urls import reverse
 
@@ -14,7 +14,13 @@ from ..utils import clear_index_cache, get_index_cache_key
 from .factories import StaffUserFactory, EditalFactory, StartupFactory, UserFactory
 
 
-class EditalCacheInvalidationTest(TestCase):
+class EditalCacheInvalidationTest(TransactionTestCase):
+    """
+    E2E tests for cache invalidation on edital CRUD operations.
+
+    Uses TransactionTestCase because tests verify transaction.on_commit()
+    callbacks which only fire when transactions actually commit.
+    """
     """E2E tests for cache invalidation on edital CRUD operations"""
 
     def setUp(self):
@@ -166,8 +172,13 @@ class EditalCacheInvalidationTest(TestCase):
                           "Final version should be greater than initial")
 
 
-class ProjectCacheInvalidationTest(TestCase):
-    """E2E tests for cache invalidation on project operations"""
+class ProjectCacheInvalidationTest(TransactionTestCase):
+    """
+    E2E tests for cache invalidation on project operations.
+
+    Uses TransactionTestCase because tests verify transaction.on_commit()
+    callbacks which only fire when transactions actually commit.
+    """
 
     def setUp(self):
         self.client = Client()
@@ -238,8 +249,13 @@ class ProjectCacheInvalidationTest(TestCase):
         # Verify operation completed (cache behavior depends on implementation)
 
 
-class CacheVersionConsistencyTest(TestCase):
-    """Tests for cache version consistency and race conditions"""
+class CacheVersionConsistencyTest(TransactionTestCase):
+    """
+    Tests for cache version consistency and race conditions.
+
+    Uses TransactionTestCase because tests verify cache version increments
+    that happen via transaction.on_commit() callbacks.
+    """
 
     def setUp(self):
         cache.clear()
@@ -291,8 +307,13 @@ class CacheVersionConsistencyTest(TestCase):
                           "Cache keys should differ for different versions")
 
 
-class CacheInvalidationIntegrationTest(TestCase):
-    """Integration tests for cache invalidation in complete workflows"""
+class CacheInvalidationIntegrationTest(TransactionTestCase):
+    """
+    Integration tests for cache invalidation in complete workflows.
+
+    Uses TransactionTestCase because tests verify transaction.on_commit()
+    callbacks which only fire when transactions actually commit.
+    """
 
     def setUp(self):
         self.client = Client()

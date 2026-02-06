@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive review of the database models and structure for the UniRV-Django application. Overall, the database structure is well-designed with good indexing, proper relationships, and validation. However, there is **one critical issue** that needs immediate attention.
+This document provides a comprehensive review of the database models and structure for the AgroHub application. Overall, the database structure is well-designed with good indexing, proper relationships, and validation. However, there is **one critical issue** that needs immediate attention.
 
 ## Critical Issues
 

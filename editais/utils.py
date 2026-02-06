@@ -2,20 +2,20 @@
 Utility functions for the editais app.
 """
 
-from typing import Optional, TYPE_CHECKING, Union, List
+from typing import Optional, TYPE_CHECKING, List
 from datetime import date, datetime
 import logging
-import re
 import time
 import bleach
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.text import slugify
 from django.core.cache import cache
-from django.db import models, connection
+from django.db import models, connection, DatabaseError, OperationalError
 from django.db.models import QuerySet
+from redis.exceptions import RedisError
 
-from .constants import HTML_FIELDS, CACHE_FALLBACK_PAGE_RANGE, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, SLUG_GENERATION_MAX_ATTEMPTS_PROJECT, CACHE_TTL_15_MINUTES
+from .constants import HTML_FIELDS, CACHE_FALLBACK_PAGE_RANGE, SLUG_GENERATION_MAX_ATTEMPTS_EDITAL, CACHE_TTL_15_MINUTES
 from .cache_utils import (
     get_index_cache_key as _get_index_cache_key,
 )
@@ -45,35 +45,45 @@ ALLOWED_ATTRIBUTES = {
 def sanitize_html(text: Optional[str]) -> str:
     """
     Sanitiza conteúdo HTML para prevenir ataques XSS.
-    
+
+    Uses bleach library with protocol filtering for robust XSS prevention.
+    Allows only http, https, and mailto protocols in href attributes.
+    Also removes dangerous protocol strings from plain text as defense-in-depth.
+
     Args:
         text: Texto a ser sanitizado
-        
+
     Returns:
         str: Texto sanitizado ou string vazia em caso de erro
     """
     if not text:
         return ''
-    
-    # Remove javascript: and data:text/html URLs before sanitization
-    # This prevents XSS through href/src attributes
-    text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'data:text/html', '', text, flags=re.IGNORECASE)
-    
+
     try:
-        # Sanitize HTML using bleach
+        # Use bleach's protocol whitelist for robust XSS prevention in attributes
+        # This properly handles all encoding bypass attempts (Unicode, URL encoding, etc.)
+        # The protocols parameter handles javascript:, data:, vbscript: and other dangerous
+        # protocols including HTML entity encoded variants (e.g., java&#x73;cript:)
         sanitized = bleach.clean(
             text,
             tags=ALLOWED_TAGS,
             attributes=ALLOWED_ATTRIBUTES,
+            protocols=['http', 'https', 'mailto'],  # Only allow safe protocols
             strip=True
         )
-        
-        # Remove javascript: and data:text/html URLs after sanitization as well
-        # (in case they were added back or missed)
-        sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
-        sanitized = re.sub(r'data:text/html', '', sanitized, flags=re.IGNORECASE)
-        
+
+        # Defense-in-depth: remove dangerous protocol strings from plain text
+        # This handles edge cases where dangerous protocols appear as plain text
+        # Use case-insensitive replacement for each dangerous pattern
+        import re
+        dangerous_protocols = [
+            r'javascript\s*:',
+            r'vbscript\s*:',
+            r'data\s*:\s*text/html',
+        ]
+        for pattern in dangerous_protocols:
+            sanitized = re.sub(pattern, '', sanitized, flags=re.IGNORECASE)
+
         return sanitized
     except (TypeError, AttributeError, ValueError) as e:
         # bleach.clean() can raise TypeError (invalid type), AttributeError (missing attribute),
@@ -204,8 +214,9 @@ def generate_unique_slug(
         available_length = max_length - len(suffix)
         slug = f"{base_slug[:available_length]}{suffix}"
     
-    # Se todas as tentativas falharam, usar timestamp
-    timestamp_suffix = f'-{int(time.time())}'
+    # Se todas as tentativas falharam, usar timestamp com precisão de microssegundos
+    # para evitar colisões em requisições simultâneas
+    timestamp_suffix = f'-{int(time.time() * 1000000)}'
     available_length = max_length - len(timestamp_suffix)
     return f"{base_slug[:available_length]}{timestamp_suffix}"
 
@@ -271,20 +282,20 @@ def apply_tipo_filter(queryset: QuerySet, tipo: Optional[str]) -> QuerySet:
 def parse_date_filter(date_string: Optional[str]) -> Optional[date]:
     """
     Converte string de data em objeto date.
-    
+
     Args:
         date_string: String de data no formato YYYY-MM-DD ou None
-        
+
     Returns:
         date object ou None se string inválida
     """
     if not date_string:
         return None
-    
+
     try:
-        from datetime import datetime as dt
-        return dt.strptime(date_string, '%Y-%m-%d').date()
-    except (ValueError, TypeError):
+        return datetime.strptime(date_string, '%Y-%m-%d').date()
+    except (ValueError, TypeError) as e:
+        logger.warning(f"Invalid date filter value: {date_string!r} - {e}")
         return None
 
 
@@ -305,7 +316,7 @@ def get_phase_to_status_mapping() -> dict:
     return {label.lower(): code for code, label in PHASE_CHOICES}
 
 
-def get_project_status_mapping() -> dict:
+def get_startup_status_mapping() -> dict:
     """
     Retorna mapeamento de labels de status para valores de status.
     Mapeia nomes de exibição (case-insensitive) para valores do modelo.
@@ -319,7 +330,13 @@ def get_project_status_mapping() -> dict:
     return mapping
 
 
-def get_project_sort_mapping() -> dict:
+# Backward compatibility alias (deprecated - use get_startup_status_mapping)
+def get_project_status_mapping() -> dict:
+    """Deprecated: Use get_startup_status_mapping() instead."""
+    return get_startup_status_mapping()
+
+
+def get_startup_sort_mapping() -> dict:
     """
     Retorna mapeamento de opções de ordenação para startups.
     """
@@ -335,22 +352,58 @@ def get_project_sort_mapping() -> dict:
     }
 
 
+# Backward compatibility alias (deprecated - use get_startup_sort_mapping)
+def get_project_sort_mapping() -> dict:
+    """Deprecated: Use get_startup_sort_mapping() instead."""
+    return get_startup_sort_mapping()
+
+
+def clear_dashboard_cache() -> None:
+    """
+    Clear dashboard-specific cache keys.
+
+    Clears cached statistics, recent editais, and deadline editais used by the admin dashboard.
+    This function is called as part of clear_all_caches() to ensure dashboard shows fresh data.
+    """
+    dashboard_keys = [
+        'admin_dashboard_stats',
+        'admin_dashboard_recentes',
+        'admin_dashboard_deadline',
+    ]
+    try:
+        for key in dashboard_keys:
+            cache.delete(key)
+    except (ConnectionError, TimeoutError, RedisError, OSError) as e:
+        logger.warning("Failed to clear dashboard cache - cache unavailable: %s", e, exc_info=True)
+
+
+def clear_all_caches() -> None:
+    """
+    Clear all relevant caches including index and dashboard caches.
+
+    This function should be called after any edital create/update/delete operation
+    to ensure all cached data is invalidated.
+    """
+    clear_index_cache()
+    clear_dashboard_cache()
+
+
 def clear_index_cache() -> None:
     """
     Clear all index page cache keys.
     Uses a cache versioning pattern: increment a version number that's part of all cache keys.
     This invalidates all cached pages regardless of page number.
-    
+
     RACE CONDITION HANDLING:
     Cache version increment may have race conditions when multiple requests try to clear
     cache simultaneously. This is acceptable - the worst case is cache cleared multiple
     times, which is harmless. The version increment uses atomic operations when available
     (Redis, Memcached), with a fallback to get+set for other backends.
-    
+
     ERROR HANDLING:
     All cache operations are wrapped in try-except to handle cache failures gracefully.
     If cache is unavailable, the function will silently fail (fail-open behavior).
-    
+
     This function is public and can be called from views, management commands, or services.
     """
     version_key = 'editais_index_cache_version'
@@ -372,12 +425,12 @@ def clear_index_cache() -> None:
             current_version = cache.get(version_key, 0)
             new_version = current_version + 1
             cache.set(version_key, new_version, timeout=None)  # Never expire the version key
-    except Exception:
-        # Cache is unavailable (ConnectionError, etc.) - fail gracefully
+    except (ConnectionError, TimeoutError, RedisError, OSError) as e:
+        # Cache is unavailable - fail gracefully
         # Log the error but don't raise - cache clearing is not critical
-        logger.warning("Failed to clear index cache - cache unavailable", exc_info=True)
+        logger.warning("Failed to clear index cache - cache unavailable: %s", e, exc_info=True)
         return
-    
+
     # Also clear the old version key pattern for pages as a fallback
     # (in case any old cache entries exist without versioning)
     # Note: This is a fallback mechanism. The versioning system above should handle most cases.
@@ -385,9 +438,9 @@ def clear_index_cache() -> None:
         for page_num in range(1, CACHE_FALLBACK_PAGE_RANGE + 1):
             old_cache_key = f'editais_index_page_{page_num}'
             cache.delete(old_cache_key)
-    except Exception:
+    except (ConnectionError, TimeoutError, RedisError, OSError) as e:
         # Cache delete failed - log but don't raise
-        logger.warning("Failed to delete old cache keys - cache unavailable", exc_info=True)
+        logger.warning("Failed to delete old cache keys - cache unavailable: %s", e, exc_info=True)
 
 
 def get_index_cache_key(page_number: str, cache_version: Optional[int] = None) -> str:
@@ -479,10 +532,11 @@ def get_search_suggestions(query: str, limit: int = 3) -> List[str]:
             """, [query, query, query, query, query, query, limit])
             
             suggestions = [row[0] for row in cursor.fetchall() if row[0]]
-            
-    except Exception as e:
-        # Log error but don't fail - suggestions are nice-to-have
-        logger.warning(f"Error generating search suggestions: {e}", exc_info=True)
+
+    except (DatabaseError, OperationalError) as e:
+        # Database error (connection, query, etc.) - fail gracefully
+        # Suggestions are a nice-to-have feature, not critical
+        logger.warning("Error generating search suggestions: %s", e, exc_info=True)
         return []
     
     # Cache suggestions for 5 minutes

@@ -19,6 +19,8 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.contrib.auth.views import LoginView
+from django.contrib.auth import login
+from django.urls import reverse
 from django_ratelimit.decorators import ratelimit
 
 from ..constants import (
@@ -30,6 +32,9 @@ from ..models import Edital, Startup
 from ..utils import mark_edital_fields_safe, parse_date_filter, get_search_suggestions
 from ..cache_utils import get_index_cache_key, get_detail_cache_key, get_cached_response, cache_response
 from ..exceptions import EditalNotFoundError
+from ..decorators import rate_limit
+from ..forms import UserRegistrationForm
+from ..tasks import send_welcome_email_async
 
 logger = logging.getLogger(__name__)
 
@@ -199,11 +204,11 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         if search_query:
             base_queryset = base_queryset.search(search_query)
         
-        all_active_projects = Startup.objects.filter(
+        all_active_startups = Startup.objects.filter(
             proponente__isnull=False,
             status__in=ACTIVE_STARTUP_STATUSES
         )
-        graduadas_count = all_active_projects.filter(status='graduada').count()
+        graduadas_count = all_active_startups.filter(status='graduada').count()
         stats = {
             'total_active': base_queryset.count(),
             'graduadas': graduadas_count,
@@ -239,8 +244,26 @@ class RateLimitedLoginView(LoginView):
     redirect_authenticated_user = True
     success_url = None  # use LOGIN_REDIRECT_URL from settings via RedirectURLMixin
 
+    def get_redirect_url(self) -> str:
+        """
+        Override to validate redirect URL and prevent open redirect attacks.
+        Only allows redirects to internal URLs (same host).
+        """
+        from django.utils.http import url_has_allowed_host_and_scheme
+        redirect_to = self.request.POST.get(
+            self.redirect_field_name,
+            self.request.GET.get(self.redirect_field_name, '')
+        )
+        # Validate the URL is safe (internal only)
+        if redirect_to and url_has_allowed_host_and_scheme(
+            url=redirect_to,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return redirect_to
+        return ''
+
     def get_success_url(self) -> str:
-        from django.urls import reverse
         url = self.get_redirect_url()
         if url:
             return url
@@ -250,14 +273,11 @@ class RateLimitedLoginView(LoginView):
 login_view = RateLimitedLoginView.as_view()
 
 
+@rate_limit(key='ip', rate=3, window=3600, method='POST')
 def register_view(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
-    """User registration view"""
+    """User registration view with rate limiting to prevent abuse."""
     if request.user.is_authenticated:
         return redirect('dashboard_home')
-    
-    from ..forms import UserRegistrationForm
-    from ..tasks import send_welcome_email_async
-    from django.contrib.auth import login
 
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
@@ -428,9 +448,11 @@ def health_check(request: HttpRequest) -> JsonResponse:
     except (DatabaseError, OSError, ConnectionError, Exception) as e:
         # Catch all exceptions including generic Exception for test scenarios
         logger.error(f"Health check falhou: {e}", exc_info=True)
+        # Don't expose error details in production to prevent information disclosure
+        error_message = str(e) if settings.DEBUG else 'Internal server error'
         return JsonResponse({
             'status': 'unhealthy',
-            'error': str(e),
+            'error': error_message,
             'timestamp': timezone.now().isoformat()
         }, status=500)
 

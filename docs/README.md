@@ -1,4 +1,4 @@
-# Documentação do Projeto UniRV-Django
+# Documentação do Projeto AgroHub
 
 Este diretório contém toda a documentação técnica e de arquitetura do projeto.
 

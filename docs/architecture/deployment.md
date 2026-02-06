@@ -1,6 +1,6 @@
 # Arquitetura de Deploy
 
-Este documento descreve a arquitetura de deployment e infraestrutura do UniRV-Django.
+Este documento descreve a arquitetura de deployment e infraestrutura do AgroHub.
 
 ## Visão Geral do Deployment
 
@@ -150,7 +150,7 @@ graph TB
 ### Arquivos de Configuração
 
 ```
-UniRV-Django/
+AgroHub/
 ├── Dockerfile                 # Multi-stage build
 ├── docker-entrypoint.sh       # Entrypoint script
 ├── docker-compose.yml         # Docker Compose config
@@ -162,7 +162,7 @@ UniRV-Django/
 ### Diretórios de Deployment
 
 ```
-/var/www/unirv-django/         # Application root
+/var/www/agrohub/         # Application root
 ├── .venv/                     # Virtual environment
 ├── staticfiles/               # Collected static files
 ├── media/                     # User uploads
@@ -208,14 +208,14 @@ server {
     
     # Static Files
     location /static/ {
-        alias /var/www/unirv-django/staticfiles/;
+        alias /var/www/agrohub/staticfiles/;
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
     
     # Media Files
     location /media/ {
-        alias /var/www/unirv-django/media/;
+        alias /var/www/agrohub/media/;
         expires 1y;
         add_header Cache-Control "public";
     }
@@ -226,19 +226,19 @@ server {
 
 ```ini
 [Unit]
-Description=UniRV Django Gunicorn daemon
+Description=AgroHub Gunicorn daemon
 After=network.target
 
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/unirv-django
-ExecStart=/var/www/unirv-django/.venv/bin/gunicorn \
+WorkingDirectory=/var/www/agrohub
+ExecStart=/var/www/agrohub/.venv/bin/gunicorn \
     --bind 127.0.0.1:8000 \
     --workers 3 \
     --timeout 120 \
-    --access-logfile /var/www/unirv-django/logs/access.log \
-    --error-logfile /var/www/unirv-django/logs/error.log \
+    --access-logfile /var/www/agrohub/logs/access.log \
+    --error-logfile /var/www/agrohub/logs/error.log \
     UniRV_Django.wsgi:application
 Restart=always
 
@@ -305,7 +305,7 @@ python manage.py check --deploy
 ### 2. Build Docker (se usando)
 
 ```bash
-docker build -t unirv-django:latest .
+docker build -t agrohub:latest .
 ```
 
 ### 3. Deploy
@@ -318,7 +318,7 @@ docker-compose up -d
 #### VPS Manual
 ```bash
 # Restart Gunicorn
-sudo systemctl restart unirv-django
+sudo systemctl restart agrohub
 
 # Reload Nginx
 sudo systemctl reload nginx
@@ -328,11 +328,11 @@ sudo systemctl reload nginx
 
 ```bash
 # Check service status
-sudo systemctl status unirv-django
+sudo systemctl status agrohub
 sudo systemctl status nginx
 
 # Check logs
-tail -f /var/www/unirv-django/logs/django.log
+tail -f /var/www/agrohub/logs/django.log
 ```
 
 ## Monitoramento

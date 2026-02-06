@@ -1,6 +1,4 @@
-// ========================================
-// MOBILE MENU TOGGLE
-// ========================================
+// --- MOBILE MENU TOGGLE ---
 (function() {
   const menuToggle = document.querySelector('.mobile-menu-toggle');
   const navMenu = document.querySelector('.navbar-right');
@@ -426,53 +424,75 @@ function showConfirmDialog(options) {
 window.showToast = showToast;
 window.showConfirmDialog = showConfirmDialog;
 
-// ========================================
-// ERROR SUMMARY NAVIGATION (Accessibility)
-// ========================================
+// --- ERROR SUMMARY NAVIGATION ---
 (function () {
     const errorLinks = document.querySelectorAll('.error-summary-list a');
 
+    // Helper function to scroll to and highlight an error field
+    function scrollToErrorField(targetField) {
+        if (!targetField) return;
+
+        const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
+        const fieldPosition = targetField.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = fieldPosition - headerHeight - 20;
+
+        // Scroll to field with offset for fixed header
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+
+        // Focus the field after scroll completes
+        setTimeout(function () {
+            targetField.focus({ preventScroll: true });
+
+            if (targetField.tagName === 'SELECT') {
+                targetField.click();
+            }
+
+            const formGroup = targetField.closest('.form-group');
+            if (formGroup) {
+                formGroup.style.animation = 'highlight-flash 1s';
+                setTimeout(() => {
+                    formGroup.style.animation = '';
+                }, 1000);
+            }
+        }, 500);
+    }
+
+    // Handle clicks on error summary links
     errorLinks.forEach(function (link) {
         link.addEventListener('click', function (e) {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const targetField = document.getElementById(targetId);
-
-            if (targetField) {
-                const headerHeight = document.querySelector('.site-header')?.offsetHeight || 0;
-                const fieldPosition = targetField.getBoundingClientRect().top + window.pageYOffset;
-                const offsetPosition = fieldPosition - headerHeight - 20;
-
-                // Scroll to field with offset for fixed header
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: 'smooth'
-                });
-
-                // Focus the field after scroll completes
-                setTimeout(function () {
-                    targetField.focus({ preventScroll: true });
-
-                    if (targetField.tagName === 'SELECT') {
-                        targetField.click();
-                    }
-
-                    const formGroup = targetField.closest('.form-group');
-                    if (formGroup) {
-                        formGroup.style.animation = 'highlight-flash 1s';
-                        setTimeout(() => {
-                            formGroup.style.animation = '';
-                        }, 1000);
-                    }
-                }, 500);
-            }
+            scrollToErrorField(targetField);
         });
     });
+
+    // Auto-scroll to first error field on page load (for server-side validation errors)
+    if (errorLinks.length > 0) {
+        // Wait for page to fully render before scrolling
+        setTimeout(function() {
+            const firstErrorLink = errorLinks[0];
+            if (firstErrorLink) {
+                const targetId = firstErrorLink.getAttribute('href').substring(1);
+                const targetField = document.getElementById(targetId);
+                scrollToErrorField(targetField);
+            }
+        }, 100);
+    } else {
+        // Check for form fields with error classes (fallback for forms without error summary)
+        const firstErrorField = document.querySelector('.form-group.has-error input, .form-group.has-error textarea, .form-group.has-error select, .is-invalid, [aria-invalid="true"]');
+        if (firstErrorField) {
+            setTimeout(function() {
+                scrollToErrorField(firstErrorField);
+            }, 100);
+        }
+    }
 })();
 
-// ========================================
-// FORM VALIDATION FEEDBACK
-// ========================================
+// --- FORM VALIDATION FEEDBACK ---
 (function() {
   const requiredInputs = document.querySelectorAll('input[required], textarea[required], select[required]');
 
@@ -514,9 +534,7 @@ window.showConfirmDialog = showConfirmDialog;
   });
 })();
 
-// ========================================
-// BACK TO TOP BUTTON
-// ========================================
+// --- BACK TO TOP BUTTON ---
 (function() {
   // Create back to top button
   const backToTop = document.createElement('button');
@@ -543,9 +561,7 @@ window.showConfirmDialog = showConfirmDialog;
   });
 })();
 
-// ========================================
-// DELETE CONFIRMATION DIALOG
-// ========================================
+// --- DELETE CONFIRMATION DIALOG ---
 (function() {
   const deleteLinks = document.querySelectorAll('a[href*="/excluir/"]');
 
@@ -568,9 +584,7 @@ window.showConfirmDialog = showConfirmDialog;
   });
 })();
 
-// ========================================
-// SMOOTH SCROLL FOR ALL ANCHOR LINKS
-// ========================================
+// --- SMOOTH SCROLL FOR ANCHOR LINKS ---
 (function() {
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -608,9 +622,7 @@ window.showConfirmDialog = showConfirmDialog;
 
 
 
-// ========================================
-// MODAL FOCUS TRAP (A11Y-005)
-// ========================================
+// --- MODAL FOCUS TRAP ---
 (function() {
     // Function to trap focus inside modal
     function trapFocus(modal) {
@@ -742,9 +754,7 @@ window.showConfirmDialog = showConfirmDialog;
     window.closeManualModal = closeManualModal;
 })();
 
-// ========================================
-// USER MENU DROPDOWN
-// ========================================
+// --- USER MENU DROPDOWN ---
 (function() {
     const userMenuToggle = document.getElementById('user-menu-toggle');
     const userMenuDropdown = document.getElementById('user-menu') || document.getElementById('user-menu-dropdown');
@@ -814,9 +824,7 @@ window.showConfirmDialog = showConfirmDialog;
     };
 })();
 
-// ========================================
-// PASSWORD VISIBILITY TOGGLE (A11Y-006)
-// ========================================
+// --- PASSWORD VISIBILITY TOGGLE ---
 (function() {
     document.addEventListener('DOMContentLoaded', function() {
         const toggleButtons = document.querySelectorAll('[data-password-toggle]');
@@ -842,9 +850,7 @@ window.showConfirmDialog = showConfirmDialog;
     });
 })();
 
-// ========================================
-// DJANGO MESSAGES TO TOAST NOTIFICATIONS
-// ========================================
+// --- DJANGO MESSAGES TO TOAST ---
 // Convert Django messages to toast notifications (T046 - Complete integration)
 // Deferred execution to avoid blocking page render
 (function () {
@@ -909,9 +915,7 @@ window.showConfirmDialog = showConfirmDialog;
     }
 })();
 
-// ========================================
-// PAGE-SPECIFIC GSAP ANIMATION BOOTSTRAP
-// ========================================
+// --- PAGE-SPECIFIC GSAP BOOTSTRAP ---
 // Detect page via data-page on <body> and delegate to animations.js helpers
 (function () {
   document.addEventListener('DOMContentLoaded', function () {

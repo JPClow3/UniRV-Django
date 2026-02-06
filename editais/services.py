@@ -16,7 +16,7 @@ from .models import Edital
 from django.db import IntegrityError
 
 from .constants import DEADLINE_WARNING_DAYS, OPEN_EDITAL_STATUSES, SLUG_GENERATION_MAX_RETRIES
-from .utils import clear_index_cache, apply_tipo_filter
+from .utils import clear_all_caches, apply_tipo_filter
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -110,7 +110,8 @@ class EditalService:
                 with transaction.atomic():
                     # sanitize_edital_fields() is called automatically in Edital.save()
                     edital.save()
-                    transaction.on_commit(clear_index_cache)
+                    # Clear all caches including dashboard stats
+                    transaction.on_commit(clear_all_caches)
                 return edital
             except IntegrityError as e:
                 if 'slug' in str(e).lower() or 'unique' in str(e).lower():

@@ -1,3 +1,4 @@
+import os
 from typing import Any, Dict, Optional
 from django import forms
 from django.core.exceptions import ValidationError
@@ -6,17 +7,68 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError, transaction
 from .models import Edital, Startup
 from .utils import PHASE_CHOICES
+from .constants import MAX_LOGO_FILE_SIZE
+
+
+# Field-specific error messages for better UX
+FIELD_ERROR_MESSAGES = {
+    'required': {
+        'default': 'Este campo é obrigatório.',
+        'email': 'Por favor, informe seu e-mail.',
+        'username': 'Por favor, escolha um nome de usuário.',
+        'password': 'Por favor, crie uma senha.',
+        'titulo': 'Por favor, informe o título do edital.',
+        'numero_edital': 'Por favor, informe o número do edital.',
+        'name': 'Por favor, informe o nome da startup.',
+        'description': 'Por favor, forneça uma descrição.',
+        'start_date': 'Por favor, selecione a data de início.',
+        'end_date': 'Por favor, selecione a data de encerramento.',
+        'url': 'Por favor, informe a URL do edital.',
+        'entidade_principal': 'Por favor, informe a entidade responsável.',
+        'first_name': 'Por favor, informe seu nome.',
+    },
+    'invalid': {
+        'default': 'Valor inválido.',
+        'email': 'Por favor, informe um e-mail válido (ex: seu@email.com).',
+        'url': 'Por favor, informe uma URL válida (ex: https://exemplo.com).',
+        'date': 'Por favor, selecione uma data válida.',
+    },
+    'min_length': {
+        'default': 'Este campo deve ter pelo menos %(limit_value)d caracteres.',
+        'password': 'A senha deve ter pelo menos %(limit_value)d caracteres.',
+        'username': 'O nome de usuário deve ter pelo menos %(limit_value)d caracteres.',
+    },
+    'max_length': {
+        'default': 'Este campo deve ter no máximo %(limit_value)d caracteres.',
+    },
+}
+
+
+def get_field_error_message(error_code: str, field_name: str, params: Optional[Dict] = None) -> str:
+    """Get a field-specific error message based on error code and field name."""
+    error_category = FIELD_ERROR_MESSAGES.get(error_code, {})
+    message = error_category.get(field_name, error_category.get('default', 'Erro de validação.'))
+    if params:
+        try:
+            message = message % params
+        except (KeyError, TypeError):
+            pass
+    return message
 
 
 class UserRegistrationForm(UserCreationForm):
-    """Form for user registration"""
+    """Form for user registration with field-specific error messages"""
     email = forms.EmailField(
         required=True,
         label='E-mail',
         widget=forms.EmailInput(attrs={
             'placeholder': 'seu@email.com',
             'autocomplete': 'email'
-        })
+        }),
+        error_messages={
+            'required': 'Por favor, informe seu e-mail.',
+            'invalid': 'Por favor, informe um e-mail válido (ex: seu@email.com).',
+        }
     )
     first_name = forms.CharField(
         max_length=150,
@@ -25,7 +77,11 @@ class UserRegistrationForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'placeholder': 'Seu nome',
             'autocomplete': 'given-name'
-        })
+        }),
+        error_messages={
+            'required': 'Por favor, informe seu nome.',
+            'max_length': 'O nome deve ter no máximo 150 caracteres.',
+        }
     )
     last_name = forms.CharField(
         max_length=150,
@@ -34,7 +90,10 @@ class UserRegistrationForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'placeholder': 'Seu sobrenome',
             'autocomplete': 'family-name'
-        })
+        }),
+        error_messages={
+            'max_length': 'O sobrenome deve ter no máximo 150 caracteres.',
+        }
     )
 
     class Meta:
@@ -45,6 +104,13 @@ class UserRegistrationForm(UserCreationForm):
                 'placeholder': 'nomeusuario',
                 'autocomplete': 'username'
             }),
+        }
+        error_messages = {
+            'username': {
+                'required': 'Por favor, escolha um nome de usuário.',
+                'unique': 'Este nome de usuário já está em uso.',
+                'invalid': 'Use apenas letras, números e @/./+/-/_.',
+            },
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -59,6 +125,13 @@ class UserRegistrationForm(UserCreationForm):
         self.fields['password2'].widget.attrs.update({
             'placeholder': '••••••••',
             'autocomplete': 'new-password'
+        })
+        # Update password field error messages
+        self.fields['password1'].error_messages.update({
+            'required': 'Por favor, crie uma senha.',
+        })
+        self.fields['password2'].error_messages.update({
+            'required': 'Por favor, confirme sua senha.',
         })
 
     def clean_email(self) -> str:
@@ -98,6 +171,8 @@ class UserRegistrationForm(UserCreationForm):
 
 
 class EditalForm(forms.ModelForm):
+    """Form for creating and editing Edital instances with field-specific error messages"""
+
     class Meta:
         model = Edital
         fields = [
@@ -120,6 +195,34 @@ class EditalForm(forms.ModelForm):
             'criterios_avaliacao': forms.Textarea(attrs={'rows': 3}),
             'itens_essenciais_observacoes': forms.Textarea(attrs={'rows': 3}),
             'detalhes_unirv': forms.Textarea(attrs={'rows': 3}),
+        }
+        error_messages = {
+            'numero_edital': {
+                'required': 'Por favor, informe o número do edital (ex: 001/2024).',
+                'max_length': 'O número do edital deve ter no máximo 50 caracteres.',
+            },
+            'titulo': {
+                'required': 'Por favor, informe o título do edital.',
+                'max_length': 'O título deve ter no máximo 255 caracteres.',
+            },
+            'url': {
+                'required': 'Por favor, informe a URL do edital.',
+                'invalid': 'Por favor, informe uma URL válida (ex: https://exemplo.com/edital).',
+            },
+            'entidade_principal': {
+                'required': 'Por favor, informe a entidade responsável pelo edital.',
+            },
+            'status': {
+                'required': 'Por favor, selecione o status do edital.',
+                'invalid_choice': 'Por favor, selecione um status válido.',
+            },
+            'start_date': {
+                'required': 'Por favor, selecione a data de abertura.',
+                'invalid': 'Por favor, informe uma data válida.',
+            },
+            'end_date': {
+                'invalid': 'Por favor, informe uma data válida.',
+            },
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -153,7 +256,7 @@ class EditalForm(forms.ModelForm):
 
 
 class StartupForm(forms.ModelForm):
-    """Form for creating and editing Startup instances"""
+    """Form for creating and editing Startup instances with field-specific error messages"""
 
     class Meta:
         model = Startup
@@ -186,6 +289,26 @@ class StartupForm(forms.ModelForm):
             'status': forms.Select(attrs={
                 'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg'
             }),
+        }
+        error_messages = {
+            'name': {
+                'required': 'Por favor, informe o nome da sua startup.',
+                'max_length': 'O nome da startup deve ter no máximo 200 caracteres.',
+                'unique': 'Já existe uma startup com este nome.',
+            },
+            'description': {
+                'required': 'Por favor, descreva sua startup.',
+            },
+            'category': {
+                'required': 'Por favor, selecione uma categoria.',
+                'invalid_choice': 'Por favor, selecione uma categoria válida.',
+            },
+            'website': {
+                'invalid': 'Por favor, informe uma URL válida (ex: https://suastartup.com).',
+            },
+            'incubacao_start_date': {
+                'invalid': 'Por favor, informe uma data válida para início da incubação.',
+            },
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -233,11 +356,10 @@ class StartupForm(forms.ModelForm):
         # So we only need to validate if a new file is actually uploaded
         if logo:
             # Check file size (5MB limit)
-            if logo.size > 5 * 1024 * 1024:
+            if logo.size > MAX_LOGO_FILE_SIZE:
                 raise ValidationError('O arquivo de logo é muito grande. Tamanho máximo: 5MB.')
             
             # Check file extension
-            import os
             ext = os.path.splitext(logo.name)[1].lower()
             allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.svgz']
             if ext not in allowed_extensions:

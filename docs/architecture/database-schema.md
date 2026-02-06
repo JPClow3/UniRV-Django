@@ -1,6 +1,6 @@
 # Schema do Banco de Dados
 
-Este documento descreve o schema completo do banco de dados do UniRV-Django.
+Este documento descreve o schema completo do banco de dados do AgroHub.
 
 ## Diagrama ER (Entity-Relationship)
 

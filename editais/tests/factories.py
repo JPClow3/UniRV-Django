@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 
-from ..models import Edital, Startup
+from ..models import Edital, Startup, EditalValor, Cronograma, Tag
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -48,6 +48,16 @@ class SuperUserFactory(UserFactory):
 
     is_staff = True
     is_superuser = True
+
+
+class TagFactory(factory.django.DjangoModelFactory):
+    """Factory for creating Tag instances"""
+
+    class Meta:
+        model = Tag
+        django_get_or_create = ('name',)
+
+    name = factory.Sequence(lambda n: f'Tag {n}')
 
 
 class EditalFactory(factory.django.DjangoModelFactory):
@@ -117,4 +127,54 @@ class StartupFactory(factory.django.DjangoModelFactory):
         )
         without_edital = factory.Trait(
             edital=None
+        )
+
+
+class EditalValorFactory(factory.django.DjangoModelFactory):
+    """Factory for creating EditalValor instances"""
+
+    class Meta:
+        model = EditalValor
+
+    edital = factory.SubFactory(EditalFactory)
+    valor_total = fuzzy.FuzzyDecimal(10000, 10000000, precision=2)
+    moeda = fuzzy.FuzzyChoice(['BRL', 'USD', 'EUR'])
+    tipo = fuzzy.FuzzyChoice(['total', 'por_projeto', 'outro'])
+
+    class Params:
+        """Traits for common variations"""
+        in_brl = factory.Trait(
+            moeda='BRL'
+        )
+        in_usd = factory.Trait(
+            moeda='USD'
+        )
+        per_project = factory.Trait(
+            tipo='por_projeto'
+        )
+
+
+class CronogramaFactory(factory.django.DjangoModelFactory):
+    """Factory for creating Cronograma instances"""
+
+    class Meta:
+        model = Cronograma
+
+    edital = factory.SubFactory(EditalFactory)
+    data_inicio = factory.LazyFunction(lambda: timezone.now().date())
+    data_fim = factory.LazyFunction(lambda: timezone.now().date() + timedelta(days=30))
+    data_publicacao = factory.LazyFunction(lambda: timezone.now().date() - timedelta(days=7))
+    descricao = factory.Sequence(lambda n: f'Fase {n} do cronograma')
+    ordem = factory.Sequence(lambda n: n)
+
+    class Params:
+        """Traits for common variations"""
+        submission_phase = factory.Trait(
+            descricao='Período de submissão de propostas'
+        )
+        evaluation_phase = factory.Trait(
+            descricao='Período de avaliação'
+        )
+        results_phase = factory.Trait(
+            descricao='Divulgação dos resultados'
         )

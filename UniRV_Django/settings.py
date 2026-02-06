@@ -15,6 +15,8 @@ import shutil
 import sys
 from pathlib import Path
 
+import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -208,9 +210,18 @@ DATABASES = {
     }
 }
 
-# Production database override (PostgreSQL)
-if not DEBUG:
-    # Check if production database is configured
+# Prefer DATABASE_URL if available (Railway/Heroku style)
+database_url = os.environ.get('DATABASE_URL', '').strip()
+if database_url:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=database_url,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+elif not DEBUG:
+    # Production database override (PostgreSQL)
     db_name = os.environ.get('DB_NAME')
     if db_name:  # PostgreSQL configured
         DATABASES = {
@@ -488,16 +499,19 @@ CACHES = {
 
 # Use Redis in production if available
 if not DEBUG:
+    redis_url = os.environ.get('REDIS_URL', '').strip()
     redis_host = os.environ.get('REDIS_HOST', '')
     redis_port = os.environ.get('REDIS_PORT', '6379')
-    if redis_host:
+    redis_location = redis_url or (f'redis://{redis_host}:{redis_port}/1' if redis_host else '')
+
+    if redis_location:
         try:
             # Try django-redis first (recommended)
             import django_redis
             CACHES = {
                 'default': {
                     'BACKEND': 'django_redis.cache.RedisCache',
-                    'LOCATION': f'redis://{redis_host}:{redis_port}/1',
+                    'LOCATION': redis_location,
                     'OPTIONS': {
                         'CLIENT_CLASS': 'django_redis.client.DefaultClient',
                         'SOCKET_CONNECT_TIMEOUT': 5,  # Connection timeout
@@ -514,7 +528,7 @@ if not DEBUG:
                 CACHES = {
                     'default': {
                         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-                        'LOCATION': f'redis://{redis_host}:{redis_port}/1',
+                        'LOCATION': redis_location,
                         'KEY_PREFIX': 'unirv_editais',
                         'TIMEOUT': 300,  # Default timeout 5 minutes
                     }
@@ -594,6 +608,20 @@ else:
     SECURE_HSTS_SECONDS = 0
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
+
+# Railway-specific: trust proxy headers and avoid internal HTTPS redirects
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = False
+
+    if 'CSRF_TRUSTED_ORIGINS' not in globals():
+        CSRF_TRUSTED_ORIGINS = []
+
+    for host in ALLOWED_HOSTS:
+        if host not in ['localhost', '127.0.0.1', '[::1]']:
+            origin = f'https://{host}'
+            if origin not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(origin)
 
 # Session security settings (apply to both dev and production)
 SESSION_COOKIE_AGE = 3600  # 1 hour in seconds

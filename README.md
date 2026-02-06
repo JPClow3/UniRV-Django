@@ -1,8 +1,18 @@
-# UniRV Django - Sistema de Gerenciamento de Editais de Fomento
+# AgroHub - Hub de Inovação e Fomento da UniRV
 
-Sistema completo para gerenciamento e divulgação de editais de fomento para a YPETEC - Incubadora UniRV
+Plataforma oficial do **AgroHub** - Hub de Inovação e Fomento da Universidade de Rio Verde (UniRV), destinada a promover o ecossistema de inovação através do gerenciamento de editais de fomento, incubação de startups e desenvolvimento tecnológico.
 
 **Status do Projeto**: ✅ **Produção Ready** - Otimizado, seguro e pronto para deploy
+
+---
+
+## 🏛️ Sobre o AgroHub
+
+O **AgroHub** é o Hub de Inovação e Fomento da Universidade de Rio Verde (UniRV), composto por dois ambientes principais:
+
+- **YPETEC** - Incubadora de startups da UniRV, voltada para o desenvolvimento e aceleração de novos negócios inovadores, especialmente no agronegócio e tecnologias relacionadas.
+
+- **InovaLab** - Ambiente de desenvolvimento tecnológico equipado com laboratório de software, impressoras 3D e outras ferramentas para prototipagem e desenvolvimento de soluções tecnológicas.
 
 ---
 
@@ -32,7 +42,11 @@ Sistema completo para gerenciamento e divulgação de editais de fomento para a 
 
 ## 🎯 Visão Geral
 
-O **UniRV Django** é uma plataforma web completa desenvolvida para gerenciar, divulgar e facilitar o acesso a editais de fomento para startups e projetos de inovação. O sistema oferece uma interface intuitiva para administradores gerenciarem editais e uma experiência otimizada para usuários descobrirem oportunidades de financiamento.
+O **AgroHub** é uma plataforma web desenvolvida para apresentar e gerenciar o ecossistema de inovação da UniRV. O sistema oferece:
+
+- **Gerenciamento de Editais**: Divulgação e busca de oportunidades de fomento para startups e projetos de inovação
+- **Vitrine de Startups**: Showcase das startups incubadas na YPETEC
+- **Ambientes de Inovação**: Apresentação da YPETEC (incubadora) e do InovaLab (laboratório de desenvolvimento)
 
 ### Principais Características
 
@@ -142,7 +156,7 @@ git --version
 
 ```bash
 git clone <repository-url>
-cd UniRV-Django
+cd AgroHub
 ```
 
 ### 2. Crie e Ative o Ambiente Virtual
@@ -366,7 +380,7 @@ As configurações de segurança são habilitadas automaticamente quando `DEBUG=
 ## 📁 Estrutura do Projeto
 
 ```text
-UniRV-Django/
+AgroHub/
 ├── editais/                          # App principal de editais
 │   ├── __init__.py
 │   ├── apps.py                       # Configuração do app
@@ -847,7 +861,7 @@ python manage.py update_edital_status
 Configure no cron para executar diariamente:
 ```bash
 # Crontab (Linux)
-0 0 * * * cd /path/to/UniRV-Django && /path/to/venv/bin/python manage.py update_edital_status
+0 0 * * * cd /path/to/AgroHub && /path/to/venv/bin/python manage.py update_edital_status
 ```
 
 #### `run_lighthouse`
@@ -1098,14 +1112,14 @@ python manage.py test editais.tests.test_performance
 #### Build da Imagem
 
 ```bash
-docker build -t unirv-django:latest .
+docker build -t agrohub:latest .
 ```
 
 #### Executar Container
 
 ```bash
 docker run -d \
-  --name unirv-django \
+  --name agrohub \
   -p 8000:8000 \
   -e SECRET_KEY="sua-secret-key" \
   -e DJANGO_DEBUG=False \
@@ -1114,7 +1128,7 @@ docker run -d \
   -e DB_USER="usuario" \
   -e DB_PASSWORD="senha" \
   -e DB_HOST="host" \
-  unirv-django:latest
+  agrohub:latest
 ```
 
 #### Docker Compose (Recomendado)
@@ -1198,8 +1212,8 @@ GRANT ALL PRIVILEGES ON DATABASE nome_banco TO usuario;
 ```bash
 # Clonar repositório
 cd /var/www
-sudo git clone <repository-url> unirv-django
-cd unirv-django
+sudo git clone <repository-url> agrohub
+cd agrohub
 
 # Criar ambiente virtual
 sudo python3.12 -m venv .venv
@@ -1221,18 +1235,18 @@ python manage.py createsuperuser
 
 #### 4. Configurar Gunicorn
 
-Criar arquivo `/etc/systemd/system/unirv-django.service`:
+Criar arquivo `/etc/systemd/system/agrohub.service`:
 
 ```ini
 [Unit]
-Description=UniRV Django Gunicorn daemon
+Description=AgroHub Gunicorn daemon
 After=network.target
 
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/unirv-django
-ExecStart=/var/www/unirv-django/.venv/bin/gunicorn \
+WorkingDirectory=/var/www/agrohub
+ExecStart=/var/www/agrohub/.venv/bin/gunicorn \
     --bind 127.0.0.1:8000 \
     --workers 3 \
     --timeout 120 \
@@ -1246,14 +1260,14 @@ WantedBy=multi-user.target
 Ativar serviço:
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable unirv-django
-sudo systemctl start unirv-django
-sudo systemctl status unirv-django
+sudo systemctl enable agrohub
+sudo systemctl start agrohub
+sudo systemctl status agrohub
 ```
 
 #### 5. Configurar Nginx
 
-Criar arquivo `/etc/nginx/sites-available/unirv-django`:
+Criar arquivo `/etc/nginx/sites-available/agrohub`:
 
 ```nginx
 server {
@@ -1269,13 +1283,13 @@ server {
     }
 
     location /static/ {
-        alias /var/www/unirv-django/staticfiles/;
+        alias /var/www/agrohub/staticfiles/;
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 
     location /media/ {
-        alias /var/www/unirv-django/media/;
+        alias /var/www/agrohub/media/;
         expires 1y;
         add_header Cache-Control "public";
     }
@@ -1284,7 +1298,7 @@ server {
 
 Ativar site:
 ```bash
-sudo ln -s /etc/nginx/sites-available/unirv-django /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/agrohub /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -1357,19 +1371,19 @@ O Dockerfile usa **multi-stage build** com 3 estágios:
 ### Build da Imagem
 
 ```bash
-docker build -t unirv-django:latest .
+docker build -t agrohub:latest .
 ```
 
 ### Executar Container
 
 ```bash
 docker run -d \
-  --name unirv-django \
+  --name agrohub \
   -p 8000:8000 \
   -e SECRET_KEY="sua-secret-key" \
   -e DJANGO_DEBUG=False \
   -e ALLOWED_HOSTS="localhost" \
-  unirv-django:latest
+  agrohub:latest
 ```
 
 ### Variáveis de Ambiente no Docker
@@ -1380,7 +1394,7 @@ Passe variáveis via `-e` ou use arquivo `.env`:
 docker run -d \
   --env-file .env \
   -p 8000:8000 \
-  unirv-django:latest
+  agrohub:latest
 ```
 
 ### Docker Compose
@@ -1918,10 +1932,10 @@ sudo certbot --nginx -d seu-dominio.com -d www.seu-dominio.com
 #### Docker não inicia
 
 **Solução:**
-1. Verifique logs: `docker logs unirv-django`
+1. Verifique logs: `docker logs agrohub`
 2. Verifique variáveis de ambiente
 3. Verifique se as portas estão disponíveis
-4. Rebuild a imagem: `docker build -t unirv-django:latest .`
+4. Rebuild a imagem: `docker build -t agrohub:latest .`
 
 ### Performance
 
@@ -2075,14 +2089,15 @@ pip install --upgrade package-name
 
 ### Licença
 
-Este projeto é propriedade da Universidade de Rio Verde (UniRV) e está destinado ao uso interno da YPETEC - Incubadora UniRV.
+Este projeto é propriedade da Universidade de Rio Verde (UniRV) e está destinado ao uso do AgroHub - Hub de Inovação e Fomento.
 
 ### Autores
 
-UniRV - Universidade de Rio Verde
+**UniRV** - Universidade de Rio Verde
 
-- YPETEC - UniRV Incubator
-- Departamento de Tecnologia
+- **AgroHub** - Hub de Inovação e Fomento
+- **YPETEC** - Incubadora de Startups UniRV
+- **InovaLab** - Laboratório de Desenvolvimento Tecnológico
 
 ### Agradecimentos
 

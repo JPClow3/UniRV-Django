@@ -1,10 +1,10 @@
 # Arquitetura do Sistema
 
-Este documento descreve a arquitetura geral do sistema UniRV-Django.
+Este documento descreve a arquitetura geral do sistema AgroHub.
 
 ## Visão Geral
 
-O UniRV-Django é uma aplicação web Django que segue o padrão MVT (Model-View-Template) e utiliza uma arquitetura em camadas para separar responsabilidades.
+O AgroHub é uma aplicação web Django que segue o padrão MVT (Model-View-Template) e utiliza uma arquitetura em camadas para separar responsabilidades.
 
 ## Diagrama de Arquitetura
 
@@ -160,7 +160,7 @@ graph LR
 ## Estrutura de Diretórios
 
 ```
-UniRV-Django/
+AgroHub/
 ├── editais/              # App principal
 │   ├── models.py         # Modelos de dados
 │   ├── views.py          # Views principais

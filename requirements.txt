@@ -1,46 +1,40 @@
 # Core Django and web server
-Django>=5.2.8
-whitenoise>=6.11.0
-gunicorn>=23.0.0
+Django>=5.2.8,<6.0
+whitenoise>=6.11.0,<7.0
+gunicorn>=23.0.0,<24.0
 # uvicorn>=0.38.0  # Optional: ASGI server for WebSockets/async support (not currently used - project uses WSGI with gunicorn)
 
 # Static compression (Brotli) for WhiteNoise
 # Enables precompressed .br assets when using WhiteNoise Compressed* storage backends.
-Brotli>=1.1.0
+Brotli>=1.1.0,<2.0
 
 # Content processing
-bleach>=6.3.0
+bleach>=6.3.0,<7.0
 
 # Django extensions
-django-compressor>=4.6.0
-django-tailwind>=3.8.0
-django-browser-reload>=1.11.0
-django-redis>=6.0.0
-django-ratelimit>=4.1.0
-django-widget-tweaks>=1.5.0
+django-compressor>=4.6.0,<5.0
+django-tailwind>=3.8.0,<4.0
+django-browser-reload>=1.11.0,<2.0
+django-redis>=6.0.0,<7.0
+django-ratelimit>=4.1.0,<5.0
+django-widget-tweaks>=1.5.0,<2.0
 
 # Image processing (required for ImageField)
-Pillow>=11.0.0
-easy-thumbnails>=2.8
+Pillow>=11.0.0,<12.0
+easy-thumbnails>=2.8,<3.0
 
 # Database (production)
-psycopg2-binary>=2.9.9  # PostgreSQL adapter
+psycopg2-binary>=2.9.9,<3.0  # PostgreSQL adapter
+dj-database-url>=2.1.0,<3.0
 
 # Cache backend (used as fallback in settings)
-redis>=5.0.0
-
-# Security auditing tool (for CI/CD and security checks, not a runtime dependency)
-# Run with: pip-audit -r requirements.txt
-# See: https://pypi.org/project/pip-audit/
-pip-audit>=2.6.0
+redis>=5.0.0,<6.0
 
 # Audit logging
-django-simple-history>=3.4.0
-
-# Testing
-factory_boy>=3.3.0
-coverage[toml]>=7.5.0
+django-simple-history>=3.4.0,<4.0
 
 # Note: Regularly update dependencies for security patches
 # Use 'pip list --outdated' to check for updates
 # Review changelogs before updating major versions
+#
+# Development/testing dependencies are in requirements-dev.txt

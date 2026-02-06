@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm:*)",
+      "Bash(python manage.py check:*)",
+      "Bash(python manage.py test:*)",
+      "Bash(git remote:*)",
+      "Bash(git branch:*)",
+      "Bash(tree:*)",
+      "Bash(ls -lh \"F:\\\\Github\\\\UniRV-Django\\\\theme\\\\static\\\\css\\\\dist\"\" 2>/dev/null || echo \"Directory check \")",
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "Bash(git stash:*)",
+      "Bash(python:*)",
+      "Bash(npm run build:*)",
+      "Bash(wc:*)",
+      "Bash(npm run build:js:*)",
+      "Bash(ls:*)",
+      "Bash(git mv:*)",
+      "Bash(grep:*)",
+      "Bash(ruff check:*)",
+      "Bash(.venvScriptspython -m ruff check editais/ UniRV_Django/)",
+      "Bash(\"F:\\\\Github\\\\UniRV-Django\\\\.venv\\\\Scripts\\\\python.exe\" -m ruff check:*)",
+      "Bash(\"F:/Github/UniRV-Django/.venv/Scripts/python.exe\" \"F:/Github/UniRV-Django/manage.py\" test:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:tailwind:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Path ''F:\\\\Github\\\\UniRV-Django\\\\templates'' -Recurse -Filter ''*.html'' | Select-Object -ExpandProperty FullName\")",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File -:*)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -Command:*)",
+      "Bash(1 <<'PSEOF'\nWrite-Host \"Starting search...\"\n$files = Get-ChildItem -Path 'F:\\\\Github\\\\UniRV-Django\\\\templates' -Recurse -Filter '*.html'\nWrite-Host \"Found $\\($files.Count\\) files\"\n$found = $false\nforeach \\($file in $files\\) {\n    $content = [System.IO.File]::ReadAllText\\($file.FullName\\)\n    if \\($content -match 'unirvBlue|agrohubBlue|agrohubGreen|#27348b|#1a237e'\\) {\n        Write-Host \"MATCH in: $\\($file.FullName\\)\"\n        $found = $true\n    }\n}\nif \\(-not $found\\) {\n    Write-Host \"NO legacy color names found in any template file.\"\n}\nWrite-Host \"Search complete.\"\nPSEOF)",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File /tmp/search_colors.ps1)",
+      "Bash(git config:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(findstr:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git fetch:*)"
+    ]
+  }
+}

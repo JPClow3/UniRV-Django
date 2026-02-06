@@ -147,8 +147,6 @@
         );
       });
     }
-
-    // Hero buttons navigation - removed: buttons replaced with semantic <a> tags
   }
 
   /**

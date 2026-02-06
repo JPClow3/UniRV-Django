@@ -35,8 +35,8 @@
     </button>
   </div>
 
-<div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-8 border border-gray-100">
-    <h2 class="text-unirvBlue text-xl font-bold mb-4">Informações do Edital</h2>
+<div class="bg-surface-light p-6 md:p-8 rounded-xl shadow-sm mb-8 border border-gray-200">
+    <h2 class="text-primary font-display text-xl font-bold mb-6 flex items-center">Informações do Edital</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% if edital.start_date %}
         <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
@@ -80,8 +80,8 @@
 
 {% if edital.objetivo_safe %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-6 border border-gray-100" id="objetivo">
-  <h3 class="text-unirvBlue text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
-    <span class="w-8 h-8 bg-unirvBlue text-white rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+  <h3 class="text-primary text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
+    <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">1</span>
     Objetivo do Edital
   </h3>
   {# SECURITY NOTE: objetivo_safe should be sanitized on the server side using bleach or similar #}
@@ -92,8 +92,8 @@
 
 {% if edital.etapas_safe %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-6 border border-gray-100" id="etapas">
-  <h3 class="text-unirvBlue text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
-    <span class="w-8 h-8 bg-unirvBlue text-white rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+  <h3 class="text-primary text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
+    <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">2</span>
     Etapas do Edital
   </h3>
   {# SECURITY NOTE: All _safe fields should be sanitized server-side before mark_safe #}
@@ -103,8 +103,8 @@
 
 {% if edital.recursos_safe %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-6 border border-gray-100" id="recursos-financeiros">
-  <h3 class="text-unirvBlue text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
-    <span class="w-8 h-8 bg-unirvBlue text-white rounded-lg flex items-center justify-center text-sm font-bold">3</span>
+  <h3 class="text-primary text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
+    <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">3</span>
     Cronograma / Recursos
   </h3>
   <div class="prose">{{ edital.recursos_safe }}</div>
@@ -113,8 +113,8 @@
 
 {% if edital.itens_financiaveis_safe or edital.criterios_elegibilidade_safe or edital.criterios_avaliacao_safe %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-6 border border-gray-100" id="itens-financiaveis">
-  <h3 class="text-unirvBlue text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
-    <span class="w-8 h-8 bg-unirvBlue text-white rounded-lg flex items-center justify-center text-sm font-bold">4</span>
+  <h3 class="text-primary text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
+    <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">4</span>
     Itens Financiáveis / Elegibilidade / Avaliação
   </h3>
   {% if edital.itens_financiaveis_safe %}
@@ -134,8 +134,8 @@
 
 {% if edital.itens_essenciais_observacoes_safe %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-6 border border-gray-100" id="itens-essenciais">
-  <h3 class="text-unirvBlue text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
-    <span class="w-8 h-8 bg-unirvBlue text-white rounded-lg flex items-center justify-center text-sm font-bold">5</span>
+  <h3 class="text-primary text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
+    <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">5</span>
     Itens Essenciais / Observações
   </h3>
   <div class="prose">{{ edital.itens_essenciais_observacoes_safe }}</div>
@@ -144,8 +144,8 @@
 
 {% if edital.detalhes_unirv_safe %}
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm mb-6 border border-gray-100" id="pontos-unirv">
-  <h3 class="text-unirvBlue text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
-    <span class="w-8 h-8 bg-unirvBlue text-white rounded-lg flex items-center justify-center text-sm font-bold">6</span>
+  <h3 class="text-primary text-xl md:text-2xl font-bold mb-5 pb-3 border-b-2 border-gray-100 flex items-center gap-3">
+    <span class="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-sm font-bold">6</span>
     Pontos para a UniRV
   </h3>
   <div class="prose">{{ edital.detalhes_unirv_safe }}</div>

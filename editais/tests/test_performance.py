@@ -81,17 +81,21 @@ class QueryOptimizationTest(TestCase):
     def test_dashboard_editais_query_count(self):
         """
         Test dashboard editais list query efficiency.
-        
+
         Expected queries:
         - 1 for session
         - 1 for user lookup
+        - 1 for stats aggregation
+        - 1 for edital IDs (values_list for submission count)
+        - 1 for startup submission count
         - 1 for editais list (with select_related)
-        - 1 for pagination count
-        Total: ~4-6 queries
+        - 1-2 for prefetch (valores, cronogramas)
+        - 2 for session save
+        Total: ~10-11 queries
         """
         cache.clear()
         self.client.login(username='staff', password='testpass123')
-        with self.assertNumQueries(10):  # Allow overhead
+        with self.assertNumQueries(11):  # Allow overhead for optimized query pattern
             response = self.client.get(reverse('dashboard_editais'))
             self.assertEqual(response.status_code, 200)
 

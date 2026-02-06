@@ -8,7 +8,57 @@
 @source "../../../editais/templates/**/*.html";
 @source "../../../**/*.py";
 
-/* Self-hosted Montserrat font to avoid render-blocking Google Fonts calls */
+/* =====================================================
+   FONT DEFINITIONS
+   ===================================================== */
+
+/* Self-hosted Inter font - clean, modern body text */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/static/fonts/Inter-Light.woff2') format('woff2'),
+       url('/static/fonts/Inter-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/Inter-Regular.woff2') format('woff2'),
+       url('/static/fonts/Inter-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/static/fonts/Inter-Medium.woff2') format('woff2'),
+       url('/static/fonts/Inter-Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/static/fonts/Inter-SemiBold.woff2') format('woff2'),
+       url('/static/fonts/Inter-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/fonts/Inter-Bold.woff2') format('woff2'),
+       url('/static/fonts/Inter-Bold.ttf') format('truetype');
+}
+
+/* Self-hosted Montserrat font - display/headings */
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
@@ -27,29 +77,70 @@
   src: url('/static/fonts/Montserrat-SemiBold.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  size-adjust: 100.06%;
+  src: url('/static/fonts/Montserrat-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  size-adjust: 100.06%;
+  src: url('/static/fonts/Montserrat-ExtraBold.ttf') format('truetype');
+}
+
 /* Note: FontAwesome font-display optimization is handled via preload link in base.html */
 /* CDN @font-face rules cannot be overridden, but preloading helps with font loading performance */
 
+/* =====================================================
+   THEME TOKENS - Modern Design System
+   ===================================================== */
 @theme {
-  --color-unirvBlue: #27348b;
-  --color-agrohubBlue: #1d4ed8;
-  --color-agrohubGreen: #22c55e;
-  --color-darkBlue: #1a237e;
+  /* Primary brand colors - modernized palette */
+  --color-primary: #2563EB;           /* Bright blue - main brand color */
+  --color-primary-hover: #1d4ed8;     /* Primary hover state */
+  --color-secondary: #22c55e;         /* Green for agro - accent color */
+  --color-darkblue: #1e3a8a;          /* Deep blue for hero/footer */
+
+  /* Legacy color aliases for backward compatibility */
+  --color-unirvBlue: #2563EB;         /* Maps to new primary */
+  --color-agrohubBlue: #1d4ed8;       /* Maps to primary-hover */
+  --color-agrohubGreen: #22c55e;      /* Same as secondary */
+  --color-darkBlue: #1e3a8a;          /* Same as darkblue */
+
+  /* Extended green palette */
   --color-green: #10b981;
   --color-green-light: #34d399;
   --color-green-dark: #059669;
-  --color-primary: var(--color-unirvBlue);
-  --color-secondary: var(--color-agrohubBlue);
-  
-  --font-family-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  
+
+  /* Surface colors for light theme */
+  --color-background-light: #F8FAFC;
+  --color-surface-light: #FFFFFF;
+
+  /* Text colors */
+  --color-text-light: #1E293B;
+  --color-text-muted-light: #64748B;
+
+  /* Typography - Inter for body, Montserrat for display */
+  --font-family-sans: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-display: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Border radius scale */
   --radius-sm: 4px;
   --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-2xl: 16px;
+  --radius-default: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
   --radius-full: 999px;
-  
+
   /* Z-index scale for consistent layering */
   --z-base: 0;
   --z-dropdown: 10;
@@ -59,10 +150,19 @@
   --z-tooltip: 300;
   --z-skip-link: 10000;
 }
-/* Global typography */
+/* =====================================================
+   GLOBAL TYPOGRAPHY
+   ===================================================== */
 body {
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  font-family: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     system-ui, -system-ui, sans-serif;
+  color: var(--color-text-light);
+  background-color: var(--color-background-light);
+}
+
+/* Display headings use Montserrat */
+h1, h2, h3, .font-display {
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 :root {
@@ -82,31 +182,7 @@ body {
 }
 
 @layer components {
-  /* =========================================
-     FIXED ORBIT SECTION - KEYFRAMES
-     ========================================= */
-  /* 1. UNIQUE KEYFRAMES (Renamed to force cache refresh) */
-  @keyframes orbit-spin-right {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  @keyframes orbit-spin-left {
-    from { transform: rotate(360deg); }
-    to   { transform: rotate(0deg); }
-  }
-
-  @keyframes icon-counter-spin-right {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-
-  @keyframes icon-counter-spin-left {
-    from { transform: translate(-50%, -50%) rotate(360deg); }
-    to   { transform: translate(-50%, -50%) rotate(0deg); }
-  }
-
-  /* Skip link removed per product decision */
+  /* Keyframes defined in static/css/animations.css */
 
   /* Full-bleed utility for full-width sections */
   /* Using calc-based approach to prevent scrollbar issues on Windows/Linux */
@@ -146,13 +222,6 @@ body {
     background-color: #f0f2f5;
   }
 
-  /* Fold-section optimization disabled for smooth scrolling */
-  .fold-section {
-    content-visibility: visible;
-    contain-intrinsic-size: auto;
-    min-height: 0;
-  }
-
   .hero-media {
     position: absolute;
     inset: 0;
@@ -178,7 +247,8 @@ body {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(39, 52, 139, 0.95), rgba(39, 52, 139, 0.4));
+    /* Updated gradient using new darkblue color */
+    background: linear-gradient(90deg, rgba(30, 58, 138, 0.95) 0%, rgba(30, 58, 138, 0.7) 50%, rgba(30, 58, 138, 0.4) 100%);
   }
 
   .hero-media img.is-loaded {
@@ -209,9 +279,9 @@ body {
     background: rgba(0, 0, 0, 0.05);
   }
   .mobile-menu-toggle:focus-visible {
-    outline: 3px solid var(--color-unirvBlue);
+    outline: 3px solid var(--color-primary);
     outline-offset: 3px;
-    background: rgba(39, 52, 139, 0.1);
+    background: rgba(37, 99, 235, 0.1);
   }
 
   body.page-detail .mobile-menu-toggle:hover {
@@ -256,7 +326,7 @@ body {
   }
 
   .theme-toggle:focus-visible {
-    outline: 2px solid var(--color-unirvBlue);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
@@ -273,7 +343,7 @@ body {
   }
 
   body.page-detail .navbar-right {
-    background: var(--color-unirvBlue);
+    background: var(--color-primary);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 
@@ -418,9 +488,9 @@ body {
   input:focus-visible,
   select:focus-visible,
   textarea:focus-visible {
-    outline: 3px solid var(--color-unirvBlue);
+    outline: 3px solid var(--color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(39, 52, 139, 0.1);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
   }
 
   *:focus {
@@ -428,10 +498,10 @@ body {
   }
 
   .filter-btn:focus-visible {
-    outline: 3px solid var(--color-unirvBlue);
+    outline: 3px solid var(--color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(39, 52, 139, 0.1);
-    border-color: var(--color-unirvBlue);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    border-color: var(--color-primary);
   }
 
   .page-meta {
@@ -572,12 +642,12 @@ body {
   }
 
   .history-user {
-    color: #6b7280;
+    color: #4b5563; /* Darkened from #6b7280 for WCAG AA contrast (4.5:1) */
     font-size: 14px;
   }
 
   .history-time {
-    color: #9ca3af;
+    color: #6b7280; /* Darkened from #9ca3af for WCAG AA contrast (4.5:1) */
     font-size: 13px;
     margin-left: auto;
   }
@@ -624,7 +694,7 @@ body {
     border-radius: 8px;
     margin: 24px 0;
     font-size: 13px;
-    color: #6b7280;
+    color: #4b5563; /* Darkened from #6b7280 for WCAG AA contrast */
     border: 1px solid #e5e7eb;
   }
 
@@ -673,11 +743,10 @@ body {
     @apply text-red-600;
   }
   .toast-warning {
-    border-color: #d97706;
-    background-color: #fef3c7;
+    @apply border-yellow-500 bg-yellow-50;
   }
   .toast-warning .toast-icon {
-    color: #b45309;
+    @apply text-yellow-600;
   }
   .toast-info {
     @apply border-blue-200 bg-blue-50;
@@ -738,7 +807,7 @@ body {
     @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
   }
   .confirm-dialog-btn.btn-primary {
-    @apply bg-unirvBlue text-white hover:bg-unirvBlue/90 focus:ring-unirvBlue;
+    @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
   }
 
   /* Autosave Indicator - More prominent on mobile */
@@ -843,7 +912,7 @@ body {
     min-width: 44px; /* WCAG minimum touch target size */
     min-height: 44px; /* WCAG minimum touch target size */
     touch-action: manipulation; /* Optimize touch response */
-    background: linear-gradient(135deg, var(--color-unirvBlue), var(--color-agrohubBlue));
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
     color: white;
     box-shadow: 0 4px 12px rgba(10, 37, 88, 0.3);
     opacity: 0;
@@ -893,7 +962,7 @@ body {
 
   .form-header-modern {
     @apply text-white rounded-2xl p-8 mb-8 shadow-lg;
-    background-image: linear-gradient(90deg, var(--color-unirvBlue), var(--color-agrohubBlue));
+    background-image: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
   }
 
   .form-header-content {
@@ -925,7 +994,7 @@ body {
   }
 
   .section-title-modern {
-    @apply text-lg font-bold text-unirvBlue flex items-center gap-3 mb-6 pb-3 border-b-2 border-gray-100;
+    @apply text-lg font-bold text-primary flex items-center gap-3 mb-6 pb-3 border-b-2 border-gray-100;
   }
 
   .form-group {
@@ -942,7 +1011,7 @@ body {
   }
 
   .form-help {
-    @apply text-xs text-gray-500 mt-1 block;
+    @apply text-xs text-gray-600 mt-1 block; /* Darkened from gray-500 for WCAG AA */
   }
 
   .form-help-text {
@@ -1051,7 +1120,7 @@ body {
   input:focus,
   textarea:focus,
   select:focus {
-    box-shadow: 0 0 0 3px rgba(39, 52, 139, 0.1),
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1),
                 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.15s ease;
   }
@@ -1086,11 +1155,11 @@ body {
   .clear-filters-btn {
     @apply flex items-center gap-1 transition-colors;
     /* Default styles - can be overridden with Tailwind classes in template */
-    color: var(--color-secondary, #1d4ed8);
+    color: var(--color-secondary, #22c55e);
   }
   
   .clear-filters-btn:hover:not(.bg-red-500) {
-    color: var(--color-unirvBlue, #27348b);
+    color: var(--color-primary, #2563EB);
   }
 
   .clear-filters-btn.loading {
@@ -1141,9 +1210,19 @@ body {
     overflow: hidden;
   }
 
+  /* Empty state illustration animation */
+  .empty-state-illustration {
+    animation: fadeInBounce 0.6s ease-out;
+    will-change: transform, opacity;
+  }
+
+  .empty-state-illustration svg {
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+  }
+
   /* Empty state icon animation */
   .empty-state-icon {
-    animation: fadeInBounce 0.6s ease-out;
+    animation: fadeInBounce 0.6s ease-out 0.15s both; /* Slightly delayed after illustration */
     will-change: transform, opacity;
   }
 
@@ -1173,7 +1252,11 @@ body {
     }
   }
 
-  /* Skeleton Loading States */
+  /* ===========================================
+     SKELETON LOADING STATES
+     Use for: card lists, content areas, data grids
+     NOT for: buttons, form submits (use spinner)
+     =========================================== */
   .skeleton {
     background: linear-gradient(
       90deg,
@@ -1198,12 +1281,14 @@ body {
     }
   }
 
+  /* Standard skeleton card - use for editais, startups lists */
   .skeleton-card {
     @apply bg-white rounded-xl border border-gray-200 p-6;
     min-height: 200px;
     animation: shimmer 1.5s ease-in-out infinite, pulse 2s ease-in-out infinite;
   }
 
+  /* Skeleton elements */
   .skeleton-title {
     @apply h-6 mb-4;
     width: 70%;
@@ -1214,19 +1299,54 @@ body {
     width: 100%;
   }
 
+  .skeleton-text-short {
+    @apply h-4 mb-2;
+    width: 60%;
+  }
+
   .skeleton-badge {
-    @apply h-6 mb-4;
+    @apply h-6 mb-4 rounded-full;
     width: 100px;
   }
 
   .skeleton-button {
-    @apply h-10;
+    @apply h-10 rounded-lg;
     width: 120px;
+  }
+
+  .skeleton-avatar {
+    @apply rounded-full;
+    width: 48px;
+    height: 48px;
+  }
+
+  .skeleton-image {
+    @apply rounded-lg;
+    width: 100%;
+    aspect-ratio: 16/9;
   }
 
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.95; }
+  }
+
+  /* Skeleton grid for multiple cards */
+  .skeleton-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .skeleton-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .skeleton-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 
   /* Edital Card improvements */
@@ -1258,7 +1378,13 @@ body {
     hyphens: auto;
   }
 
-  /* Loading spinner */
+  /* ===========================================
+     STANDARDIZED LOADING STATES
+     Use skeleton for: card lists, content areas
+     Use spinner for: buttons, inline actions, form submits
+     =========================================== */
+
+  /* Loading spinner - use for buttons and inline actions */
   .loading-spinner {
     border: 3px solid #f3f3f3;
     border-top: 3px solid var(--color-secondary);
@@ -1268,9 +1394,93 @@ body {
     animation: spin-loader 1s linear infinite;
   }
 
+  /* Small spinner variant for buttons */
+  .loading-spinner-sm {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin-loader 0.8s linear infinite;
+  }
+
+  /* Inline spinner for text/buttons */
+  .loading-spinner-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin-loader 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
   @keyframes spin-loader {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  /* Button loading state - standardized */
+  .btn.is-loading,
+  button.is-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+  }
+
+  .btn.is-loading::after,
+  button.is-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin-loader 0.8s linear infinite;
+  }
+
+  /* Dark button variant */
+  .btn-outline.is-loading::after,
+  .btn-neutral.is-loading::after {
+    border-color: rgba(0, 0, 0, 0.2);
+    border-top-color: var(--color-primary);
+  }
+
+  /* Loading overlay for containers */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: inherit;
+  }
+
+  /* Loading text indicator */
+  .loading-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  .loading-text::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e5e7eb;
+    border-top-color: var(--color-secondary);
+    border-radius: 50%;
+    animation: spin-loader 0.8s linear infinite;
   }
 
   /* Tooltips */
@@ -1317,16 +1527,16 @@ body {
 
   /* Last updated indicator */
   .last-updated {
-    @apply inline-flex items-center gap-1.5 text-xs text-gray-500;
+    @apply inline-flex items-center gap-1.5 text-xs text-gray-600; /* Darkened from gray-500 for WCAG AA */
   }
   .last-updated.recent {
-    @apply text-green-600;
+    @apply text-green-700; /* Darkened from green-600 for WCAG AA */
   }
   .last-updated-icon {
-    @apply text-gray-400;
+    @apply text-gray-500; /* Darkened from gray-400 for WCAG AA */
   }
   .last-updated.recent .last-updated-icon {
-    @apply text-green-500;
+    @apply text-green-600; /* Darkened from green-500 for WCAG AA */
   }
 
   /* Keyboard Shortcuts Modal */
@@ -1397,7 +1607,7 @@ body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: #1e293b !important;
+    color: var(--color-text-light) !important;
   }
 
   .site-header .nav-link:hover {
@@ -1411,6 +1621,41 @@ body {
     display: flex;
     align-items: center;
     touch-action: manipulation; /* Optimize touch response */
+    position: relative;
+  }
+
+  /* Mobile navigation active indicator - left border accent */
+  .navbar-right .nav-link.nav-active {
+    border-left: 3px solid var(--color-secondary);
+    background-color: rgba(34, 197, 94, 0.08);
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  /* Active indicator icon for mobile nav */
+  .navbar-right .nav-link.nav-active::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    width: 6px;
+    height: 6px;
+    background-color: var(--color-secondary);
+    border-radius: 50%;
+  }
+
+  .navbar-right .nav-link.nav-active {
+    padding-left: 28px; /* Make room for the dot indicator */
+  }
+
+  /* Detail page mobile nav active state */
+  body.page-detail .navbar-right .nav-link.nav-active {
+    border-left-color: var(--color-secondary);
+    background-color: rgba(34, 197, 94, 0.15);
+    color: white;
+  }
+
+  body.page-detail .navbar-right .nav-link.nav-active::before {
+    background-color: var(--color-secondary);
   }
 
   .nav-link {
@@ -1476,7 +1721,7 @@ body {
   .home-hero {
     position: relative;
     overflow: hidden;
-    background-color: var(--color-unirvBlue);
+    background-color: var(--color-primary);
     color: white;
   }
 
@@ -1528,7 +1773,7 @@ body {
     border-radius: 9999px;
     font-weight: 700;
     background: white;
-    color: var(--color-unirvBlue);
+    color: var(--color-primary);
     box-shadow: 0 20px 40px rgba(255, 255, 255, 0.25);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
@@ -1567,7 +1812,7 @@ body {
     border-radius: 9999px;
     font-weight: 700;
     background: white;
-    color: var(--color-unirvBlue);
+    color: var(--color-primary);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
   }
@@ -1594,7 +1839,7 @@ body {
 
   .stat-value {
     @apply text-4xl font-extrabold flex items-baseline gap-0.5;
-    color: var(--color-unirvBlue);
+    color: var(--color-primary);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1610,7 +1855,7 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85rem;
-    color: rgba(15, 23, 42, 0.6);
+    color: #64748b; /* Darkened from rgba(15, 23, 42, 0.6) for WCAG AA contrast */
     letter-spacing: 0.08em;
   }
 
@@ -1622,11 +1867,11 @@ body {
   .section-header h2 {
     font-size: clamp(2rem, 4vw, 2.8rem);
     font-weight: 800;
-    color: var(--color-unirvBlue);
+    color: var(--color-primary);
   }
 
   .section-header p {
-    color: #475569;
+    color: #334155; /* Darkened from #475569 for WCAG AA contrast */
     margin-top: 0.5rem;
   }
 
@@ -1640,7 +1885,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-agrohubBlue);
+    color: var(--color-primary-hover);
     background: rgba(59, 130, 246, 0.1);
   }
 
@@ -1707,7 +1952,7 @@ body {
 
   .helix-item:hover .helix-icon {
     background: white;
-    color: var(--color-unirvBlue);
+    color: var(--color-primary);
   }
 
   /* =========================================
@@ -1761,7 +2006,7 @@ body {
   .ring-2 {
     width: 78%;
     height: 78%;
-    border-color: rgba(39, 52, 139, 0.4);
+    border-color: rgba(37, 99, 235, 0.4);
     animation: orbit-spin-left 20s linear infinite;
     will-change: transform;
   }
@@ -1824,7 +2069,7 @@ body {
     height: 2.5rem;
     border-radius: 9999px;
     background: white;
-    color: var(--color-unirvBlue);
+    color: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1841,8 +2086,8 @@ body {
   }
   
   /* Color Specific Hovers */
-  .orbit-icon-academia:hover { background: var(--color-agrohubGreen); color: white; }
-  .orbit-icon-industria:hover { background: var(--color-unirvBlue); color: white; }
+  .orbit-icon-academia:hover { background: var(--color-secondary); color: white; }
+  .orbit-icon-industria:hover { background: var(--color-primary); color: white; }
   .orbit-icon-governo:hover { background: #eab308; color: white; }
   .orbit-icon-sociedade:hover { background: #a855f7; color: white; }
 
@@ -1879,17 +2124,17 @@ body {
   /* Note: Custom bg-linear-to-* classes removed - using standard Tailwind bg-gradient-to-* classes */
 
   /* Gradient color tokens */
-  .from-unirvBlue { --tw-gradient-from: #27348b; }
-  .from-agrohubGreen { --tw-gradient-from: #22c55e; }
+  .from-unirvBlue { --tw-gradient-from: #2563EB; }
+  .from-secondary { --tw-gradient-from: #22c55e; }
   .from-green-400 { --tw-gradient-from: #34d399; }
 
   .to-agrohubBlue { --tw-gradient-to: #1d4ed8; }
-  .to-unirvBlue { --tw-gradient-to: #27348b; }
+  .to-primary { --tw-gradient-to: #2563EB; }
   .to-darkBlue { --tw-gradient-to: #1a237e; }
   .to-teal-300 { --tw-gradient-to: #5eead4; }
 
   .via-blue-900 { --tw-gradient-via: #1e3a8a; }
-  .via-unirvBlue { --tw-gradient-via: #27348b; }
+  .via-unirvBlue { --tw-gradient-via: #2563EB; }
 
   .timeline-line-bg,
   .timeline-line-progress {
@@ -1907,7 +2152,7 @@ body {
 
   .timeline-line-progress {
     width: 40%;
-    background: linear-gradient(90deg, var(--color-green), var(--color-unirvBlue));
+    background: linear-gradient(90deg, var(--color-green), var(--color-primary));
   }
 
   .timeline-item {
@@ -1939,12 +2184,12 @@ body {
   }
 
   .timeline-icon.complete {
-    background: linear-gradient(135deg, var(--color-agrohubGreen), #16a34a);
+    background: linear-gradient(135deg, var(--color-secondary), #16a34a);
     color: white;
   }
 
   .timeline-icon.active {
-    background: linear-gradient(135deg, var(--color-unirvBlue), var(--color-agrohubBlue));
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
     color: white;
   }
 
@@ -1969,7 +2214,7 @@ body {
 
   .timeline-card.active {
     @apply border-t-4 -translate-y-2;
-    border-top-color: var(--color-agrohubBlue);
+    border-top-color: var(--color-primary-hover);
   }
 
   .timeline-card.muted {
@@ -2006,7 +2251,7 @@ body {
 
   .timeline-tag.info {
     background: #e0f2fe;
-    color: var(--color-agrohubBlue);
+    color: var(--color-primary-hover);
   }
 
   .timeline-tag.neutral {
@@ -2065,7 +2310,7 @@ body {
   /* Auth layout: full-screen gradient with animated blobs */
   .auth-layout {
     @apply min-h-screen flex items-center justify-center px-4 py-10 relative overflow-hidden;
-    background: radial-gradient(circle at top left, var(--color-agrohubGreen) 0, #0f172a 35%, #020617 100%);
+    background: radial-gradient(circle at top left, var(--color-secondary) 0, #0f172a 35%, #020617 100%);
   }
 
   .auth-layout::before,
@@ -2081,7 +2326,7 @@ body {
   .auth-layout::before {
     width: 420px;
     height: 420px;
-    background: var(--color-agrohubGreen);
+    background: var(--color-secondary);
     top: -120px;
     right: -80px;
     animation: blob 7s infinite;
@@ -2109,7 +2354,7 @@ body {
 
   .auth-input {
     @apply h-12 w-full px-4 py-3 rounded-xl border border-gray-300 bg-white/90
-    focus:outline-none focus:ring-2 focus:ring-unirvBlue focus:border-transparent
+    focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent
     text-gray-900 placeholder:text-gray-400 text-base;
     box-sizing: border-box;
   }
@@ -2136,16 +2381,16 @@ body {
 
   .auth-back-link {
     @apply inline-flex items-center gap-2 text-gray-200 md:text-gray-600 hover:text-green-300
-    md:hover:text-unirvBlue transition-colors;
+    md:hover:text-primary transition-colors;
   }
 
   .auth-title {
-    @apply text-2xl font-bold text-white md:text-unirvBlue;
+    @apply text-2xl font-bold text-white md:text-primary;
   }
 
   .auth-gradient-cta {
-    @apply w-full h-12 rounded-full bg-gradient-to-r from-agrohubGreen to-unirvBlue
-    text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-blue-700
+    @apply w-full h-12 rounded-full bg-gradient-to-r from-secondary to-primary
+    text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-primary-hover
     transition-all flex items-center justify-center gap-2 text-base;
     min-height: 48px;
     box-sizing: border-box;
@@ -2170,7 +2415,7 @@ body {
   .bg-blobs::before {
     width: 560px;
     height: 560px;
-    background: var(--color-agrohubGreen);
+    background: var(--color-secondary);
     top: -180px;
     right: -160px;
   }

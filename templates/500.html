@@ -20,13 +20,13 @@
     <div class="flex flex-col sm:flex-row gap-4 justify-center">
       <a 
         href="{% url 'home' %}" 
-        class="bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 rounded-full shadow-md hover:shadow-lg transition-all text-white font-medium px-8 py-3 inline-flex items-center justify-center gap-2"
+        class="bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 rounded-full shadow-md hover:shadow-lg transition-all text-white font-medium px-8 py-3 inline-flex items-center justify-center gap-2"
       >
         <i class="fas fa-home"></i>
         Voltar ao Início
       </a>
-      <button 
-        onclick="window.location.reload()" 
+      <button
+        id="retry-button"
         class="bg-white border-2 border-gray-300 hover:border-blue-600 hover:text-blue-600 rounded-full shadow-sm hover:shadow-md transition-all text-gray-700 font-medium px-8 py-3 inline-flex items-center justify-center gap-2"
       >
         <i class="fas fa-redo"></i>
@@ -35,5 +35,17 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Event listener for retry button (moved from inline onclick)
+  document.addEventListener('DOMContentLoaded', function() {
+    var retryBtn = document.getElementById('retry-button');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function() {
+        window.location.reload();
+      });
+    }
+  });
+</script>
 {% endblock %}
 

@@ -103,7 +103,18 @@
 
   autosaveInterval = setInterval(autosaveForm, AUTOSAVE_INTERVAL);
 
+  // Cleanup function to prevent memory leaks
+  function cleanupAutosave() {
+    if (autosaveInterval) {
+      clearInterval(autosaveInterval);
+      autosaveInterval = null;
+    }
+  }
+
   window.addEventListener('beforeunload', function (e) {
+    // Always cleanup interval on page unload to prevent memory leaks
+    cleanupAutosave();
+
     if (formChanged) {
       e.preventDefault();
       e.returnValue = 'Você tem alterações não salvas. Tem certeza que deseja sair?';
@@ -112,9 +123,12 @@
     return undefined;
   });
 
+  // Also cleanup on pagehide (for mobile browsers and bfcache)
+  window.addEventListener('pagehide', cleanupAutosave);
+
   editalForm.addEventListener('submit', function () {
     formChanged = false;
-    clearInterval(autosaveInterval);
+    cleanupAutosave();
     localStorage.removeItem(AUTOSAVE_KEY);
   });
 

@@ -7,15 +7,14 @@
     "build": "npm run build:clean && npm run build:tailwind && npm run build:js && npm run build:vendor",
     "build:clean": "rimraf ../static/css/dist",
     "build:tailwind": "tailwindcss -i ./src/styles.css -o ../static/css/dist/styles.css --minify",
-    "build:js": "npm run build:js:main && npm run build:js:animations && npm run build:js:editais-index && npm run build:js:edital-form",
+    "build:js": "npm run build:js:main && npm run build:js:animations && npm run build:js:animations-native && npm run build:js:editais-index && npm run build:js:edital-form",
     "build:js:main": "terser ../../static/js/main.js -o ../../static/js/main.min.js -c -m --comments false",
     "build:js:animations": "terser ../../static/js/animations.js -o ../../static/js/animations.min.js -c -m --comments false",
+    "build:js:animations-native": "terser ../../static/js/animations-native.js -o ../../static/js/animations-native.min.js -c -m --comments false",
     "build:js:editais-index": "terser ../../static/js/editais-index.js -o ../../static/js/editais-index.min.js -c -m --comments false",
     "build:js:edital-form": "terser ../../static/js/edital-form.js -o ../../static/js/edital-form.min.js -c -m --comments false",
     "build:vendor": "node scripts/copy-vendor.js",
-    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/css/dist/styles.css --watch",
-    "lint": "cd ../.. && hint templates static theme/static_src/src",
-    "lint:fix": "cd ../.. && hint --fix templates static theme/static_src/src"
+    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/css/dist/styles.css --watch"
   },
   "keywords": [],
   "author": "",
@@ -27,7 +26,6 @@
   "devDependencies": {
     "@lhci/cli": "^0.12.0",
     "@tailwindcss/postcss": "^4.1.16",
-    "@hint/cli": "^7.0.0",
     "cross-env": "^10.1.0",
     "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",

@@ -41,6 +41,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run linting (ruff)
+        run: |
+          echo "Running ruff linter..."
+          ruff check editais/ UniRV_Django/ --output-format=github
+          echo "Linting completed"
+
+      - name: Run security scan (bandit)
+        run: |
+          echo "Running bandit security scan..."
+          bandit -r editais/ UniRV_Django/ -ll -ii --format txt || true
+          echo "Security scan completed"
 
       - name: Run database migrations
         run: |
@@ -62,8 +75,8 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          echo "Checking coverage threshold (80%)..."
-          coverage report --fail-under=80
+          echo "Checking coverage threshold (85%)..."
+          coverage report --fail-under=85
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -113,7 +126,7 @@ jobs:
               
               Full coverage report is available in the workflow artifacts.
               
-              Threshold: 80% (enforced in CI)`;
+              Threshold: 85% (enforced in CI)`;
               
               await github.rest.issues.createComment({
                 issue_number: prNumber,

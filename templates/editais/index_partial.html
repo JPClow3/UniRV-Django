@@ -14,12 +14,12 @@
         <div class="flex items-start justify-between mb-4">
         <div class="w-14 h-14 rounded-xl bg-gradient-to-br 
             {% if edital.end_date %}from-blue-50 to-indigo-100 border border-blue-100
-            {% else %}from-blue-50 to-agrohubBlue/20 border border-blue-100{% endif %}
+            {% else %}from-blue-50 to-primary-hover/20 border border-blue-100{% endif %}
             flex items-center justify-center text-lg border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
             {% if edital.end_date %}
               <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
             {% else %}
-              <i class="fas fa-sync-alt text-agrohubBlue" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
+              <i class="fas fa-sync-alt text-primary-hover" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
             {% endif %}
           </div>
           {% if edital.numero_edital %}
@@ -31,7 +31,7 @@
         
         <!-- Content -->
         <div class="mb-6 grow">
-          <h3 class="font-extrabold text-2xl text-gray-900 group-hover:text-unirvBlue transition-colors mb-3 leading-tight">{{ edital.titulo }}</h3>
+          <h3 class="font-extrabold text-2xl text-gray-900 group-hover:text-primary transition-colors mb-3 leading-tight">{{ edital.titulo }}</h3>
           <p class="text-xs font-bold 
             {% if edital.end_date %}text-blue-600
             {% else %}text-purple-600{% endif %}
@@ -95,8 +95,18 @@
   <!-- Empty State -->
   {% if search_query or status_filter or orgao_filter or start_date_filter or end_date_filter or only_open %}
     <div id="no-results" class="text-center py-20 max-w-lg mx-auto">
-      <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400 text-3xl">
-        <i class="fas fa-search"></i>
+      <!-- Search illustration -->
+      <div class="empty-state-illustration mb-6 flex justify-center">
+        <svg class="w-28 h-28 md:w-32 md:h-32" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="85" cy="85" r="45" fill="white" stroke="#2563EB" stroke-width="4"/>
+          <circle cx="85" cy="85" r="35" fill="#F3F4F6"/>
+          <path d="M65 65C75 55 95 55 95 65" stroke="white" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+          <line x1="120" y1="120" x2="160" y2="160" stroke="#2563EB" stroke-width="8" stroke-linecap="round"/>
+          <text x="85" y="95" text-anchor="middle" fill="#9CA3AF" font-size="30" font-weight="bold">?</text>
+          <circle cx="45" cy="150" r="6" fill="#22c55e" opacity="0.3"/>
+          <circle cx="155" cy="50" r="8" fill="#2563EB" opacity="0.2"/>
+          <circle cx="170" cy="100" r="4" fill="#22c55e" opacity="0.4"/>
+        </svg>
       </div>
       <h2 class="text-gray-900 font-bold text-xl mb-2">Nenhum edital encontrado</h2>
       
@@ -147,16 +157,16 @@
       {% endif %}
       
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-unirvBlue text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl text-base min-h-[48px]">
+        <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl text-base min-h-[48px]">
           <i class="fas fa-redo"></i> Limpar Filtros
         </a>
-        <a href="mailto:ypetec@unirv.edu.br" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-medium rounded-full hover:border-unirvBlue hover:text-unirvBlue transition-colors min-h-[44px]">
+        <a href="mailto:ypetec@unirv.edu.br" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-medium rounded-full hover:border-primary hover:text-primary transition-colors min-h-[44px]">
           <i class="fas fa-envelope"></i> Receber Notificações
         </a>
       </div>
     </div>
   {% else %}
-    {% include 'components/empty_state.html' with icon='fa-file-alt' title='Nenhum edital disponível no momento' description='Novos editais serão publicados em breve. Fique atento às oportunidades!' %}
+    {% include 'components/empty_state.html' with icon='fa-file-alt' title='Nenhum edital disponível no momento' description='Novos editais serão publicados em breve. Fique atento às oportunidades!' illustration='documents' %}
   {% endif %}
 {% endif %}
 

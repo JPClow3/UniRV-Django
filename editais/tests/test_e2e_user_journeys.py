@@ -7,7 +7,7 @@ These tests verify complete workflows from user perspective:
 - Staff: Create → View → Edit → Delete → Verify cache
 """
 
-from django.test import TestCase, Client
+from django.test import TestCase, TransactionTestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.core.cache import cache
@@ -16,8 +16,13 @@ from ..models import Edital, Startup
 from .factories import UserFactory, StaffUserFactory, EditalFactory, StartupFactory
 
 
-class CompleteUserRegistrationJourneyTest(TestCase):
-    """E2E test: Complete user journey from registration to project submission"""
+class CompleteUserRegistrationJourneyTest(TransactionTestCase):
+    """
+    E2E test: Complete user journey from registration to project submission.
+
+    Uses TransactionTestCase because test involves user registration and
+    database state that must be committed.
+    """
 
     def setUp(self):
         self.client = Client()
@@ -171,8 +176,13 @@ class AnonymousUserJourneyTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class StaffUserCRUDJourneyTest(TestCase):
-    """E2E test: Staff user complete CRUD journey with cache verification"""
+class StaffUserCRUDJourneyTest(TransactionTestCase):
+    """
+    E2E test: Staff user complete CRUD journey with cache verification.
+
+    Uses TransactionTestCase because test verifies cache invalidation
+    via transaction.on_commit() callbacks.
+    """
 
     def setUp(self):
         self.client = Client()

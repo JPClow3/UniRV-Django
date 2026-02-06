@@ -207,17 +207,18 @@ class DataIntegrityTests(TransactionTestCase):
     def test_user_registration_email_uniqueness_race_condition(self):
         """Test email uniqueness check race condition"""
         # This tests the race condition between clean_email() and save()
+        # Use a unique email that doesn't conflict with setUp user (test@example.com)
         form1 = UserRegistrationForm({
             'username': 'user1',
-            'email': 'test@example.com',
+            'email': 'racetest@example.com',
             'first_name': 'Test',
             'password1': 'ComplexPass123!',
             'password2': 'ComplexPass123!',
         })
-        
+
         form2 = UserRegistrationForm({
             'username': 'user2',
-            'email': 'test@example.com',
+            'email': 'racetest@example.com',  # Same email as form1 to test race condition
             'first_name': 'Test',
             'password1': 'ComplexPass123!',
             'password2': 'ComplexPass123!',

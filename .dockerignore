@@ -1,16 +1,59 @@
+# Version control
+.git/
+.gitignore
+.github/
+
+# Environment
+.env
+.env.*
+.venv/
+venv/
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-.env
-.venv
+
+# Build artifacts
 build/
 dist/
-.git/
-.gitignore
+*.egg-info/
+
+# Database
 *.sqlite3
+
+# Media (Railway uses persistent volumes)
 media/
-node_modules/
+
+# Generated files
 staticfiles/
+node_modules/
+htmlcov/
+.coverage
+coverage.xml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker files (not needed inside container)
+docker-compose.yml
+docker/
+
+# Docs and test artifacts
+docs/
+lighthouse_reports/
+.lighthouse_tmp/
+.lighthouseci/
+test_results*.txt
+*.md
+!requirements*.txt
+
+# CI
+.claude/
+.cursor/
 

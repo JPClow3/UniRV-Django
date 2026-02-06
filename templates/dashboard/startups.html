@@ -20,7 +20,7 @@
       </p>
     </div>
     {% if user.is_staff %}
-      <a href="{% url 'dashboard_submeter_startup' %}" class="bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
+      <a href="{% url 'dashboard_submeter_startup' %}" class="bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
         <i class="fas fa-plus w-4 h-4"></i>
         Nova Startup
       </a>
@@ -156,7 +156,7 @@
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{{ startup.name }}</h3>
           {% if startup.edital %}
-          <a href="{{ startup.edital.get_absolute_url }}" class="text-sm text-unirvBlue hover:text-agrohubBlue transition-colors inline-flex items-center gap-1">
+          <a href="{{ startup.edital.get_absolute_url }}" class="text-sm text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1">
             <i class="fas fa-file-alt text-xs"></i>
             <span class="line-clamp-1">
               {% if startup.edital.numero_edital %}{{ startup.edital.numero_edital }} - {% endif %}
@@ -234,14 +234,32 @@
   {% else %}
   <!-- Empty State -->
   <div class="bg-white rounded-xl border border-gray-200 p-12 text-center">
+    <!-- Rocket illustration -->
+    <div class="empty-state-illustration mb-6 flex justify-center">
+      <svg class="w-28 h-28 md:w-32 md:h-32" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="40" cy="50" r="3" fill="#22c55e" opacity="0.6"/>
+        <circle cx="160" cy="40" r="2" fill="#2563EB" opacity="0.5"/>
+        <circle cx="170" cy="80" r="3" fill="#22c55e" opacity="0.4"/>
+        <circle cx="30" cy="120" r="2" fill="#2563EB" opacity="0.6"/>
+        <path d="M100 30C100 30 130 60 130 100C130 140 100 170 100 170C100 170 70 140 70 100C70 60 100 30 100 30Z" fill="white" stroke="#2563EB" stroke-width="3"/>
+        <circle cx="100" cy="85" r="15" fill="#2563EB"/>
+        <circle cx="100" cy="85" r="10" fill="#60A5FA"/>
+        <circle cx="96" cy="82" r="3" fill="white" opacity="0.6"/>
+        <path d="M70 120L50 150L70 140Z" fill="#22c55e"/>
+        <path d="M130 120L150 150L130 140Z" fill="#22c55e"/>
+        <ellipse cx="100" cy="175" rx="15" ry="20" fill="#FCD34D"/>
+        <ellipse cx="100" cy="172" rx="10" ry="15" fill="#F97316"/>
+        <ellipse cx="100" cy="170" rx="5" ry="8" fill="#EF4444"/>
+      </svg>
+    </div>
     <div class="empty-state-icon mb-4">
-      <i class="fas fa-folder-open text-6xl text-gray-300"></i>
+      <i class="fas fa-folder-open text-3xl text-gray-400"></i>
     </div>
     <h3 class="text-xl font-semibold text-gray-900 mb-2">Nenhuma startup encontrada</h3>
     <p class="text-gray-600 mb-6">Revise os filtros aplicados{% if user.is_staff %} ou cadastre uma nova startup{% endif %}.</p>
     <div class="flex flex-col sm:flex-row justify-center gap-3">
       {% if user.is_staff %}
-      <a href="{% url 'dashboard_submeter_startup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-unirvBlue to-agrohubBlue hover:from-unirvBlue/90 hover:to-agrohubBlue/90 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
+      <a href="{% url 'dashboard_submeter_startup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
         <i class="fas fa-plus"></i>
         Nova Startup
       </a>

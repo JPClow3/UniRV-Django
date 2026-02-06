@@ -55,19 +55,7 @@
   to   { transform: rotate(0deg); }
 }
 
-/* Counter-rotation animations for icons to stay upright while ring rotates */
-@keyframes icon-counter-spin-right {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(-360deg); }
-}
-
-@keyframes icon-counter-spin-left {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to   { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
 /* Counter-rotation animations - icons rotate opposite to ring to stay upright */
-/* The ring's rotation makes the icon orbit, we just counter-rotate to keep it upright */
 @keyframes icon-counter-spin-right {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to   { transform: translate(-50%, -50%) rotate(-360deg); }
@@ -117,7 +105,7 @@
 .orbit-ring.ring-2 {
   width: 72%;
   height: 72%;
-  border-color: rgba(39, 52, 139, 0.35);
+  border-color: rgba(37, 99, 235, 0.35);
   animation: orbit-spin-left 20s linear infinite !important;
   animation-play-state: running !important;
 }
@@ -149,7 +137,7 @@
   height: 2.5rem;
   border-radius: 9999px;
   background: white;
-  color: var(--color-unirvBlue, #27348b);
+  color: var(--color-primary, #2563EB);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,12 +150,7 @@
   animation-play-state: running;
 }
 
-/* Icons orbit around the center of the container */
-/* The ring rotates (making the icon orbit), and the icon counter-rotates to stay upright */
-/* Float animation is applied separately but conflicts with transform, so we use a wrapper approach */
-/* Since multiple transform animations don't combine, we need to use a single animation that combines both */
-/* But we can't combine counter-rotation with float easily, so let's use a different approach */
-/* The icon will counter-rotate, and the float will be subtle */
+/* Icon counter-rotation keeps icons upright while ring rotates */
 .orbit-container .orbit-ring.ring-1 .floating-icon,
 .orbit-ring.ring-1 .floating-icon { 
   animation: icon-counter-spin-left 24s linear infinite !important;
@@ -199,8 +182,8 @@
   transition: transform 0.2s ease;
 }
 
-.orbit-icon-academia:hover { background: var(--color-agrohubGreen, #76b82a); color: white; }
-.orbit-icon-industria:hover { background: var(--color-unirvBlue, #27348b); color: white; }
+.orbit-icon-academia:hover { background: var(--color-secondary, #22c55e); color: white; }
+.orbit-icon-industria:hover { background: var(--color-primary, #2563EB); color: white; }
 .orbit-icon-governo:hover { background: #eab308; color: white; }
 .orbit-icon-sociedade:hover { background: #a855f7; color: white; }
 

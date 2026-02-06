@@ -40,16 +40,16 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
     # Calculate statistics for staff users
     context = {}
     if request.user.is_staff:
-        # Get recent activities from editais and projects
+        # Get recent activities from editais and startups
         # Use select_related to avoid N+1 queries when accessing created_by/updated_by
         recent_editais = Edital.objects.select_related('created_by', 'updated_by').filter(
             data_atualizacao__gte=timezone.now() - timedelta(days=7)
         ).order_by('-data_atualizacao')[:5]
         
-        recent_projects = Startup.objects.filter(
+        recent_startups = Startup.objects.filter(
             data_atualizacao__gte=timezone.now() - timedelta(days=7)
         ).select_related('proponente', 'edital').order_by('-data_atualizacao')[:5]
-        
+
         # Combine and sort activities
         activities = []
         for edital in recent_editais:
@@ -60,11 +60,11 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
                 'icon': 'fa-file-alt',
                 'color': 'blue',
             })
-        for project in recent_projects:
+        for startup in recent_startups:
             activities.append({
-                'type': 'project',
-                'title': project.name,
-                'date': project.data_atualizacao,
+                'type': 'startup',
+                'title': startup.name,
+                'date': startup.data_atualizacao,
                 'icon': 'fa-rocket',
                 'color': 'green',
             })
@@ -82,17 +82,17 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
             'recent_activities': activities,
         }
     else:
-        # For non-staff users, show their own recent projects
-        user_projects = Startup.objects.filter(
+        # For non-staff users, show their own recent startups
+        user_startups = Startup.objects.filter(
             proponente=request.user
         ).order_by('-data_atualizacao')[:5]
-        
+
         activities = []
-        for project in user_projects:
+        for startup in user_startups:
             activities.append({
-                'type': 'project',
-                'title': project.name,
-                'date': project.data_atualizacao,
+                'type': 'startup',
+                'title': startup.name,
+                'date': startup.data_atualizacao,
                 'icon': 'fa-rocket',
                 'color': 'green',
             })
@@ -132,11 +132,13 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
             rascunhos=Count('id', filter=Q(status='draft'))
         )
         
-        # Calculate total submissions (startups/projects) tied to the current stats_base editais.
+        # Calculate total submissions (startups) tied to the current stats_base editais.
         # This avoids inflated counts when there are startups not related to editais.
+        # Use values_list for more efficient query (avoids subquery overhead)
+        edital_ids = list(stats_base.values_list('id', flat=True))
         total_submissoes = Startup.objects.filter(
             proponente__isnull=False,
-            edital__in=stats_base.values('id'),
+            edital_id__in=edital_ids,
         ).count()
         
         # Now build the display queryset with all filters including status
@@ -189,7 +191,7 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
 def dashboard_startups(request: HttpRequest) -> HttpResponse:
     """Dashboard startups page - list and manage incubated startups"""
     from django.shortcuts import render
-    from ..utils import get_project_status_mapping, get_project_sort_mapping
+    from ..utils import get_startup_status_mapping, get_startup_sort_mapping
     
     try:
         # Get filter parameters
@@ -203,6 +205,10 @@ def dashboard_startups(request: HttpRequest) -> HttpResponse:
         projects = Startup.objects.select_related('edital', 'proponente').filter(
             proponente__isnull=False
         )
+
+        # Non-staff users can only see their own startups
+        if not request.user.is_staff:
+            projects = projects.filter(proponente=request.user)
         
         # Apply search filter
         if search_query:
@@ -234,18 +240,23 @@ def dashboard_startups(request: HttpRequest) -> HttpResponse:
         stats.setdefault('graduada', 0)
 
         # Apply status filter (map display names to model values)
-        status_mapping = get_project_status_mapping()
+        status_mapping = get_startup_status_mapping()
         if status_filter:
             status_value = status_mapping.get(status_filter.lower(), status_filter.lower())
             projects = projects.filter(status=status_value)
         
         # Apply sorting
-        sort_mapping = get_project_sort_mapping()
+        sort_mapping = get_startup_sort_mapping()
         sort_field = sort_mapping.get(sort_by, '-submitted_on')
         projects = projects.order_by(sort_field)
         
         # Get available editais for dropdown (all editais, ordered by most recent)
-        available_editais = Edital.objects.all().order_by('-data_atualizacao')
+        # Use select_related and only() to avoid N+1 queries in templates
+        available_editais = Edital.objects.select_related(
+            'created_by', 'updated_by'
+        ).only(
+            'id', 'titulo', 'data_atualizacao', 'created_by', 'updated_by'
+        ).order_by('-data_atualizacao')
         
         recent_update_cutoff = timezone.now() - timedelta(days=2)
 
@@ -318,6 +329,7 @@ def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@rate_limit(key='user', rate=5, window=3600, method='POST')
 def dashboard_submeter_startup(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
     """Dashboard submit startup page - add new startups to the incubator"""
     from django.shortcuts import render

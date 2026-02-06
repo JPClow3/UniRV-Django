@@ -33,6 +33,8 @@ class EditalAdmin(SimpleHistoryAdmin):
     )
     readonly_fields = ('created_by', 'updated_by', 'data_criacao', 'data_atualizacao')
     inlines = [EditalValorInline, CronogramaInline]
+    # Optimize queries for list view (prevent N+1 queries)
+    list_select_related = ('created_by', 'updated_by')
 
     fieldsets = (
         ('Informações Básicas', {
@@ -75,6 +77,8 @@ class EditalAdmin(SimpleHistoryAdmin):
 class EditalValorAdmin(admin.ModelAdmin):
     list_display = ('edital', 'valor_total', 'moeda', 'tipo')
     list_filter = ('moeda', 'tipo')
+    # Optimize queries for list view
+    list_select_related = ('edital',)
 
 
 @admin.register(Cronograma)
@@ -82,6 +86,8 @@ class CronogramaAdmin(admin.ModelAdmin):
     list_display = ('edital', 'descricao', 'ordem', 'data_inicio', 'data_fim', 'data_publicacao')
     list_filter = ('data_inicio', 'data_fim', 'data_publicacao')
     ordering = ('ordem', 'data_inicio')
+    # Optimize queries for list view
+    list_select_related = ('edital',)
 
 
 @admin.register(Startup)
@@ -109,7 +115,10 @@ class StartupAdmin(admin.ModelAdmin):
     readonly_fields = ('data_criacao', 'data_atualizacao', 'submitted_on')
     date_hierarchy = 'submitted_on'
     filter_horizontal = ('tags',)
-    
+    # Optimize queries for list view (prevent N+1 queries)
+    list_select_related = ('edital', 'proponente')
+    list_prefetch_related = ('tags',)
+
     fieldsets = (
         ('Informações da Startup', {
             'fields': ('name', 'description', 'category', 'edital', 'proponente', 'status', 'tags')

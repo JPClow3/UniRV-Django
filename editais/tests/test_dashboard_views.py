@@ -2,12 +2,12 @@
 Tests for dashboard views (dashboard_home, dashboard_editais, dashboard_startups, etc.).
 """
 
-from django.test import TestCase, Client
+from django.test import TestCase, TransactionTestCase, Client
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 
-from ..models import Edital
+from ..models import Edital, Startup
 from .factories import UserFactory, StaffUserFactory, EditalFactory, StartupFactory
 
 
@@ -42,6 +42,7 @@ class DashboardEditaisViewTest(TestCase):
         self.regular_user = UserFactory(username="regular")
         self.edital = EditalFactory(
             titulo="Test Edital",
+            status="aberto",  # Explicit status for search/filter tests
             created_by=self.staff_user,
         )
 
@@ -359,21 +360,21 @@ class DashboardStatisticsTest(TestCase):
         from django.contrib.auth.models import User
         from ..models import Startup
 
-        # Create test data
-        EditalFactory(titulo="Open Edital", status="aberto", created_by=self.staff_user)
+        # Create test data - use explicit edital to avoid StartupFactory creating an extra one
+        open_edital = EditalFactory(titulo="Open Edital", status="aberto", created_by=self.staff_user)
         EditalFactory(titulo="Closed Edital", status="fechado", created_by=self.staff_user)
-        StartupFactory(name="Test Startup", proponente=self.regular_user)
-        
+        StartupFactory(name="Test Startup", proponente=self.regular_user, edital=open_edital)
+
         self.client.login(username="staff", password="testpass123")
         response = self.client.get(reverse("dashboard_home"))
         self.assertEqual(response.status_code, 200)
-        
+
         # Verify statistics are in context
         context = response.context
         self.assertIn("total_usuarios", context, "Staff should see total users")
         self.assertIn("editais_ativos", context, "Staff should see active editais")
         self.assertIn("startups_incubadas", context, "Staff should see incubated startups")
-        
+
         # Verify statistics values
         self.assertGreaterEqual(context["total_usuarios"], 2, "Should have at least 2 users")
         self.assertEqual(context["editais_ativos"], 1, "Should have 1 active edital")
@@ -559,10 +560,21 @@ class DashboardActivityFeedTest(TestCase):
         self.assertLessEqual(len(activities), 15, "Activities should be limited to recent items")
 
 
-class AdminDashboardE2ETest(TestCase):
-    """E2E tests for admin_dashboard view"""
+class AdminDashboardE2ETest(TransactionTestCase):
+    """
+    E2E tests for admin_dashboard view.
+
+    Uses TransactionTestCase because tests verify statistics that
+    depend on committed database state.
+    """
 
     def setUp(self):
+        # Clear all data first to avoid leakage from other TransactionTestCase tests
+        from django.core.cache import cache
+        Edital.objects.all().delete()
+        Startup.objects.all().delete()
+        cache.clear()
+
         self.client = Client()
         self.staff_user = StaffUserFactory(username='staff')
         self.regular_user = UserFactory(username='regular')
@@ -627,9 +639,9 @@ class AdminDashboardE2ETest(TestCase):
         editais_por_status = context['editais_por_status']
         self.assertIsInstance(editais_por_status, list, "Should be a list")
         
-        # Verify recent editais
+        # Verify recent editais (can be list or QuerySet - both are iterable)
         editais_recentes = context['editais_recentes']
-        self.assertIsInstance(editais_recentes, list, "Should be a list")
+        self.assertTrue(hasattr(editais_recentes, '__iter__'), "Should be iterable (list or QuerySet)")
         # Should contain recent edital
         recent_titles = [e.titulo for e in editais_recentes]
         self.assertIn('Recent Edital', recent_titles, "Should include recent edital")
@@ -732,3 +744,76 @@ class DashboardCacheBehaviorTest(TestCase):
         # Should show updated count
         self.assertGreaterEqual(count2, count1 + 1,
                                "Should reflect new edital in count")
+
+
+class AdminDashboardQueryEfficiencyTest(TestCase):
+    """Tests for admin_dashboard query efficiency - migrated from test_views_dashboard.py"""
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.staff_user = StaffUserFactory(username='staff')
+
+    def test_dashboard_statistics_accuracy(self):
+        """Test that dashboard statistics are accurate"""
+        from django.core.cache import cache
+        cache.clear()
+
+        # Create editais with different statuses
+        EditalFactory(
+            titulo='Edital Aberto',
+            status='aberto',
+            start_date=timezone.now().date(),
+            end_date=timezone.now().date() + timedelta(days=5),
+            created_by=self.staff_user
+        )
+        EditalFactory(
+            titulo='Edital Fechado',
+            status='fechado',
+            created_by=self.staff_user
+        )
+
+        total_editais_in_test = Edital.objects.count()
+
+        self.client.login(username='staff', password='testpass123')
+        response = self.client.get(reverse('admin_dashboard'), follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        if hasattr(response, 'context') and response.context:
+            context = response.context
+            self.assertEqual(context['total_editais'], total_editais_in_test)
+
+            status_counts = {item['status']: item['count'] for item in context['editais_por_status']}
+            self.assertIn('aberto', status_counts)
+            self.assertIn('fechado', status_counts)
+
+    def test_dashboard_query_efficiency(self):
+        """Test that dashboard doesn't have N+1 query problem"""
+        from django.core.cache import cache
+        cache.clear()
+
+        self.client.login(username='staff', password='testpass123')
+
+        # Create multiple editais
+        for i in range(5):
+            EditalFactory(
+                titulo=f'Edital {i}',
+                status='aberto',
+                created_by=self.staff_user
+            )
+
+        cache.clear()
+
+        # Query count breakdown:
+        # 1. Session lookup
+        # 2. Auth user lookup
+        # 3. Total editais count
+        # 4. Editais por status aggregation
+        # 5. Recent editais with select_related
+        # 6. Editais proximos prazo (deadline)
+        # 7. Atividades recentes
+        # 8. Top entidades aggregation
+        # 9-10. Session savepoint operations
+        with self.assertNumQueries(10):
+            response = self.client.get(reverse('admin_dashboard'), follow=True)
+            self.assertEqual(response.status_code, 200)

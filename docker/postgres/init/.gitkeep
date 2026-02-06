@@ -1,0 +1,8 @@
+# PostgreSQL initialization scripts placeholder
+# Place .sql or .sh files here to run during first database creation.
+#
+# Example: 01-create-extensions.sql
+# CREATE EXTENSION IF NOT EXISTS pg_trgm;
+#
+# Scripts are executed in alphabetical order.
+# See: https://hub.docker.com/_/postgres (Initialization scripts section)

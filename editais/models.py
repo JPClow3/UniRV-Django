@@ -15,12 +15,80 @@ from simple_history.models import HistoricalRecords
 from .utils import determine_edital_status, generate_unique_slug, sanitize_edital_fields
 from .constants import (
     SLUG_GENERATION_MAX_ATTEMPTS_EDITAL,
-    SLUG_GENERATION_MAX_ATTEMPTS_PROJECT,
+    SLUG_GENERATION_MAX_ATTEMPTS_STARTUP,
+    SLUG_GENERATION_MAX_ATTEMPTS_PROJECT,  # Deprecated alias for backward compatibility
     SLUG_GENERATION_MAX_RETRIES,
     MAX_SEARCH_LENGTH,
+    MAX_LOGO_FILE_SIZE,
 )
 
 logger = logging.getLogger(__name__)
+
+
+class SlugGenerationMixin:
+    """
+    Mixin for models that need unique slug generation with retry logic.
+
+    Provides common slug generation functionality to avoid code duplication
+    between Edital and Startup models.
+
+    Class attributes to override:
+        SLUG_PREFIX: str - Prefix for the slug (e.g., 'edital', 'startup')
+        SLUG_MAX_ATTEMPTS: int - Max attempts for unique slug generation
+        SLUG_SOURCE_FIELD: str - Field name to generate slug from (e.g., 'titulo', 'name')
+    """
+
+    SLUG_PREFIX: str = ''
+    SLUG_MAX_ATTEMPTS: int = 10
+    SLUG_SOURCE_FIELD: str = 'titulo'
+
+    def _generate_unique_slug(self) -> str:
+        """
+        Generate a unique slug from the source field.
+
+        RACE CONDITION HANDLING:
+        Slug uniqueness is enforced at the database level with a unique constraint.
+        The save() method includes retry logic that regenerates the slug if an
+        IntegrityError occurs due to concurrent creation with the same title.
+        """
+        source_text = getattr(self, self.SLUG_SOURCE_FIELD, '')
+        return generate_unique_slug(
+            text=source_text,
+            model_class=self.__class__,
+            slug_field_name='slug',
+            prefix=self.SLUG_PREFIX,
+            pk=self.pk,
+            max_attempts=self.SLUG_MAX_ATTEMPTS
+        )
+
+    def _save_with_slug_retry(self, save_func, *args, **kwargs) -> None:
+        """
+        Save the model with retry logic for slug conflicts.
+
+        Args:
+            save_func: The parent save function to call
+            *args, **kwargs: Arguments to pass to save_func
+        """
+        for attempt in range(SLUG_GENERATION_MAX_RETRIES):
+            try:
+                # Generate slug only if it doesn't exist (on creation)
+                if not self.slug:
+                    self.slug = self._generate_unique_slug()
+                # Ensure slug is never None after save
+                if not self.slug:
+                    raise ValidationError(
+                        'Slug não pode ser None. Campo fonte inválido para geração de slug.'
+                    )
+                save_func(*args, **kwargs)
+                return
+            except IntegrityError as e:
+                if (
+                    ('slug' in str(e).lower() or 'unique' in str(e).lower())
+                    and attempt < SLUG_GENERATION_MAX_RETRIES - 1
+                ):
+                    self.slug = self._generate_unique_slug()
+                    continue
+                raise
 
 
 class EditalQuerySet(models.QuerySet):
@@ -177,17 +245,23 @@ class EditalManager(models.Manager):
         return self.get_queryset().search(query)
 
 
-class Edital(models.Model):
+class Edital(SlugGenerationMixin, models.Model):
     """
     Modelo que representa um edital de fomento.
-    
+
     Um edital é uma oportunidade de financiamento com informações sobre
     título, datas, status, valores, cronograma e conteúdo detalhado.
-    
+
     Properties:
         days_until_deadline: Dias restantes até o prazo
         is_deadline_imminent: True se prazo está próximo (7 dias)
     """
+
+    # SlugGenerationMixin configuration
+    SLUG_PREFIX = 'edital'
+    SLUG_MAX_ATTEMPTS = SLUG_GENERATION_MAX_ATTEMPTS_EDITAL
+    SLUG_SOURCE_FIELD = 'titulo'
+
     STATUS_CHOICES = [
         ('draft', 'Rascunho'),
         ('aberto', 'Aberto'),
@@ -258,25 +332,7 @@ class Edital(models.Model):
             ),
         ]
 
-    def _generate_unique_slug(self) -> str:
-        """
-        Generate a unique slug from the title - optimized to reduce database queries.
-        
-        RACE CONDITION HANDLING:
-        Slug uniqueness is enforced at the database level with a unique constraint.
-        The save() method includes retry logic that regenerates the slug if an
-        IntegrityError occurs due to concurrent creation with the same title.
-        This handles race conditions where multiple requests create editais with
-        the same title simultaneously.
-        """
-        return generate_unique_slug(
-            text=self.titulo,
-            model_class=Edital,
-            slug_field_name='slug',
-            prefix='edital',
-            pk=self.pk,
-            max_attempts=SLUG_GENERATION_MAX_ATTEMPTS_EDITAL
-        )
+    # _generate_unique_slug() is inherited from SlugGenerationMixin
 
     def clean(self) -> None:
         """Validate model fields"""
@@ -581,13 +637,13 @@ class StartupManager(models.Manager):
         return self.get_queryset().search(query)
 
 
-class Startup(models.Model):
+class Startup(SlugGenerationMixin, models.Model):
     """
     Modelo que representa uma startup incubada no AgroHub.
-    
+
     Uma startup é uma empresa em processo de incubação na Ypetec, parte do AgroHub.
     Contém informações sobre a startup e seu status no processo de incubação.
-    
+
     Attributes:
         name: Nome da startup
         edital: Edital relacionado (ForeignKey, opcional - pode ser None para startups sem edital)
@@ -598,6 +654,12 @@ class Startup(models.Model):
         data_criacao: Data de criação do registro
         data_atualizacao: Data da última atualização
     """
+
+    # SlugGenerationMixin configuration
+    SLUG_PREFIX = 'startup'
+    SLUG_MAX_ATTEMPTS = SLUG_GENERATION_MAX_ATTEMPTS_STARTUP
+    SLUG_SOURCE_FIELD = 'name'
+
     STATUS_CHOICES = [
         ('pre_incubacao', 'Pré-Incubação'),
         ('incubacao', 'Incubação'),
@@ -697,23 +759,25 @@ class Startup(models.Model):
     def clean(self) -> None:
         """Validate model fields including logo file upload"""
         super().clean()
-        
+
         # Validate logo file if provided
         if self.logo:
-            # Check file size (5MB limit)
-            if self.logo.size > 5 * 1024 * 1024:  # 5MB in bytes
-                raise ValidationError({
-                    'logo': 'O arquivo de logo é muito grande. Tamanho máximo: 5MB.'
-                })
-            
-            # Check file extension
-            ext = os.path.splitext(self.logo.name)[1].lower()
-            allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.svgz']
-            if ext not in allowed_extensions:
-                raise ValidationError({
-                    'logo': f'Formato de arquivo não permitido. Use: {", ".join(allowed_extensions)}'
-                })
-            
+            # Check file size (5MB limit) - defensive check for size attribute
+            if hasattr(self.logo, 'size') and self.logo.size is not None:
+                if self.logo.size > MAX_LOGO_FILE_SIZE:
+                    raise ValidationError({
+                        'logo': 'O arquivo de logo é muito grande. Tamanho máximo: 5MB.'
+                    })
+
+            # Check file extension - defensive check for name attribute
+            if hasattr(self.logo, 'name') and self.logo.name:
+                ext = os.path.splitext(self.logo.name)[1].lower()
+                allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.svgz']
+                if ext not in allowed_extensions:
+                    raise ValidationError({
+                        'logo': f'Formato de arquivo não permitido. Use: {", ".join(allowed_extensions)}'
+                    })
+
             # Check content type if available (for FileField, content_type may not always be available)
             if hasattr(self.logo, 'content_type') and self.logo.content_type:
                 content_type = self.logo.content_type
@@ -769,39 +833,12 @@ class Startup(models.Model):
     def __str__(self):
         edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''
         return f'{self.name} - {edital_titulo}' if edital_titulo else self.name
-    
-    def _generate_unique_slug(self) -> str:
-        """Generate a unique slug from the name - optimized to reduce database queries"""
-        return generate_unique_slug(
-            text=self.name,
-            model_class=Startup,
-            slug_field_name='slug',
-            prefix='startup',
-            pk=self.pk,
-            max_attempts=SLUG_GENERATION_MAX_ATTEMPTS_PROJECT
-        )
-    
+
+    # _generate_unique_slug() is inherited from SlugGenerationMixin
+
     def save(self, *args: Any, **kwargs: Any) -> None:
-        for attempt in range(SLUG_GENERATION_MAX_RETRIES):
-            try:
-                # Generate slug only if it doesn't exist (on creation)
-                if not self.slug:
-                    self.slug = self._generate_unique_slug()
-                # Ensure slug is never None after save
-                if not self.slug:
-                    raise ValidationError(
-                        'Slug não pode ser None. Nome inválido para geração de slug.'
-                    )
-                super().save(*args, **kwargs)
-                return
-            except IntegrityError as e:
-                if (
-                    ('slug' in str(e).lower() or 'unique' in str(e).lower())
-                    and attempt < SLUG_GENERATION_MAX_RETRIES - 1
-                ):
-                    self.slug = self._generate_unique_slug()
-                    continue
-                raise
+        """Save with slug generation using mixin's retry logic."""
+        self._save_with_slug_retry(super().save, *args, **kwargs)
 
     def get_absolute_url(self) -> str:
         """Return URL using slug if available, otherwise use PK"""
