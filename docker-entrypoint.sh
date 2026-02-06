@@ -86,9 +86,27 @@ wait_for_postgres() {
     log_info "Waiting for PostgreSQL at $host:$port (database: $db)..."
 
     while [ $retries -lt $MAX_DB_RETRIES ]; do
+        # First check TCP connectivity with pg_isready
         if pg_isready -h "$host" -p "$port" -U "$user" > /dev/null 2>&1; then
-            log_info "PostgreSQL is ready!"
-            return 0
+            # pg_isready may succeed while the database system is still
+            # starting up. Verify with an actual query to ensure full
+            # readiness before proceeding with migrations.
+            if python -c "
+import django, os, sys
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'UniRV_Django.settings')
+django.setup()
+from django.db import connection
+try:
+    connection.ensure_connection()
+    sys.exit(0)
+except Exception:
+    sys.exit(1)
+" 2>/dev/null; then
+                log_info "PostgreSQL is ready!"
+                return 0
+            else
+                log_info "PostgreSQL is accepting connections but not fully ready yet..."
+            fi
         fi
 
         retries=$((retries + 1))

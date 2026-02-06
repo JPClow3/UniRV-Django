@@ -1,6 +1,10 @@
 # Generated migration to add trigram GIN indexes for search performance
+import logging
+
 from django.db import migrations
 from django.db import connection
+
+logger = logging.getLogger(__name__)
 
 
 def add_trigram_indexes_forward(apps, schema_editor):
@@ -12,41 +16,27 @@ def add_trigram_indexes_forward(apps, schema_editor):
                 cursor.execute("SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm';")
                 if not cursor.fetchone():
                     # Extension not enabled, skip indexes
-                    import logging
-                    logger = logging.getLogger(__name__)
                     logger.warning("pg_trgm extension not found. Skipping trigram indexes.")
                     return
-                
+
                 # Create GIN indexes for trigram similarity searches
-                # Using CONCURRENTLY to avoid locking in production
+                # Not using CONCURRENTLY because it cannot run inside a
+                # transaction block (Django wraps migrations in transactions).
                 indexes = [
-                    ("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_edital_titulo_trgm "
+                    ("CREATE INDEX IF NOT EXISTS idx_edital_titulo_trgm "
                      "ON editais_edital USING gin(titulo gin_trgm_ops);"),
-                    ("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_edital_entidade_trgm "
+                    ("CREATE INDEX IF NOT EXISTS idx_edital_entidade_trgm "
                      "ON editais_edital USING gin(entidade_principal gin_trgm_ops);"),
-                    ("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_edital_numero_trgm "
+                    ("CREATE INDEX IF NOT EXISTS idx_edital_numero_trgm "
                      "ON editais_edital USING gin(numero_edital gin_trgm_ops);"),
                 ]
-                
+
                 for index_sql in indexes:
                     try:
                         cursor.execute(index_sql)
                     except Exception as e:
-                        # CONCURRENTLY requires no active transactions
-                        # Fall back to regular index creation
-                        import logging
-                        logger = logging.getLogger(__name__)
-                        logger.warning(f"Could not create index concurrently: {e}. "
-                                     f"Trying without CONCURRENTLY...")
-                        # Remove CONCURRENTLY and try again
-                        index_sql_fallback = index_sql.replace("CONCURRENTLY ", "")
-                        try:
-                            cursor.execute(index_sql_fallback)
-                        except Exception as e2:
-                            logger.error(f"Failed to create index: {e2}")
+                        logger.error(f"Failed to create index: {e}")
             except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
                 logger.warning(f"Error creating trigram indexes: {e}")
 
 
