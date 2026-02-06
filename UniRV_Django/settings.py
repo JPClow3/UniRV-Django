@@ -67,41 +67,31 @@ TESTING = (
 # 
 # Parsear e validar ALLOWED_HOSTS antes de usar
 allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
+
 if DEBUG:
-    # Development: Allow localhost by default
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 else:
-    # Production: Require explicit ALLOWED_HOSTS configuration
     from django.core.exceptions import ImproperlyConfigured
     
     if allowed_hosts_env:
-        # Parsear hosts e filtrar valores vazios
         parsed_hosts = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
-        # Validar que há pelo menos um host válido
         if parsed_hosts:
             ALLOWED_HOSTS = parsed_hosts
         else:
-            # Se parsing resultou em lista vazia, levantar erro em produção
             raise ImproperlyConfigured(
-                "ALLOWED_HOSTS environment variable is set but contains no valid hosts. "
-                "Please set ALLOWED_HOSTS with at least one valid hostname or IP address. "
-                "Example: ALLOWED_HOSTS=example.com,www.example.com"
+                "ALLOWED_HOSTS environment variable is set but contains no valid hosts."
             )
-            # Railway healthcheck support
+    else:
+        raise ImproperlyConfigured(
+            "ALLOWED_HOSTS environment variable is required in production."
+        )
+
+# ✅ Railway support (fora do if/else!)
 if os.environ.get("RAILWAY_ENVIRONMENT"):
     if "healthcheck.railway.app" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append("healthcheck.railway.app")
 
-    # Permite qualquer subdomínio Railway
     ALLOWED_HOSTS.append(".railway.app")
-
-    else:
-        # Em produção sem ALLOWED_HOSTS configurado, levantar erro para forçar configuração explícita
-        raise ImproperlyConfigured(
-            "ALLOWED_HOSTS environment variable is required in production (DEBUG=False). "
-            "Please set ALLOWED_HOSTS with your domain(s). "
-            "Example: ALLOWED_HOSTS=example.com,www.example.com"
-        )
 
 # CSRF Trusted Origins for cross-origin requests
 # Required when accessing site from different domains (even subdomains)
