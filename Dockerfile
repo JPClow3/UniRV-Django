@@ -49,7 +49,7 @@ RUN pip install --no-cache-dir --user -r /app/requirements.txt
 COPY . /app
 
 # Copy all built assets from node-builder stage (CSS, minified JS, vendor files)
-COPY --from=node-builder /app/theme/static_src/dist ./theme/static_src/dist
+COPY --from=node-builder /app/theme/static/ ./theme/static/
 COPY --from=node-builder /app/static/ ./static/
 
 # Collect static files
