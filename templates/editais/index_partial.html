@@ -6,7 +6,7 @@
       <a href="{{ edital.get_absolute_url }}" class="edital-card bg-white rounded-3xl p-8 h-full flex flex-col cursor-pointer no-underline shadow-xl hover:shadow-xl transition-all duration-300 border border-gray-200 overflow-hidden group transform hover:-translate-y-2" aria-label="Ver detalhes do edital {{ edital.titulo }}">
         <!-- Status Badge -->
         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide mb-6 w-fit {% if edital.status == 'aberto' %}bg-green-100 text-green-700{% elif edital.status == 'fechado' %}bg-gray-100 text-gray-600{% else %}bg-blue-100 text-blue-700{% endif %}">
-          <i class="fas {% if edital.status == 'aberto' %}fa-check-circle{% elif edital.status == 'fechado' %}fa-times-circle{% else %}fa-hourglass-half{% endif %} mr-1.5"></i>
+          <i class="fas {% if edital.status == 'aberto' %}fa-check-circle{% elif edital.status == 'fechado' %}fa-times-circle{% else %}fa-hourglass-half{% endif %} mr-1.5" aria-hidden="true"></i>
           {{ edital.get_status_display }}
         </span>
         
@@ -17,9 +17,9 @@
             {% else %}from-blue-50 to-primary-hover/20 border border-blue-100{% endif %}
             flex items-center justify-center text-lg border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
             {% if edital.end_date %}
-              <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
+              <i class="fas fa-money-bill-wave {% if edital.end_date %}text-blue-600{% endif %}" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;" aria-hidden="true"></i>
             {% else %}
-              <i class="fas fa-sync-alt text-primary-hover" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;"></i>
+              <i class="fas fa-sync-alt text-primary-hover" style="text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;" aria-hidden="true"></i>
             {% endif %}
           </div>
           {% if edital.numero_edital %}
@@ -37,9 +37,9 @@
             {% else %}text-purple-600{% endif %}
             uppercase tracking-wider mb-4">
             {% if edital.end_date %}
-              <i class="fas fa-hand-holding-usd mr-1.5"></i>Fomento
+              <i class="fas fa-hand-holding-usd mr-1.5" aria-hidden="true"></i>Fomento
             {% else %}
-              <i class="fas fa-infinity mr-1.5"></i>Fluxo Contínuo
+              <i class="fas fa-infinity mr-1.5" aria-hidden="true"></i>Fluxo Contínuo
             {% endif %}
           </p>
           <p class="text-gray-600 text-sm leading-relaxed line-clamp-3">
@@ -51,13 +51,13 @@
         <div class="flex flex-wrap gap-x-6 gap-y-2 text-xs text-gray-500 border-t border-gray-100 pt-4 mt-auto">
           {% if edital.start_date %}
             <div class="flex items-center gap-2">
-              <i class="fas fa-calendar-alt text-secondary"></i>
+              <i class="fas fa-calendar-alt text-secondary" aria-hidden="true"></i>
               <span>Abertura: <span class="font-medium text-gray-900">{{ edital.start_date|date:"d/m/Y" }}</span></span>
             </div>
           {% endif %}
           {% if edital.end_date %}
             <div class="flex items-center gap-2">
-              <i class="fas fa-clock text-orange-500"></i>
+              <i class="fas fa-clock text-orange-500" aria-hidden="true"></i>
               <span>Encerramento: <span class="font-medium text-gray-900">{{ edital.end_date|date:"d/m/Y" }}</span></span>
             </div>
           {% endif %}
@@ -73,7 +73,7 @@
         {% if page_obj.has_previous %}
           <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if orgao_filter %}&orgao={{ orgao_filter }}{% endif %}{% if start_date_filter %}&start_date={{ start_date_filter }}{% endif %}{% if end_date_filter %}&end_date={{ end_date_filter }}{% endif %}{% if only_open %}&only_open=1{% endif %}" class="page-link px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow min-w-[44px] min-h-[44px] inline-flex items-center justify-center">
             <span class="sr-only">Anterior</span>
-            <i class="fas fa-chevron-left"></i>
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
           </a>
         {% endif %}
         
@@ -84,7 +84,7 @@
         {% if page_obj.has_next %}
           <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}" class="page-link px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-all duration-300 transform hover:-translate-y-0.5 shadow-sm hover:shadow min-w-[44px] min-h-[44px] inline-flex items-center justify-center">
             <span class="sr-only">Próxima</span>
-            <i class="fas fa-chevron-right"></i>
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
           </a>
         {% endif %}
       </nav>
@@ -158,10 +158,10 @@
       
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="{% url 'editais_index' %}" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl text-base min-h-[48px]">
-          <i class="fas fa-redo"></i> Limpar Filtros
+          <i class="fas fa-redo" aria-hidden="true"></i> Limpar Filtros
         </a>
         <a href="mailto:ypetec@unirv.edu.br" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-medium rounded-full hover:border-primary hover:text-primary transition-colors min-h-[44px]">
-          <i class="fas fa-envelope"></i> Receber Notificações
+          <i class="fas fa-envelope" aria-hidden="true"></i> Receber Notificações
         </a>
       </div>
     </div>

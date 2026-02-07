@@ -8,7 +8,7 @@
   <div class="text-center max-w-2xl mx-auto">
     <div class="mb-8">
       <div class="w-32 h-32 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-        <i class="fas fa-exclamation-triangle text-white text-6xl"></i>
+        <i class="fas fa-exclamation-triangle text-white text-6xl" aria-hidden="true"></i>
       </div>
       <h1 class="text-gray-900 text-6xl md:text-7xl font-bold mb-4">404</h1>
       <h2 class="text-gray-900 text-3xl md:text-4xl font-semibold mb-4">Página não encontrada</h2>
@@ -22,14 +22,14 @@
         href="{% url 'home' %}" 
         class="bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 rounded-full shadow-md hover:shadow-lg transition-all text-white font-medium px-8 py-3 inline-flex items-center justify-center gap-2"
       >
-        <i class="fas fa-home"></i>
+        <i class="fas fa-home" aria-hidden="true"></i>
         Voltar ao Início
       </a>
       <a 
         href="{% url 'editais_index' %}" 
         class="bg-white border-2 border-gray-300 hover:border-blue-600 hover:text-blue-600 rounded-full shadow-sm hover:shadow-md transition-all text-gray-700 font-medium px-8 py-3 inline-flex items-center justify-center gap-2"
       >
-        <i class="fas fa-file-alt"></i>
+        <i class="fas fa-file-alt" aria-hidden="true"></i>
         Ver Editais
       </a>
     </div>

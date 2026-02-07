@@ -256,15 +256,19 @@ class EditalForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if field.required:
                 field.widget.attrs["aria-required"] = "true"
+            # Build aria-describedby referencing helptext and/or error elements
+            if self.auto_id:
+                field_id = self.auto_id % field_name
+            else:
+                field_id = f"id_{field_name}"
+            describedby_ids = []
+            if field.help_text:
+                describedby_ids.append(f"{field_id}_helptext")
             if self.is_bound and self.errors.get(field_name):
-                # Generate field ID using form's auto_id format
-                # auto_id is a form-level property, not field-level
-                if self.auto_id:
-                    field_id = self.auto_id % field_name
-                else:
-                    field_id = f"id_{field_name}"
-                field.widget.attrs["aria-describedby"] = f"{field_id}_error"
+                describedby_ids.append(f"{field_id}_error")
                 field.widget.attrs["aria-invalid"] = "true"
+            if describedby_ids:
+                field.widget.attrs["aria-describedby"] = " ".join(describedby_ids)
 
     def clean(self) -> Dict[str, Any]:
         """Validação de datas: end_date deve ser posterior ou igual a start_date"""
@@ -389,13 +393,19 @@ class StartupForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if field.required:
                 field.widget.attrs["aria-required"] = "true"
+            # Build aria-describedby referencing helptext and/or error elements
+            if self.auto_id:
+                field_id = self.auto_id % field_name
+            else:
+                field_id = f"id_{field_name}"
+            describedby_ids = []
+            if field.help_text:
+                describedby_ids.append(f"{field_id}_helptext")
             if self.is_bound and self.errors.get(field_name):
-                if self.auto_id:
-                    field_id = self.auto_id % field_name
-                else:
-                    field_id = f"id_{field_name}"
-                field.widget.attrs["aria-describedby"] = f"{field_id}_error"
+                describedby_ids.append(f"{field_id}_error")
                 field.widget.attrs["aria-invalid"] = "true"
+            if describedby_ids:
+                field.widget.attrs["aria-describedby"] = " ".join(describedby_ids)
 
     def clean_logo(self) -> Optional[Any]:
         """Validate logo file"""

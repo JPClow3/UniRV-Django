@@ -5,14 +5,14 @@ from django.db import connection
 
 def add_fulltext_search_index_forward(apps, schema_editor):
     """Add GIN index for full-text search on searchable fields."""
-    if connection.vendor == 'postgresql':
+    if connection.vendor == "postgresql":
         with connection.cursor() as cursor:
             try:
-                # Create a GIN index on a generated tsvector column for full-text search
-                # This combines all searchable fields into a single searchable vector
+                # Create a GIN index CONCURRENTLY on a generated tsvector column
+                # CONCURRENTLY avoids holding an exclusive lock that blocks writes
                 # Using Portuguese language configuration for proper stemming
                 index_sql = """
-                    CREATE INDEX IF NOT EXISTS idx_edital_fulltext_search 
+                    CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_edital_fulltext_search 
                     ON editais_edital 
                     USING gin(
                         to_tsvector('portuguese',
@@ -35,17 +35,22 @@ def add_fulltext_search_index_forward(apps, schema_editor):
             except Exception as e:
                 # Log but don't fail migration
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Could not create full-text search index: {e}. "
-                             f"This may require superuser privileges or the index may already exist.")
+                logger.warning(
+                    f"Could not create full-text search index: {e}. "
+                    f"This may require superuser privileges or the index may already exist."
+                )
 
 
 def add_fulltext_search_index_reverse(apps, schema_editor):
     """Drop full-text search index."""
-    if connection.vendor == 'postgresql':
+    if connection.vendor == "postgresql":
         with connection.cursor() as cursor:
             try:
-                cursor.execute("DROP INDEX IF EXISTS idx_edital_fulltext_search;")
+                cursor.execute(
+                    "DROP INDEX CONCURRENTLY IF EXISTS idx_edital_fulltext_search;"
+                )
             except Exception:
                 # Ignore errors on reverse migration
                 pass
@@ -53,14 +58,15 @@ def add_fulltext_search_index_reverse(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    # CONCURRENTLY cannot run inside a transaction
+    atomic = False
+
     dependencies = [
-        ('editais', '0019_add_trigram_indexes'),
+        ("editais", "0019_add_trigram_indexes"),
     ]
 
     operations = [
         migrations.RunPython(
-            add_fulltext_search_index_forward,
-            add_fulltext_search_index_reverse
+            add_fulltext_search_index_forward, add_fulltext_search_index_reverse
         ),
     ]
-

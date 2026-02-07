@@ -3,13 +3,8 @@ End-to-end tests for redirect functionality.
 
 Tests redirect logic for startup_detail_redirect and edital_detail_redirect,
 including permanent redirects (301) vs temporary (302), and redirect chain handling.
-
-Note: Some redirect tests are skipped on SQLite due to connection isolation issues
-between Django's TestCase and the test client. These tests work correctly with
-PostgreSQL or when using TransactionTestCase (which is slower).
 """
 
-from unittest import skipIf
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -18,20 +13,8 @@ from ..models import Edital, Startup
 from .factories import UserFactory, StaffUserFactory, EditalFactory, StartupFactory
 
 
-# SQLite in-memory databases can have connection isolation issues with Django's test client
-SKIP_SQLITE_REDIRECT_TESTS = "sqlite" in str(
-    __import__("django.conf", fromlist=["settings"])
-    .settings.DATABASES.get("default", {})
-    .get("ENGINE", "")
-)
-
-
 class EditalDetailRedirectTest(TestCase):
-    """
-    E2E tests for edital_detail_redirect functionality.
-
-    Uses TestCase for proper data isolation with SQLite.
-    """
+    """E2E tests for edital_detail_redirect functionality."""
 
     def setUp(self):
         self.client = Client()
@@ -44,9 +27,6 @@ class EditalDetailRedirectTest(TestCase):
         # Ensure slug is generated
         self.edital.refresh_from_db()
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_edital_redirect_with_slug(self):
         """Test that accessing edital by PK redirects to slug URL when slug exists"""
         if not self.edital.slug:
@@ -80,9 +60,6 @@ class EditalDetailRedirectTest(TestCase):
             # If not redirecting, should show detail page
             self.assertEqual(response.status_code, 200)
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_edital_redirect_without_slug(self):
         """Test that accessing edital by PK shows detail page when slug doesn't exist"""
         # Create edital without slug (if possible)
@@ -105,9 +82,6 @@ class EditalDetailRedirectTest(TestCase):
             response.status_code, [200, 301, 302], "Should show page or redirect"
         )
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_edital_redirect_chain(self):
         """Test redirect chain handling (PK → slug → detail page)"""
         if not self.edital.slug:
@@ -159,11 +133,7 @@ class EditalDetailRedirectTest(TestCase):
 
 
 class StartupDetailRedirectTest(TestCase):
-    """
-    E2E tests for startup_detail_redirect functionality.
-
-    Uses TestCase for proper data isolation with SQLite.
-    """
+    """E2E tests for startup_detail_redirect functionality."""
 
     def setUp(self):
         self.client = Client()
@@ -174,9 +144,6 @@ class StartupDetailRedirectTest(TestCase):
         # Ensure slug is generated
         self.project.refresh_from_db()
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_startup_redirect_with_slug(self):
         """Test that accessing startup by PK redirects to slug URL when slug exists"""
         if not self.project.slug:
@@ -210,9 +177,6 @@ class StartupDetailRedirectTest(TestCase):
             # If not redirecting, should show detail page
             self.assertEqual(response.status_code, 200)
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_startup_redirect_without_slug(self):
         """Test that accessing startup by PK shows detail page when slug doesn't exist"""
         # Create project - slug might be auto-generated
@@ -231,9 +195,6 @@ class StartupDetailRedirectTest(TestCase):
             response.status_code, [200, 301, 302], "Should show page or redirect"
         )
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_startup_redirect_chain(self):
         """Test redirect chain handling (PK → slug → detail page)"""
         if not self.project.slug:
@@ -269,20 +230,13 @@ class StartupDetailRedirectTest(TestCase):
 
 
 class RedirectSEOAndConsistencyTest(TestCase):
-    """
-    Tests for SEO and consistency of redirects.
-
-    Uses TestCase for proper data isolation with SQLite.
-    """
+    """Tests for SEO and consistency of redirects."""
 
     def setUp(self):
         self.client = Client()
         self.staff_user = StaffUserFactory(username="staff")
         self.user = UserFactory(username="testuser")
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_edital_redirect_preserves_query_params(self):
         """Test that redirects preserve query parameters if any"""
         edital = EditalFactory(
@@ -299,9 +253,6 @@ class RedirectSEOAndConsistencyTest(TestCase):
             # Should eventually reach detail page
             self.assertEqual(response.status_code, 200)
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS, "SQLite in-memory has connection isolation issues"
-    )
     def test_startup_redirect_preserves_query_params(self):
         """Test that startup redirects preserve query parameters if any"""
         project = StartupFactory(name="Startup with Query Test", proponente=self.user)

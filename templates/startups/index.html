@@ -60,11 +60,6 @@
           class="flex md:flex-wrap md:justify-center md:items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0"
           id="portfolio-filters"
         >
-          <style>
-            #portfolio-filters::-webkit-scrollbar {
-              display: none;
-            }
-          </style>
           <a
             href="{% url 'startups_showcase' %}{% if search_query %}?search={{ search_query|urlencode }}{% endif %}"
             class="filter-btn {% if not category_filter or category_filter == 'all' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-semibold text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm shrink-0 whitespace-nowrap"
@@ -172,10 +167,9 @@
               {{ startup.get_category_display }}
             </p>
             <p class="text-gray-600 text-sm leading-relaxed">
-              {% if startup.description %} {{
-              startup.description|truncatewords:25 }} {% else %} Startup em
+              {% if startup.description %}{{ startup.description|truncatewords:25 }}{% else %}Startup em
               processo de incubação na YpeTech, transformando ideias em soluções
-              inovadoras para o agronegócio. {% endif %}
+              inovadoras para o agronegócio.{% endif %}
             </p>
           </div>
 
@@ -294,183 +288,4 @@
     </div>
   </section>
 </div>
-{% endblock %} {% block extra_js %}
-<script>
-  // Wait for GSAP to be loaded from base.html (loaded with defer)
-  function initStartupsAnimations() {
-    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
-      // GSAP not loaded yet, wait a bit and retry
-      setTimeout(initStartupsAnimations, 50);
-      return;
-    }
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    // 1. Hero uses .reveal-up; global animations.js handles those.
-
-    // 2. Counters - Animate without causing layout shifts
-    // Batch DOM reads before writes to prevent forced reflows
-    const counters = gsap.utils.toArray(".counter");
-    const counterData = counters.map((counter) => {
-      // Batch all DOM reads first
-      const target = parseInt(counter.getAttribute("data-target")) || 0;
-      const initialValue = parseInt(counter.innerText) || 0;
-      const currentWidth = counter.offsetWidth;
-
-      // Calculate and set min-width in the same batch
-      if (!counter.style.minWidth) {
-        const maxWidth = Math.max(
-          currentWidth,
-          (target.toString().length + 2) * 12,
-        );
-        counter.style.minWidth = maxWidth + "px";
-      }
-
-      return { counter, target, initialValue };
-    });
-
-    // Now batch all writes using requestAnimationFrame
-    requestAnimationFrame(() => {
-      counterData.forEach(({ counter, target, initialValue }) => {
-        // Only animate if we need to count up from a lower value
-        if (initialValue >= target) {
-          return; // Already at or above target
-        }
-
-        // Animate counter value - fixed width prevents layout shifts
-        const obj = { value: initialValue };
-        gsap.to(obj, {
-          value: target,
-          duration: 2.5,
-          snap: { value: 1 },
-          scrollTrigger: { trigger: counter, start: "top 90%" },
-          ease: "power2.out",
-          onUpdate: () => {
-            counter.innerText = Math.round(obj.value);
-          },
-        });
-      });
-    });
-
-    // 3. Filter Logic & Animations
-    // Batch DOM reads before writes to prevent forced reflows
-    const allCards = document.querySelectorAll(".startup-card");
-    if (allCards.length > 0) {
-      // Batch all DOM reads first (offsetHeight queries)
-      const cardHeights = Array.from(allCards).map((card) => ({
-        card,
-        height: card.offsetHeight,
-      }));
-
-      // Batch all DOM writes using requestAnimationFrame
-      requestAnimationFrame(() => {
-        cardHeights.forEach(({ card, height }) => {
-          // Reserve space first to prevent layout shifts
-          if (!card.style.minHeight) {
-            card.style.minHeight = height + "px";
-          }
-
-          // Add will-change hint for better performance
-          card.style.willChange = "transform, opacity";
-        });
-
-        // Use transform (translateY) and opacity only to prevent layout shifts
-        gsap.fromTo(
-          allCards,
-          { transform: "translateY(50px) scale(0.95)", opacity: 0 },
-          {
-            transform: "translateY(0) scale(1)",
-            opacity: 1,
-            duration: 0.6,
-            stagger: 0.1,
-            ease: "back.out(1.2)",
-            clearProps: "transform",
-            onComplete: () => {
-              // Remove will-change after animation completes
-              allCards.forEach((card) => {
-                card.style.willChange = "auto";
-              });
-            },
-          },
-        );
-      });
-    }
-
-    // 4. Card reveal on scroll - use transform only, reserve space
-    // Batch DOM reads first
-    const scrollCards = gsap.utils.toArray(".startup-card");
-    const scrollCardData = scrollCards.map((card, index) => {
-      const height = card.offsetHeight;
-      return { card, height, index };
-    });
-
-    // Batch writes using requestAnimationFrame
-    requestAnimationFrame(() => {
-      scrollCardData.forEach(({ card, height, index }) => {
-        // Reserve space for the card to prevent layout shifts
-        if (!card.style.minHeight) {
-          card.style.minHeight = height + "px";
-        }
-
-        // Add will-change hint
-        card.style.willChange = "transform, opacity";
-
-        gsap.fromTo(
-          card,
-          { transform: "translateY(30px)", opacity: 0 },
-          {
-            transform: "translateY(0)",
-            opacity: 1,
-            duration: 0.6,
-            delay: index * 0.1,
-            scrollTrigger: {
-              trigger: card,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-            onComplete: () => {
-              card.style.willChange = "auto";
-            },
-          },
-        );
-      });
-    });
-
-    // 5. Search form auto-submit with debouncing
-    const searchInput = document.querySelector('input[name="search"]');
-    const searchForm = searchInput?.closest("form");
-    let searchTimeout = null;
-    const SEARCH_DELAY = 500;
-
-    if (searchInput && searchForm) {
-      searchInput.addEventListener("input", function (e) {
-        clearTimeout(searchTimeout);
-
-        searchTimeout = setTimeout(() => {
-          // Only submit if there are 3+ characters or the field is empty (to clear search)
-          if (this.value.length >= 3 || this.value.length === 0) {
-            searchForm.submit();
-          }
-        }, SEARCH_DELAY);
-      });
-
-      // Submit on Enter key
-      searchInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          clearTimeout(searchTimeout);
-          searchForm.submit();
-        }
-      });
-    }
-  }
-
-  // Initialize when DOM is ready and GSAP is loaded
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initStartupsAnimations);
-  } else {
-    // DOM already loaded, but GSAP might still be loading (defer)
-    initStartupsAnimations();
-  }
-</script>
 {% endblock %}

@@ -21,7 +21,7 @@
     </div>
     {% if user.is_staff %}
       <a href="{% url 'dashboard_submeter_startup' %}" class="bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 rounded-full shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-3 text-white font-medium">
-        <i class="fas fa-plus w-4 h-4"></i>
+        <i class="fas fa-plus w-4 h-4" aria-hidden="true"></i>
         Nova Startup
       </a>
     {% endif %}
@@ -32,35 +32,35 @@
     <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Total de startups incubadas">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
         Total
-        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
+        <i class="fas fa-question-circle text-gray-400 text-xs" aria-hidden="true"></i>
       </div>
       <div class="text-gray-900 text-2xl font-bold">{{ stats.total|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Fase Ideação">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
         Ideação
-        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
+        <i class="fas fa-question-circle text-gray-400 text-xs" aria-hidden="true"></i>
       </div>
       <div class="text-gray-900 text-2xl font-bold">{{ stats.pre_incubacao|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Fase MVP">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
         MVP
-        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
+        <i class="fas fa-question-circle text-gray-400 text-xs" aria-hidden="true"></i>
       </div>
       <div class="text-gray-900 text-2xl font-bold">{{ stats.incubacao|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Fase Escala">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
         Escala
-        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
+        <i class="fas fa-question-circle text-gray-400 text-xs" aria-hidden="true"></i>
       </div>
       <div class="text-gray-900 text-2xl font-bold">{{ stats.graduada|default:0 }}</div>
     </div>
     <div class="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all" data-tooltip="Startups suspensas">
       <div class="text-gray-600 mb-1 text-sm flex items-center gap-1">
         Suspensas
-        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
+        <i class="fas fa-question-circle text-gray-400 text-xs" aria-hidden="true"></i>
       </div>
       <div class="text-gray-900 text-2xl font-bold">{{ stats.suspensa|default:0 }}</div>
     </div>
@@ -70,7 +70,7 @@
   <div class="bg-white rounded-xl border border-gray-200 p-4">
     <form method="GET" class="flex flex-col sm:flex-row gap-4">
       <div class="flex-1 relative">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true"></i>
         <input
           type="text"
           name="search"
@@ -111,7 +111,7 @@
 
   {% if search_query or edital_filter or status_filter %}
   <div class="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-600">
-    <i class="fas fa-filter"></i>
+    <i class="fas fa-filter" aria-hidden="true"></i>
     <span class="font-medium">Filtros ativos:</span>
     {% if search_query %}
       <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{{ search_query }}</span>
@@ -133,12 +133,12 @@
 
   {% if startups|length == 0 %}
   <div class="mt-4 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 flex gap-3 items-start">
-    <i class="fas fa-info-circle mt-1"></i>
+    <i class="fas fa-info-circle mt-1" aria-hidden="true"></i>
     <div>
       <p class="font-semibold">Nenhuma startup encontrada com os filtros aplicados.</p>
       <p class="text-sm text-blue-700/80">Tente outros critérios de busca ou limpe os filtros para visualizar todas as startups.</p>
             <a href="{% url 'dashboard_startups' %}" class="inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">
-        <i class="fas fa-undo-alt text-xs"></i>
+        <i class="fas fa-undo-alt text-xs" aria-hidden="true"></i>
         Limpar filtros
       </a>
     </div>
@@ -157,7 +157,7 @@
           <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{{ startup.name }}</h3>
           {% if startup.edital %}
           <a href="{{ startup.edital.get_absolute_url }}" class="text-sm text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1">
-            <i class="fas fa-file-alt text-xs"></i>
+            <i class="fas fa-file-alt text-xs" aria-hidden="true"></i>
             <span class="line-clamp-1">
               {% if startup.edital.numero_edital %}{{ startup.edital.numero_edital }} - {% endif %}
               {{ startup.edital.titulo|default:"Edital sem título" }}
@@ -165,13 +165,13 @@
           </a>
           {% else %}
           <span class="text-sm text-gray-500 inline-flex items-center gap-1">
-            <i class="fas fa-file-alt text-xs"></i>
+            <i class="fas fa-file-alt text-xs" aria-hidden="true"></i>
             Edital não disponível
           </span>
           {% endif %}
         </div>
         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 startup-phase-badge {% if startup.status == 'graduada' %}bg-green-100 text-green-700{% elif startup.status == 'incubacao' %}bg-blue-100 text-blue-700{% elif startup.status == 'suspensa' %}bg-red-100 text-red-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
-          <i class="fas {% if startup.status == 'graduada' %}fa-rocket{% elif startup.status == 'incubacao' %}fa-tools{% elif startup.status == 'suspensa' %}fa-pause-circle{% else %}fa-lightbulb{% endif %} mr-1"></i>
+          <i class="fas {% if startup.status == 'graduada' %}fa-rocket{% elif startup.status == 'incubacao' %}fa-tools{% elif startup.status == 'suspensa' %}fa-pause-circle{% else %}fa-lightbulb{% endif %} mr-1" aria-hidden="true"></i>
           {{ startup.get_phase_display }}
         </span>
       </div>
@@ -180,7 +180,7 @@
       <div class="flex-1 space-y-3 mb-4">
         {% if user.is_staff %}
         <div class="flex items-center gap-2 text-sm text-gray-600">
-          <i class="fas fa-user text-gray-400"></i>
+          <i class="fas fa-user text-gray-400" aria-hidden="true"></i>
           {% if startup.proponente %}
           <span class="truncate">{{ startup.proponente.get_full_name|default:startup.proponente.username }}</span>
           {% else %}
@@ -190,7 +190,7 @@
         {% endif %}
 
         <div class="flex items-center gap-2 text-sm text-gray-600">
-          <i class="fas fa-calendar-alt text-gray-400"></i>
+          <i class="fas fa-calendar-alt text-gray-400" aria-hidden="true"></i>
           <span>
             {% if startup.submitted_on %}
               {{ startup.submitted_on|naturaltime }}
@@ -200,7 +200,7 @@
           </span>
           {% if startup.data_atualizacao %}
           <span class="last-updated {% if startup.data_atualizacao >= recent_update_cutoff %}recent{% endif %}" title="Atualizado em {{ startup.data_atualizacao|date:'d/m/Y H:i' }}">
-            <i class="fas fa-clock last-updated-icon text-xs"></i>
+            <i class="fas fa-clock last-updated-icon text-xs" aria-hidden="true"></i>
             <span class="hidden sm:inline">Atualizado {{ startup.data_atualizacao|naturaltime }}</span>
           </span>
           {% endif %}
@@ -213,11 +213,11 @@
         <div class="flex gap-2">
           {% if user.is_staff or startup.proponente == user %}
           <a href="{% url 'dashboard_startup_update' startup.pk %}" class="p-2 rounded-lg transition-all hover:bg-gray-100 text-gray-600 hover:text-blue-600" title="Editar startup" aria-label="Editar startup">
-            <i class="fas fa-edit"></i>
+            <i class="fas fa-edit" aria-hidden="true"></i>
           </a>
           {% endif %}
           <button class="p-2 rounded-lg transition-all opacity-50 cursor-not-allowed" title="Em breve" aria-label="Visualizar startup (em breve)" disabled>
-            <i class="fas fa-eye text-gray-400"></i>
+            <i class="fas fa-eye text-gray-400" aria-hidden="true"></i>
           </button>
         </div>
         <span class="text-xs text-gray-400">
@@ -253,19 +253,19 @@
       </svg>
     </div>
     <div class="empty-state-icon mb-4">
-      <i class="fas fa-folder-open text-3xl text-gray-400"></i>
+      <i class="fas fa-folder-open text-3xl text-gray-400" aria-hidden="true"></i>
     </div>
     <h3 class="text-xl font-semibold text-gray-900 mb-2">Nenhuma startup encontrada</h3>
     <p class="text-gray-600 mb-6">Revise os filtros aplicados{% if user.is_staff %} ou cadastre uma nova startup{% endif %}.</p>
     <div class="flex flex-col sm:flex-row justify-center gap-3">
       {% if user.is_staff %}
       <a href="{% url 'dashboard_submeter_startup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg">
-        <i class="fas fa-plus"></i>
+        <i class="fas fa-plus" aria-hidden="true"></i>
         Nova Startup
       </a>
       {% endif %}
       <a href="{% url 'dashboard_startups' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg font-medium transition-all">
-        <i class="fas fa-undo-alt"></i>
+        <i class="fas fa-undo-alt" aria-hidden="true"></i>
         Limpar filtros
       </a>
     </div>

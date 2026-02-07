@@ -8,7 +8,7 @@
   <div class="auth-inner">
     <!-- Back Button -->
     <a href="{% url 'home' %}" class="auth-back-link mb-6">
-      <i class="fas fa-arrow-left w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+      <i class="fas fa-arrow-left w-5 h-5 group-hover:-translate-x-1 transition-transform" aria-hidden="true"></i>
       <span class="font-medium">Voltar para o site</span>
     </a>
 
@@ -18,7 +18,7 @@
       <div class="text-center mb-8">
         <a href="{% url 'home' %}" class="inline-flex items-center justify-center gap-3 mb-3">
           <div class="w-12 h-12 rounded-2xl bg-white/90 flex items-center justify-center shadow-md">
-            <img src="{% static 'img/Logo AgroHub.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10" width="40" height="40" loading="lazy" />
+            <img src="{% static 'img/Logo AgroHub.svg' %}" alt="AgroHub UniRV Logo" class="w-10 h-10" width="40" height="40" loading="eager" />
           </div>
         </a>
         <h1 class="auth-title">AgroHub UniRV</h1>
@@ -27,7 +27,7 @@
 
       {% if form.errors %}
       <div class="mb-6 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 flex gap-3">
-        <i class="fas fa-exclamation-circle text-red-600 mt-0.5"></i>
+        <i class="fas fa-exclamation-circle text-red-600 mt-0.5" aria-hidden="true"></i>
         <div class="text-sm text-red-900">
           {% if form.non_field_errors %}
             {{ form.non_field_errors }}
@@ -95,7 +95,7 @@
         <div class="space-y-2">
           <label for="id_email" class="auth-label">E-mail *</label>
           <div class="relative">
-            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true"></i>
             <input
               id="id_email"
               name="email"
@@ -173,7 +173,7 @@
           type="submit"
           class="auth-gradient-cta"
         >
-          <i class="fas fa-user-plus"></i>
+          <i class="fas fa-user-plus" aria-hidden="true"></i>
           Criar Conta
         </button>
       </form>

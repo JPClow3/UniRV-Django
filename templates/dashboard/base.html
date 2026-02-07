@@ -13,6 +13,7 @@
     {% endif %}
 </head>
 <body class="min-h-screen bg-gray-50">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[10000] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none">Pular para o conteúdo principal</a>
   <!-- Top Navigation -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,26 +31,26 @@
         <nav class="hidden lg:flex items-center gap-2">
           <!-- Voltar para AgroHub -->
           <a href="{% url 'home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full transition-all text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50 mr-2">
-            <i class="fas fa-arrow-left w-4 h-4"></i>
+            <i class="fas fa-arrow-left w-4 h-4" aria-hidden="true"></i>
             <span>Portal AgroHub</span>
           </a>
           <div class="w-px h-6 bg-gray-200 mr-2"></div>
 
           {% if user.is_staff %}
             <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_home' %}text-primary font-semibold border-primary/40 bg-primary/5{% else %}text-gray-700 border-transparent hover:text-primary hover:bg-gray-100{% endif %}">
-              <i class="fas fa-chart-line w-4 h-4"></i>
+              <i class="fas fa-chart-line w-4 h-4" aria-hidden="true"></i>
               <span>Dashboard</span>
             </a>
             <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_usuarios' %}text-primary font-semibold border-primary/40 bg-primary/5{% else %}text-gray-700 border-transparent hover:text-primary hover:bg-gray-100{% endif %}">
-              <i class="fas fa-users w-4 h-4"></i>
+              <i class="fas fa-users w-4 h-4" aria-hidden="true"></i>
               <span>Usuários</span>
             </a>
             <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_editais' or request.resolver_match.url_name == 'dashboard_novo_edital' %}text-primary font-semibold border-primary/40 bg-primary/5{% else %}text-gray-700 border-transparent hover:text-primary hover:bg-gray-100{% endif %}">
-              <i class="fas fa-file-alt w-4 h-4"></i>
+              <i class="fas fa-file-alt w-4 h-4" aria-hidden="true"></i>
               <span>Editais</span>
             </a>
             <a href="{% url 'dashboard_startups' %}" class="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium {% if request.resolver_match.url_name == 'dashboard_startups' or request.resolver_match.url_name == 'dashboard_submeter_startup' %}text-primary font-semibold border-primary/40 bg-primary/5{% else %}text-gray-700 border-transparent hover:text-primary hover:bg-gray-100{% endif %}">
-              <i class="fas fa-folder-open w-4 h-4"></i>
+              <i class="fas fa-folder-open w-4 h-4" aria-hidden="true"></i>
               <span>Startups</span>
             </a>
           {% endif %}
@@ -65,7 +66,7 @@
               <div class="text-sm text-gray-900">{{ user.get_full_name|default:user.username }}</div>
               <div class="text-xs text-gray-500">{% if user.is_staff %}Admin{% else %}Usuário{% endif %}</div>
             </div>
-            <i class="fas fa-chevron-down w-4 h-4 text-gray-500"></i>
+            <i class="fas fa-chevron-down w-4 h-4 text-gray-500" aria-hidden="true"></i>
           </button>
           <div id="user-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-lg border border-gray-200 py-2 z-50">
             <div class="px-4 py-3 border-b border-gray-200">
@@ -74,24 +75,24 @@
             </div>
             <div class="lg:hidden">
               <a href="{% url 'home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                <i class="fas fa-arrow-left w-4 h-4"></i>
+                <i class="fas fa-arrow-left w-4 h-4" aria-hidden="true"></i>
                 Portal AgroHub
               </a>
               {% if user.is_staff %}
                 <a href="{% url 'dashboard_home' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_home' %}text-primary font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-                  <i class="fas fa-chart-line w-4 h-4"></i>
+                  <i class="fas fa-chart-line w-4 h-4" aria-hidden="true"></i>
                   Dashboard
                 </a>
                 <a href="{% url 'dashboard_usuarios' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_usuarios' %}text-primary font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-                  <i class="fas fa-users w-4 h-4"></i>
+                  <i class="fas fa-users w-4 h-4" aria-hidden="true"></i>
                   Usuários
                 </a>
                 <a href="{% url 'dashboard_editais' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_editais' or request.resolver_match.url_name == 'dashboard_novo_edital' %}text-primary font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-                  <i class="fas fa-file-alt w-4 h-4"></i>
+                  <i class="fas fa-file-alt w-4 h-4" aria-hidden="true"></i>
                   Editais
                 </a>
                 <a href="{% url 'dashboard_startups' %}" class="flex items-center gap-2 px-4 py-2 text-sm {% if request.resolver_match.url_name == 'dashboard_startups' or request.resolver_match.url_name == 'dashboard_submeter_startup' %}text-primary font-semibold{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
-                  <i class="fas fa-folder-open w-4 h-4"></i>
+                  <i class="fas fa-folder-open w-4 h-4" aria-hidden="true"></i>
                   Startups
                 </a>
               {% endif %}
@@ -100,7 +101,7 @@
             <form action="{% url 'admin:logout' %}" method="post">
               {% csrf_token %}
               <button type="submit" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full cursor-pointer">
-                <i class="fas fa-sign-out-alt w-4 h-4"></i>
+                <i class="fas fa-sign-out-alt w-4 h-4" aria-hidden="true"></i>
                 Sair
               </button>
             </form>
@@ -111,7 +112,7 @@
   </header>
 
   <!-- Main Content -->
-  <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8" id="main-content">
     {% block content %}{% endblock %}
   </main>
 

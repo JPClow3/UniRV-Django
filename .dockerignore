@@ -6,6 +6,7 @@
 # Environment
 .env
 .env.*
+!.env.docker
 .venv/
 venv/
 
@@ -15,16 +16,16 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+*.egg-info/
 
 # Build artifacts
 build/
 dist/
-*.egg-info/
 
 # Database
 *.sqlite3
 
-# Media (Railway uses persistent volumes)
+# Media (production uses persistent volumes)
 media/
 
 # Generated files
@@ -44,7 +45,7 @@ coverage.xml
 docker-compose.yml
 docker/
 
-# Docs and test artifacts
+# Docs, test artifacts, and CI tooling
 docs/
 lighthouse_reports/
 .lighthouse_tmp/
@@ -53,7 +54,10 @@ test_results*.txt
 *.md
 !requirements*.txt
 
-# CI
+# CI / AI tooling
 .claude/
 .cursor/
 
+# Debug / dev-only scripts
+debug_*.py
+scripts/

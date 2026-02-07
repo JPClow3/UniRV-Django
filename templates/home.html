@@ -29,7 +29,7 @@
 {% block content %}
 <div class="bg-background-light text-text-light">
   <!-- HERO SECTION -->
-  <header class="relative min-h-[60vh] flex items-center pt-20 overflow-hidden">
+  <header class="relative min-h-[45vh] flex items-center pt-20 overflow-hidden">
     <picture class="hero-media">
       <!-- AVIF sources (best compression, modern browsers) -->
       <source
@@ -73,7 +73,7 @@
     <div class="absolute inset-0 bg-gradient-to-r from-darkblue/95 via-darkblue/70 to-darkblue/40 z-[1]"></div>
     <div class="absolute inset-0 bg-darkblue/40 mix-blend-multiply z-[2]"></div>
 
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12">
       <div class="max-w-3xl">
         <div class="reveal-up flex flex-wrap gap-3 mb-6">
           <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/10 backdrop-blur text-white border border-white/20">
@@ -81,11 +81,11 @@
             CENTRO DE INOVAÇÃO UNIRV
           </span>
           <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/10 backdrop-blur text-white border border-white/20">
-            <span class="material-icons-outlined text-sm mr-2">handshake</span>
+            <span class="material-icons-outlined text-sm mr-2" aria-hidden="true">handshake</span>
             Apoio FINEP
           </span>
         </div>
-        <h1 class="reveal-up font-display text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6">
+        <h1 class="reveal-up font-display text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
           O Futuro do <br/>
           <span class="text-secondary">Agronegócio</span> Começa Aqui.
         </h1>
@@ -94,13 +94,13 @@
             O AgroHub UniRV é o centro de inovação, pesquisa aplicada e pós-graduação da Universidade de Rio Verde, projetado para conectar academia, empresas, startups, produtores e poder público em soluções tecnológicas para o agronegócio.
           </p>
         </div>
-        <div class="reveal-up flex flex-col sm:flex-row gap-4 mb-16">
+        <div class="reveal-up flex flex-col sm:flex-row gap-4 mb-8">
           <a href="{% url 'editais_index' %}" class="inline-flex justify-center items-center px-8 py-4 border border-transparent text-base font-bold rounded-lg text-darkblue bg-white hover:bg-gray-100 transition shadow-lg group">
             Ver Editais Abertos
-            <span class="material-icons-outlined ml-2 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <span class="material-icons-outlined ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true">arrow_forward</span>
           </a>
           <a href="{% url 'ambientes_inovacao' %}" class="inline-flex justify-center items-center px-8 py-4 border border-white/30 backdrop-blur-sm text-base font-bold rounded-lg text-white hover:bg-white/10 transition">
-            <span class="material-icons-outlined mr-2">play_circle</span>
+            <span class="material-icons-outlined mr-2" aria-hidden="true">play_circle</span>
             Conhecer Infraestrutura
           </a>
         </div>
@@ -109,7 +109,7 @@
   </header>
 
   <!-- STATS OVERLAP SECTION -->
-  <section id="stats-overlap" class="relative z-20 -mt-20 pb-20 px-4">
+  <section id="stats-overlap" class="relative z-20 -mt-14 pb-16 px-4">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Stat Cards -->
@@ -148,7 +148,7 @@
         <!-- Card 1 -->
         <div class="pillar-card bg-surface-light p-8 rounded-2xl border border-gray-100 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 group">
           <div class="w-16 h-16 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="material-icons-outlined text-3xl">science</span>
+            <span class="material-icons-outlined text-3xl" aria-hidden="true">science</span>
           </div>
           <h3 class="font-display text-xl font-bold text-text-light mb-3">Pesquisa Aplicada</h3>
           <p class="text-text-muted text-sm leading-relaxed">Conexão direta entre laboratório e campo para resolver dores reais e aumentar a produtividade.</p>
@@ -156,7 +156,7 @@
         <!-- Card 2 -->
         <div class="pillar-card bg-surface-light p-8 rounded-2xl border border-gray-100 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-300 group">
           <div class="w-16 h-16 rounded-2xl bg-green-50 text-secondary flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="material-icons-outlined text-3xl">wifi_tethering</span>
+            <span class="material-icons-outlined text-3xl" aria-hidden="true">wifi_tethering</span>
           </div>
           <h3 class="font-display text-xl font-bold text-text-light mb-3">Digitalização</h3>
           <p class="text-text-muted text-sm leading-relaxed">IoT, Drones e Big Data integrados para o Agro 4.0, trazendo inteligência para a tomada de decisão.</p>
@@ -164,7 +164,7 @@
         <!-- Card 3 -->
         <div class="pillar-card bg-surface-light p-8 rounded-2xl border border-gray-100 hover:shadow-2xl hover:shadow-yellow-500/10 transition-all duration-300 group">
           <div class="w-16 h-16 rounded-2xl bg-yellow-50 text-yellow-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="material-icons-outlined text-3xl">lightbulb</span>
+            <span class="material-icons-outlined text-3xl" aria-hidden="true">lightbulb</span>
           </div>
           <h3 class="font-display text-xl font-bold text-text-light mb-3">Empreendedorismo</h3>
           <p class="text-text-muted text-sm leading-relaxed">Incubação de startups e cultura de inovação aberta para fomentar novos negócios no campo.</p>
@@ -172,7 +172,7 @@
         <!-- Card 4 -->
         <div class="pillar-card bg-surface-light p-8 rounded-2xl border border-gray-100 hover:shadow-2xl hover:shadow-teal-500/10 transition-all duration-300 group">
           <div class="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-            <span class="material-icons-outlined text-3xl">eco</span>
+            <span class="material-icons-outlined text-3xl" aria-hidden="true">eco</span>
           </div>
           <h3 class="font-display text-xl font-bold text-text-light mb-3">Sustentabilidade</h3>
           <p class="text-text-muted text-sm leading-relaxed">Tecnologia para produzir mais com menos impacto ambiental, garantindo o futuro das gerações.</p>
@@ -199,10 +199,10 @@
         <div class="relative overflow-y-visible overflow-x-hidden z-0">
           <!-- Desktop Navigation Buttons -->
           <button id="startup-carousel-prev" class="carousel-nav-button hidden md:flex absolute left-0 top-1/2 z-10 bg-white/90 border border-gray-200 rounded-full p-3 shadow-lg" aria-label="Anterior">
-            <i class="fas fa-chevron-left text-primary"></i>
+            <i class="fas fa-chevron-left text-primary" aria-hidden="true"></i>
           </button>
           <button id="startup-carousel-next" class="carousel-nav-button hidden md:flex absolute right-0 top-1/2 z-10 bg-white/90 border border-gray-200 rounded-full p-3 shadow-lg" aria-label="Próximo">
-            <i class="fas fa-chevron-right text-primary"></i>
+            <i class="fas fa-chevron-right text-primary" aria-hidden="true"></i>
           </button>
           <!-- Ambient Glow: Blob de gradiente para glassmorphism -->
           <div id="ambient-glow-blob" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-50/50 via-green-50/50 to-blue-50/50 blur-3xl rounded-full opacity-60 pointer-events-none" style="width: 120%; min-width: 120%; height: 300px; min-height: 300px; z-index: -10;"></div>
@@ -278,14 +278,14 @@
                  aria-label="Cadastre sua startup">
                 <div class="bg-gradient-to-br from-primary to-secondary border-2 border-dashed border-white/30 rounded-2xl p-6 h-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 flex flex-col items-center justify-center min-h-[280px] text-white">
                   <div class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-plus text-3xl"></i>
+                    <i class="fas fa-plus text-3xl" aria-hidden="true"></i>
                   </div>
                   <h3 class="font-bold text-xl mb-2 text-center">Sua Startup Aqui</h3>
                   <p class="text-white/90 text-sm text-center mb-4">
                     Faça parte do ecossistema de inovação
                   </p>
                   <span class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-semibold group-hover:bg-white/30 transition-colors">
-                    Cadastrar <i class="fas fa-arrow-right ml-2"></i>
+                    Cadastrar <i class="fas fa-arrow-right ml-2" aria-hidden="true"></i>
                   </span>
                 </div>
               </a>
@@ -342,7 +342,7 @@
             <!-- Item 1: Academia -->
             <li class="flex items-center gap-5 group">
               <div class="w-12 h-12 rounded-full bg-secondary/20 border border-secondary flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
-                <i class="fas fa-graduation-cap text-lg"></i>
+                <i class="fas fa-graduation-cap text-lg" aria-hidden="true"></i>
               </div>
               <div>
                 <h4 class="font-bold text-lg">Academia (UniRV)</h4>
@@ -352,7 +352,7 @@
             <!-- Item 2: Setor Produtivo -->
             <li class="flex items-center gap-5 group">
               <div class="w-12 h-12 rounded-full bg-white/15 border border-white/40 flex items-center justify-center text-white group-hover:bg-white group-hover:text-primary transition-all">
-                <i class="fas fa-tractor text-lg"></i>
+                <i class="fas fa-tractor text-lg" aria-hidden="true"></i>
               </div>
               <div>
                 <h4 class="font-bold text-lg text-white">Setor Produtivo</h4>
@@ -362,7 +362,7 @@
             <!-- Item 3: Governo -->
             <li class="flex items-center gap-5 group">
               <div class="w-12 h-12 rounded-full bg-secondary/20 border border-secondary flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all">
-                <i class="fas fa-landmark text-lg"></i>
+                <i class="fas fa-landmark text-lg" aria-hidden="true"></i>
               </div>
               <div>
                 <h4 class="font-bold text-lg">Governo</h4>
@@ -372,7 +372,7 @@
             <!-- Item 4: Sociedade -->
             <li class="flex items-center gap-5 group">
               <div class="w-12 h-12 rounded-full bg-purple-400/20 border border-purple-300 flex items-center justify-center text-purple-300 group-hover:bg-purple-400 group-hover:text-white transition-all">
-                <i class="fas fa-users text-lg"></i>
+                <i class="fas fa-users text-lg" aria-hidden="true"></i>
               </div>
               <div>
                 <h4 class="font-bold text-lg text-white">Sociedade Civil</h4>
@@ -451,7 +451,7 @@
           <!-- Fase 1 -->
           <div class="timeline-item flex flex-col items-start md:items-center group relative">
             <div class="timeline-icon-mobile md:static w-14 h-14 md:w-20 md:h-20 bg-secondary border-4 border-white text-white rounded-full flex items-center justify-center font-bold text-xl md:text-3xl shadow-lg z-10 transition-transform transform group-hover:scale-110">
-              <i class="fas fa-check"></i>
+              <i class="fas fa-check" aria-hidden="true"></i>
             </div>
             <div class="mt-2 md:mt-8 bg-white border border-gray-200 p-6 rounded-xl shadow-xl w-full md:text-center hover:shadow-xl transition-all relative">
               <div class="hidden md:block absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white rotate-45 border-t border-l border-gray-200"></div>

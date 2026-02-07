@@ -4,27 +4,14 @@ Tests for startup detail views.
 Tests startup detail view with slug and ID, 404 handling.
 """
 
-from unittest import skipIf
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from editais.models import Startup
 
 
-# SQLite in-memory databases can have connection isolation issues with Django's test client
-SKIP_SQLITE_REDIRECT_TESTS = "sqlite" in str(
-    __import__("django.conf", fromlist=["settings"])
-    .settings.DATABASES.get("default", {})
-    .get("ENGINE", "")
-)
-
-
 class StartupDetailViewTestCase(TestCase):
-    """
-    Test startup detail view.
-
-    Uses TestCase for proper data isolation with SQLite.
-    """
+    """Test startup detail view."""
 
     def setUp(self):
         self.client = Client()
@@ -47,10 +34,6 @@ class StartupDetailViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.project.name)
 
-    @skipIf(
-        SKIP_SQLITE_REDIRECT_TESTS,
-        "SQLite in-memory has connection isolation issues with TestCase",
-    )
     def test_startup_detail_by_id_redirects(self):
         """Test that accessing by ID redirects to slug URL"""
         # Ensure project has a slug (should be generated on save)

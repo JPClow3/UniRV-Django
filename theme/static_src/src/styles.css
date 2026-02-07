@@ -2549,6 +2549,15 @@ h1, h2, h3, .font-display {
   }
 }
 
+/* Scrollbar-hide utility for horizontal-scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Filter details - keep open on large screens (outside @layer for media queries) */
 @media (min-width: 1024px) {
   .filter-details summary {

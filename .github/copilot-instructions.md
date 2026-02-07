@@ -12,7 +12,7 @@ Single Django app (`editais/`) with a service layer pattern:
 - **Views** (`editais/views/`): Split into `public.py`, `dashboard.py`, `editais_crud.py`, `mixins.py`. The top-level `editais/views.py` re-exports everything for backward compatibility — never add views there directly.
 - **Services** (`editais/services.py`): Business logic (`EditalService`) extracted from views. Use this layer for complex operations.
 - **Constants** (`editais/constants/`): `cache.py`, `limits.py`, `status.py` — re-exported via `__init__.py`. All magic numbers must be defined here.
-- **Cache** (`editais/cache_utils.py`): Standardized key generation (`get_cache_key()`, `get_detail_cache_key()`). Key format: `{prefix}_{key}:{value}`.
+- **Cache** (`editais/cache_utils.py`): Standardized key generation (`get_cache_key()`, `get_detail_cache_key()`). Key format: `{prefix}_{key}:{value}`. Redis is the primary cache backend; LocMemCache is fallback when Redis is not configured.
 - **Decorators** (`editais/decorators.py`): `@rate_limit`, `@staff_required`, cache decorators.
 
 ## Key Commands
@@ -46,7 +46,7 @@ python manage.py seed_startups
 
 - Use `SlugGenerationMixin` for models needing unique slugs — implements retry logic for race conditions.
 - HTML input is sanitized via `bleach` in `save()` methods (see `sanitize_edital_fields()` in `utils.py`).
-- PostgreSQL full-text search with `SearchVector`/`SearchQuery` and SQLite `icontains` fallback.
+- PostgreSQL full-text search with `SearchVector`/`SearchQuery` (PostgreSQL required for all environments).
 - All module-level imports — no lazy imports inside functions.
 
 ### Views
@@ -105,11 +105,11 @@ Legacy aliases exist (`unirvBlue` → `primary`, `agrohubBlue` → `primary-hove
 - **File naming**: `test_<feature>.py` — one file per feature area.
 - Use `TransactionTestCase` **only** for testing `transaction.on_commit()` callbacks (e.g., cache invalidation). Add cleanup in `setUp()` to prevent data leakage.
 - When creating `StartupFactory`, pass `edital=` explicitly to avoid SubFactory creating extra editals.
-- SQLite tests: some redirect tests are skipped via `@skipIf(SKIP_SQLITE, ...)` due to in-memory connection isolation.
 
 ## Database
 
-- **Dev**: SQLite (automatic). **Prod**: PostgreSQL via `DATABASE_URL` env var (parsed by `dj-database-url`).
+- **All environments**: PostgreSQL via `DATABASE_URL` env var (parsed by `dj-database-url`) or `DB_NAME`/`DB_USER`/`DB_PASSWORD`.
+- SQLite is **not supported**. The app will raise `ImproperlyConfigured` if no PostgreSQL connection is configured.
 - Migrations are in `editais/migrations/`. Run `python manage.py makemigrations` then `python manage.py migrate`.
 
 ## CI/CD
@@ -122,8 +122,8 @@ GitHub Actions (`.github/workflows/test.yml`): ruff lint → bandit security →
 | --------------- | --------------------- | ----------------------- |
 | `SECRET_KEY`    | Django secret         | Dev fallback (insecure) |
 | `DJANGO_DEBUG`  | Debug mode            | `True`                  |
-| `DATABASE_URL`  | PostgreSQL connection | SQLite                  |
-| `REDIS_URL`     | Cache backend         | Local memory            |
+| `DATABASE_URL`  | PostgreSQL connection | **Required**            |
+| `REDIS_URL`     | Cache backend (Redis) | LocMemCache fallback    |
 | `ALLOWED_HOSTS` | Comma-separated hosts | localhost (dev)         |
 
 ## Docker Deployment

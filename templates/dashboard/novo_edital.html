@@ -9,7 +9,7 @@
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <a href="{% url 'dashboard_editais' %}" class="bg-transparent hover:bg-gray-100 text-gray-700 rounded-lg px-3 py-2 text-sm transition-all inline-flex items-center gap-2">
-        <i class="fas fa-arrow-left w-4 h-4"></i>
+        <i class="fas fa-arrow-left w-4 h-4" aria-hidden="true"></i>
         Voltar
       </a>
       <div>
@@ -22,11 +22,11 @@
 
     <div class="flex gap-2">
       <button type="button" class="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2 text-sm transition-all inline-flex items-center gap-2">
-        <i class="fas fa-save w-4 h-4"></i>
+        <i class="fas fa-save w-4 h-4" aria-hidden="true"></i>
         Salvar Rascunho
       </button>
       <button type="submit" form="edital-form" class="bg-gradient-to-r from-primary to-primary-hover hover:from-primary/90 hover:to-primary-hover/90 rounded-lg shadow-md hover:shadow-lg transition-all inline-flex items-center justify-center gap-2 px-6 py-2 text-white font-medium">
-        <i class="fas fa-paper-plane w-4 h-4"></i>
+        <i class="fas fa-paper-plane w-4 h-4" aria-hidden="true"></i>
         Publicar
       </button>
     </div>
@@ -48,13 +48,13 @@
       {% if form.errors %}
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4" role="alert">
           <div class="flex items-center gap-2 text-red-800 font-medium mb-2">
-            <i class="fas fa-exclamation-triangle"></i>
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
             <span>Há {{ form|total_error_count }} erro{{ form|total_error_count|pluralize }} no formulário</span>
           </div>
           <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
             {% for field in form %}
               {% if field.errors %}
-                <li><strong>{{ field.label }}:</strong> {{ field.errors.0 }}</li>
+                <li><strong>{{ field.label }}:</strong> {% for error in field.errors %}{{ error }}{% if not forloop.last %}; {% endif %}{% endfor %}</li>
               {% endif %}
             {% endfor %}
             {% if form.non_field_errors %}
@@ -74,7 +74,7 @@
           </label>
           {{ form.numero_edital }}
           {% if form.numero_edital.errors %}
-            <p class="text-sm text-red-600">{{ form.numero_edital.errors.0 }}</p>
+            <div id="id_numero_edital_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.numero_edital.errors %}<p>{{ error }}</p>{% endfor %}</div>
           {% endif %}
         </div>
 
@@ -85,7 +85,7 @@
           </label>
           {{ form.status }}
           {% if form.status.errors %}
-            <p class="text-sm text-red-600">{{ form.status.errors.0 }}</p>
+            <div id="id_status_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.status.errors %}<p>{{ error }}</p>{% endfor %}</div>
           {% endif %}
         </div>
       </div>
@@ -97,7 +97,7 @@
         </label>
         {{ form.titulo }}
         {% if form.titulo.errors %}
-          <p class="text-sm text-red-600">{{ form.titulo.errors.0 }}</p>
+          <div id="id_titulo_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.titulo.errors %}<p>{{ error }}</p>{% endfor %}</div>
         {% endif %}
       </div>
 
@@ -108,7 +108,7 @@
         </label>
         {{ form.url }}
         {% if form.url.errors %}
-          <p class="text-sm text-red-600">{{ form.url.errors.0 }}</p>
+          <div id="id_url_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.url.errors %}<p>{{ error }}</p>{% endfor %}</div>
         {% endif %}
       </div>
 
@@ -119,7 +119,7 @@
         </label>
         {{ form.entidade_principal }}
         {% if form.entidade_principal.errors %}
-          <p class="text-sm text-red-600">{{ form.entidade_principal.errors.0 }}</p>
+          <div id="id_entidade_principal_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.entidade_principal.errors %}<p>{{ error }}</p>{% endfor %}</div>
         {% endif %}
       </div>
 
@@ -130,7 +130,7 @@
         </label>
         {{ form.objetivo }}
         {% if form.objetivo.errors %}
-          <p class="text-sm text-red-600">{{ form.objetivo.errors.0 }}</p>
+          <div id="id_objetivo_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.objetivo.errors %}<p>{{ error }}</p>{% endfor %}</div>
         {% endif %}
       </div>
 
@@ -142,7 +142,7 @@
           </label>
           {{ form.start_date }}
           {% if form.start_date.errors %}
-            <p class="text-sm text-red-600">{{ form.start_date.errors.0 }}</p>
+            <div id="id_start_date_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.start_date.errors %}<p>{{ error }}</p>{% endfor %}</div>
           {% endif %}
         </div>
 
@@ -153,7 +153,7 @@
           </label>
           {{ form.end_date }}
           {% if form.end_date.errors %}
-            <p class="text-sm text-red-600">{{ form.end_date.errors.0 }}</p>
+            <div id="id_end_date_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in form.end_date.errors %}<p>{{ error }}</p>{% endfor %}</div>
           {% endif %}
           <p class="text-xs text-gray-500">Deixe em branco para fluxo contínuo</p>
         </div>
@@ -169,10 +169,10 @@
             </label>
             {{ field }}
             {% if field.help_text %}
-              <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+              <p id="{{ field.auto_id }}_helptext" class="text-xs text-gray-500">{{ field.help_text }}</p>
             {% endif %}
             {% if field.errors %}
-              <p class="text-sm text-red-600">{{ field.errors.0 }}</p>
+              <div id="{{ field.auto_id }}_error" class="text-sm text-red-600" role="alert" aria-live="polite">{% for error in field.errors %}<p>{{ error }}</p>{% endfor %}</div>
             {% endif %}
           </div>
         {% endif %}

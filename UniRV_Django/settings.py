@@ -209,15 +209,16 @@ WSGI_APPLICATION = "UniRV_Django.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+#
+# PostgreSQL is REQUIRED for all environments (dev, test, production).
+# Set DATABASE_URL or individual DB_* environment variables.
+#
+# Quick setup for development:
+#   DATABASE_URL=postgres://user:password@localhost:5432/agrohub_dev
+#
+# Or individual variables:
+#   DB_NAME=agrohub_dev DB_USER=user DB_PASSWORD=password
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-# Prefer DATABASE_URL if available (Railway/Heroku style)
 database_url = os.environ.get("DATABASE_URL", "").strip()
 if database_url:
     DATABASES = {
@@ -227,32 +228,30 @@ if database_url:
             conn_health_checks=True,
         )
     }
-elif not DEBUG:
-    # Production database override (PostgreSQL)
-    db_name = os.environ.get("DB_NAME")
-    if db_name:  # PostgreSQL configured
+else:
+    db_name = os.environ.get("DB_NAME", "")
+    if db_name:
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
                 "NAME": db_name,
-                "USER": os.environ.get("DB_USER"),
-                "PASSWORD": os.environ.get("DB_PASSWORD"),
+                "USER": os.environ.get("DB_USER", "postgres"),
+                "PASSWORD": os.environ.get("DB_PASSWORD", ""),
                 "HOST": os.environ.get("DB_HOST", "localhost"),
                 "PORT": os.environ.get("DB_PORT", "5432"),
-                "CONN_MAX_AGE": 600,  # Connection pooling - reuse connections for 10 minutes
+                "CONN_MAX_AGE": 600,
                 "OPTIONS": {
                     "connect_timeout": 10,
                 },
             }
         }
-    # If no DB configured and not using SQLite in production, warn
-    elif DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
-        import warnings
+    else:
+        from django.core.exceptions import ImproperlyConfigured
 
-        warnings.warn(
-            "Using SQLite in production is not recommended for applications with concurrent users. "
-            "Consider PostgreSQL or MySQL.",
-            UserWarning,
+        raise ImproperlyConfigured(
+            "PostgreSQL is required. Set DATABASE_URL or DB_NAME environment variable.\n"
+            "Example: DATABASE_URL=postgres://user:password@localhost:5432/agrohub_dev\n"
+            "Or: DB_NAME=agrohub_dev DB_USER=postgres DB_PASSWORD=secret"
         )
 
 
@@ -508,20 +507,11 @@ WHITENOISE_MANIFEST_STRICT = (
 )
 
 # Cache configuration
-# Try Redis first, fallback to LocMemCache for development
-# Cache versioning: increment CACHE_VERSION env var to force cache purge on deploys
+# Redis is the primary cache backend. Falls back to LocMemCache only if Redis
+# is not configured (no REDIS_URL / REDIS_HOST env vars).
+# Cache versioning: increment CACHE_VERSION env var to force cache purge on deploys.
 CACHE_VERSION = int(os.environ.get("CACHE_VERSION", "1"))
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
-        "OPTIONS": {"MAX_ENTRIES": 1000},
-        "VERSION": CACHE_VERSION,
-    }
-}
-
-# Use Redis in production if available
 redis_url = os.environ.get("REDIS_URL", "").strip()
 redis_host = os.environ.get("REDIS_HOST", "")
 redis_port = os.environ.get("REDIS_PORT", "6379")
@@ -530,67 +520,54 @@ redis_location = redis_url or (
 )
 
 if redis_location:
-    try:
-        # Try django-redis first (recommended)
-        import django_redis
+    _redis_options = {
+        "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        "SOCKET_CONNECT_TIMEOUT": 5,
+        "SOCKET_TIMEOUT": 5,
+        "CONNECTION_POOL_KWARGS": {
+            "max_connections": int(os.environ.get("REDIS_MAX_CONNECTIONS", "50")),
+            "retry_on_timeout": True,
+        },
+        "IGNORE_EXCEPTIONS": not DEBUG,
+    }
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": redis_location,
+            "OPTIONS": _redis_options,
+            "KEY_PREFIX": "unirv_editais",
+            "TIMEOUT": 300,
+            "VERSION": CACHE_VERSION,
+        },
+        "sessions": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": redis_location,
+            "OPTIONS": _redis_options,
+            "KEY_PREFIX": "unirv_sessions",
+            "TIMEOUT": 1209600,  # 2 weeks
+            "VERSION": CACHE_VERSION,
+        },
+    }
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "sessions"
+else:
+    # Fallback: LocMemCache when Redis is not configured
+    if not DEBUG:
+        import warnings
 
-        _redis_options = {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SOCKET_CONNECT_TIMEOUT": 5,  # Connection timeout in seconds
-            "SOCKET_TIMEOUT": 5,  # Socket timeout in seconds
-            "CONNECTION_POOL_KWARGS": {
-                "max_connections": int(os.environ.get("REDIS_MAX_CONNECTIONS", "50")),
-                "retry_on_timeout": True,
-            },
-            "IGNORE_EXCEPTIONS": not DEBUG,  # In production, fail silently (fall back to no-cache)
+        warnings.warn(
+            "Redis is not configured (REDIS_URL or REDIS_HOST not set). "
+            "Using LocMemCache — not suitable for multi-process production deployments.",
+            UserWarning,
+        )
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+            "OPTIONS": {"MAX_ENTRIES": 1000},
+            "VERSION": CACHE_VERSION,
         }
-        CACHES = {
-            "default": {
-                "BACKEND": "django_redis.cache.RedisCache",
-                "LOCATION": redis_location,
-                "OPTIONS": _redis_options,
-                "KEY_PREFIX": "unirv_editais",
-                "TIMEOUT": 300,  # Default timeout 5 minutes
-                "VERSION": CACHE_VERSION,
-            },
-            "sessions": {
-                "BACKEND": "django_redis.cache.RedisCache",
-                "LOCATION": redis_location,
-                "OPTIONS": _redis_options,
-                "KEY_PREFIX": "unirv_sessions",
-                "TIMEOUT": 1209600,  # 2 weeks for sessions
-                "VERSION": CACHE_VERSION,
-            },
-        }
-        # Use Redis for session storage when available
-        SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-        SESSION_CACHE_ALIAS = "sessions"
-    except ImportError:
-        try:
-            # Fallback to Django's built-in Redis backend (no CLIENT_CLASS option)
-            import redis
-
-            CACHES = {
-                "default": {
-                    "BACKEND": "django.core.cache.backends.redis.RedisCache",
-                    "LOCATION": redis_location,
-                    "KEY_PREFIX": "unirv_editais",
-                    "TIMEOUT": 300,  # Default timeout 5 minutes
-                    "VERSION": CACHE_VERSION,
-                },
-                "sessions": {
-                    "BACKEND": "django.core.cache.backends.redis.RedisCache",
-                    "LOCATION": redis_location,
-                    "KEY_PREFIX": "unirv_sessions",
-                    "TIMEOUT": 1209600,  # 2 weeks for sessions
-                    "VERSION": CACHE_VERSION,
-                },
-            }
-            SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-            SESSION_CACHE_ALIAS = "sessions"
-        except ImportError:
-            # Redis not installed, use LocMemCache
-            pass
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,70 +1,81 @@
 # syntax=docker/dockerfile:1
 
 # ============================================================================
-# Stage 1: Node.js build stage - Build Tailwind CSS assets
+# Build arguments — override with: docker build --build-arg PYTHON_VERSION=3.13
 # ============================================================================
-FROM node:20-slim AS node-builder
+ARG NODE_VERSION=20
+ARG PYTHON_VERSION=3.12
 
-WORKDIR /app
+# ============================================================================
+# Stage 1: Node.js build — Compile Tailwind CSS & minify JavaScript
+# ============================================================================
+FROM node:${NODE_VERSION}-slim AS node-builder
 
-# Copy only package files for better layer caching
-COPY theme/static_src/package*.json ./theme/static_src/
-
-# Install npm dependencies (including dev dependencies for building Tailwind)
 WORKDIR /app/theme/static_src
-RUN npm ci
+
+# Copy only package files first for better layer caching
+COPY theme/static_src/package*.json ./
+
+# Install npm dependencies (dev deps required for Tailwind build)
+RUN npm ci \
+    && npm cache clean --force
 
 # Copy static JavaScript files that need to be minified
 COPY static/js/ /app/static/js/
 
-# Copy theme source files
+# Copy theme source files (changes more often than package lock)
 COPY theme/static_src/ ./
 
 # Build Tailwind CSS and minify JavaScript
 RUN npm run build
 
 # ============================================================================
-# Stage 2: Python builder stage - Install dependencies and collect static
+# Stage 2: Python builder — Install deps, collect static assets
 # ============================================================================
-FROM python:3.12-slim-bookworm AS python-builder
+FROM python:${PYTHON_VERSION}-slim-bookworm AS python-builder
 
-# Environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install system dependencies needed for building Python packages
+# Install only build-time system dependencies (gcc for C extensions)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    postgresql-client \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir --user -r /app/requirements.txt
+# Copy requirements first for layer caching; install with --user for easy copy later
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Copy application code
-COPY . /app
+COPY . .
 
-# Copy all built assets from node-builder stage (CSS, minified JS, vendor files)
+# Overlay built frontend assets from node-builder stage
 COPY --from=node-builder /app/theme/static/ ./theme/static/
 COPY --from=node-builder /app/static/ ./static/
 
-# Collect static files with production settings so the manifest is generated
-# (CompressedManifestStaticFilesStorage requires collectstatic to run with DEBUG=False)
+# Collect static files with production settings (generates manifest hashes)
+# DATABASE_URL placeholder required because settings enforce PostgreSQL;
+# collectstatic does not actually connect to the database.
 RUN DJANGO_DEBUG=False \
     SECRET_KEY=build-only-not-used-at-runtime \
     ALLOWED_HOSTS=* \
+    DATABASE_URL=postgres://build:build@localhost/build \
     python manage.py collectstatic --noinput
 
 # ============================================================================
-# Stage 3: Final runtime stage - Slim production image
+# Stage 3: Runtime — Minimal production image
 # ============================================================================
-FROM python:3.12-slim-bookworm
+FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 
-# Environment variables for Python and Django
+# OCI image metadata
+LABEL org.opencontainers.image.title="AgroHub - UniRV Django" \
+    org.opencontainers.image.description="Django application for UniRV Innovation Hub" \
+    org.opencontainers.image.source="https://github.com/UniRV/UniRV-Django" \
+    org.opencontainers.image.vendor="UniRV"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DJANGO_DEBUG=False \
@@ -73,47 +84,38 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install runtime dependencies only (no build tools)
+# Install runtime-only system packages (no build tools) and create non-root user
+# in a single layer to reduce image size
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     curl \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r django-user \
+    && useradd -r -g django-user -m -d /home/django-user django-user
 
-# Create non-root user for security (with home directory)
-RUN groupadd -r django-user && useradd -r -g django-user -m -d /home/django-user django-user
+# Copy Python packages from builder; --chown sets ownership in one step (no extra layer)
+COPY --from=python-builder --chown=django-user:django-user /root/.local /home/django-user/.local
 
-# Copy Python dependencies from builder stage
-COPY --from=python-builder /root/.local /home/django-user/.local
+# Copy application code and collected static files
+COPY --from=python-builder --chown=django-user:django-user /app /app
 
-# Ensure proper ownership of home directory
-RUN chown -R django-user:django-user /home/django-user
-
-# Copy application code and collected static files from builder stage
-COPY --from=python-builder /app /app
-
-# Copy entrypoint script and fix line endings (Windows CRLF -> Unix LF)
+# Copy entrypoint, fix Windows CRLF line endings, and set permissions in one layer
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN sed -i 's/\r$//' /app/docker-entrypoint.sh
-
-# Set ownership of app directory to django-user and make entrypoint executable
-RUN chown -R django-user:django-user /app && \
-    chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh \
+    && chown django-user:django-user /app/docker-entrypoint.sh \
+    && chmod +x /app/docker-entrypoint.sh
 
 # Switch to non-root user
 USER django-user
 
-# Expose port
-EXPOSE $PORT
+# EXPOSE requires a literal value (no variable interpolation)
+EXPOSE 8000
 
-# Health check - verify the application is running and responding
-# Railway manages its own health checks via railway.toml, so this is optional
-# Increased start-period to allow time for PostgreSQL connection and migrations
+# Health check — increased start-period for migrations on first boot
+# Uses hardcoded port 8000 matching EXPOSE and ENV PORT default
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health/ || exit 1
+    CMD curl -f http://localhost:8000/health/ || exit 1
 
-# Set entrypoint script
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-
-# Default command (can be overridden)
 CMD []
