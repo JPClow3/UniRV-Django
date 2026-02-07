@@ -10,6 +10,7 @@ module.exports = {
       colors: {
         // Primary brand colors - modernized palette
         primary: "#2563EB",       // Bright blue (updated from #27348b)
+        "primary-hover": "#1d4ed8", // Darker blue for hover states
         secondary: "#22c55e",     // Green for agro (unchanged)
         darkblue: "#1e3a8a",      // Deep blue for hero/footer
 
