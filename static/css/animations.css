@@ -218,7 +218,8 @@
 }
 
 .ecosystem-ticker-track {
-  display: inline-flex;
+  display: flex;
+  width: max-content;
   animation: marquee-scroll 35s linear infinite;
   will-change: transform;
   white-space: nowrap;
@@ -231,6 +232,8 @@
 /* Fade mask for smooth edges - very subtle to ensure visibility */
 .ecosystem-ticker-wrapper {
   position: relative;
+  overflow: hidden;
+  width: 100%;
   /* Use a subtle mask that only fades the very edges */
   mask-image: linear-gradient(
     to right,
@@ -250,8 +253,6 @@
     rgba(0,0,0,0.3) calc(100% - 30px),
     transparent 100%
   );
-  /* Ensure minimum width for mask to work properly */
-  min-width: 100%;
 }
 
 /* Respect user's motion preferences - but allow animation if user wants it */
