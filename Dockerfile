@@ -52,8 +52,12 @@ COPY . /app
 COPY --from=node-builder /app/theme/static/ ./theme/static/
 COPY --from=node-builder /app/static/ ./static/
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Collect static files with production settings so the manifest is generated
+# (CompressedManifestStaticFilesStorage requires collectstatic to run with DEBUG=False)
+RUN DJANGO_DEBUG=False \
+    SECRET_KEY=build-only-not-used-at-runtime \
+    ALLOWED_HOSTS=* \
+    python manage.py collectstatic --noinput
 
 # ============================================================================
 # Stage 3: Final runtime stage - Slim production image
@@ -88,8 +92,9 @@ RUN chown -R django-user:django-user /home/django-user
 # Copy application code and collected static files from builder stage
 COPY --from=python-builder /app /app
 
-# Copy entrypoint script
+# Copy entrypoint script and fix line endings (Windows CRLF -> Unix LF)
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh
 
 # Set ownership of app directory to django-user and make entrypoint executable
 RUN chown -R django-user:django-user /app && \

@@ -29,7 +29,7 @@
 {% block content %}
 <div class="bg-background-light text-text-light">
   <!-- HERO SECTION -->
-  <header class="relative min-h-screen flex items-center pt-20 overflow-hidden">
+  <header class="relative min-h-[60vh] flex items-center pt-20 overflow-hidden">
     <picture class="hero-media">
       <!-- AVIF sources (best compression, modern browsers) -->
       <source
@@ -105,38 +105,33 @@
           </a>
         </div>
       </div>
-      <!-- Scroll Indicator -->
-      <a href="#stats-overlap" class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-white flex flex-col items-center animate-bounce cursor-pointer opacity-70 hover:opacity-100 transition">
-        <span class="text-xs font-bold tracking-widest mb-1 uppercase">Role para baixo</span>
-        <span class="material-icons-outlined">keyboard_arrow_down</span>
-      </a>
     </div>
   </header>
 
   <!-- STATS OVERLAP SECTION -->
-  <section id="stats-overlap" class="relative z-20 -mt-16 pb-20 px-4 fold-section">
+  <section id="stats-overlap" class="relative z-20 -mt-20 pb-20 px-4">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Stat Cards -->
         <div class="stat-card bg-surface-light rounded-xl p-8 shadow-xl border-b-4 border-secondary transform hover:-translate-y-1 transition duration-300">
           <h3 class="font-display text-4xl font-bold text-darkblue mb-1"><span class="counter" data-target="12">0</span>+</h3>
           <p class="text-xs font-bold tracking-wider text-text-muted uppercase mb-4">Startups</p>
-          <div class="w-8 h-1 bg-gray-200 rounded-full"></div>
+          <div class="stat-bar-track w-12 h-1 bg-gray-200 rounded-full overflow-hidden"><div class="stat-bar-fill h-full w-0 bg-secondary rounded-full"></div></div>
         </div>
         <div class="stat-card bg-surface-light rounded-xl p-8 shadow-xl border-b-4 border-darkblue transform hover:-translate-y-1 transition duration-300">
           <h3 class="font-display text-4xl font-bold text-darkblue mb-1">R$<span class="counter" data-target="10">0</span>M</h3>
           <p class="text-xs font-bold tracking-wider text-text-muted uppercase mb-4">Investimento</p>
-          <div class="w-8 h-1 bg-gray-200 rounded-full"></div>
+          <div class="stat-bar-track w-12 h-1 bg-gray-200 rounded-full overflow-hidden"><div class="stat-bar-fill h-full w-0 bg-darkblue rounded-full"></div></div>
         </div>
         <div class="stat-card bg-surface-light rounded-xl p-8 shadow-xl border-b-4 border-secondary transform hover:-translate-y-1 transition duration-300">
           <h3 class="font-display text-4xl font-bold text-darkblue mb-1"><span class="counter" data-target="40">0</span>ha</h3>
           <p class="text-xs font-bold tracking-wider text-text-muted uppercase mb-4">Smart Farm</p>
-          <div class="w-8 h-1 bg-gray-200 rounded-full"></div>
+          <div class="stat-bar-track w-12 h-1 bg-gray-200 rounded-full overflow-hidden"><div class="stat-bar-fill h-full w-0 bg-secondary rounded-full"></div></div>
         </div>
         <div class="stat-card bg-surface-light rounded-xl p-8 shadow-xl border-b-4 border-darkblue transform hover:-translate-y-1 transition duration-300">
           <h3 class="font-display text-4xl font-bold text-darkblue mb-1"><span class="counter" data-target="3">0</span></h3>
           <p class="text-xs font-bold tracking-wider text-text-muted uppercase mb-4">Fases</p>
-          <div class="w-8 h-1 bg-gray-200 rounded-full"></div>
+          <div class="stat-bar-track w-12 h-1 bg-gray-200 rounded-full overflow-hidden"><div class="stat-bar-fill h-full w-0 bg-darkblue rounded-full"></div></div>
         </div>
       </div>
     </div>

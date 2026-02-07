@@ -105,6 +105,17 @@
       });
     });
 
+    // Stat card accent bars
+    gsap.utils.toArray('.stat-bar-fill').forEach((bar) => {
+      gsap.to(bar, {
+        width: '100%',
+        duration: 1.2,
+        delay: 0.3,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: bar, start: 'top 90%', once: true }
+      });
+    });
+
     // Timeline progress line
     const progressLine = document.querySelector('#progress-line');
     const timelineSection = document.querySelector('.timeline-wrapper');

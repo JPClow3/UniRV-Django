@@ -1,293 +1,292 @@
-# CLAUDE.md - AgroHub Project Guide
+# CLAUDE.md - Guia do Projeto AgroHub
 
-## Project Overview
-Django 5.2+ web application for **AgroHub** - the Innovation and Funding Hub of Universidade de Rio Verde (UniRV). The platform manages funding announcements (editais de fomento), showcases incubated startups, and presents the innovation ecosystem including:
-- **YPETEC**: UniRV's startup incubator
-- **InovaLab**: Technology development lab (software, 3D printing, prototyping)
+## Visão Geral do Projeto
+Aplicação web Django 5.2+ para o **AgroHub** - Hub de Inovação e Fomento da Universidade de Rio Verde (UniRV). A plataforma gerencia editais de fomento, apresenta startups incubadas e o ecossistema de inovação incluindo:
+- **YPETEC**: Incubadora de startups da UniRV
+- **InovaLab**: Laboratório de desenvolvimento tecnológico (software, impressoras 3D, prototipagem)
 
-Portuguese language interface (pt-BR).
+Interface em português (pt-BR).
 
-## Quick Commands
+## Comandos Rápidos
 
 ```bash
 # Setup
 python -m venv .venv && .venv\Scripts\activate  # Windows
 pip install -r requirements.txt
-pip install -r requirements-dev.txt  # Development dependencies
 cd theme/static_src && npm ci && npm run build && cd ../..
 
-# Database
+# Banco de Dados
 python manage.py migrate
 python manage.py createsuperuser
 
-# Development
-python manage.py runserver                    # Start server
-cd theme/static_src && npm run dev           # Watch Tailwind CSS
+# Desenvolvimento
+python manage.py runserver                    # Iniciar servidor
+cd theme/static_src && npm run dev           # Monitorar CSS Tailwind
 
-# Build Assets
-cd theme/static_src && npm run build         # Full build (CSS + JS + vendor)
-npm run build:tailwind                       # Tailwind CSS only
-npm run build:js                             # Minify all JS files
-npm run build:vendor                         # Copy FontAwesome/GSAP
+# Build dos Assets
+cd theme/static_src && npm run build         # Build completo (CSS + JS + vendor)
+npm run build:tailwind                       # Apenas Tailwind CSS
+npm run build:js                             # Minificar arquivos JS
+npm run build:vendor                         # Copiar FontAwesome/GSAP
 
-# Testing
-python manage.py test editais                 # Run all tests
+# Testes
+python manage.py test editais                 # Executar todos os testes
 coverage run --source='editais' manage.py test editais && coverage report
 
-# Linting & Security
-ruff check editais/ UniRV_Django/            # Run linter
-bandit -r editais/ UniRV_Django/ -ll -ii     # Security scan
+# Linting & Segurança
+ruff check editais/ UniRV_Django/            # Executar linter
+bandit -r editais/ UniRV_Django/ -ll -ii     # Verificação de segurança
 
-# Seed Data
-python manage.py seed_editais                 # Sample editais
-python manage.py seed_startups                # Sample startups
+# Dados de Exemplo
+python manage.py seed_editais                 # Popular editais de exemplo
+python manage.py seed_startups                # Popular startups de exemplo
 
-# Docker Deployment
-cp .env.docker .env && docker-compose up --build -d  # First time
-docker-compose logs -f web                            # View logs
+# Docker
+docker-compose up --build -d  # Primeira vez
+docker-compose logs -f web                   # Ver logs
 docker-compose exec web python manage.py createsuperuser
-docker-compose down                                   # Stop
+docker-compose down                          # Parar
 ```
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
-editais/                  # Main Django app
-├── models.py            # Edital, EditalValor, Cronograma, Startup, Tag models
-├── views/               # Modular views
-│   ├── public.py        # Public-facing views
-│   ├── dashboard.py     # Admin dashboard views
-│   ├── editais_crud.py  # CRUD operations
-│   └── mixins.py        # Reusable view mixins
-├── views.py             # Re-exports from views/ for backward compatibility
-├── services.py          # Business logic layer
-├── utils.py             # Helper functions (slug generation, sanitization)
-├── decorators.py        # @rate_limit, @staff_required, caching
-├── forms.py             # Form definitions with HTML sanitization
-├── constants/           # App constants package
-│   ├── cache.py         # Cache keys and TTLs
-│   ├── limits.py        # Size limits, pagination, file upload limits
-│   └── status.py        # Status choices, labels
-└── tests/               # Test suite (85% coverage required)
-    ├── factories.py     # factory-boy fixtures (User, Edital, Startup, Tag, EditalValor, Cronograma)
+editais/                  # App principal Django
+├── models.py            # Modelos Edital, EditalValor, Cronograma, Startup, Tag
+├── views/               # Views organizadas
+│   ├── public.py        # Views públicas
+│   ├── dashboard.py     # Views do dashboard admin
+│   ├── editais_crud.py  # Operações CRUD
+│   └── mixins.py        # Mixins reutilizáveis
+├── views.py             # Re-exports de views/ para compatibilidade reversa
+├── services.py          # Camada de lógica de negócio
+├── utils.py             # Funções auxiliares (slug, sanitização)
+├── decorators.py        # Decoradores customizados (@rate_limit, @staff_required, cache)
+├── forms.py             # Definições de formulários com sanitização HTML
+├── constants/           # Pacote de constantes
+│   ├── cache.py         # Chaves de cache e TTLs
+│   ├── limits.py        # Limites de tamanho, paginação, upload
+│   └── status.py        # Escolhas de status, rótulos
+└── tests/               # Testes (85% cobertura obrigatória)
+    ├── factories.py     # Fixtures factory-boy
     ├── test_dashboard_views.py
     ├── test_startup_model.py
-    └── test_*.py        # Feature-based test files
+    └── test_*.py        # Testes por feature
 
-static/                   # Static assets
-├── css/                  # Custom CSS
-│   ├── animations.css   # Orbit, toast, carousel animations
-│   ├── detail.css       # Edital detail page
-│   └── print.css        # Print styles
+static/                   # Recursos estáticos
+├── css/                  # CSS customizado
+│   ├── animations.css   # Animações orbit, toast, carousel
+│   ├── detail.css       # Página de detalhes
+│   └── print.css        # Estilos para impressão
 ├── js/                   # JavaScript
-│   ├── main.js          # Core UI (menu, toast, modals, forms, scroll-to-error)
-│   ├── animations.js    # GSAP-based page animations
-│   ├── animations-native.js  # CSS/IntersectionObserver fallback
-│   ├── editais-index.js # Editais listing page
-│   ├── edital-form.js   # Form handling with autosave cleanup
-│   └── *.min.js         # Minified versions (production)
-├── fonts/                # Self-hosted Inter + Montserrat fonts
-├── img/                  # Images and hero backgrounds
-└── vendor/               # Third-party libraries
-    ├── fontawesome/      # Font Awesome icons
-    └── gsap/             # GSAP animation library
+│   ├── main.js          # UI principal (menu, toast, modals, forms, scroll-to-error)
+│   ├── animations.js    # Animações GSAP
+│   ├── animations-native.js  # Fallback CSS/IntersectionObserver
+│   ├── editais-index.js # Página de listagem
+│   ├── edital-form.js   # Manipulação de forms com autosave
+│   └── *.min.js         # Versões minificadas (produção)
+├── fonts/                # Fontes Inter + Montserrat
+├── img/                  # Imagens e backgrounds herói
+└── vendor/               # Bibliotecas terceiras
+    ├── fontawesome/      # Ícones Font Awesome
+    └── gsap/             # Biblioteca GSAP
 
-theme/static_src/         # Frontend build system
-├── src/styles.css       # Tailwind CSS source
-├── package.json         # npm scripts (build, dev)
-└── scripts/             # Build utilities
+theme/static_src/         # Sistema de build frontend
+├── src/styles.css       # CSS Tailwind fonte
+├── package.json         # Scripts npm (build, dev)
+└── scripts/             # Utilitários de build
 
-templates/               # Global templates
-├── base.html            # Base template
+templates/               # Templates globais
+├── base.html            # Template base
 ├── home.html            # Homepage
-├── dashboard/           # Admin dashboard templates
-├── editais/             # Edital CRUD templates
-├── startups/            # Startup templates
-└── components/          # Reusable components
+├── dashboard/           # Templates dashboard admin
+├── editais/             # Templates CRUD editais
+├── startups/            # Templates startups
+└── components/          # Componentes reutilizáveis
 
-UniRV_Django/            # Project configuration
-├── settings.py          # Django settings
-└── urls.py              # Root URL routing
+UniRV_Django/            # Configuração do projeto
+├── settings.py          # Configurações Django
+└── urls.py              # Roteamento URL raiz
 
-docker/                   # Docker deployment
+docker/                   # Deploy Docker
 ├── nginx/
-│   ├── nginx.conf       # Main Nginx config
+│   ├── nginx.conf       # Config Nginx principal
 │   ├── conf.d/
-│   │   └── default.conf # Site configuration
-│   └── ssl/             # SSL certificates (gitignored)
+│   │   └── default.conf # Configuração do site
+│   └── ssl/             # Certificados SSL (gitignore)
 └── postgres/
-    └── init/            # DB initialization scripts
+    └── init/            # Scripts inicialização DB
 ```
 
-## Dependencies
+## Dependências
 
 ### Runtime (`requirements.txt`)
-- Dependencies pinned with major version bounds (e.g., `Django>=5.2.8,<6.0`)
+- Dependências fixadas com versão menor (~) (ex: Django>=5.2.8,<6.0)
 - PostgreSQL, Redis, Pillow, bleach, django-simple-history, etc.
 
-### Development (`requirements-dev.txt`)
-- Testing: `factory_boy`, `coverage`
+### Desenvolvimento (`requirements-dev.txt`)
+- Testes: `factory_boy`, `coverage`
 - Linting: `ruff`
-- Security: `bandit`, `pip-audit`
+- Segurança: `bandit`, `pip-audit`
 - Debug: `django-debug-toolbar`
 
-## Build Pipeline
+## Pipeline de Build
 
-| Source | Output | Command |
-|--------|--------|---------|
+| Origem | Saída | Comando |
+|--------|-------|---------|
 | `theme/static_src/src/styles.css` | `theme/static/css/dist/styles.css` | `npm run build:tailwind` |
 | `static/js/*.js` | `static/js/*.min.js` | `npm run build:js` |
 | `node_modules/@fortawesome` | `static/vendor/fontawesome/` | `npm run build:vendor` |
 | `node_modules/gsap` | `static/vendor/gsap/` | `npm run build:vendor` |
 
-## Code Patterns
+## Padrões de Código
 
 ### Models
-- **Custom QuerySets** with chainable methods: `.active()`, `.search()`, `.with_related()`, `.with_prefetch()`
-- **Historical tracking** via `django-simple-history` on Edital model
-- **PostgreSQL full-text search** with fallback to `icontains` for SQLite
-- **HTML sanitization** using `bleach` in model `save()` methods
-- **Constants** for magic numbers (e.g., `MAX_LOGO_FILE_SIZE` in `constants/limits.py`)
+- **QuerySets customizados** com métodos encadeáveis: `.active()`, `.search()`, `.with_related()`, `.with_prefetch()`
+- **Rastreamento histórico** via `django-simple-history` no modelo Edital
+- **Full-text search PostgreSQL** com fallback para `icontains` em SQLite
+- **Sanitização HTML** usando `bleach` em métodos `save()`
+- **Constantes** para números mágicos (ex: `MAX_LOGO_FILE_SIZE` em `constants/limits.py`)
 
 ### Views
-- Organized in `editais/views/` directory
-- `editais/views.py` re-exports for backward compatibility
-- Class-based views with custom mixins for caching and filtering
-- All imports at module level (no late imports inside functions)
+- Organizadas em diretório `editais/views/`
+- `editais/views.py` re-exporta para compatibilidade reversa
+- Class-based views com mixins customizados para cache e filtros
+- Todos os imports no nível de módulo (sem imports tardiços dentro de funções)
 
 ### Admin
-- Query optimization with `list_select_related` and `list_prefetch_related` on all admin classes
-- Prevents N+1 queries in list views
+- Otimização de query com `list_select_related` e `list_prefetch_related` em todas as classes
+- Previne queries N+1 em list views
 
-### Security
-- Rate limiting via custom `@rate_limit` decorator in `decorators.py`
-- XSS prevention: `bleach` sanitization on user input
-- CSRF protection enabled
-- `@staff_required` decorator for admin views
-- Specific exception handling (no broad `except Exception`)
+### Segurança
+- Rate limiting via decorador customizado `@rate_limit` em `decorators.py`
+- Prevenção XSS: sanitização `bleach` em entrada de usuário
+- CSRF protection habilitado
+- Decorador `@staff_required` para views admin
+- Tratamento específico de exceções (nunca `except Exception`)
 
 ### Frontend
-- No inline event handlers (`onclick`, `onload`) - use external JS with event listeners
-- Autosave with proper memory leak prevention (cleanup on `beforeunload`/`pagehide`)
-- Auto scroll-to-error on form validation failures
+- Sem event handlers inline (`onclick`, `onload`) - usar JS externo com event listeners
+- Autosave com prevenção apropriada de memory leak (cleanup em `beforeunload`/`pagehide`)
+- Auto scroll-to-error em falhas de validação de form
 
-### Testing
-- Use `factory-boy` for fixtures (see `editais/tests/factories.py`)
-- Factories available: `UserFactory`, `StaffUserFactory`, `EditalFactory`, `StartupFactory`, `TagFactory`, `EditalValorFactory`, `CronogramaFactory`
-- Test files named by feature: `test_<feature>.py`
-- CI enforces 85% coverage threshold
+### Testes
+- Usar `factory-boy` para fixtures (ver `editais/tests/factories.py`)
+- Factories disponíveis: `UserFactory`, `StaffUserFactory`, `EditalFactory`, `StartupFactory`, `TagFactory`, `EditalValorFactory`, `CronogramaFactory`
+- Arquivos de teste nomeados por feature: `test_<feature>.py`
+- CI força limite de 85% de cobertura
 
-#### SQLite Test Considerations
-- Use `TestCase` for most tests (faster, proper transaction isolation)
-- Use `TransactionTestCase` only when testing `transaction.on_commit()` callbacks (e.g., cache invalidation)
-- **SQLite in-memory connection isolation**: Some redirect tests are skipped on SQLite due to connection isolation issues between Django's TestCase and the test client. These tests pass on PostgreSQL.
-- When using `StartupFactory`, pass explicit `edital=` to avoid SubFactory creating extra editais
-- For `TransactionTestCase`, add cleanup in `setUp()` to prevent data leakage between tests
+#### Considerações de Testes em SQLite
+- Usar `TestCase` para maioria dos testes (mais rápido, isolamento apropriado de transações)
+- Usar `TransactionTestCase` apenas ao testar callbacks `transaction.on_commit()` (ex: invalidação de cache)
+- **Isolamento de conexão SQLite in-memory**: Alguns testes de redirect são pulados em SQLite por issues de isolamento de conexão entre TestCase do Django e test client. Esses testes passam em PostgreSQL.
+- Ao usar `StartupFactory`, passar `edital=` explícito para evitar SubFactory criar editais extras
+- Para `TransactionTestCase`, adicionar cleanup em `setUp()` para prevenir vazamento de dados entre testes
 
-#### Test Patterns
+#### Padrões de Teste
 ```python
-# For cache invalidation tests - use TransactionTestCase
+# Para testes de invalidação de cache - usar TransactionTestCase
 class CacheInvalidationTest(TransactionTestCase):
     def setUp(self):
-        # Clear data to prevent leakage from other TransactionTestCase tests
+        # Limpar dados para prevenir vazamento de outros TransactionTestCase
         Edital.objects.all().delete()
         Startup.objects.all().delete()
         cache.clear()
 
-# For redirect tests affected by SQLite - use skipIf
+# Para testes de redirect afetados por SQLite - usar skipIf
 from unittest import skipIf
 SKIP_SQLITE = 'sqlite' in settings.DATABASES['default']['ENGINE']
 
-@skipIf(SKIP_SQLITE, "SQLite in-memory has connection isolation issues")
+@skipIf(SKIP_SQLITE, "SQLite in-memory tem issues de isolamento de conexão")
 def test_redirect_by_pk(self):
     ...
 
-# When creating startups with specific edital counts
+# Ao criar startups com contagem específica de edital
 edital = EditalFactory(status='aberto')
-StartupFactory(proponente=user, edital=edital)  # Explicit edital, no extra created
+StartupFactory(proponente=user, edital=edital)  # Edital explícito, sem extra criado
 ```
 
-## Key Models
+## Modelos Principais
 
-| Model | Purpose |
-|-------|---------|
-| `Edital` | Main funding announcement entity |
-| `EditalValor` | Financial values (min/max amounts) |
-| `Cronograma` | Timeline/deadlines |
-| `Startup` | Registered startups showcase |
-| `Tag` | Categorization tags |
+| Modelo | Propósito |
+|--------|-----------|
+| `Edital` | Entidade principal de edital de fomento |
+| `EditalValor` | Valores financeiros (min/máx) |
+| `Cronograma` | Timeline/prazos |
+| `Startup` | Showcase de startups registradas |
+| `Tag` | Tags de categorização |
 
-## Key JavaScript
+## JavaScript Principal
 
-| File | Purpose |
-|------|---------|
-| `main.js` | Core UI: mobile menu, toast notifications, modals, form validation, scroll-to-error |
-| `animations.js` | GSAP-based page animations (home, startups, editais) |
-| `animations-native.js` | CSS/IntersectionObserver fallback when GSAP unavailable |
-| `editais-index.js` | Editais listing: search, filters, AJAX loading |
-| `edital-form.js` | Form handling: dynamic fields, validation, autosave with cleanup |
+| Arquivo | Propósito |
+|---------|-----------|
+| `main.js` | UI principal: menu mobile, toasts, modals, validação forms, scroll-to-error |
+| `animations.js` | Animações GSAP (home, startups, editais) |
+| `animations-native.js` | Fallback CSS/IntersectionObserver quando GSAP indisponível |
+| `editais-index.js` | Listagem editais: busca, filtros, carregamento AJAX |
+| `edital-form.js` | Manipulação forms: campos dinâmicos, validação, autosave com cleanup |
 
-## Design System
+## Sistema de Design
 
-### Color Palette
-| Token | Value | Usage |
-|-------|-------|-------|
-| `primary` | #2563EB | Buttons, links, accents |
-| `primary-hover` | #1d4ed8 | Hover states |
-| `darkblue` | #1e3a8a | Hero backgrounds, footer |
-| `secondary` | #22c55e | Green accent (agro theme) |
-| `background-light` | #F8FAFC | Page backgrounds |
-| `surface-light` | #FFFFFF | Cards, panels |
-| `text-light` | #1E293B | Body text |
-| `text-muted` | #64748B | Secondary text |
+### Paleta de Cores
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `primary` | #2563EB | Botões, links, destaques |
+| `primary-hover` | #1d4ed8 | Estados hover |
+| `darkblue` | #1e3a8a | Backgrounds herói, footer |
+| `secondary` | #22c55e | Destaque verde (tema agro) |
+| `background-light` | #F8FAFC | Backgrounds página |
+| `surface-light` | #FFFFFF | Cards, painéis |
+| `text-light` | #1E293B | Texto corpo |
+| `text-muted` | #64748B | Texto secundário |
 
-Legacy aliases preserved: `unirvBlue` → `primary`, `agrohubBlue` → `primary-hover`
+Aliases legadas preservados: `unirvBlue` → `primary`, `agrohubBlue` → `primary-hover`
 
-### Typography
-- **Display/Headings**: Montserrat (weights: 400, 600, 700, 800)
-- **Body Text**: Inter (weights: 300, 400, 500, 600, 700)
-- Self-hosted fonts in `static/fonts/`
+### Tipografia
+- **Display/Headings**: Montserrat (pesos: 400, 600, 700, 800)
+- **Texto Corpo**: Inter (pesos: 300, 400, 500, 600, 700)
+- Fontes auto-hospedadas em `static/fonts/`
 
-### Icon Systems
-- **Material Icons Outlined**: CDN loaded in `base.html`, used for UI elements
-- **FontAwesome 6.5.2**: Self-hosted in `static/vendor/fontawesome/`, used for feature icons
+### Sistemas de Ícones
+- **Material Icons Outlined**: Carregado via CDN em `base.html`, usado para elementos UI
+- **FontAwesome 6.5.2**: Auto-hospedado em `static/vendor/fontawesome/`, usado para ícones de features
 
-### CSS Patterns
+### Padrões CSS
 - **Glassmorphism**: `bg-white/95 backdrop-blur-lg border-white/20`
 - **Card hover**: `hover:-translate-y-1 transition duration-300 shadow-xl`
-- **Gradient overlays**: `bg-gradient-to-r from-darkblue to-primary`
-- **Theme tokens**: Defined in `@theme` block in `styles.css`
+- **Overlays gradiente**: `bg-gradient-to-r from-darkblue to-primary`
+- **Tokens de tema**: Definidos em bloco `@theme` em `styles.css`
 
-## Environment Variables
-Copy `.env.example` to `.env` and configure:
-- `DEBUG` - Set to False in production
-- `SECRET_KEY` - Django secret key
-- `DATABASE_URL` - PostgreSQL connection (optional, defaults to SQLite)
-- `REDIS_URL` - Cache backend (optional)
+## Variáveis de Ambiente
+Copiar `.env.example` para `.env` e configurar:
+- `DEBUG` - Definir como False em produção
+- `SECRET_KEY` - Chave secreta Django
+- `DATABASE_URL` - Conexão PostgreSQL (opcional, padrão SQLite)
+- `REDIS_URL` - Backend de cache (opcional)
 
-## CI/CD Pipeline
+## Pipeline CI/CD
 GitHub Actions (`.github/workflows/test.yml`):
-1. **Linting** - `ruff check` for code quality
-2. **Security Scan** - `bandit` for vulnerability detection
-3. **Tests** - Django test suite with coverage
-4. **Coverage Check** - 85% threshold enforced
-5. **PR Comments** - Automatic coverage reports on pull requests
+1. **Linting** - `ruff check` para qualidade de código
+2. **Verificação de Segurança** - `bandit` para detecção de vulnerabilidades
+3. **Testes** - Suite de testes Django com cobertura
+4. **Verificação de Cobertura** - Limite de 85% enforçado
+5. **Comentários em PR** - Relatórios automáticos de cobertura
 
-## Docker Production Deployment
+## Deploy em Produção com Docker
 
-### Architecture
+### Arquitetura
 ```
          [Internet]
               │
               ▼
        ┌─────────────┐
        │    Nginx    │ :80/:443
-       │  (proxy)    │ Static/Media files
+       │  (proxy)    │ Arquivos estáticos/mídia
        └──────┬──────┘
               │
               ▼
        ┌─────────────┐
-       │   Django    │ :8000 (internal)
+       │   Django    │ :8000 (interno)
        │  (Gunicorn) │
        └──────┬──────┘
               │
@@ -299,29 +298,29 @@ GitHub Actions (`.github/workflows/test.yml`):
 └───────────┘  └───────────┘
 ```
 
-### Docker Files
-| File | Purpose |
-|------|---------|
-| `Dockerfile` | Multi-stage build (Node + Python), non-root user, HEALTHCHECK |
-| `docker-compose.yml` | Production orchestration (db, redis, web, nginx) |
-| `docker-entrypoint.sh` | DB/Redis wait, migrations, optimized Gunicorn |
-| `.env.docker` | Environment template for Docker deployment |
-| `docker/nginx/nginx.conf` | Nginx main config (gzip, rate limiting) |
-| `docker/nginx/conf.d/default.conf` | Site config (proxy, static, security headers) |
+### Arquivos Docker
+| Arquivo | Propósito |
+|---------|-----------|
+| `Dockerfile` | Build multi-estágio (Node + Python), usuário não-root, HEALTHCHECK |
+| `docker-compose.yml` | Orquestração produção (db, redis, web, nginx) |
+| `docker-entrypoint.sh` | Espera DB/Redis, migrações, Gunicorn otimizado |
+| `.env.docker` | Template ambiente para deploy Docker |
+| `docker/nginx/nginx.conf` | Config Nginx principal (gzip, rate limiting) |
+| `docker/nginx/conf.d/default.conf` | Config site (proxy, estático, headers segurança) |
 
-### Quick Deploy
+### Deploy Rápido
 ```bash
-# First time
+# Primeira vez
 cp .env.docker .env
-# Edit .env: SECRET_KEY, DB_PASSWORD, ALLOWED_HOSTS
+# Editar .env: SECRET_KEY, DB_PASSWORD, ALLOWED_HOSTS
 
-# Build and start
+# Build e start
 docker-compose up --build -d
 
-# View logs
+# Ver logs
 docker-compose logs -f web
 
-# Create superuser
+# Criar superusuário
 docker-compose exec web python manage.py createsuperuser
 
 # Health check
@@ -329,28 +328,28 @@ curl http://localhost/health/
 ```
 
 ### Named Volumes
-| Volume | Container | Purpose |
-|--------|-----------|---------|
-| `postgres_data` | db | Database persistence |
-| `redis_data` | redis | Cache persistence |
-| `media_data` | web, nginx | User uploads |
-| `static_data` | web, nginx | Collected static files |
-| `logs_data` | web | Application logs |
+| Volume | Container | Propósito |
+|--------|-----------|-----------|
+| `postgres_data` | db | Persistência database |
+| `redis_data` | redis | Persistência cache |
+| `media_data` | web, nginx | Uploads do usuário |
+| `static_data` | web, nginx | Arquivos estáticos coletados |
+| `logs_data` | web | Logs de aplicação |
 
-### Environment Variables (Docker)
-**Required:**
-- `SECRET_KEY` - Django secret key
-- `ALLOWED_HOSTS` - Domain(s), comma-separated
-- `DB_PASSWORD` - PostgreSQL password
+### Variáveis de Ambiente (Docker)
+**Obrigatórias:**
+- `SECRET_KEY` - Chave secreta Django
+- `ALLOWED_HOSTS` - Domínio(s), separados por vírgula
+- `DB_PASSWORD` - Senha PostgreSQL
 
-**Auto-configured:**
-- `DB_HOST=db` - Container hostname
-- `REDIS_HOST=redis` - Container hostname
+**Auto-configuradas:**
+- `DB_HOST=db` - Nome de host container
+- `REDIS_HOST=redis` - Nome de host container
 
-See `.env.docker` for full list with defaults.
+Ver `.env.docker` para lista completa com padrões.
 
-## Important Notes
-- Language: Portuguese (pt-BR)
-- Timezone: America/Sao_Paulo
-- Database: PostgreSQL (production), SQLite (development)
-- CI: GitHub Actions runs linting, security scans, tests, and coverage checks on PRs
+## Notas Importantes
+- Idioma: Português (pt-BR)
+- Fuso Horário: America/Sao_Paulo
+- Banco de Dados: PostgreSQL (produção), SQLite (desenvolvimento)
+- CI: GitHub Actions executa linting, verificação de segurança, testes e cobertura em PRs

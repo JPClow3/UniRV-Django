@@ -1611,7 +1611,7 @@ h1, h2, h3, .font-display {
   }
 
   .site-header .nav-link:hover {
-    color: var(--color-green) !important;
+    color: var(--color-primary) !important;
   }
 
   /* Nav link underline animation */
@@ -1660,31 +1660,35 @@ h1, h2, h3, .font-display {
 
   .nav-link {
     position: relative;
+    padding-bottom: 4px;
   }
 
   .nav-link::after {
     content: '';
     position: absolute;
-    bottom: -2px;
-    left: 0;
+    bottom: 0;
+    left: 50%;
     width: 0;
     height: 2px;
-    background: var(--color-green);
-    transition: width 0.3s ease;
+    background: var(--color-primary);
+    border-radius: 1px;
+    transition: width 0.3s ease, left 0.3s ease;
   }
 
   .nav-link:hover::after,
   .nav-link:focus::after {
     width: 100%;
+    left: 0;
   }
 
   /* Glassmorphism header styles */
   .site-header {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.1);
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.3s ease, background 0.3s ease;
   }
 
   /* Enhanced glassmorphism for detail pages where header overlaps content */
@@ -1711,7 +1715,7 @@ h1, h2, h3, .font-display {
   }
 
   .site-header.glass-nav .nav-link:hover {
-    color: var(--color-green);
+    color: var(--color-primary);
   }
 
   .home-page {
@@ -2389,9 +2393,9 @@ h1, h2, h3, .font-display {
   }
 
   .auth-gradient-cta {
-    @apply w-full h-12 rounded-full bg-gradient-to-r from-secondary to-primary
+    @apply w-full h-12 rounded-xl bg-gradient-to-r from-secondary to-primary
     text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-primary-hover
-    transition-all flex items-center justify-center gap-2 text-base;
+    transition-all flex items-center justify-center gap-2 text-base active:scale-95;
     min-height: 48px;
     box-sizing: border-box;
   }

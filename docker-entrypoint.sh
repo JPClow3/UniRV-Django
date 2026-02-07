@@ -36,6 +36,10 @@ log_error() {
     echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $1" >&2
 }
 
+is_nonneg_int() {
+    [[ "$1" =~ ^[0-9]+$ ]]
+}
+
 # ============================================
 # Cleanup on exit
 # ============================================
@@ -85,7 +89,16 @@ wait_for_postgres() {
 
     log_info "Waiting for PostgreSQL at $host:$port (database: $db)..."
 
-    while [ $retries -lt $MAX_DB_RETRIES ]; do
+    if ! is_nonneg_int "$MAX_DB_RETRIES"; then
+        log_warn "Invalid MAX_DB_RETRIES='$MAX_DB_RETRIES', defaulting to 30."
+        MAX_DB_RETRIES=30
+    fi
+    if ! is_nonneg_int "$DB_RETRY_INTERVAL"; then
+        log_warn "Invalid DB_RETRY_INTERVAL='$DB_RETRY_INTERVAL', defaulting to 2."
+        DB_RETRY_INTERVAL=2
+    fi
+
+    while [ "$retries" -lt "$MAX_DB_RETRIES" ]; do
         if pg_isready -h "$host" -p "$port" -U "$user" > /dev/null 2>&1; then
             log_info "PostgreSQL is ready!"
             return 0
@@ -93,11 +106,13 @@ wait_for_postgres() {
 
         retries=$((retries + 1))
         log_info "PostgreSQL not ready (attempt $retries/$MAX_DB_RETRIES). Retrying in ${DB_RETRY_INTERVAL}s..."
-        sleep $DB_RETRY_INTERVAL
+        sleep "$DB_RETRY_INTERVAL"
     done
 
     log_error "PostgreSQL did not become ready in time!"
-    log_error "Connection details: host=$host, port=$port, user=$user, db=$db"
+    if [ -z "$DATABASE_URL" ]; then
+        log_error "Connection details: host=$host, port=$port, user=$user, db=$db"
+    fi
     log_error "DATABASE_URL present: $([ -n "$DATABASE_URL" ] && echo 'yes' || echo 'no')"
     return 1
 }
@@ -129,7 +144,16 @@ wait_for_redis() {
         return 0
     fi
 
-    while [ $retries -lt $MAX_REDIS_RETRIES ]; do
+    if ! is_nonneg_int "$MAX_REDIS_RETRIES"; then
+        log_warn "Invalid MAX_REDIS_RETRIES='$MAX_REDIS_RETRIES', defaulting to 10."
+        MAX_REDIS_RETRIES=10
+    fi
+    if ! is_nonneg_int "$REDIS_RETRY_INTERVAL"; then
+        log_warn "Invalid REDIS_RETRY_INTERVAL='$REDIS_RETRY_INTERVAL', defaulting to 1."
+        REDIS_RETRY_INTERVAL=1
+    fi
+
+    while [ "$retries" -lt "$MAX_REDIS_RETRIES" ]; do
         if [ -n "$redis_url" ]; then
             if redis-cli -u "$redis_url" ping 2>/dev/null | grep -q "PONG"; then
                 log_info "Redis is ready!"
@@ -142,7 +166,7 @@ wait_for_redis() {
 
         retries=$((retries + 1))
         log_info "Redis not ready (attempt $retries/$MAX_REDIS_RETRIES). Retrying in ${REDIS_RETRY_INTERVAL}s..."
-        sleep $REDIS_RETRY_INTERVAL
+        sleep "$REDIS_RETRY_INTERVAL"
     done
 
     log_warn "Redis did not become ready in time. Continuing anyway (cache will use fallback)."

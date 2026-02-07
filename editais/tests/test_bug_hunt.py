@@ -21,7 +21,7 @@ from editais.models import Edital, EditalValor, Cronograma, Startup
 from editais.forms import EditalForm, UserRegistrationForm
 from editais.utils import (
     determine_edital_status, sanitize_html, sanitize_edital_fields,
-    mark_edital_fields_safe, get_project_status_mapping, clear_index_cache
+    mark_edital_fields_safe, get_startup_status_mapping, clear_index_cache
 )
 from editais.decorators import get_client_ip, rate_limit
 from editais.constants import HTML_FIELDS, SLUG_GENERATION_MAX_RETRIES
@@ -410,7 +410,7 @@ class EdgeCaseTests(TestCase):
     
     def test_project_status_mapping_edge_cases(self):
         """Test project status mapping with edge cases"""
-        mapping = get_project_status_mapping()
+        mapping = get_startup_status_mapping()
         
         # Test case sensitivity
         self.assertEqual(mapping.get('PRÉ-INCUBAÇÃO'.lower()), 'pre_incubacao')

@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+{% load static thumbnail_safe editais_filters %}
+{% block title %}Startups - AgroHub UniRV{% endblock %}
+{% block page_id %}startups{% endblock %}
+{% block content %}
+<div class="bg-background-light text-text-light">
+  <!-- HERO SECTION -->
+  {% include 'components/page_hero.html' with badge_label="Incubadora YpeTech" title="Nossas Startups" subtitle="Conheça as mentes brilhantes que estão transformando o agronegócio e a tecnologia em Rio Verde. Inovação aberta conectada ao mercado." stats=stats %}
+
+  <!-- CONTENT SECTION: Filtros e Grid -->
+  <section class="py-16 relative bg-background-light fold-section">
+    <!-- Pattern de fundo -->
+    <div
+      class="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none"
+    ></div>
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <!-- Search and Filters Container -->
+      <div class="mb-16">
+        <!-- Search Input -->
+        <div class="mb-6 max-w-md mx-auto">
+          <form
+            method="GET"
+            action="{% url 'startups_showcase' %}"
+            class="relative"
+          >
+            {% if category_filter %}<input
+              type="hidden"
+              name="category"
+              value="{{ category_filter }}"
+            />{% endif %}
+            <div class="relative">
+              <i
+                class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"
+                aria-hidden="true"
+              ></i>
+              <input
+                type="text"
+                name="search"
+                value="{{ search_query|default:'' }}"
+                placeholder="Buscar startups (ex: AgroSense, IoT...)"
+                class="w-full pl-12 pr-4 py-3 rounded-full border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 shadow-sm transition-all"
+                aria-label="Buscar startups"
+              />
+              {% if search_query %}
+              <a
+                href="{% url 'startups_showcase' %}{% if category_filter %}?category={{ category_filter }}{% endif %}"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Limpar busca"
+              >
+                <i class="fas fa-times" aria-hidden="true"></i>
+              </a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+
+        <!-- Dynamic Filters - Horizontal Scrollable on Mobile -->
+        <div
+          class="flex md:flex-wrap md:justify-center md:items-center gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0"
+          id="portfolio-filters"
+        >
+          <style>
+            #portfolio-filters::-webkit-scrollbar {
+              display: none;
+            }
+          </style>
+          <a
+            href="{% url 'startups_showcase' %}{% if search_query %}?search={{ search_query|urlencode }}{% endif %}"
+            class="filter-btn {% if not category_filter or category_filter == 'all' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-semibold text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm shrink-0 whitespace-nowrap"
+          >
+            Todos
+          </a>
+          <a
+            href="{% url 'startups_showcase' %}?category=agtech{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
+            class="filter-btn {% if category_filter == 'agtech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+          >
+            <i class="fas fa-leaf text-xs" aria-hidden="true"></i> AgTech
+          </a>
+          <a
+            href="{% url 'startups_showcase' %}?category=biotech{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
+            class="filter-btn {% if category_filter == 'biotech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+          >
+            <i class="fas fa-dna text-xs" aria-hidden="true"></i> BioTech
+          </a>
+          <a
+            href="{% url 'startups_showcase' %}?category=iot{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
+            class="filter-btn {% if category_filter == 'iot' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+          >
+            <i class="fas fa-wifi text-xs" aria-hidden="true"></i> IoT &
+            Hardware
+          </a>
+          <a
+            href="{% url 'startups_showcase' %}?category=edtech{% if search_query %}&search={{ search_query|urlencode }}{% endif %}"
+            class="filter-btn {% if category_filter == 'edtech' %}active{% endif %} px-6 py-2.5 rounded-full border border-gray-200 bg-white text-gray-600 font-medium text-sm hover:border-green-500 hover:text-green-600 focus:outline-none shadow-sm flex items-center gap-2 shrink-0 whitespace-nowrap"
+          >
+            <i class="fas fa-graduation-cap text-xs" aria-hidden="true"></i>
+            EdTech
+          </a>
+        </div>
+      </div>
+
+      <!-- Startups Grid - Reserve space to prevent layout shifts -->
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 min-h-[400px]"
+        id="startups-grid"
+      >
+        {% for startup in startups %}
+        <a
+          href="{% url 'startup_detail_slug' startup.slug %}"
+          class="startup-card group rounded-3xl p-8 pb-10 h-full flex flex-col cursor-pointer no-underline"
+          data-category="{{ startup.category }}"
+          aria-label="Ver detalhes de {{ startup.name }}"
+        >
+          <span
+            class="phase-badge inline-flex w-fit self-start px-3 py-1 rounded-full border mb-4 {{ startup.status|phase_badge_class }}"
+          >
+            {% if startup.status == 'pre_incubacao' %}
+            <i class="fas fa-lightbulb mr-1" aria-hidden="true"></i> Ideação
+            {% elif startup.status == 'incubacao' %}
+            <i class="fas fa-tools mr-1" aria-hidden="true"></i> MVP
+            {% elif startup.status == 'graduada' %}
+            <i class="fas fa-rocket mr-1" aria-hidden="true"></i> Escala
+            {% else %}
+            <i class="fas fa-pause-circle mr-1" aria-hidden="true"></i> {{ startup.get_phase_display }}
+            {% endif %}
+          </span>
+
+          <div class="flex items-start justify-between mb-6 overflow-hidden">
+            {% if startup.logo %} {% if startup.logo|is_svg %}
+            <img
+              src="{{ startup.logo.url }}"
+              alt="{{ startup.name }} logo"
+              class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0"
+              loading="lazy"
+            />
+            {% else %} {% safe_thumbnail startup.logo "card_thumb" as thumb %}
+            {% if thumb %}
+            <img
+              src="{{ thumb.url }}"
+              alt="{{ startup.name }} logo"
+              class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0"
+              width="{{ thumb.width }}"
+              height="{{ thumb.height }}"
+              loading="lazy"
+            />
+            {% else %}
+            <img
+              src="{{ startup.logo.url }}"
+              alt="{{ startup.name }} logo"
+              class="w-16 h-16 rounded-2xl object-contain border border-gray-200 shadow-sm shrink-0"
+              loading="lazy"
+            />
+            {% endif %} {% endif %} {% else %}
+            <div
+              class="startup-logo-fallback w-16 h-16 rounded-2xl bg-gradient-to-br {% if startup.category == 'agtech' %}from-green-50 to-emerald-100 border border-green-100 {% elif startup.category == 'biotech' %}from-blue-50 to-primary-hover/20 border border-blue-100 {% elif startup.category == 'iot' %}from-blue-50 to-indigo-100 border border-blue-100 {% elif startup.category == 'edtech' %}from-sky-50 to-blue-100 border border-sky-100 {% else %}from-gray-50 to-gray-100 border border-gray-100{% endif %} flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0 flex-shrink-0"
+            >
+              {% if startup.category == 'agtech' %}🌿{% elif startup.category == 'biotech' %}🧬{% elif startup.category == 'iot' %}📡{% elif startup.category == 'edtech' %}🎓{% else %}💡{% endif %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-6 grow">
+            <h3
+              class="font-extrabold text-2xl text-gray-900 group-hover:text-primary transition-colors mb-2"
+            >
+              {{ startup.name }}
+            </h3>
+            <p
+              class="text-xs font-bold {% if startup.category == 'agtech' %}text-green-600 {% elif startup.category == 'biotech' %}text-purple-600 {% elif startup.category == 'iot' %}text-blue-600 {% elif startup.category == 'edtech' %}text-blue-600 {% else %}text-gray-600{% endif %} uppercase tracking-wider mb-4"
+            >
+              {{ startup.get_category_display }}
+            </p>
+            <p class="text-gray-600 text-sm leading-relaxed">
+              {% if startup.description %} {{
+              startup.description|truncatewords:25 }} {% else %} Startup em
+              processo de incubação na YpeTech, transformando ideias em soluções
+              inovadoras para o agronegócio. {% endif %}
+            </p>
+          </div>
+
+          <div
+            class="flex items-center justify-between pt-6 border-t border-gray-100 mt-auto"
+          >
+            <div class="flex -space-x-2 overflow-hidden">
+              {% if startup.proponente %}
+              <div
+                class="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-bold text-gray-600"
+              >
+                {{
+                startup.proponente.first_name|first|default:startup.proponente.username|first|upper
+                }}{{ startup.proponente.last_name|first|default:''|upper }}
+              </div>
+              {% endif %}
+            </div>
+            <div
+              class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all group-hover:translate-x-1 pointer-events-none"
+            >
+              <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </div>
+          </div>
+        </a>
+        {% empty %}
+        <!-- Empty state will be shown below -->
+        {% endfor %}
+      </div>
+
+      <!-- Empty State -->
+      {% if not startups %}
+      <div id="no-results" class="text-center py-20">
+        <!-- Rocket illustration -->
+        <div class="empty-state-illustration mb-6 flex justify-center">
+          <svg
+            class="w-28 h-28 md:w-32 md:h-32"
+            viewBox="0 0 200 200"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <circle cx="40" cy="50" r="3" fill="#22c55e" opacity="0.6" />
+            <circle cx="160" cy="40" r="2" fill="#2563EB" opacity="0.5" />
+            <circle cx="170" cy="80" r="3" fill="#22c55e" opacity="0.4" />
+            <circle cx="30" cy="120" r="2" fill="#2563EB" opacity="0.6" />
+            <path
+              d="M100 30C100 30 130 60 130 100C130 140 100 170 100 170C100 170 70 140 70 100C70 60 100 30 100 30Z"
+              fill="white"
+              stroke="#2563EB"
+              stroke-width="3"
+            />
+            <circle cx="100" cy="85" r="15" fill="#2563EB" />
+            <circle cx="100" cy="85" r="10" fill="#60A5FA" />
+            <circle cx="96" cy="82" r="3" fill="white" opacity="0.6" />
+            <path d="M70 120L50 150L70 140Z" fill="#22c55e" />
+            <path d="M130 120L150 150L130 140Z" fill="#22c55e" />
+            <ellipse cx="100" cy="175" rx="15" ry="20" fill="#FCD34D" />
+            <ellipse cx="100" cy="172" rx="10" ry="15" fill="#F97316" />
+            <ellipse cx="100" cy="170" rx="5" ry="8" fill="#EF4444" />
+          </svg>
+        </div>
+        <h2 class="text-gray-900 font-bold text-xl mb-2">
+          Nenhuma startup encontrada
+        </h2>
+        <p class="text-gray-500 max-w-xs mx-auto mb-6">
+          {% if search_query %} Não encontramos startups correspondentes à busca
+          "{{ search_query }}". {% elif category_filter %} Não encontramos
+          startups nesta categoria no momento. {% else %} Não encontramos
+          startups no momento. {% endif %}
+        </p>
+        <a
+          href="{% url 'startups_showcase' %}"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover transition-colors"
+        >
+          <i class="fas fa-redo" aria-hidden="true"></i> Limpar Filtros
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- CALL TO ACTION -->
+  <section class="py-20 bg-white border-t border-gray-100 fold-section">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div
+        class="bg-gradient-to-r from-darkblue to-primary rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10 group cursor-pointer hover:shadow-[0_20px_50px_rgba(37,99,235,0.3)] transition-all duration-500"
+      >
+        <div
+          class="absolute top-0 right-0 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700"
+        ></div>
+        <div
+          class="absolute bottom-0 left-0 w-64 h-64 bg-green-500 opacity-10 rounded-full blur-3xl -ml-16 -mb-16 group-hover:scale-125 transition-transform duration-700"
+        ></div>
+
+        <div class="relative z-10 max-w-2xl text-center md:text-left">
+          <h2
+            class="text-3xl md:text-4xl font-extrabold text-white mb-4 leading-tight"
+          >
+            Tem uma ideia <span class="text-green-400">inovadora?</span>
+          </h2>
+          <p class="text-blue-100 text-lg leading-relaxed">
+            Junte-se à Incubadora YpeTech. Oferecemos mentorias, laboratórios de
+            ponta e acesso direto a investidores.
+          </p>
+        </div>
+        <div class="relative z-10 shrink-0">
+          <a
+            href="{% url 'editais_index' %}"
+            class="inline-flex items-center justify-center px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg hover:shadow-green-600/30 transition-all transform hover:scale-105 active:scale-95 gap-3 text-lg"
+          >
+            Quero Incubar
+            <i class="fas fa-rocket" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Wait for GSAP to be loaded from base.html (loaded with defer)
+  function initStartupsAnimations() {
+    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
+      // GSAP not loaded yet, wait a bit and retry
+      setTimeout(initStartupsAnimations, 50);
+      return;
+    }
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // 1. Hero uses .reveal-up; global animations.js handles those.
+
+    // 2. Counters - Animate without causing layout shifts
+    // Batch DOM reads before writes to prevent forced reflows
+    const counters = gsap.utils.toArray(".counter");
+    const counterData = counters.map((counter) => {
+      // Batch all DOM reads first
+      const target = parseInt(counter.getAttribute("data-target")) || 0;
+      const initialValue = parseInt(counter.innerText) || 0;
+      const currentWidth = counter.offsetWidth;
+
+      // Calculate and set min-width in the same batch
+      if (!counter.style.minWidth) {
+        const maxWidth = Math.max(
+          currentWidth,
+          (target.toString().length + 2) * 12,
+        );
+        counter.style.minWidth = maxWidth + "px";
+      }
+
+      return { counter, target, initialValue };
+    });
+
+    // Now batch all writes using requestAnimationFrame
+    requestAnimationFrame(() => {
+      counterData.forEach(({ counter, target, initialValue }) => {
+        // Only animate if we need to count up from a lower value
+        if (initialValue >= target) {
+          return; // Already at or above target
+        }
+
+        // Animate counter value - fixed width prevents layout shifts
+        const obj = { value: initialValue };
+        gsap.to(obj, {
+          value: target,
+          duration: 2.5,
+          snap: { value: 1 },
+          scrollTrigger: { trigger: counter, start: "top 90%" },
+          ease: "power2.out",
+          onUpdate: () => {
+            counter.innerText = Math.round(obj.value);
+          },
+        });
+      });
+    });
+
+    // 3. Filter Logic & Animations
+    // Batch DOM reads before writes to prevent forced reflows
+    const allCards = document.querySelectorAll(".startup-card");
+    if (allCards.length > 0) {
+      // Batch all DOM reads first (offsetHeight queries)
+      const cardHeights = Array.from(allCards).map((card) => ({
+        card,
+        height: card.offsetHeight,
+      }));
+
+      // Batch all DOM writes using requestAnimationFrame
+      requestAnimationFrame(() => {
+        cardHeights.forEach(({ card, height }) => {
+          // Reserve space first to prevent layout shifts
+          if (!card.style.minHeight) {
+            card.style.minHeight = height + "px";
+          }
+
+          // Add will-change hint for better performance
+          card.style.willChange = "transform, opacity";
+        });
+
+        // Use transform (translateY) and opacity only to prevent layout shifts
+        gsap.fromTo(
+          allCards,
+          { transform: "translateY(50px) scale(0.95)", opacity: 0 },
+          {
+            transform: "translateY(0) scale(1)",
+            opacity: 1,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: "back.out(1.2)",
+            clearProps: "transform",
+            onComplete: () => {
+              // Remove will-change after animation completes
+              allCards.forEach((card) => {
+                card.style.willChange = "auto";
+              });
+            },
+          },
+        );
+      });
+    }
+
+    // 4. Card reveal on scroll - use transform only, reserve space
+    // Batch DOM reads first
+    const scrollCards = gsap.utils.toArray(".startup-card");
+    const scrollCardData = scrollCards.map((card, index) => {
+      const height = card.offsetHeight;
+      return { card, height, index };
+    });
+
+    // Batch writes using requestAnimationFrame
+    requestAnimationFrame(() => {
+      scrollCardData.forEach(({ card, height, index }) => {
+        // Reserve space for the card to prevent layout shifts
+        if (!card.style.minHeight) {
+          card.style.minHeight = height + "px";
+        }
+
+        // Add will-change hint
+        card.style.willChange = "transform, opacity";
+
+        gsap.fromTo(
+          card,
+          { transform: "translateY(30px)", opacity: 0 },
+          {
+            transform: "translateY(0)",
+            opacity: 1,
+            duration: 0.6,
+            delay: index * 0.1,
+            scrollTrigger: {
+              trigger: card,
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+            onComplete: () => {
+              card.style.willChange = "auto";
+            },
+          },
+        );
+      });
+    });
+
+    // 5. Search form auto-submit with debouncing
+    const searchInput = document.querySelector('input[name="search"]');
+    const searchForm = searchInput?.closest("form");
+    let searchTimeout = null;
+    const SEARCH_DELAY = 500;
+
+    if (searchInput && searchForm) {
+      searchInput.addEventListener("input", function (e) {
+        clearTimeout(searchTimeout);
+
+        searchTimeout = setTimeout(() => {
+          // Only submit if there are 3+ characters or the field is empty (to clear search)
+          if (this.value.length >= 3 || this.value.length === 0) {
+            searchForm.submit();
+          }
+        }, SEARCH_DELAY);
+      });
+
+      // Submit on Enter key
+      searchInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          clearTimeout(searchTimeout);
+          searchForm.submit();
+        }
+      });
+    }
+  }
+
+  // Initialize when DOM is ready and GSAP is loaded
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initStartupsAnimations);
+  } else {
+    // DOM already loaded, but GSAP might still be loading (defer)
+    initStartupsAnimations();
+  }
+</script>
+{% endblock %}

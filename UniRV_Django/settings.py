@@ -25,58 +25,60 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# 
+#
 # ⚠️ CRITICAL FOR PRODUCTION: The fallback value below is INSECURE and must NEVER be used in production.
 # Always set SECRET_KEY as an environment variable in production.
 # Generate a secure key with:
 #   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-# 
+#
 # The fallback is provided ONLY for local development convenience.
 # If SECRET_KEY is not set in production, Django will fail to start (by design).
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", "django-insecure-dev-key-change-in-production"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# 
+#
 # ⚠️ CRITICAL FOR PRODUCTION: DEBUG=True exposes sensitive information and should NEVER be used in production.
-# 
+#
 # Development: Defaults to True for convenience (can be overridden with DJANGO_DEBUG=False)
 # Production: MUST be set to False via environment variable: DJANGO_DEBUG=False
-# 
+#
 # When DEBUG=False, additional security settings are automatically enabled (see below).
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 
 # Detect if we're running tests
 # Django sets sys.argv[1] to 'test' when running tests
 # Also check for 'pytest' or 'unittest' in command line
-TESTING = (
-    len(sys.argv) > 1 and (
-        sys.argv[1] == 'test' or 
-        'pytest' in sys.argv[0] or 
-        'unittest' in sys.argv[0] or
-        'test' in sys.argv
-    )
+TESTING = len(sys.argv) > 1 and (
+    sys.argv[1] == "test"
+    or "pytest" in sys.argv[0]
+    or "unittest" in sys.argv[0]
+    or "test" in sys.argv
 )
 
 # Security: explicit ALLOWED_HOSTS
-# 
+#
 # ALLOWED_HOSTS prevents HTTP Host header attacks.
-# 
+#
 # Development (DEBUG=True): Automatically allows localhost, 127.0.0.1, and [::1]
 # Production (DEBUG=False): MUST be set via ALLOWED_HOSTS environment variable
 #   Example: ALLOWED_HOSTS=example.com,www.example.com
-# 
+#
 # Parsear e validar ALLOWED_HOSTS antes de usar
-allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '').strip()
+allowed_hosts_env = os.environ.get("ALLOWED_HOSTS", "").strip()
 if DEBUG:
     # Development: Allow localhost by default
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
 else:
     # Production: Require explicit ALLOWED_HOSTS configuration
     from django.core.exceptions import ImproperlyConfigured
-    
+
     if allowed_hosts_env:
         # Parsear hosts e filtrar valores vazios
-        parsed_hosts = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
+        parsed_hosts = [
+            host.strip() for host in allowed_hosts_env.split(",") if host.strip()
+        ]
         # Validar que há pelo menos um host válido
         if parsed_hosts:
             ALLOWED_HOSTS = parsed_hosts
@@ -100,27 +102,28 @@ else:
 if not DEBUG:
     # Generate trusted origins from ALLOWED_HOSTS (excluding localhost/127.0.0.1)
     CSRF_TRUSTED_ORIGINS = [
-        f'https://{host}' for host in ALLOWED_HOSTS 
-        if host not in ['localhost', '127.0.0.1', '[::1]']
+        f"https://{host}"
+        for host in ALLOWED_HOSTS
+        if host not in ["localhost", "127.0.0.1", "[::1]"]
     ]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.humanize',  # For timesince and other human-readable filters
-    'simple_history',  # Audit logging - must be before apps that use it
-    'widget_tweaks',  # For form field styling in templates
-    'tailwind',
-    'theme',  # Tailwind theme app
-    'easy_thumbnails',  # Image thumbnails generation
-    'editais.apps.EditaisConfig',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.humanize",  # For timesince and other human-readable filters
+    "simple_history",  # Audit logging - must be before apps that use it
+    "widget_tweaks",  # For form field styling in templates
+    "tailwind",
+    "theme",  # Tailwind theme app
+    "easy_thumbnails",  # Image thumbnails generation
+    "editais.apps.EditaisConfig",
 ]
 
 # Check if compressor is available (optional dependency)
@@ -128,8 +131,9 @@ INSTALLED_APPS = [
 HAS_COMPRESSOR = False
 try:
     import compressor
+
     HAS_COMPRESSOR = True
-    INSTALLED_APPS.insert(-1, 'compressor')  # Insert before editais app
+    INSTALLED_APPS.insert(-1, "compressor")  # Insert before editais app
 except ImportError:
     # Compressor not installed, skip it
     pass
@@ -138,83 +142,86 @@ except ImportError:
 HAS_THUMBNAILS = False
 try:
     import easy_thumbnails
+
     HAS_THUMBNAILS = True
 except ImportError:
     # easy-thumbnails not installed, remove from INSTALLED_APPS
-    if 'easy_thumbnails' in INSTALLED_APPS:
-        INSTALLED_APPS.remove('easy_thumbnails')
+    if "easy_thumbnails" in INSTALLED_APPS:
+        INSTALLED_APPS.remove("easy_thumbnails")
     pass
 
 # Add django_browser_reload only in DEBUG mode and not during testing
 # TESTING mode disables django_browser_reload to avoid namespace issues in test environment
 if DEBUG and not TESTING:
-    INSTALLED_APPS += ['django_browser_reload']
+    INSTALLED_APPS += ["django_browser_reload"]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.middleware.gzip.GZipMiddleware',  # Add gzip compression for HTML responses
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',  # Track user in history
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",  # Add gzip compression for HTML responses
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",  # Track user in history
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 # Add django_browser_reload middleware only in DEBUG mode and not during testing
 # Should be after any middleware that encodes the response (like GZipMiddleware)
 if DEBUG and not TESTING:
-    MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
+    MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
     INTERNAL_IPS = [
         "127.0.0.1",
     ]
 
-ROOT_URLCONF = 'UniRV_Django.urls'
+ROOT_URLCONF = "UniRV_Django.urls"
+
 
 # Custom context processor to make HAS_COMPRESSOR, HAS_THUMBNAILS and DEBUG available in templates
 def compressor_context(request):
     return {
-        'HAS_COMPRESSOR': HAS_COMPRESSOR,
-        'HAS_THUMBNAILS': HAS_THUMBNAILS,
-        'DEBUG': DEBUG
+        "HAS_COMPRESSOR": HAS_COMPRESSOR,
+        "HAS_THUMBNAILS": HAS_THUMBNAILS,
+        "DEBUG": DEBUG,
     }
+
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'UniRV_Django.settings.compressor_context',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "UniRV_Django.settings.compressor_context",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'UniRV_Django.wsgi.application'
+WSGI_APPLICATION = "UniRV_Django.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
 # Prefer DATABASE_URL if available (Railway/Heroku style)
-database_url = os.environ.get('DATABASE_URL', '').strip()
+database_url = os.environ.get("DATABASE_URL", "").strip()
 if database_url:
     DATABASES = {
-        'default': dj_database_url.config(
+        "default": dj_database_url.config(
             default=database_url,
             conn_max_age=600,
             conn_health_checks=True,
@@ -222,29 +229,30 @@ if database_url:
     }
 elif not DEBUG:
     # Production database override (PostgreSQL)
-    db_name = os.environ.get('DB_NAME')
+    db_name = os.environ.get("DB_NAME")
     if db_name:  # PostgreSQL configured
         DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': db_name,
-                'USER': os.environ.get('DB_USER'),
-                'PASSWORD': os.environ.get('DB_PASSWORD'),
-                'HOST': os.environ.get('DB_HOST', 'localhost'),
-                'PORT': os.environ.get('DB_PORT', '5432'),
-                'CONN_MAX_AGE': 600,  # Connection pooling - reuse connections for 10 minutes
-                'OPTIONS': {
-                    'connect_timeout': 10,
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": db_name,
+                "USER": os.environ.get("DB_USER"),
+                "PASSWORD": os.environ.get("DB_PASSWORD"),
+                "HOST": os.environ.get("DB_HOST", "localhost"),
+                "PORT": os.environ.get("DB_PORT", "5432"),
+                "CONN_MAX_AGE": 600,  # Connection pooling - reuse connections for 10 minutes
+                "OPTIONS": {
+                    "connect_timeout": 10,
                 },
             }
         }
     # If no DB configured and not using SQLite in production, warn
-    elif DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    elif DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3":
         import warnings
+
         warnings.warn(
             "Using SQLite in production is not recommended for applications with concurrent users. "
             "Consider PostgreSQL or MySQL.",
-            UserWarning
+            UserWarning,
         )
 
 
@@ -253,16 +261,16 @@ elif not DEBUG:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -270,9 +278,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'pt-br'
+LANGUAGE_CODE = "pt-br"
 
-TIME_ZONE = 'America/Sao_Paulo'
+TIME_ZONE = "America/Sao_Paulo"
 
 USE_I18N = True
 
@@ -282,49 +290,56 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",
 ]
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Media files (user-uploaded content)
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / "media"
 
 # CDN Configuration for Image Delivery (Optional)
-# 
+#
 # Configure CDN_BASE_URL to serve images via CDN (Cloudflare Images, Cloudinary, Imgix, etc.)
 # If not set, images will be served via Django static files.
-# 
+#
 # Example CDN configurations:
 #   Cloudflare Images: CDN_BASE_URL = "https://imagedelivery.net/your-account-id"
 #   Cloudinary: CDN_BASE_URL = "https://res.cloudinary.com/your-cloud-name"
 #   Imgix: CDN_BASE_URL = "https://your-domain.imgix.net"
 #   Custom S3+CloudFront: CDN_BASE_URL = "https://d1234567890.cloudfront.net"
-# 
+#
 # CDN_IMAGE_FORMATS defines the priority order of formats to use.
 # Browsers will automatically select the best supported format from the srcset.
-CDN_BASE_URL = os.environ.get('CDN_BASE_URL', None)  # Set via environment variable or leave None for static files
-CDN_IMAGE_FORMATS = ['avif', 'webp', 'jpg']  # Format priority: AVIF (best) -> WebP -> JPEG (fallback)
+CDN_BASE_URL = os.environ.get(
+    "CDN_BASE_URL", None
+)  # Set via environment variable or leave None for static files
+CDN_IMAGE_FORMATS = [
+    "avif",
+    "webp",
+    "jpg",
+]  # Format priority: AVIF (best) -> WebP -> JPEG (fallback)
 
 # Override MEDIA_URL to use CDN if CDN_BASE_URL is configured
 if CDN_BASE_URL:
     # Strip whitespace and trailing slashes from CDN_BASE_URL
     cdn_url = CDN_BASE_URL.strip().rstrip("/")
-    MEDIA_URL = f'{cdn_url}/media/'
+    MEDIA_URL = f"{cdn_url}/media/"
 else:
-    MEDIA_URL = '/media/'
+    MEDIA_URL = "/media/"
 
 # Production warning: Media files should be served by web server (nginx/apache), not Django
 if not DEBUG:
     import warnings
     from django.core.exceptions import SecurityWarning
+
     warnings.warn(
         "Ensure MEDIA_ROOT is served by your web server (nginx/apache), not Django. "
         "User-uploaded files should never be executed.",
-        SecurityWarning
+        SecurityWarning,
     )
 
 # Easy Thumbnails configuration
@@ -332,24 +347,24 @@ if not DEBUG:
 # Using max dimensions instead of fixed size to preserve aspect ratio
 # crop=False prevents cutting logos, upscale=False prevents enlarging small images
 THUMBNAIL_ALIASES = {
-    '': {
-        'card_thumb': {
-            'size': (150, 150),  # Max dimensions, not fixed
-            'crop': False,  # Don't crop - preserve aspect ratio
-            'upscale': False,  # Don't enlarge small images
-            'quality': 85,
+    "": {
+        "card_thumb": {
+            "size": (150, 150),  # Max dimensions, not fixed
+            "crop": False,  # Don't crop - preserve aspect ratio
+            "upscale": False,  # Don't enlarge small images
+            "quality": 85,
         },
-        'detail_thumb': {
-            'size': (256, 256),  # Max dimensions, not fixed
-            'crop': False,  # Don't crop - preserve aspect ratio
-            'upscale': False,  # Don't enlarge small images
-            'quality': 90,
+        "detail_thumb": {
+            "size": (256, 256),  # Max dimensions, not fixed
+            "crop": False,  # Don't crop - preserve aspect ratio
+            "upscale": False,  # Don't enlarge small images
+            "quality": 90,
         },
-        'hero_thumb': {
-            'size': (128, 128),  # Max dimensions, not fixed
-            'crop': False,  # Don't crop - preserve aspect ratio
-            'upscale': False,  # Don't enlarge small images
-            'quality': 85,
+        "hero_thumb": {
+            "size": (128, 128),  # Max dimensions, not fixed
+            "crop": False,  # Don't crop - preserve aspect ratio
+            "upscale": False,  # Don't enlarge small images
+            "quality": 85,
         },
     },
 }
@@ -361,41 +376,43 @@ THUMBNAIL_ALIASES = {
 # THUMBNAIL_BASEDIR = 'thumbnails'
 
 # Tailwind CSS configuration
-TAILWIND_APP_NAME = 'theme'
+TAILWIND_APP_NAME = "theme"
 
 # NPM binary path (auto-detected with overrides for portability)
 NPM_BIN_PATH = (
-    os.environ.get('NPM_BIN_PATH')
-    or shutil.which('npm')
-    or shutil.which('npm.cmd')
-    or 'npm'
+    os.environ.get("NPM_BIN_PATH")
+    or shutil.which("npm")
+    or shutil.which("npm.cmd")
+    or "npm"
 )
 
 # Disable Tailwind CSS compilation on-the-fly in development to prevent slow loading
 # Use pre-compiled CSS from staticfiles instead
 # Set TAILWIND_COMPILE_ON_THE_FLY=false to disable real-time compilation
-TAILWIND_COMPILE_ON_THE_FLY = os.environ.get('TAILWIND_COMPILE_ON_THE_FLY', 'False').lower() == 'true'
+TAILWIND_COMPILE_ON_THE_FLY = (
+    os.environ.get("TAILWIND_COMPILE_ON_THE_FLY", "False").lower() == "true"
+)
 
 # Static files finders
 STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
 # Add compressor finder if compressor is installed
 if HAS_COMPRESSOR:
-    STATICFILES_FINDERS.append('compressor.finders.CompressorFinder')
+    STATICFILES_FINDERS.append("compressor.finders.CompressorFinder")
 
 # Django Compressor settings for minification (only if compressor is installed)
 if HAS_COMPRESSOR:
     # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
     COMPRESS_ROOT = STATIC_ROOT
     # COMPRESS_URL should match the format used by {% static %} tag (with leading slash)
-    COMPRESS_URL = '/static/' if not STATIC_URL.startswith('/') else STATIC_URL
-    
+    COMPRESS_URL = "/static/" if not STATIC_URL.startswith("/") else STATIC_URL
+
     # Enable compression for Lighthouse testing even in DEBUG mode
     # Set COMPRESS_ENABLED=true environment variable to enable compression in development
-    compress_enabled_env = os.environ.get('COMPRESS_ENABLED', '').lower() == 'true'
+    compress_enabled_env = os.environ.get("COMPRESS_ENABLED", "").lower() == "true"
     if TESTING:
         COMPRESS_ENABLED = False
         COMPRESS_OFFLINE = False
@@ -408,22 +425,23 @@ if HAS_COMPRESSOR:
         else:
             COMPRESS_OFFLINE = False
             import warnings
+
             warnings.warn(
                 "STATIC_ROOT doesn't exist. Run 'collectstatic' before enabling COMPRESS_OFFLINE.",
-                UserWarning
+                UserWarning,
             )
     else:
         # Default: disable in development to avoid file not found errors and hanging
         # Runtime compression can cause infinite loading if compressor has issues
         COMPRESS_ENABLED = False  # Disable compression in development to prevent hangs
         COMPRESS_OFFLINE = False  # Don't require offline compression in dev
-    
+
     COMPRESS_CSS_FILTERS = [
-        'compressor.filters.css_default.CssAbsoluteFilter',
-        'compressor.filters.cssmin.rCSSMinFilter',
+        "compressor.filters.css_default.CssAbsoluteFilter",
+        "compressor.filters.cssmin.rCSSMinFilter",
     ]
     COMPRESS_JS_FILTERS = [
-        'compressor.filters.jsmin.JSMinFilter',
+        "compressor.filters.jsmin.JSMinFilter",
     ]
 else:
     # Compressor not installed, disable compression
@@ -435,32 +453,32 @@ else:
 # In development, use simple storage to avoid slow manifest lookups
 if TESTING:
     STORAGES = {
-        'default': {
-            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
-        'staticfiles': {
-            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
 elif DEBUG:
     # Development: Use simple storage for faster static file serving
     # CompressedManifestStaticFilesStorage is slow because it checks manifest on every request
     STORAGES = {
-        'default': {
-            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
-        'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
         },
     }
 else:
     # Production: Use manifest storage for cache busting
     STORAGES = {
-        'default': {
-            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
-        'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
         },
     }
 
@@ -472,7 +490,7 @@ else:
 # To test with longer cache in development, set: WHITENOISE_MAX_AGE=31536000
 if DEBUG:
     # Allow override via environment variable for Lighthouse testing
-    whitenoise_max_age_env = os.environ.get('WHITENOISE_MAX_AGE', '')
+    whitenoise_max_age_env = os.environ.get("WHITENOISE_MAX_AGE", "")
     if whitenoise_max_age_env:
         WHITENOISE_MAX_AGE = int(whitenoise_max_age_env)
     else:
@@ -481,104 +499,151 @@ else:
     WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds for production
 
 # WhiteNoise compression settings
-WHITENOISE_USE_FINDERS = True  # Use staticfiles finders for better performance
+WHITENOISE_USE_FINDERS = (
+    DEBUG  # Only use finders in dev; production serves from STATIC_ROOT
+)
 WHITENOISE_AUTOREFRESH = DEBUG  # Auto-refresh in development mode
-WHITENOISE_MANIFEST_STRICT = False  # Don't fail if manifest file is missing (useful in dev)
+WHITENOISE_MANIFEST_STRICT = (
+    False  # Don't fail if manifest file is missing (useful in dev)
+)
 
 # Cache configuration
 # Try Redis first, fallback to LocMemCache for development
+# Cache versioning: increment CACHE_VERSION env var to force cache purge on deploys
+CACHE_VERSION = int(os.environ.get("CACHE_VERSION", "1"))
+
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
-        }
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+        "OPTIONS": {"MAX_ENTRIES": 1000},
+        "VERSION": CACHE_VERSION,
     }
 }
 
 # Use Redis in production if available
-if not DEBUG:
-    redis_url = os.environ.get('REDIS_URL', '').strip()
-    redis_host = os.environ.get('REDIS_HOST', '')
-    redis_port = os.environ.get('REDIS_PORT', '6379')
-    redis_location = redis_url or (f'redis://{redis_host}:{redis_port}/1' if redis_host else '')
+redis_url = os.environ.get("REDIS_URL", "").strip()
+redis_host = os.environ.get("REDIS_HOST", "")
+redis_port = os.environ.get("REDIS_PORT", "6379")
+redis_location = redis_url or (
+    f"redis://{redis_host}:{redis_port}/1" if redis_host else ""
+)
 
-    if redis_location:
+if redis_location:
+    try:
+        # Try django-redis first (recommended)
+        import django_redis
+
+        _redis_options = {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,  # Connection timeout in seconds
+            "SOCKET_TIMEOUT": 5,  # Socket timeout in seconds
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": int(os.environ.get("REDIS_MAX_CONNECTIONS", "50")),
+                "retry_on_timeout": True,
+            },
+            "IGNORE_EXCEPTIONS": not DEBUG,  # In production, fail silently (fall back to no-cache)
+        }
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": redis_location,
+                "OPTIONS": _redis_options,
+                "KEY_PREFIX": "unirv_editais",
+                "TIMEOUT": 300,  # Default timeout 5 minutes
+                "VERSION": CACHE_VERSION,
+            },
+            "sessions": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": redis_location,
+                "OPTIONS": _redis_options,
+                "KEY_PREFIX": "unirv_sessions",
+                "TIMEOUT": 1209600,  # 2 weeks for sessions
+                "VERSION": CACHE_VERSION,
+            },
+        }
+        # Use Redis for session storage when available
+        SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+        SESSION_CACHE_ALIAS = "sessions"
+    except ImportError:
         try:
-            # Try django-redis first (recommended)
-            import django_redis
+            # Fallback to Django's built-in Redis backend (no CLIENT_CLASS option)
+            import redis
+
             CACHES = {
-                'default': {
-                    'BACKEND': 'django_redis.cache.RedisCache',
-                    'LOCATION': redis_location,
-                    'OPTIONS': {
-                        'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                        'SOCKET_CONNECT_TIMEOUT': 5,  # Connection timeout
-                        'SOCKET_TIMEOUT': 5,  # Socket timeout
-                    },
-                    'KEY_PREFIX': 'unirv_editais',
-                    'TIMEOUT': 300,  # Default timeout 5 minutes
-                }
+                "default": {
+                    "BACKEND": "django.core.cache.backends.redis.RedisCache",
+                    "LOCATION": redis_location,
+                    "KEY_PREFIX": "unirv_editais",
+                    "TIMEOUT": 300,  # Default timeout 5 minutes
+                    "VERSION": CACHE_VERSION,
+                },
+                "sessions": {
+                    "BACKEND": "django.core.cache.backends.redis.RedisCache",
+                    "LOCATION": redis_location,
+                    "KEY_PREFIX": "unirv_sessions",
+                    "TIMEOUT": 1209600,  # 2 weeks for sessions
+                    "VERSION": CACHE_VERSION,
+                },
             }
+            SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+            SESSION_CACHE_ALIAS = "sessions"
         except ImportError:
-            try:
-                # Fallback to Django's built-in Redis backend (no CLIENT_CLASS option)
-                import redis
-                CACHES = {
-                    'default': {
-                        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-                        'LOCATION': redis_location,
-                        'KEY_PREFIX': 'unirv_editais',
-                        'TIMEOUT': 300,  # Default timeout 5 minutes
-                    }
-                }
-            except ImportError:
-                # Redis not installed, use LocMemCache
-                pass
+            # Redis not installed, use LocMemCache
+            pass
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Login URL for @login_required decorator
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/dashboard/home/'
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/dashboard/home/"
 
 # Application-specific settings
 EDITAIS_PER_PAGE = 12  # Number of editais to display per page
 EDITAIS_CACHE_TTL = 300  # Cache TTL for index pages (5 minutes in seconds)
 EDITAL_SEARCH_FIELDS = [
-    'titulo', 'entidade_principal', 'numero_edital',
-    'analise', 'objetivo', 'etapas', 'recursos',
-    'itens_financiaveis', 'criterios_elegibilidade',
-    'criterios_avaliacao', 'itens_essenciais_observacoes',
-    'detalhes_unirv'
+    "titulo",
+    "entidade_principal",
+    "numero_edital",
+    "analise",
+    "objetivo",
+    "etapas",
+    "recursos",
+    "itens_financiaveis",
+    "criterios_elegibilidade",
+    "criterios_avaliacao",
+    "itens_essenciais_observacoes",
+    "detalhes_unirv",
 ]
 
 # Home page partners marquee (configurable via PARTNERS env: comma-separated, e.g. PARTNERS="SENAI,SEBRAE,FAPEG")
-_partners_env = os.environ.get('PARTNERS', '').strip()
-PARTNERS = [p.strip() for p in _partners_env.split(',') if p.strip()] if _partners_env else [
-    'SENAI', 'SEBRAE', 'FAPEG', 'FINEP', 'UNIRV', 'INOVALAB'
-]
+_partners_env = os.environ.get("PARTNERS", "").strip()
+PARTNERS = (
+    [p.strip() for p in _partners_env.split(",") if p.strip()]
+    if _partners_env
+    else ["SENAI", "SEBRAE", "FAPEG", "FINEP", "UNIRV", "INOVALAB"]
+)
 
 # Security settings for production
-# 
+#
 # Production security is automatically enabled when:
 #   1. DEBUG=False (explicitly set via DJANGO_DEBUG=False)
 #   2. ALLOWED_HOSTS is configured with valid host(s)
-# 
+#
 # This ensures security settings are only enabled in actual production environments,
 # not accidentally in development with DEBUG=False.
-# 
+#
 # Verificar se estamos em produção (DEBUG=False E ALLOWED_HOSTS válido e não-vazio)
 # Alinhar com a validação do ALLOWED_HOSTS para evitar ativar segurança de produção
 # com configuração inválida (ex: ALLOWED_HOSTS=' ' ou ALLOWED_HOSTS=',,,')
-allowed_hosts_env_raw = os.environ.get('ALLOWED_HOSTS', '').strip()
+allowed_hosts_env_raw = os.environ.get("ALLOWED_HOSTS", "").strip()
 has_valid_allowed_hosts = (
-    allowed_hosts_env_raw and
-    len([host.strip() for host in allowed_hosts_env_raw.split(',') if host.strip()]) > 0
+    allowed_hosts_env_raw
+    and len([host.strip() for host in allowed_hosts_env_raw.split(",") if host.strip()])
+    > 0
 )
 is_production = not DEBUG and has_valid_allowed_hosts
 
@@ -596,9 +661,9 @@ if is_production:
     # Additional security headers
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+    X_FRAME_OPTIONS = "DENY"
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 else:
     # Development: disable security features that require HTTPS
     SESSION_COOKIE_SECURE = False
@@ -610,16 +675,16 @@ else:
     SECURE_HSTS_PRELOAD = False
 
 # Railway-specific: trust proxy headers and avoid internal HTTPS redirects
-if os.environ.get('RAILWAY_ENVIRONMENT'):
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if os.environ.get("RAILWAY_ENVIRONMENT"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = False
 
-    if 'CSRF_TRUSTED_ORIGINS' not in globals():
+    if "CSRF_TRUSTED_ORIGINS" not in globals():
         CSRF_TRUSTED_ORIGINS = []
 
     for host in ALLOWED_HOSTS:
-        if host not in ['localhost', '127.0.0.1', '[::1]']:
-            origin = f'https://{host}'
+        if host not in ["localhost", "127.0.0.1", "[::1]"]:
+            origin = f"https://{host}"
             if origin not in CSRF_TRUSTED_ORIGINS:
                 CSRF_TRUSTED_ORIGINS.append(origin)
 
@@ -628,97 +693,100 @@ SESSION_COOKIE_AGE = 3600  # 1 hour in seconds
 SESSION_SAVE_EVERY_REQUEST = True  # Extend session on each request
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expire when browser closes
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
-SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+SESSION_COOKIE_SAMESITE = "Lax"  # CSRF protection
 # Always store Django messages in the session (avoids cookie-only storage)
-MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 # Session cookie domain (prevent session fixation attacks across subdomains)
 if not DEBUG:
-    cookie_domain = os.environ.get('COOKIE_DOMAIN', None)
+    cookie_domain = os.environ.get("COOKIE_DOMAIN", None)
     if cookie_domain:
         SESSION_COOKIE_DOMAIN = cookie_domain
         CSRF_COOKIE_DOMAIN = cookie_domain
 
 # Email configuration
 EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend'  # Console backend for development
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",  # Console backend for development
 )
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@agrohub.unirv.edu.br')
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", "noreply@agrohub.unirv.edu.br"
+)
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Email backend validation and fallback
-if not DEBUG and EMAIL_BACKEND != 'django.core.mail.backends.console.EmailBackend':
+if not DEBUG and EMAIL_BACKEND != "django.core.mail.backends.console.EmailBackend":
     # Validate SMTP settings
-    required_email_vars = ['EMAIL_HOST', 'EMAIL_HOST_USER', 'EMAIL_HOST_PASSWORD']
+    required_email_vars = ["EMAIL_HOST", "EMAIL_HOST_USER", "EMAIL_HOST_PASSWORD"]
     missing_vars = [var for var in required_email_vars if not os.environ.get(var)]
-    
+
     if missing_vars:
         import warnings
+
         warnings.warn(
             f"Email not configured. Missing: {', '.join(missing_vars)}. "
             "Password reset and notifications won't work.",
-            UserWarning
+            UserWarning,
         )
         # Fallback to console
-        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+        EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Site URL for email links
-SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
 
 # Logging configuration (FEAT-013)
 # Default to console logging; optional file handlers enabled via env vars
-LOG_TO_FILE = os.environ.get('DJANGO_LOG_TO_FILE', '').lower() == 'true'
-LOG_DIR = Path(os.environ.get('DJANGO_LOG_DIR', BASE_DIR / 'logs'))
+LOG_TO_FILE = os.environ.get("DJANGO_LOG_TO_FILE", "").lower() == "true"
+LOG_DIR = Path(os.environ.get("DJANGO_LOG_DIR", BASE_DIR / "logs"))
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
         },
-        'structured': {
-            'format': '{levelname} {asctime} {name} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'structured',
+        "structured": {
+            "format": "{levelname} {asctime} {name} {message}",
+            "style": "{",
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "structured",
+        },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': False,
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": False,
         },
-        'editais': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+        "editais": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
         },
-        'django.security': {
-            'handlers': ['console'],
-            'level': 'WARNING',
-            'propagate': False,
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
         },
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
         },
     },
 }
@@ -727,45 +795,48 @@ if LOG_TO_FILE:
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         # Test write permissions
-        test_file = LOG_DIR / '.write_test'
+        test_file = LOG_DIR / ".write_test"
         test_file.touch()
         test_file.unlink()
     except (OSError, PermissionError) as e:
         import warnings
+
         warnings.warn(
             f"Cannot write to LOG_DIR ({LOG_DIR}): {e}. "
             "Falling back to console logging.",
-            UserWarning
+            UserWarning,
         )
         LOG_TO_FILE = False
-    
+
     if LOG_TO_FILE:
-        LOGGING['handlers'].update({
-            'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOG_DIR / 'django.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'security_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOG_DIR / 'security.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 10,
-            'formatter': 'verbose',
-        },
-        'performance_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOG_DIR / 'performance.log',
-            'maxBytes': 10 * 1024 * 1024,  # 10MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        })
-        LOGGING['loggers']['django']['handlers'].append('file')
-        LOGGING['loggers']['editais']['handlers'].append('file')
-        LOGGING['loggers']['django.security']['handlers'] = ['security_file', 'console']
-        LOGGING['loggers']['django.db.backends']['handlers'] = (
-            ['performance_file'] if not DEBUG else ['console']
+        LOGGING["handlers"].update(
+            {
+                "file": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "filename": LOG_DIR / "django.log",
+                    "maxBytes": 10 * 1024 * 1024,  # 10MB
+                    "backupCount": 5,
+                    "formatter": "verbose",
+                },
+                "security_file": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "filename": LOG_DIR / "security.log",
+                    "maxBytes": 10 * 1024 * 1024,  # 10MB
+                    "backupCount": 10,
+                    "formatter": "verbose",
+                },
+                "performance_file": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "filename": LOG_DIR / "performance.log",
+                    "maxBytes": 10 * 1024 * 1024,  # 10MB
+                    "backupCount": 5,
+                    "formatter": "verbose",
+                },
+            }
+        )
+        LOGGING["loggers"]["django"]["handlers"].append("file")
+        LOGGING["loggers"]["editais"]["handlers"].append("file")
+        LOGGING["loggers"]["django.security"]["handlers"] = ["security_file", "console"]
+        LOGGING["loggers"]["django.db.backends"]["handlers"] = (
+            ["performance_file"] if not DEBUG else ["console"]
         )

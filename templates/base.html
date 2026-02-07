@@ -106,13 +106,10 @@
     data-page="{% block page_id %}{% endblock %}"
   >
     <header
-      class="site-header no-print bg-surface-light/95 backdrop-blur-xl border-b border-gray-100 text-gray-800 shadow-sm sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
+      class="site-header no-print bg-white/80 backdrop-blur-xl border-b border-gray-200/60 text-gray-800 sticky top-0 z-50 w-full full-bleed {% if transparent_header %}header-transparent{% endif %}"
     >
-      <div
-        class="absolute top-0 left-0 right-0 w-full bg-gradient-to-r from-darkblue to-primary h-1 z-10"
-      ></div>
-      <nav class="relative z-10 site-nav">
-        <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-6 lg:px-12 gap-8 flex-nowrap">
+      <nav class="site-nav">
+        <div class="flex justify-between items-center h-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 gap-6 flex-nowrap">
           <!-- Logo -->
           <a
             href="{% url 'home' %}"
@@ -160,7 +157,7 @@
             {% if user.is_authenticated %}
             <a
               href="{% url 'dashboard_home' %}"
-              class="bg-darkblue hover:bg-primary text-white px-6 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-blue-900/20"
+              class="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md"
             >
               DASHBOARD
             </a>
@@ -178,7 +175,7 @@
             {% else %}
             <a
               href="{% url 'login' %}"
-              class="bg-darkblue hover:bg-primary text-white px-6 py-2.5 rounded-full font-semibold text-sm transition shadow-lg shadow-blue-900/20"
+              class="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow-md"
             >
               LOGIN
             </a>
@@ -347,12 +344,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <!-- Logo & Description -->
           <div>
-            <div class="flex items-center gap-2 mb-6">
-              <span class="material-icons-outlined text-secondary text-3xl">spa</span>
-              <div class="flex flex-col">
-                <span class="font-display font-bold text-lg text-white leading-tight">agrohub</span>
-                <span class="text-[10px] tracking-widest text-blue-200 font-semibold">UNIRV</span>
-              </div>
+            <div class="flex items-center gap-3 mb-6">
+              <img src="{% static 'img/Logo AgroHub.svg' %}" alt="AgroHub UniRV Logo" class="w-14 h-14" width="56" height="56" loading="lazy" />
             </div>
             <p class="text-blue-200 text-sm leading-relaxed mb-6">
               Centro de Inovação e Tecnologia apoiado pela FINEP, voltado à
@@ -467,14 +460,6 @@
         </div>
       </div>
 
-      <!-- Back to Top Button -->
-      <a
-        href="#"
-        class="absolute bottom-8 right-8 bg-primary hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition animate-bounce"
-        aria-label="Voltar ao topo"
-      >
-        <span class="material-icons-outlined">arrow_upward</span>
-      </a>
     </footer>
 
 

@@ -44,4 +44,4 @@ Para documentação geral do projeto, instalação, configuração e uso, consul
 
 ---
 
-**Última atualização**: 2026-01-27
+**Última atualização**: 2026-02-07

@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ambientes de Inovação - AgroHub UniRV{% endblock %}
+{% block content %}
+<div class="bg-gray-50 text-gray-800">
+  <!-- Header -->
+  {% include 'components/page_hero.html' with badge_label="Infraestrutura" title="Ambientes de Inovação" subtitle="Conheça os espaços dedicados ao fomento da inovação e empreendedorismo na UniRV" %}
+
+  <!-- Environments Grid -->
+  <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
+    <div class="max-w-6xl mx-auto">
+      <div
+        class="grid md:grid-cols-2 gap-8 items-stretch justify-center max-w-4xl mx-auto"
+      >
+        <!-- InovaLab -->
+        <div
+          class="environment-card bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full hover:-translate-y-1"
+        >
+          <div
+            class="h-48 bg-gradient-to-br from-[#12bb20] to-[#1556ce] flex items-center justify-center relative overflow-hidden"
+            style="
+              background: linear-gradient(135deg, #12bb20 0%, #1556ce 100%);
+            "
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-[#12bb20]/20 via-[#12bb20]/10 to-[#1556ce]/20 group-hover:from-[#12bb20]/30 group-hover:via-[#12bb20]/15 group-hover:to-[#1556ce]/30 transition-all duration-300"
+            ></div>
+            <img
+              src="{% static 'img/logo_inovalab.svg' %}"
+              alt="InovaLab Logo"
+              class="w-32 h-20 object-contain transform group-hover:scale-110 transition-all duration-500"
+            />
+          </div>
+          <div class="p-8 flex flex-col flex-grow">
+            <div class="mb-4">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-[#d4edda] to-[#cfe2ff] text-[#155724] border border-[#12bb20]/30"
+                style="
+                  background: linear-gradient(135deg, #d4edda 0%, #cfe2ff 100%);
+                "
+                >Ideação & Prototipagem</span
+              >
+            </div>
+            <h2
+              class="text-[#2b5ce6] mb-3 group-hover:text-[#1556ce] transition-colors text-2xl font-bold leading-tight"
+            >
+              InovaLab
+            </h2>
+            <p class="text-gray-600 text-base mb-6 leading-relaxed flex-grow">
+              Espaço colaborativo completo que une ideação e fabricação digital.
+              Transforme suas ideias em projetos concretos através de workshops,
+              mentorias e prototipagem rápida com impressoras 3D, cortadoras a
+              laser e ferramentas de fabricação digital.
+            </p>
+            <div class="border-t border-gray-100 pt-6 mt-auto mb-4">
+              <h4
+                class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider leading-tight"
+              >
+                Destaques
+              </h4>
+              <ul class="space-y-2 text-gray-600 text-sm mb-6">
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed">Mentoria especializada</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed"
+                    >Workshops de Design Thinking</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed"
+                    >Impressão 3D e Corte a Laser</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed">Prototipagem eletrônica</span>
+                </li>
+              </ul>
+            </div>
+            <a
+              href="https://inovalab-front.onrender.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="bg-white text-gray-700 w-full gap-2 rounded-xl border-2 border-gray-300 hover:bg-gray-50 hover:border-primary hover:text-primary mt-auto inline-flex items-center justify-center py-2.5 px-4 transition-all font-medium text-sm"
+            >
+              Visitar Site
+              <i class="fas fa-external-link-alt ml-2" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Ypetec -->
+        <div
+          class="environment-card bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group flex flex-col h-full hover:-translate-y-1"
+        >
+          <div
+            class="h-48 bg-green-50 flex items-center justify-center relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-green-600/10 to-green-600/5 group-hover:from-green-600/20 group-hover:to-green-600/10 transition-all duration-300"
+            ></div>
+            <i
+              class="fas fa-rocket text-6xl text-green-600 opacity-80 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-500"
+              aria-hidden="true"
+            ></i>
+          </div>
+          <div class="p-8 flex flex-col flex-grow">
+            <div class="mb-4">
+              <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
+                >Incubação</span
+              >
+            </div>
+            <h2
+              class="text-primary mb-3 group-hover:text-primary-hover transition-colors text-2xl font-bold leading-tight"
+            >
+              YpeTec
+            </h2>
+            <p class="text-gray-600 text-base mb-6 leading-relaxed flex-grow">
+              A Incubadora de Empresas da UniRV, parte do AgroHub. Oferece
+              suporte completo para o desenvolvimento de startups, desde o plano
+              de negócios até a entrada no mercado.
+            </p>
+            <div class="border-t border-gray-100 pt-6 mt-auto mb-4">
+              <h4
+                class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider leading-tight"
+              >
+                Destaques
+              </h4>
+              <ul class="space-y-2 text-gray-600 text-sm mb-6">
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed"
+                    >Acesso a editais de fomento</span
+                  >
+                </li>
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed">Espaço de coworking</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i
+                    class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="leading-relaxed"
+                    >Consultoria jurídica e contábil</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <a
+              href="mailto:ypetec@unirv.edu.br"
+              class="bg-white text-gray-700 w-full gap-2 rounded-xl border-2 border-gray-300 hover:bg-gray-50 hover:border-primary hover:text-primary mt-auto inline-flex items-center justify-center py-2.5 px-4 transition-all font-medium text-sm"
+            >
+              Contatar
+              <i class="fas fa-envelope ml-2" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section
+    class="bg-gradient-to-br from-darkblue via-darkblue to-primary py-20 md:py-24"
+  >
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="reveal-up text-white mb-4 text-3xl md:text-4xl font-extrabold">
+        Quer utilizar nossos espaços?
+      </h2>
+      <p
+        class="reveal-up text-white/80 mb-8 max-w-2xl mx-auto text-lg md:text-xl"
+      >
+        Verifique os editais abertos para submissão de projetos ou entre em
+        contato para agendar uma visita.
+      </p>
+      <div class="reveal-up flex flex-col sm:flex-row justify-center gap-4">
+        <a
+          href="{% url 'editais_index' %}"
+          class="group bg-white text-primary hover:bg-blue-50 rounded-xl px-8 py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center font-semibold gap-2 hover:scale-105 active:scale-95 transform"
+        >
+          <i class="fas fa-file-alt" aria-hidden="true"></i>
+          Ver Editais
+        </a>
+        <a
+          href="mailto:ypetec@unirv.edu.br"
+          class="group bg-white/10 backdrop-blur-md text-white border border-white/30 hover:bg-white/20 rounded-xl px-8 py-4 text-base shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center font-semibold gap-2 hover:scale-105 active:scale-95 transform"
+        >
+          <i
+            class="fas fa-calendar-alt transform group-hover:rotate-12 transition-transform"
+            aria-hidden="true"
+          ></i>
+          Agendar Visita
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // Wait for GSAP to be loaded from base.html (loaded with defer)
+    if (typeof gsap !== "undefined") {
+      gsap.registerPlugin(ScrollTrigger);
+
+      // Reveal animations for header elements
+      gsap.utils.toArray(".reveal-up").forEach((elem) => {
+        gsap.to(elem, {
+          scrollTrigger: { trigger: elem, start: "top 90%" },
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          ease: "power3.out",
+        });
+      });
+
+      // Stagger animation for environment cards
+      gsap.utils.toArray(".environment-card").forEach((card, index) => {
+        gsap.from(card, {
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+          },
+          opacity: 0,
+          y: 30,
+          duration: 0.8,
+          delay: index * 0.1,
+          ease: "power3.out",
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}

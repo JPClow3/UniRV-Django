@@ -45,11 +45,18 @@ services:
     image: redis:7-alpine
     container_name: agrohub_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    command: >-
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 60
+      --timeout 300
+      ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "${REDIS_PASSWORD:+-a}", "${REDIS_PASSWORD:-}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

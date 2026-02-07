@@ -98,6 +98,25 @@ erDiagram
     }
 ```
 
+## Regras de Negócio do Schema
+
+O schema foi desenhado para impor as seguintes regras de negócio fundamentais:
+
+1.  **Integridade de Datas**:
+    - Um edital não pode ser encerrado antes de ser aberto (`start_date <= end_date`).
+    - Cronogramas devem seguir uma ordem lógica temporal.
+
+2.  **Unicidade de Identificadores**:
+    - **Slugs**: Editais e Startups possuem slugs únicos gerados automaticamente para garantir URLs amigáveis (SEO) e consistentes.
+    - **Valores**: Um edital só pode ter *um* registro de valor total para cada moeda específica (constraint `unique_together`), evitando duplicidade de dados financeiros.
+
+3.  **Auditoria e Rastreabilidade**:
+    - Todas as modificações em `Edital` geram um registro na tabela `HistoricalEdital`, permitindo auditoria completa (quem mudou, quando, e o que mudou).
+    - `created_by` e `updated_by` são mantidos mesmo se o usuário for deletado (`SET_NULL`), preservando o histórico da instituição.
+
+4.  **Propriedade de Startups**:
+    - Uma Startup deve ter um proponente (User). Se o usuário for deletado, suas startups também são removidas (`CASCADE`), pois a incubação está atrelada ao vínculo do proponente.
+
 ## Modelos Detalhados
 
 ### Edital

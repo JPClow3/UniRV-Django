@@ -13,9 +13,9 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError, transaction
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count
 from django.http import HttpResponse, HttpRequest, HttpResponseRedirect
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.utils import timezone
 
 from ..constants import (
@@ -27,7 +27,7 @@ from ..decorators import rate_limit, staff_required
 from ..forms import EditalForm, StartupForm
 from ..models import Edital, Startup
 from ..services import EditalService
-from ..utils import apply_tipo_filter
+from ..utils import apply_tipo_filter, get_startup_status_mapping, get_startup_sort_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +35,6 @@ logger = logging.getLogger(__name__)
 @login_required
 def dashboard_home(request: HttpRequest) -> HttpResponse:
     """Dashboard home page matching React DashboardHomePage"""
-    from django.shortcuts import render
-    
     # Calculate statistics for staff users
     context = {}
     if request.user.is_staff:
@@ -107,8 +105,6 @@ def dashboard_home(request: HttpRequest) -> HttpResponse:
 @staff_required
 def dashboard_editais(request: HttpRequest) -> HttpResponse:
     """Dashboard editais management page"""
-    from django.shortcuts import render
-    
     try:
         search_query = request.GET.get('search', '')
         status_filter = request.GET.get('status', '')
@@ -190,9 +186,6 @@ def dashboard_editais(request: HttpRequest) -> HttpResponse:
 @login_required
 def dashboard_startups(request: HttpRequest) -> HttpResponse:
     """Dashboard startups page - list and manage incubated startups"""
-    from django.shortcuts import render
-    from ..utils import get_startup_status_mapping, get_startup_sort_mapping
-    
     try:
         # Get filter parameters
         search_query = request.GET.get('search', '').strip()
@@ -304,8 +297,6 @@ def dashboard_startups(request: HttpRequest) -> HttpResponse:
 @staff_required
 def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
     """Dashboard usuarios page"""
-    from django.shortcuts import render
-    
     # Get all users with related data
     # Note: User model doesn't have foreign keys that need select_related,
     # but we could add prefetch_related if accessing related objects like startups
@@ -332,8 +323,6 @@ def dashboard_usuarios(request: HttpRequest) -> HttpResponse:
 @rate_limit(key='user', rate=5, window=3600, method='POST')
 def dashboard_submeter_startup(request: HttpRequest) -> Union[HttpResponse, HttpResponseRedirect]:
     """Dashboard submit startup page - add new startups to the incubator"""
-    from django.shortcuts import render
-    
     try:
         if request.method == 'POST':
             form = StartupForm(request.POST, request.FILES)
@@ -394,8 +383,6 @@ def dashboard_novo_edital(request: HttpRequest) -> Union[HttpResponse, HttpRespo
     Returns:
         HttpResponse: Formulário de criação ou redirecionamento após sucesso
     """
-    from django.shortcuts import render
-    
     logger.info(
         f"dashboard_novo_edital iniciado - usuário: {request.user.username}, "
         f"IP: {request.META.get('REMOTE_ADDR')}"
@@ -443,8 +430,6 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
     Returns:
         HttpResponse: Página do dashboard
     """
-    from django.shortcuts import render
-    
     try:
         # In test environment, always bypass cache to ensure fresh statistics
         from django.conf import settings as django_settings
@@ -529,8 +514,6 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
 @login_required
 def dashboard_startup_update(request: HttpRequest, pk: int) -> Union[HttpResponse, HttpResponseRedirect]:
     """Dashboard page to update an existing startup"""
-    from django.shortcuts import render
-    
     startup = get_object_or_404(
         Startup.objects.select_related('edital').prefetch_related('tags'),
         pk=pk,

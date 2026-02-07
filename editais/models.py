@@ -16,7 +16,6 @@ from .utils import determine_edital_status, generate_unique_slug, sanitize_edita
 from .constants import (
     SLUG_GENERATION_MAX_ATTEMPTS_EDITAL,
     SLUG_GENERATION_MAX_ATTEMPTS_STARTUP,
-    SLUG_GENERATION_MAX_ATTEMPTS_PROJECT,  # Deprecated alias for backward compatibility
     SLUG_GENERATION_MAX_RETRIES,
     MAX_SEARCH_LENGTH,
     MAX_LOGO_FILE_SIZE,
@@ -100,12 +99,6 @@ class EditalQuerySet(models.QuerySet):
     
     def with_prefetch(self):
         """Add prefetch_related for valores and cronogramas to optimize queries."""
-        return self.prefetch_related('valores', 'cronogramas')
-    
-    def with_full_prefetch(self):
-        """Add all common prefetch_related for detail views."""
-        # Note: simple_history creates a 'history' related manager automatically
-        # but it doesn't support prefetch_related, so we exclude it
         return self.prefetch_related('valores', 'cronogramas')
     
     def active(self):
@@ -221,10 +214,6 @@ class EditalManager(models.Manager):
         """Add prefetch_related for valores and cronogramas."""
         return self.get_queryset().with_prefetch()
     
-    def with_full_prefetch(self):
-        """Add all common prefetch_related for detail views."""
-        return self.get_queryset().with_full_prefetch()
-    
     def active(self):
         """Filter editais that are not drafts."""
         return self.get_queryset().active()
@@ -300,7 +289,7 @@ class Edital(SlugGenerationMixin, models.Model):
     )
 
     # Conteúdo
-    analise = models.TextField(blank=True, null=True)  # Nova seção: Análise do Edital
+    analise = models.TextField(blank=True, null=True)
     objetivo = models.TextField(blank=True, null=True)
     etapas = models.TextField(blank=True, null=True)
     recursos = models.TextField(blank=True, null=True)
@@ -331,8 +320,6 @@ class Edital(SlugGenerationMixin, models.Model):
                 name='edital_end_date_after_start_date'
             ),
         ]
-
-    # _generate_unique_slug() is inherited from SlugGenerationMixin
 
     def clean(self) -> None:
         """Validate model fields"""
@@ -434,7 +421,7 @@ class Edital(SlugGenerationMixin, models.Model):
         # If object is not saved yet, return empty string
         return ''
 
-    history = HistoricalRecords()  # Automatic audit logging via django-simple-history
+    history = HistoricalRecords()
 
 
 class EditalValor(models.Model):
@@ -833,8 +820,6 @@ class Startup(SlugGenerationMixin, models.Model):
     def __str__(self):
         edital_titulo = (self.edital.titulo or '')[:50] if self.edital and self.edital.titulo else ''
         return f'{self.name} - {edital_titulo}' if edital_titulo else self.name
-
-    # _generate_unique_slug() is inherited from SlugGenerationMixin
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Save with slug generation using mixin's retry logic."""

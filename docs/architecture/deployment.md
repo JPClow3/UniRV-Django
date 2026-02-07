@@ -156,7 +156,7 @@ AgroHub/
 ├── docker-compose.yml         # Docker Compose config
 ├── .dockerignore             # Docker ignore rules
 ├── .env.example              # Environment variables template
-└── env.production.example     # Production env template
+└── .env.production.example    # Production env template
 ```
 
 ### Diretórios de Deployment

@@ -215,10 +215,10 @@ Copie o arquivo de exemplo e configure:
 
 ```bash
 # Windows
-copy env.production.example .env
+copy .env.production.example .env
 
 # Linux/Mac
-cp env.production.example .env
+cp .env.production.example .env
 ```
 
 Edite o arquivo `.env` com suas configurações (veja seção [Configuração](#-configuração)).
@@ -487,9 +487,10 @@ AgroHub/
 │   │   ├── password_reset_*.html     # Recuperação de senha
 │   │   └── password_reset_subject.txt
 │   ├── startups/                     # Templates de startups
+│   │   ├── index.html
 │   │   └── detail.html
-│   ├── startups.html                 # Vitrine de startups
-│   ├── ambientes_inovacao.html       # Ambientes de inovação
+│   ├── ambientes_inovacao/           # Ambientes de inovação
+│   │   └── index.html
 │   └── admin/                        # Templates do admin
 │       └── login.html
 │
@@ -506,14 +507,14 @@ AgroHub/
 │   ├── img/                          # Imagens
 │   │   ├── hero/                     # Imagens hero
 │   │   ├── favicon.svg
-│   │   ├── logo.svg
+│   │   ├── logo-agrohub.svg
 │   │   └── logo_inovalab.svg
 │   └── fonts/                        # Fontes (Montserrat)
 │       ├── Montserrat-Regular.ttf
 │       └── Montserrat-SemiBold.ttf
 │
-├── staticfiles/                      # Arquivos estáticos coletados (gerado)
-│   └── ...                           # Arquivos coletados pelo collectstatic
+├── staticfiles/                      # Coletados pelo collectstatic (gerado, não versionado)
+│   └── ...
 │
 ├── media/                            # Arquivos de mídia (uploaded) (gerado)
 │   └── ...                           # Uploads de usuários
@@ -524,7 +525,10 @@ AgroHub/
 │   └── performance.log               # Logs de performance
 │
 ├── scripts/                          # Scripts utilitários
-│   └── generate_hero_images.py       # Gerar imagens hero
+│   ├── generate_hero_images.py       # Gerar imagens hero
+│   ├── run_lighthouse_simple.py      # Lighthouse simplificado
+│   ├── run_lighthouse_tests.ps1      # Lighthouse CI (Windows)
+│   └── track_lighthouse_scores.py    # Rastreamento de scores
 │
 ├── manage.py                         # Utilitário de gerenciamento Django
 ├── requirements.txt                  # Dependências Python
@@ -532,7 +536,7 @@ AgroHub/
 ├── docker-entrypoint.sh              # Script de entrada Docker
 ├── .dockerignore                     # Arquivos ignorados pelo Docker
 ├── .gitignore                        # Arquivos ignorados pelo Git
-├── env.production.example            # Exemplo de variáveis de ambiente
+├── .env.production.example           # Exemplo de variáveis de ambiente
 └── README.md                         # Este arquivo
 ```
 
@@ -553,7 +557,7 @@ Templates HTML organizados por funcionalidade. Usa herança de templates com `ba
 #### `static/`
 Arquivos estáticos não compilados (CSS adicional, JavaScript, imagens, fontes).
 
-#### `staticfiles/`
+#### `staticfiles/` *(gerado — não versionado)*
 Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos coletados e processados.
 
 ---
@@ -670,7 +674,39 @@ Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos col
 
 ---
 
-## 🗄️ Banco de Dados
+## � Guia de Uso Rápido
+
+### Painel Administrativo
+
+O AgroHub possui um painel administrativo completo para gerenciar editais e startups.
+
+1. **Acesso**: Faça login e navegue para `/dashboard/home/`
+2. **Dashboard**: Visualize estatísticas gerais de editais e startups
+
+### Gerenciamento de Editais
+
+1. **Criar Edital**: 
+   - No Dashboard, clique em "Novo Edital" ou navegue para `/dashboard/editais/novo/`
+   - Preencha o status inicial (Ex: "Rascunho")
+   - Adicione datas de abertura e encerramento
+
+2. **Cronograma**:
+   - Após criar o edital, você pode adicionar etapas do cronograma
+   - Importante para manter os candidatos informados
+
+### Gerenciamento de Startups
+
+1. **Submissão**:
+   - Usuários podem submeter startups via `/dashboard/startups/submeter/`
+   - É necessário preencher nome, descrição, categoria e logo
+
+2. **Aprovação**:
+   - Administradores revisam as submissões no Dashboard
+   - Status pode ser alterado para "Incubada" ou "Graduada"
+
+---
+
+## �🗄️ Banco de Dados
 
 ### Modelos Principais
 
@@ -1224,7 +1260,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # Configurar variáveis de ambiente
-cp env.production.example .env
+cp .env.production.example .env
 nano .env  # Editar configurações
 
 # Coletar estáticos e migrar

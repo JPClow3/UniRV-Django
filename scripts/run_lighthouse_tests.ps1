@@ -18,20 +18,22 @@ Write-Host "Checking if server is running on http://localhost:8000..." -Foregrou
 try {
     $response = Invoke-WebRequest -Uri "http://localhost:8000/" -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
     Write-Host "✅ Server is running!" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Server is not running on port 8000!" -ForegroundColor Red
     Write-Host "Please start the Django server with: python manage.py runserver 8000" -ForegroundColor Yellow
     exit 1
 }
 
-# Set working directory
-Set-Location $PSScriptRoot
+# Set working directory to project root (this script lives in scripts/)
+$projectRoot = Split-Path $PSScriptRoot -Parent
+Set-Location $projectRoot
 
 # Work around Windows EPERM temp cleanup issues:
 # - Chrome-launcher/Lighthouse create temp dirs under $env:TEMP by default
 # - Some Windows setups (AV/EDR/indexing) can lock those dirs and cause EPERM on cleanup
 # Force temp + cache to a project-local writable directory.
-$lhTmp = Join-Path $PSScriptRoot ".lighthouse_tmp"
+$lhTmp = Join-Path $projectRoot ".lighthouse_tmp"
 New-Item -ItemType Directory -Force -Path $lhTmp | Out-Null
 $env:TEMP = $lhTmp
 $env:TMP = $lhTmp
@@ -77,36 +79,39 @@ if (Test-Path $lhciPath) {
         Write-Host "`n⚠️  Lighthouse reported a Windows temp cleanup EPERM error, but reports were generated." -ForegroundColor Yellow
         Write-Host "Treating this as a soft success (exit code normalized to 0)." -ForegroundColor Yellow
         $normalizedExitCode = 0
-    } else {
+    }
+    else {
         $normalizedExitCode = $exitCode
     }
 
     #region agent log
     try {
         $logPayload = @{
-            sessionId   = 'debug-session'
-            runId       = 'lhci-run'
-            hypothesisId= 'H1-EpermHandling'
-            location    = 'run_lighthouse_tests.ps1:lhci'
-            message     = 'LHCI run completed'
-            data        = @{
-                rawExitCode       = $exitCode
-                normalizedExitCode= $normalizedExitCode
-                temp              = $env:TEMP
-                tmp               = $env:TMP
-                cacheDir          = $env:LIGHTHOUSE_CACHE_DIR
-                reportsExist      = $reportsExist
-                epermDetected     = ($outputText -match $epermPattern)
+            sessionId    = 'debug-session'
+            runId        = 'lhci-run'
+            hypothesisId = 'H1-EpermHandling'
+            location     = 'run_lighthouse_tests.ps1:lhci'
+            message      = 'LHCI run completed'
+            data         = @{
+                rawExitCode        = $exitCode
+                normalizedExitCode = $normalizedExitCode
+                temp               = $env:TEMP
+                tmp                = $env:TMP
+                cacheDir           = $env:LIGHTHOUSE_CACHE_DIR
+                reportsExist       = $reportsExist
+                epermDetected      = ($outputText -match $epermPattern)
             }
-            timestamp   = [int][double]::Parse((Get-Date -UFormat %s))
+            timestamp    = [int][double]::Parse((Get-Date -UFormat %s))
         } | ConvertTo-Json -Compress
-        $debugLogPath = Join-Path $PSScriptRoot ".cursor\debug.log"
+        $debugLogPath = Join-Path $projectRoot ".cursor\debug.log"
         Add-Content -LiteralPath $debugLogPath -Value $logPayload
-    } catch {
+    }
+    catch {
         # Swallow logging errors to avoid affecting script behavior
     }
     #endregion
-} else {
+}
+else {
     Write-Host "❌ Lighthouse CI not found at: $lhciPath" -ForegroundColor Red
     Write-Host "Please run: cd theme/static_src && npm install" -ForegroundColor Yellow
     exit 1
@@ -121,7 +126,8 @@ if ($normalizedExitCode -eq 0) {
         Write-Host "`n📊 Tracking scores..." -ForegroundColor Cyan
         python scripts\track_lighthouse_scores.py
     }
-} else {
+}
+else {
     Write-Host "`n⚠️  Lighthouse tests completed with errors (exit code: $normalizedExitCode)" -ForegroundColor Yellow
     Write-Host "This is often due to Windows temp file cleanup issues, but tests may have still run." -ForegroundColor Yellow
     Write-Host "Check the lighthouse_reports/ directory for results." -ForegroundColor Yellow
