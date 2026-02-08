@@ -97,8 +97,17 @@ else:
             "Example: ALLOWED_HOSTS=example.com,www.example.com"
         )
 
-    # Railway: automatically allow health check host used by Railway's internal health checks
-    if os.environ.get("RAILWAY_ENVIRONMENT"):
+    # Railway: automatically allow health check host used by Railway's internal health checks.
+    # Uses multiple env vars since Railway injects different ones across versions.
+    is_railway = any(
+        os.environ.get(var)
+        for var in (
+            "RAILWAY_ENVIRONMENT",
+            "RAILWAY_ENVIRONMENT_NAME",
+            "RAILWAY_PROJECT_ID",
+        )
+    )
+    if is_railway:
         railway_health_host = "healthcheck.railway.app"
         if railway_health_host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(railway_health_host)
@@ -657,7 +666,11 @@ else:
     SECURE_HSTS_PRELOAD = False
 
 # Railway-specific: trust proxy headers and avoid internal HTTPS redirects
-if os.environ.get("RAILWAY_ENVIRONMENT"):
+_is_railway = any(
+    os.environ.get(var)
+    for var in ("RAILWAY_ENVIRONMENT", "RAILWAY_ENVIRONMENT_NAME", "RAILWAY_PROJECT_ID")
+)
+if _is_railway:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = False
 
