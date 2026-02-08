@@ -432,17 +432,13 @@ if HAS_COMPRESSOR:
     elif compress_enabled_env or not DEBUG:
         # Enable compression if explicitly requested or in production
         COMPRESS_ENABLED = True
-        # Only use offline compression if static files exist
-        if STATIC_ROOT and os.path.exists(STATIC_ROOT):
-            COMPRESS_OFFLINE = True
-        else:
-            COMPRESS_OFFLINE = False
-            import warnings
-
-            warnings.warn(
-                "STATIC_ROOT doesn't exist. Run 'collectstatic' before enabling COMPRESS_OFFLINE.",
-                UserWarning,
-            )
+        # Offline compression requires running 'manage.py compress' to generate a
+        # manifest.  Since the Docker build does NOT run that command, always use
+        # runtime compression (COMPRESS_OFFLINE=False).  The JS/CSS files are
+        # already pre-minified by the Node.js build stage, so the overhead is
+        # negligible — compressor just concatenates and caches them.
+        compress_offline_env = os.environ.get("COMPRESS_OFFLINE", "").lower()
+        COMPRESS_OFFLINE = compress_offline_env == "true"
     else:
         # Default: disable in development to avoid file not found errors and hanging
         # Runtime compression can cause infinite loading if compressor has issues
