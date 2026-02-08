@@ -97,6 +97,12 @@ else:
             "Example: ALLOWED_HOSTS=example.com,www.example.com"
         )
 
+    # Railway: automatically allow health check host used by Railway's internal health checks
+    if os.environ.get("RAILWAY_ENVIRONMENT"):
+        railway_health_host = "healthcheck.railway.app"
+        if railway_health_host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(railway_health_host)
+
 # CSRF Trusted Origins for cross-origin requests
 # Required when accessing site from different domains (even subdomains)
 if not DEBUG:
