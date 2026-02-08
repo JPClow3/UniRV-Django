@@ -486,12 +486,16 @@ elif DEBUG:
     }
 else:
     # Production: Use manifest storage for cache busting
+    # ForgivingManifestStaticFilesStorage: falls back to unhashed URL if a file is
+    # missing from the manifest instead of crashing with a 500 error.  This makes
+    # deploys resilient to minor static-file mismatches while still providing
+    # cache-busting for all files that *are* in the manifest.
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            "BACKEND": "editais.storage.ForgivingManifestStaticFilesStorage",
         },
     }
 
