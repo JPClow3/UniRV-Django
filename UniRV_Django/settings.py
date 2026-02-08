@@ -429,14 +429,16 @@ if HAS_COMPRESSOR:
     if TESTING:
         COMPRESS_ENABLED = False
         COMPRESS_OFFLINE = False
-    elif compress_enabled_env or not DEBUG:
-        # Enable compression if explicitly requested or in production
+    elif not DEBUG and not compress_enabled_env:
+        # Production: disable compressor — all JS/CSS is already pre-minified by
+        # the Node.js build stage (terser for JS, PostCSS for Tailwind CSS).
+        # Runtime compression doesn't work with WhiteNoise because it only serves
+        # files discovered at startup; compressor-generated CACHE/ files would 404.
+        COMPRESS_ENABLED = False
+        COMPRESS_OFFLINE = False
+    elif compress_enabled_env:
+        # Explicitly enabled (development/Lighthouse testing)
         COMPRESS_ENABLED = True
-        # Offline compression requires running 'manage.py compress' to generate a
-        # manifest.  Since the Docker build does NOT run that command, always use
-        # runtime compression (COMPRESS_OFFLINE=False).  The JS/CSS files are
-        # already pre-minified by the Node.js build stage, so the overhead is
-        # negligible — compressor just concatenates and caches them.
         compress_offline_env = os.environ.get("COMPRESS_OFFLINE", "").lower()
         COMPRESS_OFFLINE = compress_offline_env == "true"
     else:
