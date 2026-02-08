@@ -18,8 +18,7 @@
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url('/static/fonts/Inter-Light.woff2') format('woff2'),
-       url('/static/fonts/Inter-Light.ttf') format('truetype');
+  src: url('/static/fonts/Inter-Light.woff2') format('woff2');
 }
 
 @font-face {
@@ -27,8 +26,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/static/fonts/Inter-Regular.woff2') format('woff2'),
-       url('/static/fonts/Inter-Regular.ttf') format('truetype');
+  src: url('/static/fonts/Inter-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -36,8 +34,7 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/static/fonts/Inter-Medium.woff2') format('woff2'),
-       url('/static/fonts/Inter-Medium.ttf') format('truetype');
+  src: url('/static/fonts/Inter-Medium.woff2') format('woff2');
 }
 
 @font-face {
@@ -45,8 +42,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/static/fonts/Inter-SemiBold.woff2') format('woff2'),
-       url('/static/fonts/Inter-SemiBold.ttf') format('truetype');
+  src: url('/static/fonts/Inter-SemiBold.woff2') format('woff2');
 }
 
 @font-face {
@@ -54,8 +50,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/static/fonts/Inter-Bold.woff2') format('woff2'),
-       url('/static/fonts/Inter-Bold.ttf') format('truetype');
+  src: url('/static/fonts/Inter-Bold.woff2') format('woff2');
 }
 
 /* Self-hosted Montserrat font - display/headings */
