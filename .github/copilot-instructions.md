@@ -2,141 +2,96 @@
 
 ## Project Overview
 
-Django 5.2+ web app for **AgroHub** — UniRV's Innovation Hub. Manages editais (funding calls), startups (YPETEC incubator), and innovation spaces (InovaLab). All UI text and comments are in **Portuguese (pt-BR)**. Timezone: `America/Sao_Paulo`.
+Django 5.2+ web app for **AgroHub** — UniRV's Innovation Hub. Manages editais (funding calls), startups (YPETEC incubator), and innovation spaces (InovaLab). All UI text, comments and error messages are in **Portuguese (pt-BR)**. Timezone: `America/Sao_Paulo`. PostgreSQL required (raises `ImproperlyConfigured` without it).
 
 ## Architecture
 
 Single Django app (`editais/`) with a service layer pattern:
 
 - **Models** (`editais/models.py`): `Edital`, `EditalValor`, `Cronograma`, `Startup`, `Tag`. Use custom QuerySet methods (`.active()`, `.search()`, `.with_related()`, `.with_prefetch()`). Edital has `HistoricalRecords` via `django-simple-history`.
-- **Views** (`editais/views/`): Split into `public.py`, `dashboard.py`, `editais_crud.py`, `mixins.py`. The top-level `editais/views.py` re-exports everything for backward compatibility — never add views there directly.
-- **Services** (`editais/services.py`): Business logic (`EditalService`) extracted from views. Use this layer for complex operations.
-- **Constants** (`editais/constants/`): `cache.py`, `limits.py`, `status.py` — re-exported via `__init__.py`. All magic numbers must be defined here.
-- **Cache** (`editais/cache_utils.py`): Standardized key generation (`get_cache_key()`, `get_detail_cache_key()`). Key format: `{prefix}_{key}:{value}`. Redis is the primary cache backend; LocMemCache is fallback when Redis is not configured.
-- **Decorators** (`editais/decorators.py`): `@rate_limit`, `@staff_required`, cache decorators.
+- **Views** (`editais/views/`): Split into `public.py`, `dashboard.py`, `editais_crud.py`, `mixins.py`. The top-level `editais/views.py` only re-exports — **never add views there directly**; add in the appropriate submodule and re-export.
+- **Services** (`editais/services.py`): Business logic (`EditalService`) extracted from views. Use for multi-model operations.
+- **Constants** (`editais/constants/`): `cache.py`, `limits.py`, `status.py` — flat re-exported via `__init__.py`. All magic numbers go here. Import from `editais.constants` directly.
+- **Cache** (`editais/cache_utils.py`): Standardized key generation. Key format: `{prefix}_{key}:{value}`. Redis primary; LocMemCache fallback. Global prefix: `unirv_editais`.
+- **Decorators** (`editais/decorators.py`): `@rate_limit` (custom, fail-open), `@staff_required` (returns 403 template).
+- **Utils** (`editais/utils.py`): HTML sanitization via `bleach`, slug generation, cache clearing.
 
 ## Key Commands
 
 ```bash
-# Dev server
-python manage.py runserver
-
-# Tailwind CSS (separate terminal)
-cd theme/static_src && npm run dev
-
-# Full asset build (CSS + JS minification + vendor copy)
-cd theme/static_src && npm run build
-
-# Tests
-python manage.py test editais
-coverage run --source='editais' manage.py test editais && coverage report
-
-# Linting & security
-ruff check editais/ UniRV_Django/
-bandit -r editais/ UniRV_Django/ -ll -ii
-
-# Seed data
-python manage.py seed_editais
-python manage.py seed_startups
+python manage.py runserver                                      # Dev server
+cd theme/static_src && npm run dev                              # Tailwind watch (separate terminal)
+cd theme/static_src && npm run build                            # Full asset build (CSS + JS min + vendor)
+python manage.py test editais                                   # Tests
+coverage run --source='editais' manage.py test editais && coverage report  # Coverage (85% min)
+ruff check editais/ UniRV_Django/                               # Lint
+python manage.py seed_editais && python manage.py seed_startups # Seed data
 ```
 
 ## Code Patterns
 
 ### Models
 
-- Use `SlugGenerationMixin` for models needing unique slugs — implements retry logic for race conditions.
-- HTML input is sanitized via `bleach` in `save()` methods (see `sanitize_edital_fields()` in `utils.py`).
-- PostgreSQL full-text search with `SearchVector`/`SearchQuery` (PostgreSQL required for all environments).
-- All module-level imports — no lazy imports inside functions.
+- `SlugGenerationMixin` provides unique slug generation with DB-level retry logic for race conditions.
+- HTML input sanitized via `bleach` in `save()` methods — see `sanitize_edital_fields()` in `utils.py`. Whitelisted tags defined in `ALLOWED_TAGS`.
+- PostgreSQL full-text search with `SearchVector`/`SearchQuery` (no SQLite fallback).
+- All imports at module level. Use `TYPE_CHECKING` guard for circular import avoidance (see `utils.py` pattern).
 
 ### Views
 
-- Add new views in the appropriate file under `editais/views/`, then re-export in `editais/views.py`.
-- Dashboard views require `@staff_required` decorator.
-- Cache invalidation uses `clear_all_caches()` from `utils.py` on model save signals.
+- Function-based views with type annotations (`request: HttpRequest -> HttpResponse`).
+- Dashboard views stack `@login_required` + `@staff_required`.
+- Response caching only for **unauthenticated + unfiltered** requests — authenticated/filtered requests always hit DB.
+- Cache invalidation via `clear_all_caches()` triggered by model save signals.
+
+### Fail-Open Design
+
+Both `@rate_limit` decorator and cache operations use fail-open: if Redis/cache is unavailable, requests proceed normally. Rate limiting is skipped entirely during tests (`settings.TESTING` flag).
 
 ### Frontend
 
-- **Tailwind CSS v4** with theme tokens defined in `theme/static_src/src/styles.css` (`@theme` block).
-- No inline event handlers (`onclick`, `onload`) — use external JS with `addEventListener`.
-- JS files must have `.min.js` production versions; build with `npm run build:js`.
-- Icons: Material Icons Outlined (CDN in `base.html`) + FontAwesome 6.5.2 (self-hosted in `static/vendor/fontawesome/`).
-- Fonts: Inter (body) + Montserrat (headings), self-hosted in `static/fonts/`.
+- **Tailwind CSS v4** with theme tokens in `theme/static_src/src/styles.css` (`@theme` block).
+- **No inline event handlers** — use external JS with `addEventListener`.
+- JS files need `.min.js` production versions; build with `npm run build:js` (uses terser). Files: `main.js`, `animations.js`, `animations-native.js`, `editais-index.js`, `edital-form.js`.
+- Icons: Material Icons Outlined (CDN) + FontAwesome 6.5.2 (self-hosted `static/vendor/fontawesome/`).
+- Fonts: Inter (body, `font-body`) + Montserrat (headings, `font-display`), self-hosted in `static/fonts/`.
+- Design tokens: `primary` (#2563EB), `darkblue` (#1e3a8a), `secondary` (#22c55e). Use modern names — legacy aliases (`unirvBlue`, `agrohubBlue`) exist but avoid in new code.
+- Common patterns: glassmorphism (`bg-white/95 backdrop-blur-lg`), card hover (`hover:-translate-y-1 transition duration-300 shadow-xl`), hero gradient (`bg-gradient-to-r from-darkblue to-primary`).
+- SEO blocks in `templates/base.html`: override `{% block title %}`, `{% block meta_description %}`, `{% block og_* %}` per page.
 
-### Design System
+### Forms
 
-All tokens are in the `@theme` block of `theme/static_src/src/styles.css`. Use Tailwind classes with these tokens.
-
-**Colors** — use the token names as Tailwind classes (e.g., `bg-primary`, `text-darkblue`):
-| Token | Hex | Usage |
-|-------|-----|-------|
-| `primary` | `#2563EB` | Buttons, links, brand accents |
-| `primary-hover` | `#1d4ed8` | Hover states |
-| `secondary` | `#22c55e` | Green accent (agro theme) |
-| `darkblue` | `#1e3a8a` | Hero sections, footer backgrounds |
-| `background-light` | `#F8FAFC` | Page backgrounds |
-| `surface-light` | `#FFFFFF` | Cards, panels |
-| `text-light` | `#1E293B` | Body text |
-| `text-muted-light` | `#64748B` | Secondary/muted text |
-
-Legacy aliases exist (`unirvBlue` → `primary`, `agrohubBlue` → `primary-hover`) — use the modern names for new code.
-
-**Typography**: Montserrat (`font-display`) for `h1`–`h3` and display text; Inter (`font-body`) for body. Both self-hosted.
-
-**Z-index scale**: `--z-dropdown: 10`, `--z-sticky: 50`, `--z-modal: 100`, `--z-popover: 200`, `--z-tooltip: 300`, `--z-skip-link: 10000`.
-
-**Common CSS patterns**:
-
-- Glassmorphism: `bg-white/95 backdrop-blur-lg border-white/20`
-- Card hover lift: `hover:-translate-y-1 transition duration-300 shadow-xl`
-- Hero overlays: `bg-gradient-to-r from-darkblue to-primary`
+- Centralized pt-BR error messages in `FIELD_ERROR_MESSAGES` dict in `forms.py` — use `get_field_error_message()` helper.
+- File uploads validated against `MAX_LOGO_FILE_SIZE` from constants.
 
 ### Security
 
-- `@rate_limit` decorator on write endpoints (uses `editais/constants/` for `RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW`).
-- `bleach` sanitization for all user HTML inputs.
-- Never use bare `except Exception` — use specific exception types.
+- `@rate_limit` on write endpoints. `bleach` sanitization on all user HTML. Never use bare `except Exception`.
+- `@staff_required` logs unauthorized attempts with client IP.
 
 ## Testing
 
-- **Framework**: Django `TestCase` (default) with `factory-boy` fixtures in `editais/tests/factories.py`.
-- **Factories**: `UserFactory`, `StaffUserFactory`, `EditalFactory`, `StartupFactory`, `TagFactory`, `EditalValorFactory`, `CronogramaFactory`.
-- **Coverage minimum**: 85% enforced in CI.
-- **File naming**: `test_<feature>.py` — one file per feature area.
-- Use `TransactionTestCase` **only** for testing `transaction.on_commit()` callbacks (e.g., cache invalidation). Add cleanup in `setUp()` to prevent data leakage.
-- When creating `StartupFactory`, pass `edital=` explicitly to avoid SubFactory creating extra editals.
-
-## Database
-
-- **All environments**: PostgreSQL via `DATABASE_URL` env var (parsed by `dj-database-url`) or `DB_NAME`/`DB_USER`/`DB_PASSWORD`.
-- SQLite is **not supported**. The app will raise `ImproperlyConfigured` if no PostgreSQL connection is configured.
-- Migrations are in `editais/migrations/`. Run `python manage.py makemigrations` then `python manage.py migrate`.
+- Django `TestCase` (default) + `factory-boy` fixtures in `editais/tests/factories.py`.
+- Factories: `UserFactory`, `StaffUserFactory`, `SuperUserFactory`, `EditalFactory`, `StartupFactory`, `TagFactory`, `EditalValorFactory`, `CronogramaFactory`.
+- Factory traits: `EditalFactory(open_edital=True)`, `StartupFactory(active_startup=True)`, `StartupFactory(without_edital=True)`.
+- **Critical**: `StartupFactory` has a `SubFactory(EditalFactory)` — always pass `edital=` explicitly to avoid creating extra editals.
+- Use `TransactionTestCase` **only** for `transaction.on_commit()` tests (e.g., cache invalidation). Add cleanup in `setUp()`.
+- File naming: `test_<feature>.py` — one file per feature area. 85% coverage enforced in CI.
+- Template tags available: `editais_filters`, `image_helpers`, `thumbnail_safe` (loaded in `base.html`).
 
 ## CI/CD
 
-GitHub Actions (`.github/workflows/test.yml`): ruff lint → bandit security → tests with coverage → 85% threshold check → PR coverage comments.
+GitHub Actions (`.github/workflows/test.yml`): ruff lint → bandit security → tests with coverage → 85% threshold → PR coverage comment.
 
-## Environment Variables
+## Environment & Deployment
 
-| Variable        | Purpose               | Default                 |
-| --------------- | --------------------- | ----------------------- |
-| `SECRET_KEY`    | Django secret         | Dev fallback (insecure) |
-| `DJANGO_DEBUG`  | Debug mode            | `True`                  |
-| `DATABASE_URL`  | PostgreSQL connection | **Required**            |
-| `REDIS_URL`     | Cache backend (Redis) | LocMemCache fallback    |
-| `ALLOWED_HOSTS` | Comma-separated hosts | localhost (dev)         |
+| Variable        | Purpose                       | Default                 |
+| --------------- | ----------------------------- | ----------------------- |
+| `DATABASE_URL`  | PostgreSQL connection         | **Required**            |
+| `REDIS_URL`     | Cache backend                 | LocMemCache fallback    |
+| `SECRET_KEY`    | Django secret                 | Dev fallback (insecure) |
+| `DJANGO_DEBUG`  | Debug mode                    | `True`                  |
+| `ALLOWED_HOSTS` | Comma-separated               | localhost (dev)         |
+| `CACHE_VERSION` | Bump to purge cache on deploy | `1`                     |
 
-## Docker Deployment
-
-Multi-stage `Dockerfile` (Node 20 → Python 3.12). `docker-compose.yml` orchestrates: PostgreSQL 16, Redis 7, Django/Gunicorn, Nginx reverse proxy.
-
-```bash
-cp .env.docker .env          # Edit: SECRET_KEY, DB_PASSWORD, ALLOWED_HOSTS
-docker-compose up --build -d
-docker-compose exec web python manage.py createsuperuser
-curl http://localhost/health/ # Verify
-```
-
-Docker env vars auto-set `DB_HOST=db` and `REDIS_HOST=redis`. Required: `SECRET_KEY`, `ALLOWED_HOSTS`, `DB_PASSWORD`. See `.env.docker` template for full list.
-
-Named volumes: `postgres_data`, `redis_data`, `media_data`, `static_data`, `logs_data`.
+Docker: multi-stage `Dockerfile` (Node 20 → Python 3.12). `docker-compose.yml` orchestrates PostgreSQL 16 + Redis 7 + Gunicorn + Nginx. See `.env.docker` for required vars (`SECRET_KEY`, `DB_PASSWORD`, `ALLOWED_HOSTS`).
