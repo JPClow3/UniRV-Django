@@ -26,6 +26,11 @@ COPY static/js/ /app/static/js/
 # Copy theme source files (changes more often than package lock)
 COPY theme/static_src/ ./
 
+# Copy template files so Tailwind can scan them for class names.
+# The @source directives in styles.css reference ../../../templates/ and
+# ../../../editais/ relative to theme/static_src/src/.
+COPY templates/ /app/templates/
+
 # Build Tailwind CSS and minify JavaScript
 RUN npm run build
 
