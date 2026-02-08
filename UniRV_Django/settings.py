@@ -333,12 +333,11 @@ else:
 # Production warning: Media files should be served by web server (nginx/apache), not Django
 if not DEBUG:
     import warnings
-    from django.core.exceptions import SecurityWarning
 
     warnings.warn(
         "Ensure MEDIA_ROOT is served by your web server (nginx/apache), not Django. "
         "User-uploaded files should never be executed.",
-        SecurityWarning,
+        UserWarning,
     )
 
 # Easy Thumbnails configuration
