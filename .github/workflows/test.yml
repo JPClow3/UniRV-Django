@@ -52,7 +52,7 @@ jobs:
       - name: Run security scan (bandit)
         run: |
           echo "Running bandit security scan..."
-          bandit -r editais/ UniRV_Django/ -ll -ii --format txt || true
+          bandit -r editais/ UniRV_Django/ -ll -ii --format txt
           echo "Security scan completed"
 
       - name: Run database migrations
