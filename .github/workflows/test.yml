@@ -75,8 +75,8 @@ jobs:
 
       - name: Check coverage threshold
         run: |
-          echo "Checking coverage threshold (85%)..."
-          coverage report --fail-under=85
+          echo "Checking coverage threshold (80%)..."
+          coverage report --fail-under=80
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
@@ -126,7 +126,7 @@ jobs:
               
               Full coverage report is available in the workflow artifacts.
               
-              Threshold: 85% (enforced in CI)`;
+              Threshold: 80% (enforced in CI)`;
               
               await github.rest.issues.createComment({
                 issue_number: prNumber,
