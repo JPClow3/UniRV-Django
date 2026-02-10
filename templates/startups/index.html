@@ -148,7 +148,7 @@
             />
             {% endif %} {% endif %} {% else %}
             <div
-              class="startup-logo-fallback w-16 h-16 rounded-2xl bg-gradient-to-br {% if startup.category == 'agtech' %}from-green-50 to-emerald-100 border border-green-100 {% elif startup.category == 'biotech' %}from-blue-50 to-primary-hover/20 border border-blue-100 {% elif startup.category == 'iot' %}from-blue-50 to-indigo-100 border border-blue-100 {% elif startup.category == 'edtech' %}from-sky-50 to-blue-100 border border-sky-100 {% else %}from-gray-50 to-gray-100 border border-gray-100{% endif %} flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0 flex-shrink-0"
+              class="startup-logo-fallback w-16 h-16 rounded-2xl bg-linear-to-br {% if startup.category == 'agtech' %}from-green-50 to-emerald-100 border border-green-100 {% elif startup.category == 'biotech' %}from-blue-50 to-primary-hover/20 border border-blue-100 {% elif startup.category == 'iot' %}from-blue-50 to-indigo-100 border border-blue-100 {% elif startup.category == 'edtech' %}from-sky-50 to-blue-100 border border-sky-100 {% else %}from-gray-50 to-gray-100 border border-gray-100{% endif %} flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform duration-300 shrink-0"
             >
               {% if startup.category == 'agtech' %}🌿{% elif startup.category == 'biotech' %}🧬{% elif startup.category == 'iot' %}📡{% elif startup.category == 'edtech' %}🎓{% else %}💡{% endif %}
             </div>
@@ -255,7 +255,7 @@
   <section class="py-20 bg-white border-t border-gray-100 fold-section">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div
-        class="bg-gradient-to-r from-darkblue to-primary rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10 group cursor-pointer hover:shadow-[0_20px_50px_rgba(37,99,235,0.3)] transition-all duration-500"
+        class="bg-linear-to-r from-darkblue to-primary rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-10 group cursor-pointer hover:shadow-[0_20px_50px_rgba(37,99,235,0.3)] transition-all duration-500"
       >
         <div
           class="absolute top-0 right-0 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-125 transition-transform duration-700"

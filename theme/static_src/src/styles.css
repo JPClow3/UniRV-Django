@@ -2389,7 +2389,7 @@ h1, h2, h3, .font-display {
   }
 
   .auth-gradient-cta {
-    @apply w-full h-12 rounded-xl bg-gradient-to-r from-secondary to-primary
+    @apply w-full h-12 rounded-xl bg-linear-to-r from-secondary to-primary
     text-white font-semibold shadow-lg hover:from-emerald-500 hover:to-primary-hover
     transition-all flex items-center justify-center gap-2 text-base active:scale-95;
     min-height: 48px;
