@@ -206,7 +206,7 @@
           </button>
           <!-- Ambient Glow: Blob de gradiente para glassmorphism -->
           <div id="ambient-glow-blob" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-50/50 via-green-50/50 to-blue-50/50 blur-3xl rounded-full opacity-60 pointer-events-none" style="width: 120%; min-width: 120%; height: 300px; min-height: 300px; z-index: -10;"></div>
-          <div id="startup-carousel" class="overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-6 px-6" style="scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory; overflow-y: visible; scroll-behavior: smooth;">
+          <div id="startup-carousel" class="overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-6 px-6" style="scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory; scroll-behavior: smooth;">
             <div class="flex gap-6 pb-4 pt-2">
               {% for startup in startups %}
               <a href="{% if startup.slug %}{% url 'startup_detail_slug' slug=startup.slug %}{% else %}#{% endif %}" 
@@ -442,7 +442,7 @@
         <p class="text-gray-500 mt-2">Nossa jornada de crescimento em 3 fases estratégicas</p>
       </div>
       <!-- Wrapper para responsividade -->
-      <div class="relative max-w-5xl mx-auto timeline-wrapper md:block flex flex-col overflow-hidden">
+      <div class="relative max-w-5xl mx-auto timeline-wrapper md:block flex flex-col">
         <!-- Desktop Line Background -->
         <div class="hidden md:block timeline-line-bg"></div>
         <!-- Desktop Progress Line -->
@@ -493,8 +493,7 @@
                 <span class="px-3 py-1 bg-gray-300 text-gray-800 text-xs font-bold rounded-full">Planejado</span>
               </div>
             </div>
-
-
+          </div>
 
         </div>
 

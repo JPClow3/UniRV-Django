@@ -223,60 +223,40 @@
 
     // Cards entrance animation
     const allCards = document.querySelectorAll('.startup-card');
-    function animateCards(elements) {
-      if (!elements || !elements.length) return;
-      // Add will-change hint for better performance
-      elements.forEach(card => {
-        card.style.willChange = 'transform, opacity';
-      });
-      gsap.fromTo(
-        elements,
-        { y: 50, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.12,
-          ease: 'power1.out',
-          clearProps: 'transform',
-          onComplete: function() {
-            // Remove will-change after animation completes
-            elements.forEach(card => {
-              card.style.willChange = 'auto';
-            });
-          }
-        }
-      );
-    }
     if (allCards.length) {
-      animateCards(allCards);
-
-      // Reveal on scroll for each card
-      gsap.utils.toArray('.startup-card').forEach((card, index) => {
-        // Add will-change hint for better performance
-        card.style.willChange = 'transform, opacity';
-        gsap.fromTo(
-          card,
-          { opacity: 0, y: 30 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.7,
-            delay: index * 0.12,
-            ease: 'power1.out',
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 88%',
-              toggleActions: 'play none none none'
-            },
-            onComplete: function() {
-              // Remove will-change after animation completes
-              card.style.willChange = 'auto';
+      // Respeitar preferência de movimento reduzido
+      if (prefersReducedMotion) {
+        allCards.forEach(card => {
+          gsap.set(card, { opacity: 1, y: 0, scale: 1 });
+          card.classList.add('animated');
+        });
+      } else {
+        // Single scroll-triggered animation for each card (no duplicate animations)
+        gsap.utils.toArray('.startup-card').forEach((card, index) => {
+          card.style.willChange = 'transform, opacity';
+          gsap.fromTo(
+            card,
+            { opacity: 0, y: 30, scale: 0.95 },
+            {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              duration: 0.7,
+              delay: index * 0.08,
+              ease: 'power1.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 92%',
+                toggleActions: 'play none none none'
+              },
+              onComplete: function() {
+                card.style.willChange = 'auto';
+                card.classList.add('animated');
+              }
             }
-          }
-        );
-      });
+          );
+        });
+      }
     }
 
     // Search form debounced submit (fallback – page reload, not AJAX)
@@ -541,8 +521,23 @@
       window._gsapRetryCount = (window._gsapRetryCount || 0) + 1;
       if (window._gsapRetryCount < 10) { // Max 10 retries (5 seconds)
         setTimeout(initAnimationsWhenReady, 500);
+      } else {
+        // GSAP never loaded — sinaliza falha para ativar fallback CSS
+        document.documentElement.classList.add('js-animations-failed');
+        forceAllVisible();
       }
     }
+  }
+
+  // Safety net: ensure all animated elements become visible if GSAP fails
+  function forceAllVisible() {
+    var selectors = ['.timeline-item', '.startup-card', '.pillar-card', '.edital-card', '.stat-card', '.environment-card'];
+    selectors.forEach(function(sel) {
+      document.querySelectorAll(sel).forEach(function(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+    });
   }
 
   // Initialize when DOM is ready

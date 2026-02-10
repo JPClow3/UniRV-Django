@@ -21,24 +21,24 @@
   }
 }
 
-/* Content sections animation */
-.bg-white.rounded-xl {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
+/* Content sections animation — handled via .reveal-up class */
+/* Note: Do NOT add generic opacity:0 rules on broad selectors like
+   .bg-white.rounded-xl — they hide elements that no JS ever reveals.
+   Use the explicit .reveal-up class on elements that should animate in. */
 
-.bg-white.rounded-xl.animated {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bg-white.rounded-xl {
+/* Safety net: if animations haven't triggered after 2s, show content anyway.
+   This prevents elements from being permanently invisible if GSAP or
+   Intersection Observer fails to load or fire. */
+@keyframes fadeInFallback {
+  to {
     opacity: 1;
     transform: translateY(0);
-    transition: none;
   }
+}
+
+/* Fallback condicionado a classe .js-animations-failed no <html> */
+html.js-animations-failed .reveal-up:not(.animated) {
+  animation: fadeInFallback 0.5s ease-out 0.3s forwards;
 }
 
 /* --------------------------------------------------
@@ -279,8 +279,10 @@
 }
 
 /* Fix for startup carousel hover clipping */
+/* Wrapper duplo: o container pai permite overflow vertical,
+   o carrossel interno usa clip apenas no eixo X */
 #startup-carousel {
-  overflow-y: visible !important;
+  overflow: visible !important;
 }
 
 #startup-carousel > div {
