@@ -103,6 +103,8 @@ else:
             "Please set ALLOWED_HOSTS with your domain(s). "
             "Example: ALLOWED_HOSTS=example.com,www.example.com"
         )
+    
+    ALLOWED_HOSTS = parsed_hosts
 
     # Railway: automatically allow health check host used by Railway's internal health checks.
     # Uses multiple env vars since Railway injects different ones across versions.
