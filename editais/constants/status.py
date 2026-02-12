@@ -19,6 +19,7 @@ OPEN_EDITAL_STATUSES = ['aberto', 'em_andamento']
 
 # Campos HTML que precisam de sanitização
 HTML_FIELDS = [
+    'titulo',
     'analise', 'objetivo', 'etapas', 'recursos',
     'itens_financiaveis', 'criterios_elegibilidade',
     'criterios_avaliacao', 'itens_essenciais_observacoes',

@@ -79,11 +79,14 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 # Detect if we're running tests
-TESTING = len(sys.argv) > 1 and (
-    sys.argv[1] == "test"
-    or "pytest" in sys.argv[0]
-    or "unittest" in sys.argv[0]
-    or "test" in sys.argv
+TESTING = (
+    bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    or (len(sys.argv) > 1 and (
+        sys.argv[1] == "test"
+        or "pytest" in sys.argv[0]
+        or "unittest" in sys.argv[0]
+        or "test" in sys.argv
+    ))
 )
 
 # Security: explicit ALLOWED_HOSTS
@@ -166,9 +169,14 @@ except ImportError:
         INSTALLED_APPS.remove("easy_thumbnails")
     pass
 
-# Add django_browser_reload only in DEBUG mode and not during testing
-if DEBUG and not TESTING:
-    INSTALLED_APPS += ["django_browser_reload"]
+# Add django_browser_reload only in DEBUG mode (safe for tests)
+if DEBUG:
+    try:
+        import django_browser_reload  # noqa: F401
+    except ImportError:
+        django_browser_reload = None
+    if django_browser_reload is not None:
+        INSTALLED_APPS += ["django_browser_reload"]
 
 # Silk profiling — conditionally enabled via ENABLE_SILK env var (staging only)
 ENABLE_SILK = env("ENABLE_SILK")
@@ -188,8 +196,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# Add django_browser_reload middleware only in DEBUG mode and not during testing
-if DEBUG and not TESTING:
+# Add django_browser_reload middleware only in DEBUG mode
+if DEBUG and "django_browser_reload" in INSTALLED_APPS:
     MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
     INTERNAL_IPS = [
         "127.0.0.1",

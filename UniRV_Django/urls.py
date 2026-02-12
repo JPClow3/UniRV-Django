@@ -18,10 +18,16 @@ urlpatterns = [
 if getattr(settings, "ENABLE_SILK", False):
     urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
 
-# Include django_browser_reload URLs only in DEBUG mode and not during testing
-if settings.DEBUG and not getattr(settings, "TESTING", False):
-    urlpatterns += [
-        path("__reload__/", include("django_browser_reload.urls")),
-    ]
+# Include django_browser_reload URLs when available in DEBUG mode
+if settings.DEBUG:
+    try:
+        import django_browser_reload  # noqa: F401
+    except ImportError:
+        django_browser_reload = None
+    if django_browser_reload is not None:
+        urlpatterns += [
+            path("__reload__/", include("django_browser_reload.urls")),
+        ]
     # Serve media files in DEBUG mode (thumbnails, user uploads)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    if not getattr(settings, "TESTING", False):
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

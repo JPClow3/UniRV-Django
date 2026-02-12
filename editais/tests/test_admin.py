@@ -19,8 +19,10 @@ class TestEditalAdmin:
     """Testes para interface administrativa de editais."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, staff_client):
-        self.client = staff_client
+    def _setup(self, client, staff_user):
+        self.client = client
+        self.staff_user = staff_user
+        self.client.force_login(staff_user)
         cache.clear()
 
         self.edital1 = Edital.objects.create(
@@ -117,7 +119,7 @@ class TestEditalAdmin:
         self.edital1.refresh_from_db()
         assert self.edital1.slug == original_slug
 
-    def test_admin_save_model_sanitizes_html(self, staff_user):
+    def test_admin_save_model_sanitizes_html(self):
         from editais.admin import EditalAdmin
 
         admin = EditalAdmin(Edital, None)
@@ -128,24 +130,24 @@ class TestEditalAdmin:
             objetivo="<img src=x onerror=alert(1)>",
         )
         mock_request = MagicMock()
-        mock_request.user = staff_user
+        mock_request.user = self.staff_user
         admin.save_model(mock_request, edital, None, change=False)
 
         assert "<script>" not in edital.analise
         assert "onerror" not in edital.objetivo
         assert "Texto normal" in edital.analise
 
-    def test_admin_save_model_tracks_created_by(self, staff_user):
+    def test_admin_save_model_tracks_created_by(self):
         from editais.admin import EditalAdmin
 
         admin = EditalAdmin(Edital, None)
         edital = Edital(titulo="Teste Created By", url="https://example.com/test")
         mock_request = MagicMock()
-        mock_request.user = staff_user
+        mock_request.user = self.staff_user
         admin.save_model(mock_request, edital, None, change=False)
-        assert edital.created_by == staff_user
+        assert edital.created_by == self.staff_user
 
-    def test_admin_save_model_tracks_updated_by(self, staff_user):
+    def test_admin_save_model_tracks_updated_by(self):
         from editais.admin import EditalAdmin
 
         admin = EditalAdmin(Edital, None)
@@ -153,11 +155,11 @@ class TestEditalAdmin:
             titulo="Teste Updated By", url="https://example.com/test"
         )
         mock_request = MagicMock()
-        mock_request.user = staff_user
+        mock_request.user = self.staff_user
         admin.save_model(mock_request, edital, None, change=True)
-        assert edital.updated_by == staff_user
+        assert edital.updated_by == self.staff_user
 
-    def test_created_by_tracked(self, staff_user):
+    def test_created_by_tracked(self):
         data = {
             "titulo": "Edital com Rastreamento",
             "url": "https://example.com/track",
@@ -165,10 +167,10 @@ class TestEditalAdmin:
         }
         self.client.post(reverse("edital_create"), data=data)
         edital = Edital.objects.get(titulo="Edital com Rastreamento")
-        assert edital.created_by == staff_user
-        assert edital.updated_by == staff_user
+        assert edital.created_by == self.staff_user
+        assert edital.updated_by == self.staff_user
 
-    def test_updated_by_tracked(self, staff_user):
+    def test_updated_by_tracked(self):
         data = {
             "titulo": self.edital1.titulo,
             "url": self.edital1.url,
@@ -178,7 +180,7 @@ class TestEditalAdmin:
         }
         self.client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
         self.edital1.refresh_from_db()
-        assert self.edital1.updated_by == staff_user
+        assert self.edital1.updated_by == self.staff_user
 
 
 @pytest.mark.django_db
@@ -186,8 +188,10 @@ class TestEditalAdminFilters:
     """Testes para filtros administrativos."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, staff_client):
-        self.client = staff_client
+    def _setup(self, client, staff_user):
+        self.client = client
+        self.staff_user = staff_user
+        self.client.force_login(staff_user)
         cache.clear()
 
         self.edital_aberto = Edital.objects.create(
@@ -346,42 +350,38 @@ class TestAdminDashboard:
             numero_edital="002/2025",
         )
 
-    def test_staff_can_access_dashboard(self, client):
-        client.login(username="staff", password="staff123")
-        resp = client.get(reverse("admin_dashboard"))
+    def test_staff_can_access_dashboard(self, staff_client, staff_user):
+        resp = staff_client.get(reverse("admin_dashboard"))
         assert resp.status_code == 200
         assert "Dashboard Administrativo" in resp.content.decode()
 
-    def test_non_staff_cannot_access_dashboard(self, client):
-        client.login(username="user", password="user123")
-        resp = client.get(reverse("admin_dashboard"))
+    def test_non_staff_cannot_access_dashboard(self, auth_client):
+        resp = auth_client.get(reverse("admin_dashboard"))
         assert resp.status_code == 403
 
     def test_unauthenticated_cannot_access_dashboard(self, client):
-        client.logout()
         resp = client.get(reverse("admin_dashboard"))
         assert resp.status_code == 302
         assert "/login/" in resp.url
 
-    def test_dashboard_shows_editais_por_status(self, client):
-        client.login(username="staff", password="staff123")
-        resp = client.get(reverse("admin_dashboard"))
+    def test_dashboard_shows_editais_por_status(self, staff_client):
+        resp = staff_client.get(reverse("admin_dashboard"))
         content = resp.content.decode()
-        assert "aberto" in content
-        assert "fechado" in content
+        assert "Edital Aberto" in content
+        assert "Edital Fechado" in content
 
-    def test_dashboard_shows_recent_editais(self, client):
+    def test_dashboard_shows_recent_editais(self, staff_client, staff_user):
         recent_edital = Edital.objects.create(
             titulo="Edital Recente",
             url="https://example.com/recent",
             status="aberto",
             data_criacao=timezone.now() - timedelta(days=3),
+            created_by=staff_user,
         )
-        client.login(username="staff", password="staff123")
-        resp = client.get(reverse("admin_dashboard"))
+        resp = staff_client.get(reverse("admin_dashboard"))
         assert recent_edital.titulo in resp.content.decode()
 
-    def test_dashboard_shows_upcoming_deadlines(self, client):
+    def test_dashboard_shows_upcoming_deadlines(self, staff_client):
         today = timezone.now().date()
         upcoming = Edital.objects.create(
             titulo="Edital Próximo do Prazo",
@@ -389,11 +389,11 @@ class TestAdminDashboard:
             status="aberto",
             end_date=today + timedelta(days=5),
         )
-        client.login(username="staff", password="staff123")
-        resp = client.get(reverse("admin_dashboard"))
-        assert upcoming.titulo in resp.content.decode()
+        resp = staff_client.get(reverse("admin_dashboard"))
+        content = resp.content.decode()
+        assert upcoming.titulo in content
 
-    def test_dashboard_shows_top_entidades(self, client):
+    def test_dashboard_shows_top_entidades(self, staff_client):
         Edital.objects.create(
             titulo="Edital CNPq 1",
             url="https://example.com/cnpq1",
@@ -406,6 +406,5 @@ class TestAdminDashboard:
             status="aberto",
             entidade_principal="CNPq",
         )
-        client.login(username="staff", password="staff123")
-        resp = client.get(reverse("admin_dashboard"))
+        resp = staff_client.get(reverse("admin_dashboard"))
         assert "CNPq" in resp.content.decode()

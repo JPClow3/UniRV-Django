@@ -1,4 +1,4 @@
-"""Cache utility functions for standardized cache key generation and management."""
+"""Funcoes utilitarias de cache para geracao padronizada de chaves."""
 
 import logging
 from typing import Optional, Dict, Any
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_user_cache_key(user: Optional[User]) -> str:
-    """Generate a cache key suffix based on user authentication status."""
+    """Gera o sufixo da chave de cache com base na autenticacao do usuario."""
     # Handle None or AnonymousUser (which has is_authenticated = False)
     if user and hasattr(user, "is_authenticated") and user.is_authenticated:
         if hasattr(user, "is_staff") and user.is_staff:
@@ -20,7 +20,7 @@ def get_user_cache_key(user: Optional[User]) -> str:
 
 
 def get_cache_key(prefix: str, **kwargs) -> str:
-    """Generate a standardized cache key from prefix and keyword arguments."""
+    """Gera uma chave de cache padronizada a partir do prefixo e kwargs."""
     if not kwargs:
         return prefix
 
@@ -30,7 +30,7 @@ def get_cache_key(prefix: str, **kwargs) -> str:
 
 
 def get_index_cache_key(page_number: str, cache_version: Optional[int] = None) -> str:
-    """Generate cache key for index pages with versioning support."""
+    """Gera chave de cache para a pagina de index com suporte a versao."""
     if cache_version is not None:
         return f"editais_index_page_{page_number}_v{cache_version}"
     return f"editais_index_page_{page_number}"
@@ -39,7 +39,7 @@ def get_index_cache_key(page_number: str, cache_version: Optional[int] = None) -
 def get_detail_cache_key(
     model_type: str, identifier: str, user: Optional[User] = None
 ) -> str:
-    """Generate cache key for detail views."""
+    """Gera chave de cache para views de detalhe."""
     user_key = get_user_cache_key(user)
     return get_cache_key(
         f"{model_type}_detail", identifier=identifier, user_key=user_key
@@ -48,13 +48,13 @@ def get_detail_cache_key(
 
 def get_cached_response(cache_key: str) -> Optional[HttpResponse]:
     """
-    Get cached HTTP response if available.
+    Recupera resposta HTTP do cache, se existir.
 
     Args:
-        cache_key: Cache key to look up
+        cache_key: Chave de cache para consulta
 
     Returns:
-        HttpResponse if cached content exists, None otherwise
+        HttpResponse se houver conteudo no cache; caso contrario, None
     """
     cached_content = cache.get(cache_key)
     if cached_content:
@@ -64,11 +64,11 @@ def get_cached_response(cache_key: str) -> Optional[HttpResponse]:
 
 def cache_response(cache_key: str, rendered_content: str, timeout: int) -> None:
     """
-    Cache rendered HTTP response content.
+    Armazena o HTML renderizado no cache.
 
     Args:
-        cache_key: Cache key to store content under
-        rendered_content: Rendered HTML content to cache
-        timeout: Cache timeout in seconds
+        cache_key: Chave do cache
+        rendered_content: HTML renderizado a ser armazenado
+        timeout: Tempo de expiracao em segundos
     """
     cache.set(cache_key, rendered_content, timeout)

@@ -8,7 +8,11 @@ urlpatterns = [
     # Autocomplete endpoints (used by admin and forms)
     path("autocomplete/tag/", TagAutocomplete.as_view(), name="tag-autocomplete"),
     path(
-        "autocomplete/edital/", EditalAutocomplete.as_view(), name="edital-autocomplete"
+        "autocomplete/edital/", EditalAutocomplete.as_view(), name="editais_autocomplete"
+    ),
+    path(
+        "autocomplete/editais/",
+        RedirectView.as_view(pattern_name="editais_autocomplete", permanent=True),
     ),
     path("", views.home, name="home"),
     path("login/", views.login_view, name="login"),

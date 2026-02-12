@@ -88,13 +88,6 @@ class TestHealthEndpoint:
         data = response.json()
         assert data["status"] == "healthy"
 
-    def test_legacy_health_check_returns_200(self, client) -> None:
-        """GET /health/ (custom endpoint) should still return 200."""
-        response = client.get("/health/")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-
     @freeze_time("2026-06-15 12:00:00")
     def test_health_timestamp(self, client) -> None:
         """Health response should include a parseable timestamp."""

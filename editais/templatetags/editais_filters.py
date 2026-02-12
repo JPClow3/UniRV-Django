@@ -14,13 +14,14 @@ register = template.Library()
 def days_until(date: Optional[date_type]) -> Optional[int]:
     """
     Calcula quantos dias faltam até a data (ou quantos dias se passaram se negativo).
-    Returns None if date is None to allow template filters to handle missing dates properly.
+    Retorna None se a data for None, permitindo que filtros no template lidem
+    corretamente com datas ausentes.
     
     Args:
-        date: Date object or None
+        date: Objeto date ou None
         
     Returns:
-        Optional[int]: Number of days until the date (negative if in the past), or None if date is None
+        Optional[int]: Numero de dias até a data (negativo se no passado) ou None
     """
     if not date:
         return None
@@ -31,7 +32,7 @@ def days_until(date: Optional[date_type]) -> Optional[int]:
         delta = date - today
         return delta.days
     except (TypeError, AttributeError):
-        # Handle invalid date types gracefully
+        # Trata tipos invalidos de data sem quebrar o template
         return 0
 
 
@@ -41,16 +42,16 @@ def is_deadline_soon(date: Optional[date_type]) -> bool:
     Retorna True se a data está nos próximos 7 dias (prazo próximo).
     
     Args:
-        date: Date object or None
+        date: Objeto date ou None
         
     Returns:
-        bool: True if deadline is within 7 days
+        bool: True se o prazo estiver dentro de 7 dias
     """
     if not date:
         return False
     
     days = days_until(date)
-    # days_until now returns 0 instead of None, but keep check for safety
+    # days_until retorna 0 em caso invalido; mantem checagem por seguranca
     if days is None:
         return False
     return 0 <= days <= 7
@@ -62,10 +63,10 @@ def is_transparent_header(url_name: Optional[str]) -> bool:
     Indica se o cabeçalho deve usar o tema transparente/gradiente.
     
     Args:
-        url_name: URL name or None
+        url_name: Nome da URL ou None
         
     Returns:
-        bool: True if header should be transparent
+        bool: True se o cabecalho deve ser transparente
     """
     if not url_name:
         return False
@@ -75,17 +76,17 @@ def is_transparent_header(url_name: Optional[str]) -> bool:
 @register.filter
 def startswith(value: Optional[str], arg: str) -> bool:
     """
-    Check if a string starts with the given prefix.
+    Verifica se uma string comeca com o prefixo informado.
     
-    Usage in templates:
+    Uso em templates:
         {% if current_url|startswith:'edital_' %}
     
     Args:
-        value: String to check or None
-        arg: Prefix to check for
+        value: String para verificar ou None
+        arg: Prefixo a ser verificado
         
     Returns:
-        bool: True if value starts with arg
+        bool: True se value comeca com arg
     """
     if not value:
         return False
@@ -95,16 +96,16 @@ def startswith(value: Optional[str], arg: str) -> bool:
 @register.filter
 def is_textarea_widget(widget) -> bool:
     """
-    Check if a widget is a Textarea widget.
+    Verifica se o widget e do tipo Textarea.
     
-    Usage in templates:
+    Uso em templates:
         {% if field.field.widget|is_textarea_widget %}
     
     Args:
-        widget: Django form widget
+        widget: Widget de formulario do Django
         
     Returns:
-        bool: True if widget is a Textarea
+        bool: True se o widget for um Textarea
     """
     from django.forms import Textarea
     return isinstance(widget, Textarea)
@@ -113,16 +114,16 @@ def is_textarea_widget(widget) -> bool:
 @register.filter
 def is_select_widget(widget) -> bool:
     """
-    Check if a widget is a Select widget.
+    Verifica se o widget e um Select.
     
-    Usage in templates:
+    Uso em templates:
         {% if field.field.widget|is_select_widget %}
     
     Args:
-        widget: Django form widget
+        widget: Widget de formulario do Django
         
     Returns:
-        bool: True if widget is a Select or SelectMultiple
+        bool: True se o widget for Select ou SelectMultiple
     """
     from django.forms import Select, SelectMultiple
     return isinstance(widget, (Select, SelectMultiple))
@@ -131,9 +132,9 @@ def is_select_widget(widget) -> bool:
 @register.filter
 def is_svg(file_field) -> bool:
     """
-    Check if a FileField or ImageField value is an SVG file.
+    Verifica se um FileField ou ImageField aponta para um SVG.
     
-    Usage in templates:
+    Uso em templates:
         {% if startup.logo|is_svg %}
             <img src="{{ startup.logo.url }}" />
         {% else %}
@@ -141,21 +142,20 @@ def is_svg(file_field) -> bool:
         {% endif %}
     
     Args:
-        file_field: FileField or ImageField value (FileFieldFile/ImageFieldFile instance)
+        file_field: Valor de FileField ou ImageField (FileFieldFile/ImageFieldFile)
         
     Returns:
-        bool: True if the file is an SVG file (by extension)
+        bool: True se o arquivo for SVG (por extensao)
     """
     if not file_field:
         return False
     
-    # Get the filename from the field
-    # FileField and ImageField both have a .name attribute
+    # Extrai o nome do arquivo do campo (.name)
     filename = getattr(file_field, 'name', '')
     if not filename:
         return False
     
-    # Check file extension
+    # Verifica a extensao do arquivo
     import os
     ext = os.path.splitext(filename)[1].lower()
     return ext in ['.svg', '.svgz']
@@ -182,8 +182,8 @@ DEFAULT_CATEGORY_BADGE = 'bg-gray-100 text-gray-700 border-gray-200'
 @register.filter
 def phase_badge_class(status: Optional[str]) -> str:
     """
-    Map startup phase/status to Tailwind badge classes.
-    Use in templates: {{ startup.status|phase_badge_class }}
+    Mapeia o status/fase da startup para classes de badge do Tailwind.
+    Uso em templates: {{ startup.status|phase_badge_class }}
     """
     if not status:
         return DEFAULT_PHASE_BADGE
@@ -193,8 +193,8 @@ def phase_badge_class(status: Optional[str]) -> str:
 @register.filter
 def category_badge_class(category: Optional[str]) -> str:
     """
-    Map startup category to Tailwind badge classes.
-    Use in templates: {{ startup.category|category_badge_class }}
+    Mapeia a categoria da startup para classes de badge do Tailwind.
+    Uso em templates: {{ startup.category|category_badge_class }}
     """
     if not category:
         return DEFAULT_CATEGORY_BADGE
@@ -204,27 +204,46 @@ def category_badge_class(category: Optional[str]) -> str:
 @register.filter
 def total_error_count(form) -> int:
     """
-    Count the total number of errors in a form (including multiple errors per field).
+    Conta o total de erros do formulario (inclui multiplos erros por campo).
     
-    Usage in templates:
+    Uso em templates:
         Há {{ form|total_error_count }} erro{{ form|total_error_count|pluralize }} no formulário
     
     Args:
-        form: Django form instance
+        form: Instancia de formulario do Django
         
     Returns:
-        int: Total number of errors (field errors + non-field errors)
+        int: Total de erros (erros de campo + erros globais)
     """
     if not form or not hasattr(form, 'errors'):
         return 0
     
     count = 0
-    # Count field errors
+    # Conta erros de campo
     for field in form:
         if field.errors:
             count += len(field.errors)
-    # Count non-field errors
+    # Conta erros globais do formulario
     if form.non_field_errors():
         count += len(form.non_field_errors())
     
     return count
+
+
+@register.filter
+def field_describedby(field) -> str:
+    """
+    Monta o valor de aria-describedby para um campo de formulario.
+
+    Inclui ids de help text e de erro quando existirem.
+    Retorna uma lista de ids separada por espaco.
+    """
+    if not field:
+        return ""
+    ids = []
+    if getattr(field, "help_text", ""):
+        ids.append(f"{field.auto_id}_helptext")
+    if getattr(field, "errors", None):
+        if field.errors:
+            ids.append(f"{field.auto_id}_error")
+    return " ".join(ids)

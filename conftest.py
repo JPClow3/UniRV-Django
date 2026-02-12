@@ -20,25 +20,31 @@ def pytest_configure():
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "UniRV_Django.settings")
         django.setup()
 
+    # Ensure testing flag is enabled for rate limiting/caching behavior
+    settings.TESTING = True
+
     # Override cache backend for testing - use LocMemCache for instant tests
     # Falls back to LocMemCache if Redis is not available (for SQLite dev testing)
-    import redis
-
-    redis_available = True
     try:
-        redis.Redis(
-            host=settings.CACHES["default"]
-            .get("LOCATION", "localhost:6379")
-            .split(":")[0],
-            port=int(
-                settings.CACHES["default"]
-                .get("LOCATION", "localhost:6379")
-                .split(":")[1]
-            ),
-            socket_connect_timeout=1,
-        ).ping()
-    except (redis.ConnectionError, OSError, ValueError, IndexError):
+        import redis
+    except ImportError:
         redis_available = False
+    else:
+        redis_available = True
+        try:
+            redis.Redis(
+                host=settings.CACHES["default"]
+                .get("LOCATION", "localhost:6379")
+                .split(":")[0],
+                port=int(
+                    settings.CACHES["default"]
+                    .get("LOCATION", "localhost:6379")
+                    .split(":")[1]
+                ),
+                socket_connect_timeout=1,
+            ).ping()
+        except (redis.ConnectionError, OSError, ValueError, IndexError):
+            redis_available = False
 
     if not redis_available:
         # Redis unavailable; switch to local memory cache for all backends
@@ -50,10 +56,10 @@ def pytest_configure():
             "default": locmem_cache,
             "sessions": locmem_cache,
         }
-        # Reload cache module to force Django to use new settings
+        # Recarrega as conexoes de cache com as novas configuracoes
         from django.core.cache import caches
 
-        caches._settings = settings.CACHES
+        caches.close_all()
         from django.core.cache import cache as django_cache
 
         django_cache.clear()

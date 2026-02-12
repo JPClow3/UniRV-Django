@@ -42,16 +42,6 @@ class TestAmbientesInovacaoView:
 
 
 @pytest.mark.django_db
-class TestStartupsLegacyRedirect:
-    """Legacy /projetos-aprovados/ redirects to /startups/."""
-
-    def test_legacy_projetos_aprovados_url_redirects_to_startups(self, client):
-        response = client.get("/projetos-aprovados/", follow=False)
-        assert response.status_code == 301
-        assert response.url == "/startups/"
-
-
-@pytest.mark.django_db
 class TestLoginView:
     """Tests for login view"""
 

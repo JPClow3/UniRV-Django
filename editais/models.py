@@ -438,6 +438,15 @@ class Edital(SlugGenerationMixin, models.Model):
         # If object is not saved yet, return empty string
         return ""
 
+    @property
+    def descricao(self) -> Optional[str]:
+        """Compatibilidade: alias de objetivo para chamadas legadas."""
+        return self.objetivo
+
+    @descricao.setter
+    def descricao(self, value: Optional[str]) -> None:
+        self.objetivo = value
+
     history = HistoricalRecords()
 
 

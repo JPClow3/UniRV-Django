@@ -31,6 +31,11 @@ class EditalService:
     """Serviço para operações de negócio relacionadas a editais."""
 
     @staticmethod
+    def send_notification(edital: Edital) -> None:
+        """Hook para notificações de criação/atualização de editais."""
+        return None
+
+    @staticmethod
     def get_editais_by_deadline(days: int = DEADLINE_WARNING_DAYS) -> QuerySet:
         """
         Retorna editais que expiram dentro de N dias.
@@ -126,6 +131,7 @@ class EditalService:
                     edital.save()
                     # Clear all caches including dashboard stats
                     transaction.on_commit(clear_all_caches)
+                    transaction.on_commit(lambda: EditalService.send_notification(edital))
                 return edital
             except IntegrityError as e:
                 if "slug" in str(e).lower() or "unique" in str(e).lower():

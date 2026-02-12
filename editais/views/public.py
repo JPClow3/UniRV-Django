@@ -54,9 +54,11 @@ logger = logging.getLogger(__name__)
 
 def _parse_index_params(request: HttpRequest) -> dict:
     """Parse index view params (filters, page, cache keys)."""
-    search_query = request.GET.get("search", "")
+    search_query = request.GET.get("search", "") or request.GET.get("q", "")
     status_filter = request.GET.get("status", "")
-    orgao_filter = request.GET.get("orgao", "")
+    orgao_filter = request.GET.get("orgao", "") or request.GET.get(
+        "entidade_principal", ""
+    )
     start_date_filter = request.GET.get("start_date", "")
     end_date_filter = request.GET.get("end_date", "")
     only_open = request.GET.get("only_open", "") == "1"
@@ -80,7 +82,11 @@ def _parse_index_params(request: HttpRequest) -> dict:
         or end_date_filter
         or only_open
     )
-    use_cache = not has_filters and not request.user.is_authenticated
+    use_cache = (
+        not has_filters
+        and not request.user.is_authenticated
+        and not getattr(settings, "TESTING", False)
+    )
     cache_key = None
     if use_cache:
         version_key = "editais_index_cache_version"

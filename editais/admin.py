@@ -184,12 +184,12 @@ class StartupAdmin(admin.ModelAdmin):
     )
 
     class Media:
-        """Include DAL Select2 assets for autocomplete widgets."""
+        """Inclui assets do DAL Select2 para widgets de autocomplete."""
 
         pass
 
     def get_form(self, request, obj=None, **kwargs):
-        """Override form to use DAL autocomplete widget for tags and edital."""
+        """Sobrescreve o form para usar widgets DAL de autocomplete."""
         form = super().get_form(request, obj, **kwargs)
         if "tags" in form.base_fields:
             form.base_fields["tags"].widget = autocomplete.ModelSelect2Multiple(
@@ -198,7 +198,7 @@ class StartupAdmin(admin.ModelAdmin):
             )
         if "edital" in form.base_fields:
             form.base_fields["edital"].widget = autocomplete.ModelSelect2(
-                url="edital-autocomplete",
+                url="editais_autocomplete",
                 attrs={"data-placeholder": "Buscar edital..."},
             )
         return form

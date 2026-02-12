@@ -139,17 +139,19 @@ class TestStartupModelValidation:
     """Startup model-level validation"""
 
     def test_startup_without_nome(self):
-        startup = Startup(name="", description="Descrição")
+        user = User.objects.create_user(username="startup_user", password="testpass123")
+        startup = Startup(name="", description="Descrição", proponente=user)
         with pytest.raises(Exception):
             startup.full_clean()
 
     def test_startup_with_valid_data(self, edital):
+        user = User.objects.create_user(username="valid_startup", password="testpass123")
         startup = Startup(
             name="TestStartup",
             edital=edital,
             description="Uma descrição",
             category="agtech",
-            proponente_id=1,
+            proponente=user,
         )
         startup.full_clean()
         startup.save()
@@ -160,11 +162,12 @@ class TestStartupModelValidation:
         large_file = SimpleUploadedFile(
             "logo.png", large_content, content_type="image/png"
         )
+        user = User.objects.create_user(username="logo_user", password="testpass123")
         startup = Startup(
             name="Startup Logo",
             edital=edital,
             description="Teste",
-            proponente_id=1,
+            proponente=user,
             logo=large_file,
         )
         try:
@@ -176,11 +179,12 @@ class TestStartupModelValidation:
         invalid_file = SimpleUploadedFile(
             "logo.exe", b"\x00" * 1024, content_type="application/octet-stream"
         )
+        user = User.objects.create_user(username="logo_user_ext", password="testpass123")
         startup = Startup(
             name="Startup Ext",
             edital=edital,
             description="Teste",
-            proponente_id=1,
+            proponente=user,
             logo=invalid_file,
         )
         try:
@@ -212,4 +216,4 @@ class TestXSSPreventionInForms:
         )
         edital.save()
         edital.refresh_from_db()
-        assert "onerror" not in (edital.descricao or "")
+        assert "onerror" not in (edital.objetivo or "")

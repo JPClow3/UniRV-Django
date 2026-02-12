@@ -169,3 +169,13 @@ class TestRedirectSEOAndConsistency:
             )
             if r1.status_code in [301, 302] and r2.status_code in [301, 302]:
                 assert r1.url == r2.url
+
+
+@pytest.mark.django_db
+class TestLegacyPublicRedirects:
+    """Tests for legacy public redirects."""
+
+    def test_projetos_aprovados_redirects_to_startups(self, client):
+        resp = client.get("/projetos-aprovados/", follow=False)
+        assert resp.status_code in [301, 302]
+        assert reverse("startups_showcase") in resp.url

@@ -50,12 +50,13 @@ def is_docker_daemon_running():
         return False
 
 
-DOCKER_AVAILABLE = is_docker_available()
+SKIP_DOCKER_TESTS = os.name == "nt" and not os.environ.get("RUN_DOCKER_TESTS")
+DOCKER_AVAILABLE = is_docker_available() and not SKIP_DOCKER_TESTS
 DOCKER_RUNNING = is_docker_daemon_running() if DOCKER_AVAILABLE else False
 
 skip_if_no_docker = pytest.mark.skipif(
     not DOCKER_AVAILABLE,
-    reason="Docker not available",
+    reason="Docker not available or skipped on Windows (set RUN_DOCKER_TESTS=1 to enable)",
 )
 skip_if_docker_not_running = pytest.mark.skipif(
     not DOCKER_RUNNING,
