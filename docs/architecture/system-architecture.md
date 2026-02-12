@@ -78,7 +78,7 @@ graph TB
 ### 3. Camada de Dados
 
 #### Banco de Dados
-- **Desenvolvimento**: SQLite
+- **Produção e Desenvolvimento**: PostgreSQL 16+
 - **Produção**: PostgreSQL com:
   - Connection pooling (CONN_MAX_AGE=600)
   - Full-text search (PostgreSQL)
@@ -182,7 +182,7 @@ AgroHub/
 - **Python 3.12+**: Linguagem principal
 - **Django 5.2+**: Framework web
 - **PostgreSQL**: Banco de dados (produção)
-- **SQLite**: Banco de dados (desenvolvimento)
+- **PostgreSQL**: Banco de dados
 - **Redis**: Cache (opcional)
 
 ### Frontend

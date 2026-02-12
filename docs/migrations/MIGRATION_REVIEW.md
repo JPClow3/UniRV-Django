@@ -38,7 +38,7 @@ Todas as migrações seguem essas práticas:
 ## Recomendações
 
 - Continuar seguindo as melhores práticas de migração Django
-- Testar migrações em tanto SQLite (dev) quanto PostgreSQL (produção)
+- Testar migrações em PostgreSQL (usado em todos os ambientes)
 - Revisar arquivos de migração antes de fazer commit
 
 ---

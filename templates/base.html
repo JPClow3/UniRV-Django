@@ -2,7 +2,6 @@
 <html lang="pt-BR">
   <head>
     {% load static tailwind_tags editais_filters %}
-    {% load compress %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
@@ -27,7 +26,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{% block twitter_title %}AgroHub UniRV - Inovação e Tecnologia{% endblock %}" />
     <meta name="twitter:description" content="{% block twitter_description %}AgroHub UniRV - Centro de Inovação e Tecnologia da Universidade de Rio Verde. Conectando pesquisa, startups, indústria e produtores rurais para impulsionar o Agro 4.0.{% endblock %}" />
-    <meta name="twitter:image" content="{% block twitter_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo AgroHub.svg' %}{% endblock %}" />
+    <meta name="twitter:image" content="{% block twitter_image_url %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/Logo AgroHub.svg' %}{% endblock %}" />
 
     <!-- Open Graph / Social Media Meta Tags -->
     <meta
@@ -45,14 +44,12 @@
     />
     <meta property="og:site_name" content="AgroHub UniRV" />
     {% block og_image %}
-    <meta property="og:image" content="{% block og_image_url %}{{ request.build_absolute_uri|slice:":-1" }}{% static 'img/Logo AgroHub.svg' %}{% endblock %}" />
+    <meta property="og:image" content="{% block og_image_url %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/Logo AgroHub.svg' %}{% endblock %}" />
     <meta property="og:image:alt" content="{% block og_image_alt %}AgroHub UniRV - Logo do Centro de Inovação e Tecnologia{% endblock %}" />
     <meta property="og:image:width" content="{% block og_image_width %}512{% endblock %}" />
     <meta property="og:image:height" content="{% block og_image_height %}512{% endblock %}" />
     <meta property="og:image:type" content="{% block og_image_type %}image/svg+xml{% endblock %}" />
     {% endblock %}
-    {# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
-    
     <!-- DNS prefetch & preconnect for external domains -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -492,35 +489,17 @@
     <!-- Global animation libraries - conditionally loaded only on pages that need animations -->
     {% if current_url == 'home' or current_url|startswith:'edital_' or current_url == 'startups_showcase' or current_url == 'ambientes_inovacao' or current_url == 'editais_index' or current_url == 'startups' %}
     <!-- Native animations for simple fade-ins (Intersection Observer) -->
-    {% if HAS_COMPRESSOR %}
-    {% compress js %}
     {% if DEBUG %}<script src="{% static 'js/animations-native.js' %}" defer></script>{% else %}<script src="{% static 'js/animations-native.min.js' %}" defer></script>{% endif %}
-    {% endcompress %}
-    {% else %}
-    {% if DEBUG %}<script src="{% static 'js/animations-native.js' %}" defer></script>{% else %}<script src="{% static 'js/animations-native.min.js' %}" defer></script>{% endif %}
-    {% endif %}
     
     <!-- GSAP only for complex animations (counters, timeline progress) on home page (local vendor) -->
     {% if current_url == 'home' %}
     <script src="{% static 'vendor/gsap/gsap.min.js' %}" defer crossorigin="anonymous"></script>
     <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}" defer crossorigin="anonymous"></script>
-    {% if HAS_COMPRESSOR %}
-    {% compress js %}
     {% if DEBUG %}<script src="{% static 'js/animations.js' %}" defer></script>{% else %}<script src="{% static 'js/animations.min.js' %}" defer></script>{% endif %}
-    {% endcompress %}
-    {% else %}
-    {% if DEBUG %}<script src="{% static 'js/animations.js' %}" defer></script>{% else %}<script src="{% static 'js/animations.min.js' %}" defer></script>{% endif %}
-    {% endif %}
     {% endif %}
     {% endif %}
 
-    {% if HAS_COMPRESSOR %}
-    {% compress js %}
     {% if DEBUG %}<script src="{% static 'js/main.js' %}" defer></script>{% else %}<script src="{% static 'js/main.min.js' %}" defer></script>{% endif %}
-    {% endcompress %}
-    {% else %}
-    {% if DEBUG %}<script src="{% static 'js/main.js' %}" defer></script>{% else %}<script src="{% static 'js/main.min.js' %}" defer></script>{% endif %}
-    {% endif %}
     {% block extra_js %}{% endblock %}
     {% endwith %}
   </body>

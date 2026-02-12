@@ -17,6 +17,10 @@ jobs:
     env:
       DJANGO_DEBUG: 'True'
       ALLOWED_HOSTS: 'localhost,127.0.0.1'
+      USE_CELERY: 'False'
+      DATABASE_URL: 'sqlite:///test_db.sqlite3'
+      REDIS_URL: ''
+      REDIS_HOST: ''
     
     steps:
       - name: Checkout code
@@ -61,17 +65,11 @@ jobs:
           python manage.py migrate --noinput
           echo "Migrations completed successfully"
 
-      - name: Run tests with coverage
+      - name: Run tests with pytest (parallel + coverage)
         run: |
-          echo "Running tests with coverage..."
-          coverage run --source='editais' manage.py test
+          echo "Running pytest with coverage..."
+          pytest -n auto --cov=editais --cov-report=xml --cov-report=html --cov-report=term -q
           echo "Tests completed"
-
-      - name: Generate coverage report
-        run: |
-          coverage report
-          coverage xml
-          coverage html
 
       - name: Check coverage threshold
         run: |

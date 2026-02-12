@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-02-12
+
+### Changed
+- Updated .gitignore environment file pattern for better clarity
+- Renamed .env.docker to .env.docker.example to prevent accidental commits
+- Updated .dockerignore to include README.md in container
+- Enhanced pytest.ini with testpaths and strict configuration
+- Added Python files to .gitattributes for consistent line endings
+- Improved cookie domain validation in settings.py
+- Expanded conftest.py with additional test fixtures
+- Added rationale comments to requirements.txt for version constraints
+- Reorganized testing documentation to docs/testing/ subdirectory
+
+### Fixed
+- Fixed .env file tracking confusion in version control
+- Improved documentation organization and consistency
+
 ## [1.0.0] - 2025-01-15
 
 ### Added
@@ -34,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Database Features
 - Índices otimizados para performance
-- Full-text search com PostgreSQL (fallback para SQLite)
+- Full-text search com PostgreSQL
 - Trigram indexes para busca fuzzy
 - Constraints de validação no banco de dados
 - Unique constraints em slugs e valores

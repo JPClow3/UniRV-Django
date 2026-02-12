@@ -27,7 +27,6 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
 from django.urls import reverse
-from django_ratelimit.decorators import ratelimit
 
 from ..constants import (
     CACHE_TTL_INDEX,
@@ -281,13 +280,54 @@ def startups_showcase(request: HttpRequest) -> HttpResponse:
         return render(request, "503.html", status=503)
 
 
-@method_decorator(ratelimit(key="ip", rate="5/m", method="POST"), name="dispatch")
 class RateLimitedLoginView(LoginView):
-    """Login view with rate limiting; uses existing registration/login.html template."""
+    """Login view with rate limiting; uses existing registration/login.html template.
+
+    Rate limiting is implemented using Django's cache framework directly,
+    matching the fail-open pattern used by the custom @rate_limit decorator.
+    This replaces the previous django-ratelimit dependency.
+    """
 
     template_name = "registration/login.html"
     redirect_authenticated_user = True
     success_url = None  # use LOGIN_REDIRECT_URL from settings via RedirectURLMixin
+
+    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        """Apply rate limiting to POST requests before dispatch."""
+        from ..decorators import get_client_ip
+        from ..constants import RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW
+
+        if request.method == "POST" and not getattr(settings, "TESTING", False):
+            client_ip = get_client_ip(request)
+            cache_key = f"rate_limit_login_{client_ip}"
+            try:
+                key_added = cache.add(cache_key, 1, RATE_LIMIT_WINDOW)
+                if not key_added:
+                    try:
+                        current_count = cache.incr(cache_key)
+                    except (ConnectionError, OSError, AttributeError, TypeError):
+                        # Fail-open: allow request if cache is unavailable
+                        logger.warning(
+                            "Rate limit bypass due to cache error on login",
+                            extra={"cache_key": cache_key, "client_ip": client_ip},
+                        )
+                        return super().dispatch(request, *args, **kwargs)
+                    if current_count > RATE_LIMIT_REQUESTS:
+                        logger.warning(
+                            f"Rate limit excedido no login: ip={client_ip}, "
+                            f"count={current_count}"
+                        )
+                        return HttpResponse(
+                            "Muitas tentativas de login. Por favor, tente novamente em alguns instantes.",
+                            status=429,
+                        )
+            except (ConnectionError, OSError, AttributeError, TypeError):
+                # Fail-open: allow request if cache is unavailable
+                logger.warning(
+                    "Rate limit bypass due to cache error on login",
+                    extra={"cache_key": cache_key, "client_ip": client_ip},
+                )
+        return super().dispatch(request, *args, **kwargs)
 
     def get_redirect_url(self) -> str:
         """

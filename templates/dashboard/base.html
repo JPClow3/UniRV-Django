@@ -1,5 +1,4 @@
-{% load static tailwind_tags compress %}
-{# Note: compress tag requires django-compressor to be installed (listed in requirements.txt) #}
+{% load static tailwind_tags %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -117,9 +116,7 @@
   </main>
 
   <!-- User menu toggle is handled by main.js to avoid conflicts -->
-  {% compress js %}
   <script src="{% static 'js/main.js' %}"></script>
-  {% endcompress %}
   {% block extra_js %}{% endblock %}
 </body>
 </html>

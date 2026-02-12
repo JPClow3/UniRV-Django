@@ -12,6 +12,7 @@
   let searchTimeout = null;
   const SEARCH_DELAY = 500;
   let isLoading = false;
+  let searchAbortController = null;
 
   // Expose searchTimeout to window for keyboard shortcuts
   window.searchTimeout = searchTimeout;
@@ -89,8 +90,13 @@
 
     showSkeletonLoading();
 
+    // Cancel any in-flight search request
+    if (searchAbortController) searchAbortController.abort();
+    searchAbortController = new AbortController();
+
     fetch(url, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      signal: searchAbortController.signal,
     })
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -157,7 +163,8 @@
         history.pushState({ search: params.toString() }, '', url);
         editaisGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
       })
-      .catch(() => {
+      .catch((err) => {
+        if (err && err.name === 'AbortError') return;
         editaisGrid.classList.remove('loading');
         isLoading = false;
 

@@ -196,10 +196,9 @@ html.js-animations-failed .reveal-up:not(.animated) {
     animation: none !important;
     will-change: auto;
   }
-  /* Keep icon animations but make them slower/less noticeable */
   .floating-icon {
-    animation-duration: 60s !important;
-    animation-timing-function: linear !important;
+    animation: none !important;
+    will-change: auto;
   }
 }
 
@@ -255,13 +254,10 @@ html.js-animations-failed .reveal-up:not(.animated) {
   );
 }
 
-/* Respect user's motion preferences - but allow animation if user wants it */
-/* Note: This still respects system preferences but ensures animation is defined */
 @media (prefers-reduced-motion: reduce) {
   .ecosystem-ticker-track {
-    /* Keep animation but make it slower/more subtle */
-    animation: marquee-scroll 60s linear infinite !important;
-    will-change: transform;
+    animation: none !important;
+    will-change: auto;
   }
 }
 

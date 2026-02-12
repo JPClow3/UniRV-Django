@@ -4,7 +4,7 @@
 # Production deployment with PostgreSQL, Redis, Nginx
 #
 # Usage:
-#   cp .env.docker .env
+#   cp .env.docker.example .env
 #   # Edit .env with your production values
 #   docker-compose up --build -d
 #
@@ -99,6 +99,11 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
 
+      # Celery
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      USE_CELERY: "True"
+
       # Email (optional)
       EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
       EMAIL_HOST: ${EMAIL_HOST:-}
@@ -118,7 +123,6 @@ services:
       GUNICORN_WORKERS: ${GUNICORN_WORKERS:-}
 
       # Static files
-      COMPRESS_ENABLED: ${COMPRESS_ENABLED:-true}
       WHITENOISE_MAX_AGE: ${WHITENOISE_MAX_AGE:-31536000}
     expose:
       - "8000"
@@ -128,6 +132,113 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    networks:
+      - agrohub_network
+
+  # ============================================
+  # Celery Worker
+  # ============================================
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrohub_celery_worker
+    restart: unless-stopped
+    command: ["celery", "-A", "UniRV_Django", "worker", "-l", "info", "--concurrency=2"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media_data:/app/media
+      - logs_data:/app/logs
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+      DB_NAME: ${DB_NAME:-agrohub_production}
+      DB_USER: ${DB_USER:-agrohub_user}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      USE_CELERY: "True"
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-noreply@agrohub.unirv.edu.br}
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A UniRV_Django inspect ping --timeout 10 || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+    networks:
+      - agrohub_network
+
+  # ============================================
+  # Celery Beat (Periodic Task Scheduler)
+  # ============================================
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrohub_celery_beat
+    restart: unless-stopped
+    command: ["celery", "-A", "UniRV_Django", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+      DB_NAME: ${DB_NAME:-agrohub_production}
+      DB_USER: ${DB_USER:-agrohub_user}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      USE_CELERY: "True"
+      DJANGO_LOG_LEVEL: ${DJANGO_LOG_LEVEL:-INFO}
+    networks:
+      - agrohub_network
+
+  # ============================================
+  # Flower — Celery Monitoring Dashboard
+  # ============================================
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrohub_flower
+    restart: unless-stopped
+    command: ["celery", "-A", "UniRV_Django", "flower", "--port=5555", "--url_prefix=flower"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is required}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+      DB_NAME: ${DB_NAME:-agrohub_production}
+      DB_USER: ${DB_USER:-agrohub_user}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_HOST: db
+      DB_PORT: 5432
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH:-admin:changeme}
+    ports:
+      - "5555:5555"
     networks:
       - agrohub_network
 

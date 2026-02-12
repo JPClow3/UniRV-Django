@@ -3,7 +3,7 @@ import logging
 import os
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db import models, ProgrammingError, OperationalError, IntegrityError, transaction
+from django.db import models, connection, ProgrammingError, OperationalError, IntegrityError, transaction
 from django.db.models import Q
 from django.urls import reverse
 from django.core.exceptions import ValidationError
@@ -132,60 +132,64 @@ class EditalQuerySet(models.QuerySet):
         if len(query) > MAX_SEARCH_LENGTH:
             query = query[:MAX_SEARCH_LENGTH]
 
-        # PostgreSQL full-text search with Portuguese language configuration
-        # Enables stemming (e.g., "startup" matches "startups") and ranking
-        search_fields = getattr(
-            settings,
-            "EDITAL_SEARCH_FIELDS",
-            [
-                "titulo",
-                "entidade_principal",
-                "numero_edital",
-                "analise",
-                "objetivo",
-                "etapas",
-                "recursos",
-                "itens_financiaveis",
-                "criterios_elegibilidade",
-                "criterios_avaliacao",
-                "itens_essenciais_observacoes",
-                "detalhes_unirv",
-            ],
-        )
+        # Only use PostgreSQL full-text search when available (SQLite uses icontains)
+        if connection.vendor != "postgresql":
+            pass  # Fall through to icontains below
+        else:
+            # PostgreSQL full-text search with Portuguese language configuration
+            # Enables stemming (e.g., "startup" matches "startups") and ranking
+            search_fields = getattr(
+                settings,
+                "EDITAL_SEARCH_FIELDS",
+                [
+                    "titulo",
+                    "entidade_principal",
+                    "numero_edital",
+                    "analise",
+                    "objetivo",
+                    "etapas",
+                    "recursos",
+                    "itens_financiaveis",
+                    "criterios_elegibilidade",
+                    "criterios_avaliacao",
+                    "itens_essenciais_observacoes",
+                    "detalhes_unirv",
+                ],
+            )
 
-        try:
-            # Build search vector with Portuguese language configuration
-            # 'portuguese' config provides stemming and stop word removal
-            search_vector = SearchVector(*search_fields, config="portuguese")
+            try:
+                # Build search vector with Portuguese language configuration
+                # 'portuguese' config provides stemming and stop word removal
+                search_vector = SearchVector(*search_fields, config="portuguese")
 
-            # Create search query with Portuguese config
-            search_query_obj = SearchQuery(query, config="portuguese")
+                # Create search query with Portuguese config
+                search_query_obj = SearchQuery(query, config="portuguese")
 
-            # Annotate queryset with search rank for relevance ordering
-            return (
-                self.annotate(
-                    search=search_vector,
-                    rank=SearchRank(search_vector, search_query_obj),
+                # Annotate queryset with search rank for relevance ordering
+                return (
+                    self.annotate(
+                        search=search_vector,
+                        rank=SearchRank(search_vector, search_query_obj),
+                    )
+                    .filter(search=search_query_obj)
+                    .order_by("-rank", "-data_atualizacao")
                 )
-                .filter(search=search_query_obj)
-                .order_by("-rank", "-data_atualizacao")
-            )
-        except (
-            AttributeError,
-            ValueError,
-            TypeError,
-            ProgrammingError,
-            OperationalError,
-            NotImplementedError,
-        ) as e:
-            # Fallback to icontains if full-text search fails
-            # (e.g., pg_catalog extension not enabled, non-PostgreSQL backend,
-            #  or missing full-text search configuration)
-            logger.warning(
-                f"PostgreSQL full-text search failed, falling back to icontains: {e}"
-            )
+            except (
+                AttributeError,
+                ValueError,
+                TypeError,
+                ProgrammingError,
+                OperationalError,
+                NotImplementedError,
+            ) as e:
+                # Fallback to icontains if full-text search fails
+                # (e.g., pg_catalog extension not enabled, non-PostgreSQL backend,
+                #  or missing full-text search configuration)
+                logger.warning(
+                    f"PostgreSQL full-text search failed, falling back to icontains: {e}"
+                )
 
-        # Fallback: icontains search if full-text search fails
+        # Fallback: icontains search (used for SQLite or when PostgreSQL full-text fails)
         q_objects = Q()
         fallback_fields = getattr(
             settings,
@@ -382,34 +386,16 @@ class Edital(SlugGenerationMixin, models.Model):
                 raise ValidationError({"titulo": f"Erro ao gerar slug: {str(e)}"})
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        for attempt in range(SLUG_GENERATION_MAX_RETRIES):
-            try:
-                # Generate slug only if it doesn't exist (on creation)
-                if not self.slug:
-                    self.slug = self._generate_unique_slug()
-                # Ensure slug is never None after save (DB-001 fix)
-                if not self.slug:
-                    raise ValidationError(
-                        "Slug não pode ser None. Título inválido para geração de slug."
-                    )
-                today = timezone.now().date()
-                self.status = determine_edital_status(
-                    current_status=self.status,
-                    start_date=self.start_date,
-                    end_date=self.end_date,
-                    today=today,
-                )
-                # Sanitize HTML fields to prevent XSS attacks
-                sanitize_edital_fields(self)
-                super().save(*args, **kwargs)
-                return
-            except IntegrityError as e:
-                if (
-                    "slug" in str(e).lower() or "unique" in str(e).lower()
-                ) and attempt < SLUG_GENERATION_MAX_RETRIES - 1:
-                    self.slug = self._generate_unique_slug()
-                    continue
-                raise
+        today = timezone.now().date()
+        self.status = determine_edital_status(
+            current_status=self.status,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            today=today,
+        )
+        # Sanitize HTML fields to prevent XSS attacks
+        sanitize_edital_fields(self)
+        self._save_with_slug_retry(super().save, *args, **kwargs)
 
     @property
     def days_until_deadline(self):
@@ -626,17 +612,28 @@ class Tag(models.Model):
         ]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        """Generate slug from name if not provided"""
-        if not self.slug and self.name:
-            self.slug = generate_unique_slug(
-                text=self.name,
-                model_class=Tag,
-                slug_field_name="slug",
-                prefix="tag",
-                pk=self.pk,
-                max_attempts=10,
-            )
-        super().save(*args, **kwargs)
+        """Generate slug from name if not provided, with retry on conflicts."""
+        for attempt in range(3):
+            try:
+                if not self.slug and self.name:
+                    self.slug = generate_unique_slug(
+                        text=self.name,
+                        model_class=Tag,
+                        slug_field_name="slug",
+                        prefix="tag",
+                        pk=self.pk,
+                        max_attempts=10,
+                    )
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                return
+            except IntegrityError as e:
+                if (
+                    "slug" in str(e).lower() or "unique" in str(e).lower()
+                ) and attempt < 2:
+                    self.slug = ""
+                    continue
+                raise
 
     def __str__(self):
         return self.name

@@ -1,89 +1,50 @@
 """
 End-to-end tests for redirect functionality.
-
-Tests redirect logic for startup_detail_redirect and edital_detail_redirect,
-including permanent redirects (301) vs temporary (302), and redirect chain handling.
 """
 
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
+import pytest
 from django.urls import reverse
 
-from ..models import Edital, Startup
-from .factories import UserFactory, StaffUserFactory, EditalFactory, StartupFactory
+from editais.models import Edital, Startup
+from editais.tests.factories import (
+    UserFactory,
+    StaffUserFactory,
+    EditalFactory,
+    StartupFactory,
+)
 
 
-class EditalDetailRedirectTest(TestCase):
+@pytest.mark.django_db
+class TestEditalDetailRedirect:
     """E2E tests for edital_detail_redirect functionality."""
 
-    def setUp(self):
-        self.client = Client()
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.staff_user = StaffUserFactory(username="staff")
         self.edital = EditalFactory(
             titulo="Test Edital for Redirect",
             status="aberto",
             created_by=self.staff_user,
         )
-        # Ensure slug is generated
         self.edital.refresh_from_db()
 
-    def test_edital_redirect_with_slug(self):
-        """Test that accessing edital by PK redirects to slug URL when slug exists"""
+    def test_edital_redirect_with_slug(self, client):
         if not self.edital.slug:
-            # If slug doesn't exist, generate it
             from django.utils.text import slugify
 
             self.edital.slug = slugify(self.edital.titulo)
             self.edital.save()
             self.edital.refresh_from_db()
 
-        # Access by PK
-        response = self.client.get(
+        resp = client.get(
             reverse("edital_detail", kwargs={"pk": self.edital.pk}), follow=False
         )
-
-        # Should redirect to slug URL (301 permanent redirect)
-        if response.status_code in [301, 302]:
-            self.assertIn(
-                self.edital.slug,
-                response.url,
-                f"Redirect URL should contain slug: {response.url}",
-            )
-            # Should be permanent redirect (301) for SEO
-            if response.status_code == 301:
-                self.assertEqual(
-                    response.status_code,
-                    301,
-                    "Should use permanent redirect (301) for SEO",
-                )
+        if resp.status_code in [301, 302]:
+            assert self.edital.slug in resp.url
         else:
-            # If not redirecting, should show detail page
-            self.assertEqual(response.status_code, 200)
+            assert resp.status_code == 200
 
-    def test_edital_redirect_without_slug(self):
-        """Test that accessing edital by PK shows detail page when slug doesn't exist"""
-        # Create edital without slug (if possible)
-        edital_no_slug = EditalFactory(
-            titulo="Edital Without Slug", status="aberto", created_by=self.staff_user
-        )
-        # Try to clear slug if it was auto-generated
-        if hasattr(edital_no_slug, "slug"):
-            original_slug = edital_no_slug.slug
-            # Note: This might not work if slug is auto-generated on save
-            # But we can test the fallback behavior
-
-        # Access by PK
-        response = self.client.get(
-            reverse("edital_detail", kwargs={"pk": edital_no_slug.pk}), follow=False
-        )
-
-        # Should show detail page (200) or redirect if slug was generated
-        self.assertIn(
-            response.status_code, [200, 301, 302], "Should show page or redirect"
-        )
-
-    def test_edital_redirect_chain(self):
-        """Test redirect chain handling (PK → slug → detail page)"""
+    def test_edital_redirect_chain(self, client):
         if not self.edital.slug:
             from django.utils.text import slugify
 
@@ -91,112 +52,61 @@ class EditalDetailRedirectTest(TestCase):
             self.edital.save()
             self.edital.refresh_from_db()
 
-        # Access by PK with follow=True to follow redirects
-        response = self.client.get(
+        resp = client.get(
             reverse("edital_detail", kwargs={"pk": self.edital.pk}), follow=True
         )
+        assert resp.status_code == 200
+        assert self.edital.titulo in resp.content.decode()
 
-        # Should eventually reach detail page
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.edital.titulo)
-
-    def test_edital_redirect_draft_visibility(self):
-        """Test that draft editais redirect properly based on user permissions"""
-        draft_edital = EditalFactory(
+    def test_edital_redirect_draft_visibility(self, client):
+        draft = EditalFactory(
             titulo="Draft Edital", status="draft", created_by=self.staff_user
         )
-        draft_edital.refresh_from_db()
+        draft.refresh_from_db()
 
-        # Anonymous user should get 404
-        self.client.logout()
-        response = self.client.get(
-            reverse("edital_detail", kwargs={"pk": draft_edital.pk}), follow=False
+        client.logout()
+        resp = client.get(
+            reverse("edital_detail", kwargs={"pk": draft.pk}), follow=False
         )
-        self.assertEqual(
-            response.status_code, 404, "Anonymous users should not see draft editais"
-        )
+        assert resp.status_code == 404
 
-        # Staff user should see it
-        self.client.login(username="staff", password="testpass123")
-        if draft_edital.slug:
-            response = self.client.get(
-                reverse("edital_detail_slug", kwargs={"slug": draft_edital.slug}),
-                follow=False,
+        client.login(username="staff", password="testpass123")
+        if draft.slug:
+            resp = client.get(
+                reverse("edital_detail_slug", kwargs={"slug": draft.slug}), follow=False
             )
-            self.assertEqual(response.status_code, 200)
-        else:
-            response = self.client.get(
-                reverse("edital_detail", kwargs={"pk": draft_edital.pk}), follow=False
-            )
-            # Should show page or redirect
-            self.assertIn(response.status_code, [200, 301, 302])
+            assert resp.status_code == 200
 
 
-class StartupDetailRedirectTest(TestCase):
+@pytest.mark.django_db
+class TestStartupDetailRedirect:
     """E2E tests for startup_detail_redirect functionality."""
 
-    def setUp(self):
-        self.client = Client()
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.user = UserFactory(username="testuser")
         self.project = StartupFactory(
             name="Test Startup for Redirect", proponente=self.user
         )
-        # Ensure slug is generated
         self.project.refresh_from_db()
 
-    def test_startup_redirect_with_slug(self):
-        """Test that accessing startup by PK redirects to slug URL when slug exists"""
+    def test_startup_redirect_with_slug(self, client):
         if not self.project.slug:
-            # If slug doesn't exist, generate it
             from django.utils.text import slugify
 
             self.project.slug = slugify(self.project.name)
             self.project.save()
             self.project.refresh_from_db()
 
-        # Access by PK
-        response = self.client.get(
+        resp = client.get(
             reverse("startup_detail", kwargs={"pk": self.project.pk}), follow=False
         )
-
-        # Should redirect to slug URL (301 permanent redirect)
-        if response.status_code in [301, 302]:
-            self.assertIn(
-                self.project.slug,
-                response.url,
-                f"Redirect URL should contain slug: {response.url}",
-            )
-            # Should be permanent redirect (301) for SEO
-            if response.status_code == 301:
-                self.assertEqual(
-                    response.status_code,
-                    301,
-                    "Should use permanent redirect (301) for SEO",
-                )
+        if resp.status_code in [301, 302]:
+            assert self.project.slug in resp.url
         else:
-            # If not redirecting, should show detail page
-            self.assertEqual(response.status_code, 200)
+            assert resp.status_code == 200
 
-    def test_startup_redirect_without_slug(self):
-        """Test that accessing startup by PK shows detail page when slug doesn't exist"""
-        # Create project - slug might be auto-generated
-        project_no_slug = StartupFactory(
-            name="Startup Without Slug", proponente=self.user
-        )
-        project_no_slug.refresh_from_db()
-
-        # Access by PK
-        response = self.client.get(
-            reverse("startup_detail", kwargs={"pk": project_no_slug.pk}), follow=False
-        )
-
-        # Should show detail page (200) or redirect if slug was generated
-        self.assertIn(
-            response.status_code, [200, 301, 302], "Should show page or redirect"
-        )
-
-    def test_startup_redirect_chain(self):
-        """Test redirect chain handling (PK → slug → detail page)"""
+    def test_startup_redirect_chain(self, client):
         if not self.project.slug:
             from django.utils.text import slugify
 
@@ -204,96 +114,58 @@ class StartupDetailRedirectTest(TestCase):
             self.project.save()
             self.project.refresh_from_db()
 
-        # Access by PK with follow=True to follow redirects
-        response = self.client.get(
+        resp = client.get(
             reverse("startup_detail", kwargs={"pk": self.project.pk}), follow=True
         )
+        assert resp.status_code == 200
+        assert self.project.name in resp.content.decode()
 
-        # Should eventually reach detail page
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.project.name)
+    def test_startup_redirect_404_invalid_pk(self, client):
+        resp = client.get(reverse("startup_detail", kwargs={"pk": 99999}), follow=False)
+        assert resp.status_code == 404
 
-    def test_startup_redirect_404_invalid_pk(self):
-        """Test that invalid PK returns 404"""
-        response = self.client.get(
-            reverse("startup_detail", kwargs={"pk": 99999}), follow=False
-        )
-        self.assertEqual(response.status_code, 404, "Invalid PK should return 404")
-
-    def test_startup_redirect_404_invalid_slug(self):
-        """Test that invalid slug returns 404"""
-        response = self.client.get(
+    def test_startup_redirect_404_invalid_slug(self, client):
+        resp = client.get(
             reverse("startup_detail_slug", kwargs={"slug": "non-existent-slug-12345"}),
             follow=False,
         )
-        self.assertEqual(response.status_code, 404, "Invalid slug should return 404")
+        assert resp.status_code == 404
 
 
-class RedirectSEOAndConsistencyTest(TestCase):
+@pytest.mark.django_db
+class TestRedirectSEOAndConsistency:
     """Tests for SEO and consistency of redirects."""
 
-    def setUp(self):
-        self.client = Client()
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.staff_user = StaffUserFactory(username="staff")
         self.user = UserFactory(username="testuser")
 
-    def test_edital_redirect_preserves_query_params(self):
-        """Test that redirects preserve query parameters if any"""
+    def test_edital_redirect_preserves_query_params(self, client):
         edital = EditalFactory(
             titulo="Edital with Query Test", status="aberto", created_by=self.staff_user
         )
         edital.refresh_from_db()
-
         if edital.slug:
-            # Access by PK with query params
-            response = self.client.get(
+            resp = client.get(
                 reverse("edital_detail", kwargs={"pk": edital.pk}) + "?source=test",
                 follow=True,
             )
-            # Should eventually reach detail page
-            self.assertEqual(response.status_code, 200)
+            assert resp.status_code == 200
 
-    def test_startup_redirect_preserves_query_params(self):
-        """Test that startup redirects preserve query parameters if any"""
-        project = StartupFactory(name="Startup with Query Test", proponente=self.user)
-        project.refresh_from_db()
-
-        if project.slug:
-            # Access by PK with query params
-            response = self.client.get(
-                reverse("startup_detail", kwargs={"pk": project.pk}) + "?source=test",
-                follow=True,
-            )
-            # Should eventually reach detail page
-            self.assertEqual(response.status_code, 200)
-
-    def test_redirect_consistency_same_object(self):
-        """Test that redirects are consistent for the same object"""
+    def test_redirect_consistency_same_object(self, client):
         edital = EditalFactory(
             titulo="Consistency Test Edital",
             status="aberto",
             created_by=self.staff_user,
         )
         edital.refresh_from_db()
-
         if edital.slug:
-            # First access
-            response1 = self.client.get(
+            r1 = client.get(
                 reverse("edital_detail", kwargs={"pk": edital.pk}), follow=False
             )
-
-            # Second access (should redirect to same URL)
-            response2 = self.client.get(
+            r2 = client.get(
                 reverse("edital_detail", kwargs={"pk": edital.pk}), follow=False
             )
-
-            # Both should redirect to the same slug URL
-            if response1.status_code in [301, 302] and response2.status_code in [
-                301,
-                302,
-            ]:
-                self.assertEqual(
-                    response1.url,
-                    response2.url,
-                    "Redirects should be consistent for same object",
-                )
+            if r1.status_code in [301, 302] and r2.status_code in [301, 302]:
+                assert r1.url == r2.url

@@ -51,7 +51,7 @@ O **AgroHub** é uma plataforma web desenvolvida para apresentar e gerenciar o e
 ### Principais Características
 
 - 🎨 **Interface Moderna**: Design responsivo com Tailwind CSS v4
-- 🔍 **Busca Avançada**: Sistema de busca full-text com PostgreSQL ou fallback para SQLite
+- 🔍 **Busca Avançada**: Sistema de busca full-text com PostgreSQL
 - 📊 **Dashboard Completo**: Painel administrativo com estatísticas e gerenciamento
 - 🔒 **Segurança Robusta**: Proteção XSS, CSRF, rate limiting e sanitização de dados
 - ⚡ **Performance Otimizada**: Cache, queries otimizadas, minificação de assets
@@ -69,9 +69,8 @@ O **AgroHub** é uma plataforma web desenvolvida para apresentar e gerenciar o e
 |------------|--------|------------|
 | **Python** | 3.12+ | Linguagem principal |
 | **Django** | >=5.2.8 | Framework web |
-| **PostgreSQL** | Qualquer | Banco de dados (produção) |
-| **SQLite** | 3.x | Banco de dados (desenvolvimento) |
-| **Redis** | 5.0+ | Cache (opcional, recomendado para produção) |
+| **PostgreSQL** | 16+ | Banco de dados (todos os ambientes) |
+| **Redis** | 7+ | Cache (todos os ambientes) |
 
 ### Frontend
 
@@ -94,20 +93,18 @@ O **AgroHub** é uma plataforma web desenvolvida para apresentar e gerenciar o e
 
 ### Bibliotecas Python Principais
 
-- **django-simple-history** (>=3.4.0): Auditoria e histórico de alterações
+- **django-simple-history** (>=3.11.0): Auditoria e histórico de alterações
 - **django-redis** (>=6.0.0): Backend de cache Redis
-- **django-ratelimit** (>=4.1.0): Limitação de taxa de requisições
-- **django-compressor** (>=4.6.0): Minificação de CSS/JS
 - **django-tailwind** (>=3.8.0): Integração Tailwind CSS
-- **django-widget-tweaks** (>=1.5.0): Customização de formulários
+- **django-widget-tweaks** (>=1.5.1): Customização de formulários
 - **bleach** (>=6.3.0): Sanitização HTML (prevenção XSS)
 - **Pillow** (>=11.0.0): Processamento de imagens
-- **psycopg2-binary** (>=2.9.9): Driver PostgreSQL
+- **psycopg2-binary** (>=2.9.10): Driver PostgreSQL
 
 ### Ferramentas de Desenvolvimento
 
-- **django-browser-reload** (>=1.11.0): Auto-reload em desenvolvimento
-- **pip-audit** (>=2.6.0): Auditoria de segurança de dependências
+- **django-browser-reload** (>=1.21.0): Auto-reload em desenvolvimento
+- **pip-audit** (>=2.9.0): Auditoria de segurança de dependências
 - **@lhci/cli** (^0.12.0): Lighthouse CI para auditorias de performance
 
 ---
@@ -120,8 +117,8 @@ O **AgroHub** é uma plataforma web desenvolvida para apresentar e gerenciar o e
 - **pip** (gerenciador de pacotes Python)
 - **Node.js 18+** e **npm** (para compilar Tailwind CSS)
 - **Git** para versionamento
-- **PostgreSQL** (produção) ou **SQLite** (desenvolvimento)
-- **Redis** (opcional, mas recomendado para produção)
+- **PostgreSQL 16+** (todos os ambientes)
+- **Redis 7+** (todos os ambientes)
 
 ### Opcionais (para produção)
 
@@ -293,22 +290,22 @@ O projeto usa variáveis de ambiente para configuração. Todas as variáveis s�
 
 | Variável | Descrição | Padrão |
 |----------|-----------|--------|
-| `DB_NAME` | Nome do banco de dados | `db.sqlite3` (dev) |
-| `DB_USER` | Usuário do banco | - |
-| `DB_PASSWORD` | Senha do banco | - |
+| `DB_NAME` | Nome do banco de dados | **Obrigatório** |
+| `DB_USER` | Usuário do banco | `postgres` |
+| `DB_PASSWORD` | Senha do banco | **Obrigatório** |
 | `DB_HOST` | Host do banco | `localhost` |
 | `DB_PORT` | Porta do banco | `5432` |
 
-**Nota:** Se `DB_NAME` não estiver configurado, o sistema usa SQLite para desenvolvimento.
+**Nota:** PostgreSQL é obrigatório para todos os ambientes. Use Docker para desenvolvimento local.
 
 #### Cache (Redis)
 
 | Variável | Descrição | Padrão |
 |----------|-----------|--------|
-| `REDIS_HOST` | Host do Redis | - |
+| `REDIS_HOST` | Host do Redis | **Obrigatório** |
 | `REDIS_PORT` | Porta do Redis | `6379` |
 
-**Nota:** Se `REDIS_HOST` não estiver configurado, usa LocMemCache em desenvolvimento.
+**Nota:** Redis é obrigatório para todos os ambientes. Use Docker para desenvolvimento local.
 
 #### Email
 
@@ -331,7 +328,6 @@ O projeto usa variáveis de ambiente para configuração. Todas as variáveis s�
 | `DJANGO_LOG_TO_FILE` | Habilitar logs em arquivo | `False` |
 | `DJANGO_LOG_DIR` | Diretório de logs | `./logs` |
 | `COOKIE_DOMAIN` | Domínio dos cookies | - |
-| `COMPRESS_ENABLED` | Habilitar compressão CSS/JS | `False` (dev) |
 | `WHITENOISE_MAX_AGE` | Cache de arquivos estáticos (segundos) | `3600` (dev) |
 | `CDN_BASE_URL` | URL base do CDN para imagens | - |
 
@@ -526,8 +522,6 @@ AgroHub/
 │
 ├── scripts/                          # Scripts utilitários
 │   ├── generate_hero_images.py       # Gerar imagens hero
-│   ├── run_lighthouse_simple.py      # Lighthouse simplificado
-│   ├── run_lighthouse_tests.ps1      # Lighthouse CI (Windows)
 │   └── track_lighthouse_scores.py    # Rastreamento de scores
 │
 ├── manage.py                         # Utilitário de gerenciamento Django
@@ -580,7 +574,7 @@ Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos col
 - **Busca por Múltiplos Campos**: Busca em título, entidade, número, análise, etc.
 - **Ranking de Resultados**: Resultados ordenados por relevância
 - **Sugestões de Busca**: Sugestões usando trigram similarity (PostgreSQL)
-- **Fallback Inteligente**: Fallback para `icontains` em SQLite
+- **Full-Text Search**: Busca avançada com PostgreSQL full-text search
 
 #### 3. Dashboard Administrativo
 
@@ -652,7 +646,6 @@ Diretório gerado pelo `collectstatic` contendo todos os arquivos estáticos col
 #### Minificação
 - **CSS Minificado**: Tailwind CSS compilado e minificado
 - **JavaScript Minificado**: Terser para minificação JS
-- **Compressão**: django-compressor para compressão adicional
 
 ### Recursos de UX/UI
 
@@ -787,8 +780,8 @@ Startup incubada no AgroHub.
 # PostgreSQL
 pg_dump -U usuario -d nome_banco > backup.sql
 
-# SQLite
-cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
+# PostgreSQL
+pg_dump -U agrohub_user agrohub_dev > backup_$(date +%Y%m%d).sql
 ```
 
 #### Restore
@@ -796,8 +789,8 @@ cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
 # PostgreSQL
 psql -U usuario -d nome_banco < backup.sql
 
-# SQLite
-cp backup.sqlite3 db.sqlite3
+# PostgreSQL
+psql -U agrohub_user agrohub_dev < backup.sql
 ```
 
 ---
@@ -1491,12 +1484,10 @@ editais = Edital.objects.with_related().with_prefetch().active()
 ### Minificação e Compressão
 
 #### CSS
-- Tailwind CSS compilado e minificado
-- Compressão adicional via django-compressor (opcional)
+- Tailwind CSS compilado e minificado via PostCSS
 
 #### JavaScript
 - Minificação via Terser
-- Compressão adicional via django-compressor (opcional)
 
 #### HTML
 - GZip compression habilitado
@@ -1541,9 +1532,10 @@ ALLOWED_ATTRIBUTES = {'a': ['href', 'title'], ...}
 
 #### 2. Rate Limiting
 
-- **Biblioteca**: `django-ratelimit`
-- **Aplicação**: Views de login, criação de editais
+- **Implementação**: Decorator customizado usando cache do Django (`editais/decorators.py`)
+- **Aplicação**: Views de login, criação de editais, registro
 - **Configuração**: 5 requisições por minuto por IP
+- **Design**: Fail-open — requisições são permitidas quando o cache está indisponível
 
 #### 3. CSRF Protection
 
@@ -1928,11 +1920,6 @@ python manage.py showmigrations
 **PostgreSQL:**
 ```bash
 pg_dump -U usuario -d nome_banco > backup_$(date +%Y%m%d).sql
-```
-
-**SQLite:**
-```bash
-cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
 ```
 
 ### Deployment

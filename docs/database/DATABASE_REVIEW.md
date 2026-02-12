@@ -160,7 +160,7 @@ Este documento fornece uma revisão abrangente dos modelos e estrutura de banco 
 ### Análise de Configurações ✅ **Bem Configurado**
 
 **Database Backend:**
-- ✅ SQLite para desenvolvimento (padrão)
+- ✅ PostgreSQL para todos os ambientes (desenvolvimento e produção)
 - ✅ PostgreSQL para produção (com connection pooling)
 - ✅ Manipulação apropriada de fallback
 

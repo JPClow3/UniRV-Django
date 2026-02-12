@@ -507,14 +507,19 @@
   // Initialize animations when GSAP is ready
   function initAnimationsWhenReady() {
     if (hasGSAP()) {
-      // GSAP is available, initialize animations
-      const currentURL = window.location.pathname;
-      if (currentURL === '/' || currentURL === '/home/') {
-        initHomeAnimations();
-      } else if (currentURL.includes('startups')) {
-        initStartupShowcaseAnimations();
-      } else if (currentURL.includes('editais')) {
-        initEditaisIndexAnimations();
+      try {
+        // GSAP is available, initialize animations
+        const currentURL = window.location.pathname;
+        if (currentURL === '/' || currentURL === '/home/') {
+          initHomeAnimations();
+        } else if (currentURL.includes('startups')) {
+          initStartupShowcaseAnimations();
+        } else if (currentURL.includes('editais')) {
+          initEditaisIndexAnimations();
+        }
+      } catch (e) {
+        document.documentElement.classList.add('js-animations-failed');
+        forceAllVisible();
       }
     } else {
       // GSAP not available yet, wait and retry

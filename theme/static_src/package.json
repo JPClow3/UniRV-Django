@@ -14,7 +14,10 @@
     "build:js:editais-index": "terser ../../static/js/editais-index.js -o ../../static/js/editais-index.min.js -c -m --comments false",
     "build:js:edital-form": "terser ../../static/js/edital-form.js -o ../../static/js/edital-form.min.js -c -m --comments false",
     "build:vendor": "node scripts/copy-vendor.js",
-    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/css/dist/styles.css --watch"
+    "dev": "cross-env NODE_ENV=development postcss ./src/styles.css -o ../static/css/dist/styles.css --watch",
+    "lhci:local": "cd .. && python scripts/lighthouse_runner.py --all --track",
+    "lhci:review": "cd .. && python scripts/lighthouse_runner.py --review",
+    "lhci:ci": "cd .. && npx lhci autorun --config=../.lighthouserc.json"
   },
   "keywords": [],
   "author": "",

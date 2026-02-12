@@ -5,7 +5,7 @@ Este documento descreve a arquitetura de deployment e infraestrutura do AgroHub.
 ## Visão Geral do Deployment
 
 O projeto suporta múltiplos ambientes de deployment:
-- **Desenvolvimento**: SQLite, servidor Django, hot-reload
+- **Desenvolvimento**: PostgreSQL via Docker, Redis via Docker, servidor Django, hot-reload
 - **Produção**: PostgreSQL, Gunicorn, Nginx, Docker
 - **CI/CD**: GitHub Actions para testes e auditorias
 
@@ -273,7 +273,7 @@ graph LR
 
 ### Desenvolvimento
 
-- **Database**: SQLite (db.sqlite3)
+- **Database**: PostgreSQL (via Docker: `docker-compose up -d db`)
 - **Cache**: LocMemCache
 - **Server**: `python manage.py runserver`
 - **Static Files**: Served by Django
@@ -359,8 +359,11 @@ Retorna status da aplicação e dependências.
 # PostgreSQL
 pg_dump -U usuario -d nome_banco > backup_$(date +%Y%m%d).sql
 
-# SQLite
-cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
+# PostgreSQL via Docker
+docker-compose up -d db redis
+
+# Backup PostgreSQL
+pg_dump -U agrohub_user -h localhost agrohub_production > backup_$(date +%Y%m%d).sql
 ```
 
 ### Media Files Backup

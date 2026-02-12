@@ -34,7 +34,7 @@ python manage.py seed_editais && python manage.py seed_startups # Seed data
 
 - `SlugGenerationMixin` provides unique slug generation with DB-level retry logic for race conditions.
 - HTML input sanitized via `bleach` in `save()` methods — see `sanitize_edital_fields()` in `utils.py`. Whitelisted tags defined in `ALLOWED_TAGS`.
-- PostgreSQL full-text search with `SearchVector`/`SearchQuery` (no SQLite fallback).
+- PostgreSQL full-text search with `SearchVector`/`SearchQuery`.
 - All imports at module level. Use `TYPE_CHECKING` guard for circular import avoidance (see `utils.py` pattern).
 
 ### Views

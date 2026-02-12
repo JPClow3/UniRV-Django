@@ -52,6 +52,7 @@
     content: " (" attr(href) ")";
     font-size: 10pt;
     color: #666 !important;
+    word-break: break-all;
   }
 
   /* Prevent page breaks inside important sections */

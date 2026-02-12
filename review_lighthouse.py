@@ -1,7 +1,15 @@
 #!/usr/bin/env python
-"""Review lighthouse reports for issues and discrepancies"""
+"""
+Review Lighthouse reports for issues and discrepancies.
+
+Usage:
+    python review_lighthouse.py                    # Review all reports
+    python review_lighthouse.py --json             # JSON output
+    python review_lighthouse.py --compare          # Compare with history
+"""
 
 import json
+import sys
 from pathlib import Path
 
 reports_dir = Path("lighthouse_reports")

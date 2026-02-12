@@ -1,20 +1,22 @@
 """
 Tests for startup detail views.
-
-Tests startup detail view with slug and ID, 404 handling.
 """
 
-from django.test import TestCase, Client
+import pytest
+
 from django.contrib.auth.models import User
 from django.urls import reverse
+
 from editais.models import Startup
+from editais.tests.factories import UserFactory
 
 
-class StartupDetailViewTestCase(TestCase):
+@pytest.mark.django_db
+class TestStartupDetailView:
     """Test startup detail view."""
 
-    def setUp(self):
-        self.client = Client()
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.user = User.objects.create_user(
             username="testuser", email="test@example.com", password="testpass123"
         )
@@ -24,63 +26,46 @@ class StartupDetailViewTestCase(TestCase):
             proponente=self.user,
             status="pre_incubacao",
         )
-        # Ensure slug is generated
         self.project.refresh_from_db()
 
-    def test_startup_detail_by_slug(self):
+    def test_startup_detail_by_slug(self, client):
         """Test accessing startup detail by slug"""
         url = reverse("startup_detail_slug", kwargs={"slug": self.project.slug})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.project.name)
+        response = client.get(url)
+        assert response.status_code == 200
+        assert self.project.name in response.content.decode()
 
-    def test_startup_detail_by_id_redirects(self):
+    def test_startup_detail_by_id_redirects(self, client):
         """Test that accessing by ID redirects to slug URL"""
-        # Ensure project has a slug (should be generated on save)
         self.project.refresh_from_db()
 
-        # Verify project exists and has a slug
-        self.assertIsNotNone(self.project.pk)
-        self.assertTrue(self.project.slug, "Startup should have a slug after save")
+        assert self.project.pk
+        assert self.project.slug
 
-        # Test accessing by slug first (should work)
         slug_url = reverse("startup_detail_slug", kwargs={"slug": self.project.slug})
-        slug_response = self.client.get(slug_url)
-        self.assertEqual(
-            slug_response.status_code,
-            200,
-            f"Startup detail by slug should return 200, got {slug_response.status_code}",
-        )
+        slug_response = client.get(slug_url)
+        assert slug_response.status_code == 200
 
-        # Test accessing by PK with follow=True to follow any redirects
         pk_url = reverse("startup_detail", kwargs={"pk": self.project.pk})
-        pk_response = self.client.get(pk_url, follow=True)
+        pk_response = client.get(pk_url, follow=True)
 
-        # After following redirects, should get 200 or show the startup page
-        # The redirect chain should eventually lead to the slug URL
-        self.assertEqual(
-            pk_response.status_code,
-            200,
-            f"Startup detail by PK (with follow) should return 200, got {pk_response.status_code}. "
-            f"Redirect chain: {pk_response.redirect_chain}",
-        )
+        assert pk_response.status_code == 200
 
-    def test_startup_detail_404_invalid_slug(self):
+    def test_startup_detail_404_invalid_slug(self, client):
         """Test 404 for invalid slug"""
         url = reverse("startup_detail_slug", kwargs={"slug": "non-existent-slug"})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
+        response = client.get(url)
+        assert response.status_code == 404
 
-    def test_startup_detail_404_invalid_id(self):
+    def test_startup_detail_404_invalid_id(self, client):
         """Test 404 for invalid ID"""
         url = reverse("startup_detail", kwargs={"pk": 99999})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
+        response = client.get(url)
+        assert response.status_code == 404
 
-    def test_startup_detail_displays_logo(self):
+    def test_startup_detail_displays_logo(self, client):
         """Test that startup detail page handles logo display"""
         url = reverse("startup_detail_slug", kwargs={"slug": self.project.slug})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        # Page should render even without logo
-        self.assertContains(response, self.project.name)
+        response = client.get(url)
+        assert response.status_code == 200
+        assert self.project.name in response.content.decode()

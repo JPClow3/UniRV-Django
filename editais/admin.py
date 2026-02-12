@@ -1,4 +1,5 @@
 from django.contrib import admin
+from dal import autocomplete
 from .models import Edital, EditalValor, Cronograma, Startup, Tag
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -16,49 +17,74 @@ class CronogramaInline(admin.TabularInline):
 @admin.register(Edital)
 class EditalAdmin(SimpleHistoryAdmin):
     list_display = (
-        'titulo',
-        'status',
-        'entidade_principal',
-        'created_by',
-        'updated_by',
-        'data_atualizacao'
+        "titulo",
+        "status",
+        "entidade_principal",
+        "created_by",
+        "updated_by",
+        "data_atualizacao",
     )
-    list_filter = ('status', 'entidade_principal', 'created_by', 'updated_by')
+    list_filter = ("status", "entidade_principal", "created_by", "updated_by")
     search_fields = (
-        'titulo',
-        'entidade_principal',
-        'numero_edital',
-        'analise',
-        'objetivo'
+        "titulo",
+        "entidade_principal",
+        "numero_edital",
+        "analise",
+        "objetivo",
     )
-    readonly_fields = ('created_by', 'updated_by', 'data_criacao', 'data_atualizacao')
+    readonly_fields = ("created_by", "updated_by", "data_criacao", "data_atualizacao")
     inlines = [EditalValorInline, CronogramaInline]
     # Optimize queries for list view (prevent N+1 queries)
-    list_select_related = ('created_by', 'updated_by')
+    list_select_related = ("created_by", "updated_by")
 
     fieldsets = (
-        ('Informações Básicas', {
-            'fields': ('numero_edital', 'titulo', 'url', 'entidade_principal', 'status')
-        }),
-        ('Conteúdo', {
-            'fields': (
-                'analise', 'objetivo', 'etapas', 'recursos',
-                'itens_financiaveis', 'criterios_elegibilidade',
-                'criterios_avaliacao', 'itens_essenciais_observacoes',
-                'detalhes_unirv'
-            ),
-            'classes': ('collapse',)
-        }),
-        ('Rastreamento', {
-            'fields': ('created_by', 'updated_by', 'data_criacao', 'data_atualizacao'),
-            'classes': ('collapse',)
-        }),
+        (
+            "Informações Básicas",
+            {
+                "fields": (
+                    "numero_edital",
+                    "titulo",
+                    "url",
+                    "entidade_principal",
+                    "status",
+                )
+            },
+        ),
+        (
+            "Conteúdo",
+            {
+                "fields": (
+                    "analise",
+                    "objetivo",
+                    "etapas",
+                    "recursos",
+                    "itens_financiaveis",
+                    "criterios_elegibilidade",
+                    "criterios_avaliacao",
+                    "itens_essenciais_observacoes",
+                    "detalhes_unirv",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Rastreamento",
+            {
+                "fields": (
+                    "created_by",
+                    "updated_by",
+                    "data_criacao",
+                    "data_atualizacao",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
     )
 
     def save_model(self, request, obj, form, change):
         """
         Override save_model to track user who created/updated.
-        
+
         Note: HTML sanitization is now handled automatically in Edital.save() method.
         History tracking is handled automatically by django-simple-history.
         """
@@ -66,7 +92,7 @@ class EditalAdmin(SimpleHistoryAdmin):
         if not change:  # New object
             obj.created_by = request.user
         obj.updated_by = request.user
-        
+
         # Call parent save_model to actually save
         # django-simple-history will automatically create history entries
         # sanitize_edital_fields() is called automatically in Edital.save()
@@ -75,68 +101,111 @@ class EditalAdmin(SimpleHistoryAdmin):
 
 @admin.register(EditalValor)
 class EditalValorAdmin(admin.ModelAdmin):
-    list_display = ('edital', 'valor_total', 'moeda', 'tipo')
-    list_filter = ('moeda', 'tipo')
+    list_display = ("edital", "valor_total", "moeda", "tipo")
+    list_filter = ("moeda", "tipo")
     # Optimize queries for list view
-    list_select_related = ('edital',)
+    list_select_related = ("edital",)
 
 
 @admin.register(Cronograma)
 class CronogramaAdmin(admin.ModelAdmin):
-    list_display = ('edital', 'descricao', 'ordem', 'data_inicio', 'data_fim', 'data_publicacao')
-    list_filter = ('data_inicio', 'data_fim', 'data_publicacao')
-    ordering = ('ordem', 'data_inicio')
+    list_display = (
+        "edital",
+        "descricao",
+        "ordem",
+        "data_inicio",
+        "data_fim",
+        "data_publicacao",
+    )
+    list_filter = ("data_inicio", "data_fim", "data_publicacao")
+    ordering = ("ordem", "data_inicio")
     # Optimize queries for list view
-    list_select_related = ('edital',)
+    list_select_related = ("edital",)
 
 
 @admin.register(Startup)
 class StartupAdmin(admin.ModelAdmin):
     list_display = (
-        'name',
-        'edital',
-        'proponente',
-        'status',
-        'website',
-        'incubacao_start_date',
-        'submitted_on'
+        "name",
+        "edital",
+        "proponente",
+        "status",
+        "website",
+        "incubacao_start_date",
+        "submitted_on",
     )
-    list_filter = ('status', 'edital', 'submitted_on', 'tags', 'category')
+    list_filter = ("status", "edital", "submitted_on", "tags", "category")
     search_fields = (
-        'name',
-        'edital__titulo',
-        'edital__numero_edital',
-        'proponente__username',
-        'proponente__email',
-        'proponente__first_name',
-        'proponente__last_name',
-        'tags__name'
+        "name",
+        "edital__titulo",
+        "edital__numero_edital",
+        "proponente__username",
+        "proponente__email",
+        "proponente__first_name",
+        "proponente__last_name",
+        "tags__name",
     )
-    readonly_fields = ('data_criacao', 'data_atualizacao', 'submitted_on')
-    date_hierarchy = 'submitted_on'
-    filter_horizontal = ('tags',)
+    readonly_fields = ("data_criacao", "data_atualizacao", "submitted_on")
+    date_hierarchy = "submitted_on"
+    # Use autocomplete widget for tags (powered by django-autocomplete-light)
+    autocomplete_fields = []
     # Optimize queries for list view (prevent N+1 queries)
-    list_select_related = ('edital', 'proponente')
-    list_prefetch_related = ('tags',)
+    list_select_related = ("edital", "proponente")
+    list_prefetch_related = ("tags",)
 
     fieldsets = (
-        ('Informações da Startup', {
-            'fields': ('name', 'description', 'category', 'edital', 'proponente', 'status', 'tags')
-        }),
-        ('Contato e Website', {
-            'fields': ('contato', 'website', 'logo')
-        }),
-        ('Datas', {
-            'fields': ('incubacao_start_date', 'submitted_on', 'data_criacao', 'data_atualizacao'),
-            'classes': ('collapse',)
-        }),
+        (
+            "Informações da Startup",
+            {
+                "fields": (
+                    "name",
+                    "description",
+                    "category",
+                    "edital",
+                    "proponente",
+                    "status",
+                    "tags",
+                )
+            },
+        ),
+        ("Contato e Website", {"fields": ("contato", "website", "logo")}),
+        (
+            "Datas",
+            {
+                "fields": (
+                    "incubacao_start_date",
+                    "submitted_on",
+                    "data_criacao",
+                    "data_atualizacao",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
     )
+
+    class Media:
+        """Include DAL Select2 assets for autocomplete widgets."""
+
+        pass
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Override form to use DAL autocomplete widget for tags and edital."""
+        form = super().get_form(request, obj, **kwargs)
+        if "tags" in form.base_fields:
+            form.base_fields["tags"].widget = autocomplete.ModelSelect2Multiple(
+                url="tag-autocomplete",
+                attrs={"data-placeholder": "Buscar tags..."},
+            )
+        if "edital" in form.base_fields:
+            form.base_fields["edital"].widget = autocomplete.ModelSelect2(
+                url="edital-autocomplete",
+                attrs={"data-placeholder": "Buscar edital..."},
+            )
+        return form
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'created_at')
-    search_fields = ('name', 'slug')
-    readonly_fields = ('created_at',)
-
-
+    list_display = ("name", "slug", "created_at")
+    search_fields = ("name", "slug")
+    readonly_fields = ("created_at",)

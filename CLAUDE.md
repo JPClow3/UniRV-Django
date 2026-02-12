@@ -144,7 +144,7 @@ docker/                   # Deploy Docker
 ### Models
 - **QuerySets customizados** com métodos encadeáveis: `.active()`, `.search()`, `.with_related()`, `.with_prefetch()`
 - **Rastreamento histórico** via `django-simple-history` no modelo Edital
-- **Full-text search PostgreSQL** com fallback para `icontains` em SQLite
+- **Full-text search PostgreSQL** com suporte completo à língua portuguesa
 - **Sanitização HTML** usando `bleach` em métodos `save()`
 - **Constantes** para números mágicos (ex: `MAX_LOGO_FILE_SIZE` em `constants/limits.py`)
 
@@ -176,10 +176,9 @@ docker/                   # Deploy Docker
 - Arquivos de teste nomeados por feature: `test_<feature>.py`
 - CI força limite de 85% de cobertura
 
-#### Considerações de Testes em SQLite
+#### Considerações de Testes
 - Usar `TestCase` para maioria dos testes (mais rápido, isolamento apropriado de transações)
 - Usar `TransactionTestCase` apenas ao testar callbacks `transaction.on_commit()` (ex: invalidação de cache)
-- **Isolamento de conexão SQLite in-memory**: Alguns testes de redirect são pulados em SQLite por issues de isolamento de conexão entre TestCase do Django e test client. Esses testes passam em PostgreSQL.
 - Ao usar `StartupFactory`, passar `edital=` explícito para evitar SubFactory criar editais extras
 - Para `TransactionTestCase`, adicionar cleanup em `setUp()` para prevenir vazamento de dados entre testes
 
@@ -192,14 +191,6 @@ class CacheInvalidationTest(TransactionTestCase):
         Edital.objects.all().delete()
         Startup.objects.all().delete()
         cache.clear()
-
-# Para testes de redirect afetados por SQLite - usar skipIf
-from unittest import skipIf
-SKIP_SQLITE = 'sqlite' in settings.DATABASES['default']['ENGINE']
-
-@skipIf(SKIP_SQLITE, "SQLite in-memory tem issues de isolamento de conexão")
-def test_redirect_by_pk(self):
-    ...
 
 # Ao criar startups com contagem específica de edital
 edital = EditalFactory(status='aberto')
@@ -261,7 +252,7 @@ Aliases legadas preservados: `unirvBlue` → `primary`, `agrohubBlue` → `prima
 Copiar `.env.example` para `.env` e configurar:
 - `DEBUG` - Definir como False em produção
 - `SECRET_KEY` - Chave secreta Django
-- `DATABASE_URL` - Conexão PostgreSQL (opcional, padrão SQLite)
+- `DATABASE_URL` - Conexão PostgreSQL (**obrigatório**)
 - `REDIS_URL` - Backend de cache (opcional)
 
 ## Pipeline CI/CD
@@ -351,5 +342,6 @@ Ver `.env.docker` para lista completa com padrões.
 ## Notas Importantes
 - Idioma: Português (pt-BR)
 - Fuso Horário: America/Sao_Paulo
-- Banco de Dados: PostgreSQL (produção), SQLite (desenvolvimento)
+- Banco de Dados: PostgreSQL (todos os ambientes)
+- Cache: Redis (todos os ambientes)
 - CI: GitHub Actions executa linting, verificação de segurança, testes e cobertura em PRs

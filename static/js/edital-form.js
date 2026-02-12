@@ -32,8 +32,10 @@
           localStorage.removeItem(AUTOSAVE_KEY);
         }
       }
-    } catch {
-      localStorage.removeItem(AUTOSAVE_KEY);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        localStorage.removeItem(AUTOSAVE_KEY);
+      }
     }
   });
 

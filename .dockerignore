@@ -6,7 +6,7 @@
 # Environment
 .env
 .env.*
-!.env.docker
+!.env.docker.example
 .venv/
 venv/
 
@@ -52,6 +52,7 @@ lighthouse_reports/
 .lighthouseci/
 test_results*.txt
 *.md
+!README.md
 !requirements*.txt
 
 # CI / AI tooling

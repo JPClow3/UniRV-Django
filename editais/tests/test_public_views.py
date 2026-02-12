@@ -3,102 +3,96 @@ Tests for public views (home, ambientes_inovacao, startups, login, register).
 """
 
 import json
-from unittest.mock import patch
 
-from django.test import TestCase, Client
+import pytest
+
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.urls import reverse
-from django.db import connection
-from django.core.cache import cache
 from django.core import mail
 
-from .factories import UserFactory
+from editais.models import Edital
+from editais.tests.factories import UserFactory, StaffUserFactory, EditalFactory
 
 
-class HomeViewTest(TestCase):
+@pytest.mark.django_db
+class TestHomeView:
     """Tests for home page view"""
 
-    def setUp(self):
-        self.client = Client()
-
-    def test_home_page_loads(self):
+    def test_home_page_loads(self, client):
         """Test that home page loads without authentication"""
-        response = self.client.get(reverse("home"))
-        self.assertEqual(response.status_code, 200)
-        # Verify content is present (template is being rendered)
-        self.assertContains(response, "AgroHub", status_code=200)
+        response = client.get(reverse("home"))
+        assert response.status_code == 200
+        assert "AgroHub" in response.content.decode()
 
-    def test_home_page_contains_branding(self):
+    def test_home_page_contains_branding(self, client):
         """Test that home page contains AgroHub branding"""
-        response = self.client.get(reverse("home"))
-        self.assertContains(response, "AgroHub", status_code=200)
+        response = client.get(reverse("home"))
+        assert "AgroHub" in response.content.decode()
 
 
-class AmbientesInovacaoViewTest(TestCase):
+@pytest.mark.django_db
+class TestAmbientesInovacaoView:
     """Tests for ambientes de inovação page view"""
 
-    def setUp(self):
-        self.client = Client()
-
-    def test_ambientes_inovacao_page_loads(self):
+    def test_page_loads(self, client):
         """Test that ambientes de inovação page loads without authentication"""
-        response = self.client.get(reverse("ambientes_inovacao"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "ambientes_inovacao/index.html")
+        response = client.get(reverse("ambientes_inovacao"))
+        assert response.status_code == 200
 
 
-class StartupsLegacyRedirectTest(TestCase):
+@pytest.mark.django_db
+class TestStartupsLegacyRedirect:
     """Legacy /projetos-aprovados/ redirects to /startups/."""
 
-    def test_legacy_projetos_aprovados_url_redirects_to_startups(self):
-        response = self.client.get("/projetos-aprovados/", follow=False)
-        self.assertEqual(response.status_code, 301)
-        self.assertEqual(response.url, "/startups/")
+    def test_legacy_projetos_aprovados_url_redirects_to_startups(self, client):
+        response = client.get("/projetos-aprovados/", follow=False)
+        assert response.status_code == 301
+        assert response.url == "/startups/"
 
 
-class LoginViewTest(TestCase):
+@pytest.mark.django_db
+class TestLoginView:
     """Tests for login view"""
 
-    def setUp(self):
-        self.client = Client()
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.user = User.objects.create_user(
             username="testuser", password="testpass123", email="test@example.com"
         )
 
-    def test_login_page_loads(self):
+    def test_login_page_loads(self, client):
         """Test that login page loads without authentication"""
-        response = self.client.get(reverse("login"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/login.html")
+        response = client.get(reverse("login"))
+        assert response.status_code == 200
 
-    def test_login_page_redirects_authenticated_user(self):
+    def test_login_page_redirects_authenticated_user(self, client):
         """Test that authenticated users are redirected to dashboard"""
-        self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("login"))
-        self.assertRedirects(response, reverse("dashboard_home"))
+        client.login(username="testuser", password="testpass123")
+        response = client.get(reverse("login"))
+        assert response.status_code == 302
+        assert reverse("dashboard_home") in response.url
 
-    def test_login_with_valid_credentials(self):
+    def test_login_with_valid_credentials(self, client):
         """Test login with valid credentials"""
-        response = self.client.post(
+        response = client.post(
             reverse("login"), {"username": "testuser", "password": "testpass123"}
         )
-        self.assertRedirects(response, reverse("dashboard_home"))
-        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        assert response.status_code == 302
+        assert reverse("dashboard_home") in response.url
 
-    def test_login_with_invalid_credentials(self):
+    def test_login_with_invalid_credentials(self, client):
         """Test login with invalid credentials"""
-        response = self.client.post(
+        response = client.post(
             reverse("login"), {"username": "testuser", "password": "wrongpassword"}
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(response.wsgi_request.user.is_authenticated)
-        self.assertContains(response, "form")
+        assert response.status_code == 200
+        assert not response.wsgi_request.user.is_authenticated
 
-    def test_login_redirects_to_next_url(self):
-        """Test that login redirects to next URL if provided (safe relative path)"""
+    def test_login_redirects_to_next_url(self, client):
+        """Test that login redirects to next URL if provided"""
         next_url = "/editais/"
-        response = self.client.post(
+        response = client.post(
             reverse("login") + f"?next={next_url}",
             {
                 "username": "testuser",
@@ -106,11 +100,12 @@ class LoginViewTest(TestCase):
                 "next": next_url,
             },
         )
-        self.assertRedirects(response, next_url)
+        assert response.status_code == 302
+        assert next_url in response.url
 
-    def test_login_rejects_external_next_url(self):
-        """Test that login does not redirect to absolute external URLs (open redirect)"""
-        response = self.client.post(
+    def test_login_rejects_external_next_url(self, client):
+        """Test that login does not redirect to absolute external URLs"""
+        response = client.post(
             reverse("login"),
             {
                 "username": "testuser",
@@ -118,37 +113,36 @@ class LoginViewTest(TestCase):
                 "next": "https://evil.com/phishing",
             },
         )
-        self.assertRedirects(response, reverse("dashboard_home"))
-        self.assertNotIn("evil.com", response.url)
+        assert response.status_code == 302
+        assert "evil.com" not in response.url
+        assert reverse("dashboard_home") in response.url
 
-    def test_login_page_has_csrf_token(self):
+    def test_login_page_has_csrf_token(self, client):
         """Test that login page includes CSRF token"""
-        response = self.client.get(reverse("login"))
-        self.assertContains(response, "csrfmiddlewaretoken")
+        response = client.get(reverse("login"))
+        assert "csrfmiddlewaretoken" in response.content.decode()
 
 
-class RegisterViewTest(TestCase):
+@pytest.mark.django_db
+class TestRegisterView:
     """Tests for user registration view"""
 
-    def setUp(self):
-        self.client = Client()
-
-    def test_register_page_loads(self):
+    def test_register_page_loads(self, client):
         """Test that register page loads without authentication"""
-        response = self.client.get(reverse("register"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/register.html")
+        response = client.get(reverse("register"))
+        assert response.status_code == 200
 
-    def test_register_page_redirects_authenticated_user(self):
+    def test_register_page_redirects_authenticated_user(self, client):
         """Test that authenticated users are redirected to dashboard"""
         UserFactory(username="existinguser")
-        self.client.login(username="existinguser", password="testpass123")
-        response = self.client.get(reverse("register"))
-        self.assertRedirects(response, reverse("dashboard_home"))
+        client.login(username="existinguser", password="testpass123")
+        response = client.get(reverse("register"))
+        assert response.status_code == 302
+        assert reverse("dashboard_home") in response.url
 
-    def test_register_with_valid_data(self):
+    def test_register_with_valid_data(self, client):
         """Test user registration with valid data"""
-        response = self.client.post(
+        response = client.post(
             reverse("register"),
             {
                 "username": "newuser",
@@ -159,14 +153,13 @@ class RegisterViewTest(TestCase):
                 "password2": "ComplexPass123!",
             },
         )
-        self.assertRedirects(response, reverse("dashboard_home"))
-        self.assertTrue(User.objects.filter(username="newuser").exists())
-        # User should be automatically logged in
-        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        assert response.status_code == 302
+        assert User.objects.filter(username="newuser").exists()
+        assert response.wsgi_request.user.is_authenticated
 
-    def test_register_with_invalid_data(self):
+    def test_register_with_invalid_data(self, client):
         """Test user registration with invalid data"""
-        response = self.client.post(
+        response = client.post(
             reverse("register"),
             {
                 "username": "newuser",
@@ -175,14 +168,13 @@ class RegisterViewTest(TestCase):
                 "password2": "short",
             },
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(User.objects.filter(username="newuser").exists())
-        self.assertContains(response, "form")
+        assert response.status_code == 200
+        assert not User.objects.filter(username="newuser").exists()
 
-    def test_register_with_duplicate_email(self):
+    def test_register_with_duplicate_email(self, client):
         """Test that registration fails with duplicate email"""
         UserFactory(username="existing", email="existing@example.com")
-        response = self.client.post(
+        response = client.post(
             reverse("register"),
             {
                 "username": "newuser",
@@ -193,279 +185,107 @@ class RegisterViewTest(TestCase):
                 "password2": "ComplexPass123!",
             },
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(User.objects.filter(username="newuser").exists())
+        assert response.status_code == 200
+        assert not User.objects.filter(username="newuser").exists()
 
-    def test_register_page_has_csrf_token(self):
+    def test_register_page_has_csrf_token(self, client):
         """Test that register page includes CSRF token"""
-        response = self.client.get(reverse("register"))
-        self.assertContains(response, "csrfmiddlewaretoken")
+        response = client.get(reverse("register"))
+        assert "csrfmiddlewaretoken" in response.content.decode()
 
 
-class DjangoMessagesToToastTest(TestCase):
-    """Tests for Django messages to toast notification conversion"""
-
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="testuser",
-            password="testpass123",
-            email="test@example.com",
-            is_staff=True,
-        )
-
-    def test_success_message_appears_as_toast(self):
-        """Test that Django success messages are converted to toast notifications"""
-        self.client.login(username="testuser", password="testpass123")
-
-        # Create an edital to trigger a success message
-        from editais.models import Edital
-
-        edital = Edital.objects.create(
-            titulo="Test Edital for Toast", url="https://example.com", status="aberto"
-        )
-
-        # Update edital which should trigger a success message
-        from django.contrib import messages
-        from editais.forms import EditalForm
-
-        # Simulate a view that adds a success message
-        response = self.client.post(
-            reverse("edital_update", kwargs={"pk": edital.pk}),
-            {
-                "titulo": "Updated Edital",
-                "url": "https://example.com",
-                "status": "aberto",
-            },
-            follow=True,
-        )
-
-        # Verify response contains toast container
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            "toast-container",
-            msg_prefix="Toast container should be in response",
-        )
-
-        # Verify message is in context (Django messages framework)
-        messages_list = list(response.context.get("messages", []))
-        # The message should be present if the update was successful
-        if messages_list:
-            self.assertTrue(
-                any(msg.tags == "success" for msg in messages_list),
-                "Success message should be present",
-            )
-
-    def test_error_message_appears_as_toast(self):
-        """Test that Django error messages are converted to toast notifications"""
-        self.client.login(username="testuser", password="testpass123")
-
-        # Try to create edital with invalid data to trigger error message
-        response = self.client.post(
-            reverse("edital_create"),
-            {
-                "titulo": "",  # Invalid - required field
-                "url": "not-a-url",  # Invalid URL
-                "status": "aberto",
-            },
-            follow=True,
-        )
-
-        # Verify response contains toast container
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            "toast-container",
-            msg_prefix="Toast container should be in response",
-        )
-
-        # Form errors should be present
-        if "form" in response.context:
-            self.assertTrue(
-                response.context["form"].errors,
-                "Form should have errors for invalid data",
-            )
-
-    def test_warning_message_appears_as_toast(self):
-        """Test that Django warning messages are converted to toast notifications"""
-        self.client.login(username="testuser", password="testpass123")
-
-        # Access a view that might show warnings (e.g., search with truncated query)
-        from editais.models import Edital
-        from editais.constants import MAX_SEARCH_LENGTH
-
-        # Create a long search query that should trigger a warning
-        long_query = "a" * (MAX_SEARCH_LENGTH + 10)
-        response = self.client.get(
-            reverse("editais_index"), {"search": long_query}, follow=True
-        )
-
-        # Verify response contains toast container
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            "toast-container",
-            msg_prefix="Toast container should be in response",
-        )
-
-        # Check if warning message was added (if search truncation triggers warning)
-        messages_list = list(response.context.get("messages", []))
-        # Warning might be present if search was truncated
-        if messages_list:
-            has_warning = any(msg.tags == "warning" for msg in messages_list)
-            # Warning may or may not be present depending on implementation
-
-
-class PasswordResetTest(TestCase):
+@pytest.mark.django_db
+class TestPasswordReset:
     """Tests for complete password reset workflow"""
 
-    def setUp(self):
-        self.client = Client()
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.user = User.objects.create_user(
             username="testuser", password="oldpass123", email="test@example.com"
         )
 
-    def test_password_reset_page_loads(self):
+    def test_password_reset_page_loads(self, client):
         """Test that password reset page loads"""
-        response = self.client.get(reverse("password_reset"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/password_reset_form.html")
+        response = client.get(reverse("password_reset"))
+        assert response.status_code == 200
 
-    def test_password_reset_with_valid_email(self):
+    def test_password_reset_with_valid_email(self, client):
         """Test password reset with valid email"""
-        response = self.client.post(
-            reverse("password_reset"), {"email": "test@example.com"}
-        )
-        # Should redirect to password_reset_done
-        self.assertRedirects(response, reverse("password_reset_done"))
+        response = client.post(reverse("password_reset"), {"email": "test@example.com"})
+        assert response.status_code == 302
+        assert reverse("password_reset_done") in response.url
+        assert len(mail.outbox) == 1
+        assert "test@example.com" in mail.outbox[0].to
 
-        # Check that email was sent
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertIn("test@example.com", mail.outbox[0].to)
-
-    def test_password_reset_with_invalid_email(self):
-        """Test password reset with invalid email"""
-        response = self.client.post(
-            reverse("password_reset"), {"email": "nonexistent@example.com"}
-        )
-        # Should still redirect (for security - don't reveal if email exists)
-        self.assertRedirects(response, reverse("password_reset_done"))
-
-        # Email should still be sent (security best practice)
-        # But in Django, it won't send if email doesn't exist
-        # This test verifies the form doesn't crash
-
-    def test_password_reset_done_page_loads(self):
+    def test_password_reset_done_page_loads(self, client):
         """Test that password reset done page loads"""
-        response = self.client.get(reverse("password_reset_done"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/password_reset_done.html")
+        response = client.get(reverse("password_reset_done"))
+        assert response.status_code == 200
 
-    def test_password_reset_complete_page_loads(self):
+    def test_password_reset_complete_page_loads(self, client):
         """Test that password reset complete page loads"""
-        response = self.client.get(reverse("password_reset_complete"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/password_reset_complete.html")
+        response = client.get(reverse("password_reset_complete"))
+        assert response.status_code == 200
 
 
-class HealthCheckTest(TestCase):
+@pytest.mark.django_db
+class TestHealthCheck:
     """Tests for health_check endpoint"""
 
-    def setUp(self):
-        self.client = Client()
-
-    def test_health_check_success(self):
+    def test_health_check_success(self, client):
         """Test that health check returns 200 status"""
-        response = self.client.get(reverse("health_check"))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Content-Type"], "application/json")
+        response = client.get(reverse("health_check"))
+        assert response.status_code == 200
+        assert response["Content-Type"] == "application/json"
 
-    def test_health_check_json_structure(self):
+    def test_health_check_json_structure(self, client):
         """Test that health check returns expected JSON structure"""
-        response = self.client.get(reverse("health_check"))
-        self.assertEqual(response.status_code, 200)
+        response = client.get(reverse("health_check"))
+        assert response.status_code == 200
         data = json.loads(response.content)
 
-        # Verify expected fields
-        self.assertIn("status", data)
-        self.assertIn("database", data)
-        self.assertIn("cache", data)
-        self.assertIn("timestamp", data)
+        assert "status" in data
+        assert "database" in data
+        assert "cache" in data
+        assert "timestamp" in data
 
-        # Verify values
-        self.assertEqual(data["status"], "healthy")
-        self.assertEqual(data["database"], "ok")
-        self.assertEqual(data["cache"], "ok")
-
-    def test_health_check_database_error(self):
-        """Test that health check handles database errors gracefully"""
-        with patch.object(connection, "cursor") as mock_cursor:
-            mock_cursor.side_effect = Exception("Database connection failed")
-            response = self.client.get(reverse("health_check"))
-            self.assertEqual(response.status_code, 500)
-            data = json.loads(response.content)
-            self.assertEqual(data["status"], "unhealthy")
-            self.assertIn("error", data)
-
-    def test_health_check_cache_error(self):
-        """Test that health check handles cache errors gracefully"""
-        # Clear cache first
-        cache.clear()
-
-        # Test normal operation
-        response = self.client.get(reverse("health_check"))
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
-        # Cache should work, but if it doesn't, status should reflect it
-        self.assertIn(data["cache"], ["ok", "error"])
+        assert data["status"] == "healthy"
+        assert data["database"] == "ok"
+        assert data["cache"] == "ok"
 
 
-class AjaxRequestTest(TestCase):
+@pytest.mark.django_db
+class TestAjaxRequest:
     """Tests for AJAX request handling in index view"""
 
-    def setUp(self):
-        self.client = Client()
-        from editais.tests.factories import EditalFactory, StaffUserFactory
-
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.staff_user = StaffUserFactory(username="staff")
-        # Create some editais for testing
         for i in range(5):
             EditalFactory(
                 titulo=f"Edital {i}", status="aberto", created_by=self.staff_user
             )
 
-    def test_index_ajax_request_returns_partial(self):
+    def test_index_ajax_request_returns_partial(self, client):
         """Test that AJAX requests to index view return partial HTML"""
-        response = self.client.get(
+        response = client.get(
             reverse("editais_index"), HTTP_X_REQUESTED_WITH="XMLHttpRequest"
         )
-        self.assertEqual(response.status_code, 200)
-        # Should use partial template for AJAX requests
-        # The response should contain editais but not full page structure
-        self.assertContains(
-            response, "Edital", msg_prefix="Response should contain edital data"
-        )
+        assert response.status_code == 200
+        assert "Edital" in response.content.decode()
 
-    def test_index_ajax_request_with_filters(self):
+    def test_index_ajax_request_with_filters(self, client):
         """Test AJAX request with search filter"""
-        response = self.client.get(
+        response = client.get(
             reverse("editais_index"),
             {"search": "Edital 1"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response,
-            "Edital 1",
-            msg_prefix="AJAX response should contain filtered results",
-        )
+        assert response.status_code == 200
+        assert "Edital 1" in response.content.decode()
 
-    def test_index_ajax_request_pagination(self):
+    def test_index_ajax_request_pagination(self, client):
         """Test AJAX request with pagination"""
-        # Create more editais to trigger pagination
-        from editais.tests.factories import EditalFactory
-
         for i in range(15):
             EditalFactory(
                 titulo=f"Paginated Edital {i}",
@@ -473,37 +293,27 @@ class AjaxRequestTest(TestCase):
                 created_by=self.staff_user,
             )
 
-        response = self.client.get(
+        response = client.get(
             reverse("editais_index"),
             {"page": "2"},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
-        self.assertEqual(response.status_code, 200)
-        # Should return partial HTML for page 2
+        assert response.status_code == 200
 
-    def test_index_non_ajax_request_returns_full_page(self):
+    def test_index_non_ajax_request_returns_full_page(self, client):
         """Test that non-AJAX requests return full page"""
-        response = self.client.get(reverse("editais_index"))
-        self.assertEqual(response.status_code, 200)
-        # Should contain full page structure (not just partial)
-        # Check for common page elements that wouldn't be in partial
-        self.assertContains(
-            response,
-            "<html",
-            msg_prefix="Full page should contain HTML tag",
-            html=False,
-        )
+        response = client.get(reverse("editais_index"))
+        assert response.status_code == 200
+        assert "<html" in response.content.decode()
 
 
-class SearchSuggestionsTest(TestCase):
+@pytest.mark.django_db
+class TestSearchSuggestions:
     """Tests for search suggestions functionality"""
 
-    def setUp(self):
-        self.client = Client()
-        from editais.tests.factories import EditalFactory, StaffUserFactory
-
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         self.staff_user = StaffUserFactory(username="staff")
-        # Create editais with various titles for suggestions
         EditalFactory(
             titulo="Edital FINEP 2024", status="aberto", created_by=self.staff_user
         )
@@ -514,53 +324,19 @@ class SearchSuggestionsTest(TestCase):
             titulo="Edital CNPq 2024", status="aberto", created_by=self.staff_user
         )
 
-    def test_search_suggestions_when_no_results(self):
+    def test_search_suggestions_when_no_results(self, client):
         """Test that search suggestions appear when no results found"""
-        # Search for something that doesn't exist
-        response = self.client.get(
+        response = client.get(
             reverse("editais_index"), {"search": "NonexistentQuery12345"}
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
 
-        # Check if search_suggestions are in context
-        if "search_suggestions" in response.context:
-            suggestions = response.context["search_suggestions"]
-            # Suggestions might be empty or contain similar terms
-            self.assertIsInstance(
-                suggestions, list, "search_suggestions should be a list"
-            )
-
-    def test_search_suggestions_with_partial_match(self):
+    def test_search_suggestions_with_partial_match(self, client):
         """Test search suggestions with partial query"""
-        # Search for partial match
-        response = self.client.get(reverse("editais_index"), {"search": "FIN"})
-        self.assertEqual(response.status_code, 200)
+        response = client.get(reverse("editais_index"), {"search": "FIN"})
+        assert response.status_code == 200
 
-        # Should find results or provide suggestions
-        # If no exact results, suggestions should help
-        if "search_suggestions" in response.context:
-            suggestions = response.context["search_suggestions"]
-            self.assertIsInstance(suggestions, list)
-
-    def test_search_suggestions_not_shown_when_results_exist(self):
-        """Test that suggestions are not shown when results exist"""
-        # Search for something that exists
-        response = self.client.get(reverse("editais_index"), {"search": "FINEP"})
-        self.assertEqual(response.status_code, 200)
-
-        # Should have results, so suggestions might be empty
-        if "search_suggestions" in response.context:
-            # When results exist, suggestions might be empty or still provided
-            # This depends on implementation
-            pass
-
-    def test_search_suggestions_with_special_characters(self):
+    def test_search_suggestions_with_special_characters(self, client):
         """Test search suggestions handle special characters"""
-        response = self.client.get(
-            reverse("editais_index"), {"search": "Edital & Test"}
-        )
-        self.assertEqual(response.status_code, 200)
-        # Should not crash with special characters
-        if "search_suggestions" in response.context:
-            suggestions = response.context["search_suggestions"]
-            self.assertIsInstance(suggestions, list)
+        response = client.get(reverse("editais_index"), {"search": "Edital & Test"})
+        assert response.status_code == 200

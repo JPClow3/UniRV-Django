@@ -10,46 +10,75 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import locale
 import os
 import shutil
 import sys
 from pathlib import Path
 
-import dj_database_url
+import environ
+
+# Force UTF-8 encoding for Windows compatibility with PostgreSQL
+if sys.platform == "win32":
+    try:
+        locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+    except locale.Error:
+        try:
+            locale.setlocale(locale.LC_ALL, "C.UTF-8")
+        except locale.Error:
+            pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-#
-# ⚠️ CRITICAL FOR PRODUCTION: The fallback value below is INSECURE and must NEVER be used in production.
-# Always set SECRET_KEY as an environment variable in production.
-# Generate a secure key with:
-#   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-#
-# The fallback is provided ONLY for local development convenience.
-# If SECRET_KEY is not set in production, Django will fail to start (by design).
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY", "django-insecure-dev-key-change-in-production"
+# django-environ: read .env file and provide typed access to env vars.
+env = environ.Env(
+    SECRET_KEY=(str, "django-insecure-dev-key-change-in-production"),
+    DJANGO_DEBUG=(bool, True),
+    ALLOWED_HOSTS=(list, []),
+    SITE_URL=(str, "http://localhost:8000"),
+    DATABASE_URL=(str, ""),
+    REDIS_URL=(str, ""),
+    REDIS_HOST=(str, ""),
+    REDIS_PORT=(int, 6379),
+    REDIS_PASSWORD=(str, ""),
+    REDIS_MAX_CONNECTIONS=(int, 50),
+    CACHE_VERSION=(int, 1),
+    CELERY_BROKER_URL=(str, ""),
+    CELERY_RESULT_BACKEND=(str, ""),
+    USE_CELERY=(bool, False),
+    EMAIL_BACKEND=(str, "django.core.mail.backends.console.EmailBackend"),
+    EMAIL_HOST=(str, "localhost"),
+    EMAIL_PORT=(int, 587),
+    EMAIL_USE_TLS=(bool, True),
+    EMAIL_HOST_USER=(str, ""),
+    EMAIL_HOST_PASSWORD=(str, ""),
+    DEFAULT_FROM_EMAIL=(str, "noreply@agrohub.unirv.edu.br"),
+    MAILERSEND_API_TOKEN=(str, ""),
+    ANYMAIL_WEBHOOK_SECRET=(str, ""),
+    ENABLE_SILK=(bool, False),
+    CDN_BASE_URL=(str, ""),
+    DJANGO_LOG_LEVEL=(str, "INFO"),
+    DJANGO_LOG_TO_FILE=(bool, False),
+    DJANGO_LOG_DIR=(str, ""),
+    NPM_BIN_PATH=(str, ""),
+    TAILWIND_COMPILE_ON_THE_FLY=(bool, False),
+    WHITENOISE_MAX_AGE=(int, 0),
+    GUNICORN_WORKERS=(int, 0),
+    COOKIE_DOMAIN=(str, ""),
+    PARTNERS=(list, []),
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-#
-# ⚠️ CRITICAL FOR PRODUCTION: DEBUG=True exposes sensitive information and should NEVER be used in production.
-#
-# Development: Defaults to True for convenience (can be overridden with DJANGO_DEBUG=False)
-# Production: MUST be set to False via environment variable: DJANGO_DEBUG=False
-#
-# When DEBUG=False, additional security settings are automatically enabled (see below).
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
+# Read .env file if it exists (won't override existing env vars)
+environ.Env.read_env(BASE_DIR / ".env", overwrite=False)
+
+# ---------------------------------------------------------------------------
+# Core settings
+# ---------------------------------------------------------------------------
+SECRET_KEY = env("SECRET_KEY")
+DEBUG = env("DJANGO_DEBUG")
 
 # Detect if we're running tests
-# Django sets sys.argv[1] to 'test' when running tests
-# Also check for 'pytest' or 'unittest' in command line
 TESTING = len(sys.argv) > 1 and (
     sys.argv[1] == "test"
     or "pytest" in sys.argv[0]
@@ -58,39 +87,14 @@ TESTING = len(sys.argv) > 1 and (
 )
 
 # Security: explicit ALLOWED_HOSTS
-#
-# ALLOWED_HOSTS prevents HTTP Host header attacks.
-#
-# Development (DEBUG=True): Automatically allows localhost, 127.0.0.1, and [::1]
-# Production (DEBUG=False): MUST be set via ALLOWED_HOSTS environment variable
-#   Example: ALLOWED_HOSTS=example.com,www.example.com
-#
-# Parsear e validar ALLOWED_HOSTS antes de usar
-allowed_hosts_env = os.environ.get("ALLOWED_HOSTS", "").strip()
 if DEBUG:
-    # Development: Allow localhost by default
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
 else:
-    # Production: Require explicit ALLOWED_HOSTS configuration
     from django.core.exceptions import ImproperlyConfigured
 
-    if allowed_hosts_env:
-        # Parsear hosts e filtrar valores vazios
-        parsed_hosts = [
-            host.strip() for host in allowed_hosts_env.split(",") if host.strip()
-        ]
-        # Validar que há pelo menos um host válido
-        if parsed_hosts:
-            ALLOWED_HOSTS = parsed_hosts
-        else:
-            # Se parsing resultou em lista vazia, levantar erro em produção
-            raise ImproperlyConfigured(
-                "ALLOWED_HOSTS environment variable is set but contains no valid hosts. "
-                "Please set ALLOWED_HOSTS with at least one valid hostname or IP address. "
-                "Example: ALLOWED_HOSTS=example.com,www.example.com"
-            )
-    else:
-        # Em produção sem ALLOWED_HOSTS configurado, levantar erro para forçar configuração explícita
+    _hosts = env("ALLOWED_HOSTS")
+    parsed_hosts = [h.strip() for h in _hosts if h.strip()] if _hosts else []
+    if not parsed_hosts:
         raise ImproperlyConfigured(
             "ALLOWED_HOSTS environment variable is required in production (DEBUG=False). "
             "Please set ALLOWED_HOSTS with your domain(s). "
@@ -138,20 +142,17 @@ INSTALLED_APPS = [
     "tailwind",
     "theme",  # Tailwind theme app
     "easy_thumbnails",  # Image thumbnails generation
+    "django_celery_beat",  # Celery periodic tasks via DB
+    "health_check",  # django-health-check core
+    "health_check.db",  # DB connectivity check
+    "health_check.cache",  # Cache backend check
+    "health_check.storage",  # Default file storage check
+    "dal",  # django-autocomplete-light core
+    "dal_select2",  # django-autocomplete-light Select2 widget
+    "anymail",  # Email service provider integration
+    "django_cleanup.apps.CleanupConfig",  # Auto-delete orphaned files (must be last)
     "editais.apps.EditaisConfig",
 ]
-
-# Check if compressor is available (optional dependency)
-# This check is done once and reused throughout settings
-HAS_COMPRESSOR = False
-try:
-    import compressor
-
-    HAS_COMPRESSOR = True
-    INSTALLED_APPS.insert(-1, "compressor")  # Insert before editais app
-except ImportError:
-    # Compressor not installed, skip it
-    pass
 
 # Check if easy-thumbnails is available (optional dependency)
 HAS_THUMBNAILS = False
@@ -166,9 +167,13 @@ except ImportError:
     pass
 
 # Add django_browser_reload only in DEBUG mode and not during testing
-# TESTING mode disables django_browser_reload to avoid namespace issues in test environment
 if DEBUG and not TESTING:
     INSTALLED_APPS += ["django_browser_reload"]
+
+# Silk profiling — conditionally enabled via ENABLE_SILK env var (staging only)
+ENABLE_SILK = env("ENABLE_SILK")
+if ENABLE_SILK:
+    INSTALLED_APPS += ["silk"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -184,20 +189,22 @@ MIDDLEWARE = [
 ]
 
 # Add django_browser_reload middleware only in DEBUG mode and not during testing
-# Should be after any middleware that encodes the response (like GZipMiddleware)
 if DEBUG and not TESTING:
     MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
     INTERNAL_IPS = [
         "127.0.0.1",
     ]
 
+# Silk profiling middleware (must come after GZipMiddleware)
+if ENABLE_SILK:
+    MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
+
 ROOT_URLCONF = "UniRV_Django.urls"
 
 
-# Custom context processor to make HAS_COMPRESSOR, HAS_THUMBNAILS and DEBUG available in templates
-def compressor_context(request):
+# Custom context processor to make HAS_THUMBNAILS and DEBUG available in templates
+def template_context(request):
     return {
-        "HAS_COMPRESSOR": HAS_COMPRESSOR,
         "HAS_THUMBNAILS": HAS_THUMBNAILS,
         "DEBUG": DEBUG,
     }
@@ -213,7 +220,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "UniRV_Django.settings.compressor_context",
+                "UniRV_Django.settings.template_context",
             ],
         },
     },
@@ -223,51 +230,22 @@ WSGI_APPLICATION = "UniRV_Django.wsgi.application"
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-#
-# PostgreSQL is REQUIRED for all environments (dev, test, production).
-# Set DATABASE_URL or individual DB_* environment variables.
-#
-# Quick setup for development:
-#   DATABASE_URL=postgres://user:password@localhost:5432/agrohub_dev
-#
-# Or individual variables:
-#   DB_NAME=agrohub_dev DB_USER=user DB_PASSWORD=password
-
-database_url = os.environ.get("DATABASE_URL", "").strip()
+# Uses DATABASE_URL environment variable. SQLite for local, PostgreSQL for production
+database_url = env("DATABASE_URL")
 if database_url:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=database_url,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
+    DATABASES = {"default": env.db("DATABASE_URL", default=database_url)}
+    # Connection pooling for PostgreSQL (no effect on SQLite)
+    if "postgres" in database_url:
+        DATABASES["default"]["CONN_MAX_AGE"] = 600
+        DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 else:
-    db_name = os.environ.get("DB_NAME", "")
-    if db_name:
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": db_name,
-                "USER": os.environ.get("DB_USER", "postgres"),
-                "PASSWORD": os.environ.get("DB_PASSWORD", ""),
-                "HOST": os.environ.get("DB_HOST", "localhost"),
-                "PORT": os.environ.get("DB_PORT", "5432"),
-                "CONN_MAX_AGE": 600,
-                "OPTIONS": {
-                    "connect_timeout": 10,
-                },
-            }
-        }
-    else:
-        from django.core.exceptions import ImproperlyConfigured
+    from django.core.exceptions import ImproperlyConfigured
 
-        raise ImproperlyConfigured(
-            "PostgreSQL is required. Set DATABASE_URL or DB_NAME environment variable.\n"
-            "Example: DATABASE_URL=postgres://user:password@localhost:5432/agrohub_dev\n"
-            "Or: DB_NAME=agrohub_dev DB_USER=postgres DB_PASSWORD=secret"
-        )
+    raise ImproperlyConfigured(
+        "DATABASE_URL environment variable is required. "
+        "Local: DATABASE_URL=sqlite:///db.sqlite3 "
+        "Production: DATABASE_URL=postgresql://user:password@host:5432/dbname"
+    )
 
 
 # Password validation
@@ -328,9 +306,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 #
 # CDN_IMAGE_FORMATS defines the priority order of formats to use.
 # Browsers will automatically select the best supported format from the srcset.
-CDN_BASE_URL = os.environ.get(
-    "CDN_BASE_URL", None
-)  # Set via environment variable or leave None for static files
+CDN_BASE_URL = env("CDN_BASE_URL") or None
 CDN_IMAGE_FORMATS = [
     "avif",
     "webp",
@@ -393,71 +369,17 @@ TAILWIND_APP_NAME = "theme"
 
 # NPM binary path (auto-detected with overrides for portability)
 NPM_BIN_PATH = (
-    os.environ.get("NPM_BIN_PATH")
-    or shutil.which("npm")
-    or shutil.which("npm.cmd")
-    or "npm"
+    env("NPM_BIN_PATH") or shutil.which("npm") or shutil.which("npm.cmd") or "npm"
 )
 
-# Disable Tailwind CSS compilation on-the-fly in development to prevent slow loading
-# Use pre-compiled CSS from staticfiles instead
-# Set TAILWIND_COMPILE_ON_THE_FLY=false to disable real-time compilation
-TAILWIND_COMPILE_ON_THE_FLY = (
-    os.environ.get("TAILWIND_COMPILE_ON_THE_FLY", "False").lower() == "true"
-)
+# Disable Tailwind CSS compilation on-the-fly in development
+TAILWIND_COMPILE_ON_THE_FLY = env("TAILWIND_COMPILE_ON_THE_FLY")
 
 # Static files finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
-
-# Add compressor finder if compressor is installed
-if HAS_COMPRESSOR:
-    STATICFILES_FINDERS.append("compressor.finders.CompressorFinder")
-
-# Django Compressor settings for minification (only if compressor is installed)
-if HAS_COMPRESSOR:
-    # Compressor root and URL (defaults to STATIC_ROOT and STATIC_URL if not set)
-    COMPRESS_ROOT = STATIC_ROOT
-    # COMPRESS_URL should match the format used by {% static %} tag (with leading slash)
-    COMPRESS_URL = "/static/" if not STATIC_URL.startswith("/") else STATIC_URL
-
-    # Enable compression for Lighthouse testing even in DEBUG mode
-    # Set COMPRESS_ENABLED=true environment variable to enable compression in development
-    compress_enabled_env = os.environ.get("COMPRESS_ENABLED", "").lower() == "true"
-    if TESTING:
-        COMPRESS_ENABLED = False
-        COMPRESS_OFFLINE = False
-    elif not DEBUG and not compress_enabled_env:
-        # Production: disable compressor — all JS/CSS is already pre-minified by
-        # the Node.js build stage (terser for JS, PostCSS for Tailwind CSS).
-        # Runtime compression doesn't work with WhiteNoise because it only serves
-        # files discovered at startup; compressor-generated CACHE/ files would 404.
-        COMPRESS_ENABLED = False
-        COMPRESS_OFFLINE = False
-    elif compress_enabled_env:
-        # Explicitly enabled (development/Lighthouse testing)
-        COMPRESS_ENABLED = True
-        compress_offline_env = os.environ.get("COMPRESS_OFFLINE", "").lower()
-        COMPRESS_OFFLINE = compress_offline_env == "true"
-    else:
-        # Default: disable in development to avoid file not found errors and hanging
-        # Runtime compression can cause infinite loading if compressor has issues
-        COMPRESS_ENABLED = False  # Disable compression in development to prevent hangs
-        COMPRESS_OFFLINE = False  # Don't require offline compression in dev
-
-    COMPRESS_CSS_FILTERS = [
-        "compressor.filters.css_default.CssAbsoluteFilter",
-        "compressor.filters.cssmin.rCSSMinFilter",
-    ]
-    COMPRESS_JS_FILTERS = [
-        "compressor.filters.jsmin.JSMinFilter",
-    ]
-else:
-    # Compressor not installed, disable compression
-    COMPRESS_ENABLED = False
-    COMPRESS_OFFLINE = False
 
 # WhiteNoise: serve compressed static files
 # Use non-manifest storage during tests to avoid requiring collected static files
@@ -505,9 +427,9 @@ else:
 # To test with longer cache in development, set: WHITENOISE_MAX_AGE=31536000
 if DEBUG:
     # Allow override via environment variable for Lighthouse testing
-    whitenoise_max_age_env = os.environ.get("WHITENOISE_MAX_AGE", "")
-    if whitenoise_max_age_env:
-        WHITENOISE_MAX_AGE = int(whitenoise_max_age_env)
+    _whitenoise_env = env("WHITENOISE_MAX_AGE")
+    if _whitenoise_env:
+        WHITENOISE_MAX_AGE = _whitenoise_env
     else:
         WHITENOISE_MAX_AGE = 3600  # 1 hour in seconds for development
 else:
@@ -526,14 +448,31 @@ WHITENOISE_MANIFEST_STRICT = (
 # Redis is the primary cache backend. Falls back to LocMemCache only if Redis
 # is not configured (no REDIS_URL / REDIS_HOST env vars).
 # Cache versioning: increment CACHE_VERSION env var to force cache purge on deploys.
-CACHE_VERSION = int(os.environ.get("CACHE_VERSION", "1"))
+CACHE_VERSION = env("CACHE_VERSION")
 
-redis_url = os.environ.get("REDIS_URL", "").strip()
-redis_host = os.environ.get("REDIS_HOST", "")
-redis_port = os.environ.get("REDIS_PORT", "6379")
-redis_location = redis_url or (
-    f"redis://{redis_host}:{redis_port}/1" if redis_host else ""
-)
+redis_url = env("REDIS_URL")
+redis_host = env("REDIS_HOST")
+redis_port = env("REDIS_PORT")
+redis_password = env("REDIS_PASSWORD")
+
+if redis_url:
+    redis_location = redis_url
+    # Derive sessions location by switching to DB 2 (if URL ends with /N pattern)
+    # If REDIS_URL already specifies a DB, sessions will use DB+1
+    redis_sessions_location = redis_url.rstrip("/").rsplit("/", 1)
+    if len(redis_sessions_location) == 2 and redis_sessions_location[1].isdigit():
+        _base = redis_sessions_location[0]
+        _db = int(redis_sessions_location[1])
+        redis_sessions_location = f"{_base}/{_db + 1}"
+    else:
+        redis_sessions_location = f"{redis_url.rstrip('/')}/2"
+elif redis_host:
+    _auth = f":{redis_password}@" if redis_password else ""
+    redis_location = f"redis://{_auth}{redis_host}:{redis_port}/1"
+    redis_sessions_location = f"redis://{_auth}{redis_host}:{redis_port}/2"
+else:
+    redis_location = ""
+    redis_sessions_location = ""
 
 if redis_location:
     _redis_options = {
@@ -541,7 +480,7 @@ if redis_location:
         "SOCKET_CONNECT_TIMEOUT": 5,
         "SOCKET_TIMEOUT": 5,
         "CONNECTION_POOL_KWARGS": {
-            "max_connections": int(os.environ.get("REDIS_MAX_CONNECTIONS", "50")),
+            "max_connections": env("REDIS_MAX_CONNECTIONS"),
             "retry_on_timeout": True,
         },
         "IGNORE_EXCEPTIONS": not DEBUG,
@@ -557,7 +496,7 @@ if redis_location:
         },
         "sessions": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": redis_location,
+            "LOCATION": redis_sessions_location,
             "OPTIONS": _redis_options,
             "KEY_PREFIX": "unirv_sessions",
             "TIMEOUT": 1209600,  # 2 weeks
@@ -585,10 +524,25 @@ else:
         }
     }
 
+# Add Redis health check only when Redis is configured (avoids failures when using SQLite/LocMemCache)
+if redis_location:
+    INSTALLED_APPS.append("health_check.contrib.redis")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Cookie domain validation
+_cookie_domain = env("COOKIE_DOMAIN")
+if _cookie_domain and not _cookie_domain.startswith("."):
+    import warnings
+
+    warnings.warn(
+        f"COOKIE_DOMAIN '{_cookie_domain}' should start with '.' for subdomain support. "
+        f"Example: .yourdomain.com (not yourdomain.com)",
+        UserWarning,
+    )
 
 # Login URL for @login_required decorator
 LOGIN_URL = "/login/"
@@ -613,9 +567,9 @@ EDITAL_SEARCH_FIELDS = [
 ]
 
 # Home page partners marquee (configurable via PARTNERS env: comma-separated, e.g. PARTNERS="SENAI,SEBRAE,FAPEG")
-_partners_env = os.environ.get("PARTNERS", "").strip()
+_partners_env = env("PARTNERS")
 PARTNERS = (
-    [p.strip() for p in _partners_env.split(",") if p.strip()]
+    [p.strip() for p in _partners_env if p.strip()]
     if _partners_env
     else ["SENAI", "SEBRAE", "FAPEG", "FINEP", "UNIRV", "INOVALAB"]
 )
@@ -696,50 +650,54 @@ MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 # Session cookie domain (prevent session fixation attacks across subdomains)
 if not DEBUG:
-    cookie_domain = os.environ.get("COOKIE_DOMAIN", None)
+    cookie_domain = env("COOKIE_DOMAIN")
     if cookie_domain:
         SESSION_COOKIE_DOMAIN = cookie_domain
         CSRF_COOKIE_DOMAIN = cookie_domain
 
 # Email configuration
-EMAIL_BACKEND = os.environ.get(
-    "EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend",  # Console backend for development
-)
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL", "noreply@agrohub.unirv.edu.br"
-)
+EMAIL_BACKEND = env("EMAIL_BACKEND")
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-# Email backend validation and fallback
-if not DEBUG and EMAIL_BACKEND != "django.core.mail.backends.console.EmailBackend":
-    # Validate SMTP settings
-    required_email_vars = ["EMAIL_HOST", "EMAIL_HOST_USER", "EMAIL_HOST_PASSWORD"]
-    missing_vars = [var for var in required_email_vars if not os.environ.get(var)]
+# django-anymail (MailerSend) — only configured when using anymail backend
+_mailersend_token = env("MAILERSEND_API_TOKEN")
+_anymail_webhook_secret = env("ANYMAIL_WEBHOOK_SECRET")
+if "anymail" in EMAIL_BACKEND:
+    ANYMAIL = {
+        "MAILERSEND_API_TOKEN": _mailersend_token,
+    }
+    if _anymail_webhook_secret:
+        ANYMAIL["WEBHOOK_SECRET"] = _anymail_webhook_secret
 
-    if missing_vars:
+# Celery feature flag — controls whether email tasks use Celery or threads
+USE_CELERY = env("USE_CELERY")
+
+# Email backend validation and fallback
+if not DEBUG and EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
+    # Validate SMTP settings only for the SMTP backend
+    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
         import warnings
 
         warnings.warn(
-            f"Email not configured. Missing: {', '.join(missing_vars)}. "
+            "SMTP email not fully configured. Missing EMAIL_HOST_USER or EMAIL_HOST_PASSWORD. "
             "Password reset and notifications won't work.",
             UserWarning,
         )
-        # Fallback to console
         EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Site URL for email links
-SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
+SITE_URL = env("SITE_URL")
 
-# Logging configuration (FEAT-013)
-# Default to console logging; optional file handlers enabled via env vars
-LOG_TO_FILE = os.environ.get("DJANGO_LOG_TO_FILE", "").lower() == "true"
-LOG_DIR = Path(os.environ.get("DJANGO_LOG_DIR", BASE_DIR / "logs"))
+# Logging configuration
+LOG_TO_FILE = env("DJANGO_LOG_TO_FILE")
+_log_dir_env = env("DJANGO_LOG_DIR")
+LOG_DIR = Path(_log_dir_env) if _log_dir_env else BASE_DIR / "logs"
 
 LOGGING = {
     "version": 1,
@@ -767,7 +725,7 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["console"],
-            "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO"),
+            "level": env("DJANGO_LOG_LEVEL"),
             "propagate": False,
         },
         "editais": {
@@ -837,3 +795,51 @@ if LOG_TO_FILE:
         LOGGING["loggers"]["django.db.backends"]["handlers"] = (
             ["performance_file"] if not DEBUG else ["console"]
         )
+
+# ---------------------------------------------------------------------------
+# Celery configuration
+# ---------------------------------------------------------------------------
+# Derive broker/result backend from env, falling back to the Redis URL used for cache.
+_celery_redis_fallback = redis_url or (
+    f"redis://{(':' + redis_password + '@') if redis_password else ''}"
+    f"{redis_host}:{redis_port}/0"
+    if redis_host
+    else ""
+)
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL") or _celery_redis_fallback
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND") or _celery_redis_fallback
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True  # Store internally in UTC, convert to TIME_ZONE for display
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 300  # 5 minutes hard limit
+CELERY_TASK_SOFT_TIME_LIMIT = 240  # 4 minutes soft limit (raises SoftTimeLimitExceeded)
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000  # Recycle workers to prevent memory leaks
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Default retry policy for tasks
+CELERY_TASK_DEFAULT_RETRY_DELAY = 60  # 1 minute
+CELERY_TASK_MAX_RETRIES = 3
+
+# django-celery-beat — use the DB scheduler
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# During tests, execute tasks synchronously (no broker needed)
+if TESTING:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+
+# ---------------------------------------------------------------------------
+# Silk profiling settings
+# ---------------------------------------------------------------------------
+if ENABLE_SILK:
+    SILKY_PYTHON_PROFILER = True
+    SILKY_PYTHON_PROFILER_BINARY = True
+    SILKY_MAX_RECORDED_REQUESTS = 10_000
+    SILKY_MAX_RECORDED_REQUESTS_CHECK_PERCENT = 10
+    SILKY_AUTHENTICATION = True  # Require login
+    SILKY_AUTHORISATION = True  # Require staff/superuser
+    SILKY_META = True

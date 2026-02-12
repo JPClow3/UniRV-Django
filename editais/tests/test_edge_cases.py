@@ -2,316 +2,226 @@
 Edge case tests for pagination, search queries, status logic, and URL redirects.
 """
 
-from datetime import date, timedelta
+import pytest
+from datetime import timedelta
 from django.contrib.auth.models import User
-from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
 
-from ..models import Edital, Startup
-from ..utils import determine_edital_status
+from editais.models import Edital, Startup
+from editais.utils import determine_edital_status
 
 
-class PaginationEdgeCasesTest(TestCase):
+@pytest.mark.django_db
+class TestPaginationEdgeCases:
     """Test pagination edge cases"""
-    
-    def setUp(self):
-        self.client = Client()
-        # Create multiple editais to test pagination
+
+    @pytest.fixture(autouse=True)
+    def _create_editais(self):
         for i in range(15):
             Edital.objects.create(
-                titulo=f'Edital {i}',
-                url=f'https://example.com/{i}',
-                status='aberto'
+                titulo=f"Edital {i}",
+                url=f"https://example.com/{i}",
+                status="aberto",
             )
-    
-    def test_negative_page_number(self):
-        """Test that negative page numbers are handled"""
-        response = self.client.get(reverse('editais_index'), {'page': '-1'})
-        self.assertEqual(response.status_code, 200)
-        # Should redirect to page 1
-    
-    def test_zero_page_number(self):
-        """Test that page 0 is handled"""
-        response = self.client.get(reverse('editais_index'), {'page': '0'})
-        self.assertEqual(response.status_code, 200)
-        # Should redirect to page 1
-    
-    def test_very_large_page_number(self):
-        """Test that very large page numbers are handled"""
-        response = self.client.get(reverse('editais_index'), {'page': '99999'})
-        self.assertEqual(response.status_code, 200)
-        # Should show last page or empty results
-    
-    def test_invalid_page_format(self):
-        """Test that non-numeric page numbers are handled"""
-        response = self.client.get(reverse('editais_index'), {'page': 'abc'})
-        self.assertEqual(response.status_code, 200)
-        # Should default to page 1
-    
-    def test_empty_results_pagination(self):
-        """Test pagination with no results"""
+
+    def test_negative_page_number(self, client):
+        response = client.get(reverse("editais_index"), {"page": "-1"})
+        assert response.status_code == 200
+
+    def test_zero_page_number(self, client):
+        response = client.get(reverse("editais_index"), {"page": "0"})
+        assert response.status_code == 200
+
+    def test_very_large_page_number(self, client):
+        response = client.get(reverse("editais_index"), {"page": "99999"})
+        assert response.status_code == 200
+
+    def test_invalid_page_format(self, client):
+        response = client.get(reverse("editais_index"), {"page": "abc"})
+        assert response.status_code == 200
+
+    def test_empty_results_pagination(self, client):
         Edital.objects.all().delete()
-        response = self.client.get(reverse('editais_index'))
-        self.assertEqual(response.status_code, 200)
-        # Should show empty results without error
+        response = client.get(reverse("editais_index"))
+        assert response.status_code == 200
 
 
-class SearchQueryEdgeCasesTest(TestCase):
+@pytest.mark.django_db
+class TestSearchQueryEdgeCases:
     """Test search query edge cases"""
-    
-    def setUp(self):
-        self.client = Client()
+
+    @pytest.fixture(autouse=True)
+    def _create_edital(self):
         Edital.objects.create(
-            titulo='Normal Edital',
-            url='https://example.com',
-            status='aberto'
+            titulo="Normal Edital", url="https://example.com", status="aberto"
         )
-    
+
     def test_empty_search_query(self):
-        """Test that empty search query returns all results"""
-        qs = Edital.objects.search('')
-        self.assertEqual(list(qs), list(Edital.objects.all()))
-    
+        qs = Edital.objects.search("")
+        assert list(qs) == list(Edital.objects.all())
+
     def test_very_long_search_query(self):
-        """Test that very long search queries are truncated"""
-        long_query = 'a' * 1000
-        qs = Edital.objects.search(long_query)
-        self.assertIsNotNone(qs)
-    
-    def test_search_with_special_characters(self):
-        """Test search with special characters"""
+        qs = Edital.objects.search("a" * 1000)
+        assert qs is not None
+
+    def test_search_with_special_characters(self, client):
         special_chars = "'; DROP TABLE editais_edital; --"
-        response = self.client.get(reverse('editais_index'), {
-            'search': special_chars
-        })
-        self.assertEqual(response.status_code, 200)
-        # Should not crash and should handle safely
-    
-    def test_search_with_unicode(self):
-        """Test search with unicode characters"""
-        unicode_query = 'Edital de Fomento à Inovação'
-        response = self.client.get(reverse('editais_index'), {
-            'search': unicode_query
-        })
-        self.assertEqual(response.status_code, 200)
-    
+        response = client.get(reverse("editais_index"), {"search": special_chars})
+        assert response.status_code == 200
+
+    def test_search_with_unicode(self, client):
+        response = client.get(
+            reverse("editais_index"), {"search": "Edital de Fomento à Inovação"}
+        )
+        assert response.status_code == 200
+
     def test_search_query_length_limit(self):
-        """Test that search query length is limited (manager search)"""
-        long_query = 'x' * 600
-        qs = Edital.objects.search(long_query)
-        self.assertIsNotNone(qs)
+        qs = Edital.objects.search("x" * 600)
+        assert qs is not None
 
 
-class StatusDeterminationEdgeCasesTest(TestCase):
+@pytest.mark.django_db
+class TestStatusDeterminationEdgeCases:
     """Test status determination logic with edge cases"""
-    
+
     def test_status_with_none_dates(self):
-        """Test status determination with None dates"""
         today = timezone.now().date()
         status = determine_edital_status(
-            current_status='aberto',
-            start_date=None,
-            end_date=None,
-            today=today
+            current_status="aberto", start_date=None, end_date=None, today=today
         )
-        # Should maintain current status
-        self.assertEqual(status, 'aberto')
-    
+        assert status == "aberto"
+
     def test_status_with_only_start_date(self):
-        """Test status with only start_date (fluxo contínuo)"""
         today = timezone.now().date()
-        start_date = today - timedelta(days=5)
-        
-        # Should be aberto if started
         status = determine_edital_status(
-            current_status='programado',
-            start_date=start_date,
+            current_status="programado",
+            start_date=today - timedelta(days=5),
             end_date=None,
-            today=today
+            today=today,
         )
-        self.assertEqual(status, 'aberto')
-    
+        assert status == "aberto"
+
     def test_status_with_only_end_date(self):
-        """Test status with only end_date"""
         today = timezone.now().date()
-        end_date = today + timedelta(days=5)
-        
-        # Should maintain status if end_date hasn't passed
         status = determine_edital_status(
-            current_status='aberto',
+            current_status="aberto",
             start_date=None,
-            end_date=end_date,
-            today=today
+            end_date=today + timedelta(days=5),
+            today=today,
         )
-        self.assertEqual(status, 'aberto')
-    
+        assert status == "aberto"
+
     def test_status_on_exact_start_date(self):
-        """Test status on exact start_date"""
         today = timezone.now().date()
-        start_date = today
-        end_date = today + timedelta(days=30)
-        
         status = determine_edital_status(
-            current_status='programado',
-            start_date=start_date,
-            end_date=end_date,
-            today=today
+            current_status="programado",
+            start_date=today,
+            end_date=today + timedelta(days=30),
+            today=today,
         )
-        # Should open on start_date
-        self.assertEqual(status, 'aberto')
-    
+        assert status == "aberto"
+
     def test_status_on_exact_end_date(self):
-        """Test status on exact end_date"""
         today = timezone.now().date()
-        start_date = today - timedelta(days=30)
-        end_date = today
-        
         status = determine_edital_status(
-            current_status='aberto',
-            start_date=start_date,
-            end_date=end_date,
-            today=today
+            current_status="aberto",
+            start_date=today - timedelta(days=30),
+            end_date=today,
+            today=today,
         )
-        # Should still be open on end_date (end_date >= today)
-        self.assertEqual(status, 'aberto')
-    
+        assert status == "aberto"
+
     def test_status_after_end_date(self):
-        """Test status after end_date has passed"""
         today = timezone.now().date()
-        start_date = today - timedelta(days=60)
-        end_date = today - timedelta(days=1)
-        
         status = determine_edital_status(
-            current_status='aberto',
-            start_date=start_date,
-            end_date=end_date,
-            today=today
+            current_status="aberto",
+            start_date=today - timedelta(days=60),
+            end_date=today - timedelta(days=1),
+            today=today,
         )
-        # Should be closed after end_date
-        self.assertEqual(status, 'fechado')
-    
+        assert status == "fechado"
+
     def test_draft_status_never_changes(self):
-        """Test that draft status never changes automatically"""
         today = timezone.now().date()
-        start_date = today - timedelta(days=5)
-        end_date = today + timedelta(days=5)
-        
         status = determine_edital_status(
-            current_status='draft',
-            start_date=start_date,
-            end_date=end_date,
-            today=today
+            current_status="draft",
+            start_date=today - timedelta(days=5),
+            end_date=today + timedelta(days=5),
+            today=today,
         )
-        # Draft should remain draft
-        self.assertEqual(status, 'draft')
-    
+        assert status == "draft"
+
     def test_closed_status_never_changes(self):
-        """Test that closed status never changes automatically"""
         today = timezone.now().date()
-        start_date = today - timedelta(days=5)
-        end_date = today + timedelta(days=5)
-        
         status = determine_edital_status(
-            current_status='fechado',
-            start_date=start_date,
-            end_date=end_date,
-            today=today
+            current_status="fechado",
+            start_date=today - timedelta(days=5),
+            end_date=today + timedelta(days=5),
+            today=today,
         )
-        # Closed should remain closed
-        self.assertEqual(status, 'fechado')
-    
+        assert status == "fechado"
+
     def test_status_with_invalid_date_types(self):
-        """Test that invalid date types raise TypeError"""
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             determine_edital_status(
-                current_status='aberto',
-                start_date='not-a-date',
+                current_status="aberto",
+                start_date="not-a-date",
                 end_date=None,
-                today=timezone.now().date()
+                today=timezone.now().date(),
             )
 
 
-class URLRedirectEdgeCasesTest(TestCase):
+@pytest.mark.django_db
+class TestURLRedirectEdgeCases:
     """Test URL redirect edge cases"""
-    
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='testpass123',
-            is_staff=True
+
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.staff = User.objects.create_user(
+            username="testuser", password="testpass123", is_staff=True
         )
-        self.client.login(username='testuser', password='testpass123')
-    
-    def test_redirect_with_missing_slug(self):
-        """Test redirect when edital has no slug (edge case)"""
-        # Create edital - slug will be generated on save
+
+    def test_redirect_with_missing_slug(self, client):
+        client.login(username="testuser", password="testpass123")
         edital = Edital.objects.create(
-            titulo='Test Edital',
-            url='https://example.com',
-            status='aberto'
+            titulo="Test Edital", url="https://example.com", status="aberto"
         )
-        # Manually set slug to None after creation (bypassing save() which generates it)
         Edital.objects.filter(pk=edital.pk).update(slug=None)
         edital.refresh_from_db()
-        
-        # Verify slug is actually None
-        self.assertIsNone(edital.slug, "Slug should be None for this test")
-        
-        # Should fallback to PK-based detail view (not redirect)
-        response = self.client.get(reverse('edital_detail', kwargs={'pk': edital.pk}))
-        # Should return 200 (detail view) or handle gracefully
-        self.assertIn(response.status_code, [200, 404], 
-                     f"Expected 200 or 404, got {response.status_code}. Response: {response}")
+        assert edital.slug is None
+
+        response = client.get(reverse("edital_detail", kwargs={"pk": edital.pk}))
+        assert response.status_code in (200, 404)
         if response.status_code == 200:
-            self.assertContains(response, edital.titulo)
-    
-    def test_redirect_draft_edital_visibility(self):
-        """Test that draft editais are hidden in redirect"""
-        edital = Edital.objects.create(
-            titulo='Draft Edital',
-            url='https://example.com',
-            status='draft'
+            assert edital.titulo in response.content.decode()
+
+    def test_redirect_draft_edital_visibility(self, client):
+        Edital.objects.create(
+            titulo="Draft Edital", url="https://example.com", status="draft"
         )
-        
-        # Non-staff user should get 404
-        self.client.logout()
-        User.objects.create_user(
-            username='regular',
-            password='testpass123',
-            is_staff=False
+        edital = Edital.objects.get(titulo="Draft Edital")
+
+        regular = User.objects.create_user(
+            username="regular", password="testpass123", is_staff=False
         )
-        self.client.login(username='regular', password='testpass123')
-        
-        response = self.client.get(reverse('edital_detail', kwargs={'pk': edital.pk}))
-        # Should redirect but then 404 on detail view
-        # Actually, redirect checks draft status first, so should 404 immediately
-        self.assertEqual(response.status_code, 404)
-    
-    def test_startup_redirect_with_missing_slug(self):
-        """Test startup redirect when slug is missing"""
-        user = User.objects.create_user(
-            username='proponente',
-            password='testpass123'
+        client.login(username="regular", password="testpass123")
+        response = client.get(reverse("edital_detail", kwargs={"pk": edital.pk}))
+        assert response.status_code == 404
+
+    def test_startup_redirect_with_missing_slug(self, client):
+        client.login(username="testuser", password="testpass123")
+        proponente = User.objects.create_user(
+            username="proponente", password="testpass123"
         )
         project = Startup.objects.create(
-            name='Test Startup',
-            proponente=user,
-            status='pre_incubacao'
+            name="Test Startup", proponente=proponente, status="pre_incubacao"
         )
-        # Manually set slug to None (bypassing save() which generates it)
         Startup.objects.filter(pk=project.pk).update(slug=None)
         project.refresh_from_db()
-        
-        # Verify slug is actually None
-        self.assertIsNone(project.slug, "Slug should be None for this test")
-        
-        # Should fallback to PK-based detail view (not redirect)
-        response = self.client.get(reverse('startup_detail', kwargs={'pk': project.pk}))
-        # Should return 200 (detail view) or handle gracefully
-        self.assertIn(response.status_code, [200, 404],
-                     f"Expected 200 or 404, got {response.status_code}")
-        if response.status_code == 200:
-            self.assertContains(response, project.name)
+        assert project.slug is None
 
+        response = client.get(reverse("startup_detail", kwargs={"pk": project.pk}))
+        assert response.status_code in (200, 404)
+        if response.status_code == 200:
+            assert project.name in response.content.decode()
