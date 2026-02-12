@@ -87,16 +87,16 @@ class TestUserRegistrationFormValidation:
     """Registration form tests"""
 
     def test_register_page_loads(self, client):
-        response = client.get("/accounts/register/")
+        response = client.get("/register/")
         assert response.status_code == 200
 
     def test_register_with_blank_data(self, client):
-        response = client.post("/accounts/register/", {})
+        response = client.post("/register/", {})
         assert response.status_code == 200  # Re-renders form
 
     def test_register_with_valid_data(self, client):
         response = client.post(
-            "/accounts/register/",
+            "/register/",
             {
                 "username": "newuser",
                 "email": "new@example.com",
@@ -111,7 +111,7 @@ class TestUserRegistrationFormValidation:
             username="existing", email="dup@example.com", password="testpass123"
         )
         response = client.post(
-            "/accounts/register/",
+            "/register/",
             {
                 "username": "anotheruser",
                 "email": "dup@example.com",
@@ -123,7 +123,7 @@ class TestUserRegistrationFormValidation:
 
     def test_register_password_mismatch(self, client):
         response = client.post(
-            "/accounts/register/",
+            "/register/",
             {
                 "username": "newuser2",
                 "email": "new2@example.com",
