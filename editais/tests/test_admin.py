@@ -19,11 +19,8 @@ class TestEditalAdmin:
     """Testes para interface administrativa de editais."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, client):
-        self.admin = User.objects.create_user(
-            username="admin", password="admin123", is_staff=True, is_superuser=True
-        )
-        client.login(username="admin", password="admin123")
+    def _setup(self, staff_client):
+        self.client = staff_client
         cache.clear()
 
         self.edital1 = Edital.objects.create(
@@ -49,11 +46,11 @@ class TestEditalAdmin:
             start_date=timezone.now().date() + timedelta(days=10),
         )
 
-    def test_admin_can_access_create_page(self, client):
-        resp = client.get(reverse("edital_create"))
+    def test_admin_can_access_create_page(self):
+        resp = self.client.get(reverse("edital_create"))
         assert resp.status_code == 200
 
-    def test_admin_can_create_edital(self, client):
+    def test_admin_can_create_edital(self):
         data = {
             "titulo": "Novo Edital",
             "url": "https://example.com/new",
@@ -62,15 +59,15 @@ class TestEditalAdmin:
             "entidade_principal": "CNPq",
             "objetivo": "Objetivo do novo edital",
         }
-        resp = client.post(reverse("edital_create"), data=data)
+        resp = self.client.post(reverse("edital_create"), data=data)
         assert resp.status_code == 302
         assert Edital.objects.filter(titulo="Novo Edital").exists()
 
-    def test_admin_can_access_update_page(self, client):
-        resp = client.get(reverse("edital_update", args=[self.edital1.pk]))
+    def test_admin_can_access_update_page(self):
+        resp = self.client.get(reverse("edital_update", args=[self.edital1.pk]))
         assert resp.status_code == 200
 
-    def test_admin_can_update_edital(self, client):
+    def test_admin_can_update_edital(self):
         data = {
             "titulo": "Edital Atualizado",
             "url": self.edital1.url,
@@ -78,36 +75,36 @@ class TestEditalAdmin:
             "numero_edital": self.edital1.numero_edital,
             "entidade_principal": self.edital1.entidade_principal,
         }
-        resp = client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
+        resp = self.client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
         assert resp.status_code == 302
         self.edital1.refresh_from_db()
         assert self.edital1.titulo == "Edital Atualizado"
         assert self.edital1.status == "fechado"
 
-    def test_admin_can_access_delete_page(self, client):
-        resp = client.get(reverse("edital_delete", args=[self.edital1.pk]))
+    def test_admin_can_access_delete_page(self):
+        resp = self.client.get(reverse("edital_delete", args=[self.edital1.pk]))
         assert resp.status_code == 200
         assert self.edital1.titulo in resp.content.decode()
 
-    def test_admin_can_delete_edital(self, client):
+    def test_admin_can_delete_edital(self):
         edital = Edital.objects.create(
             titulo="Edital para Deletar", url="https://example.com/delete"
         )
-        resp = client.post(reverse("edital_delete", args=[edital.pk]))
+        resp = self.client.post(reverse("edital_delete", args=[edital.pk]))
         assert resp.status_code == 302
         assert not Edital.objects.filter(pk=edital.pk).exists()
 
-    def test_admin_can_view_draft_edital(self, client):
+    def test_admin_can_view_draft_edital(self):
         edital_draft = Edital.objects.create(
             titulo="Edital Draft", url="https://example.com/draft", status="draft"
         )
         if edital_draft.slug:
-            resp = client.get(
+            resp = self.client.get(
                 reverse("edital_detail_slug", kwargs={"slug": edital_draft.slug})
             )
             assert resp.status_code == 200
 
-    def test_slug_not_editable(self, client):
+    def test_slug_not_editable(self):
         original_slug = self.edital1.slug
         data = {
             "titulo": "Título Atualizado",
@@ -116,11 +113,11 @@ class TestEditalAdmin:
             "numero_edital": self.edital1.numero_edital,
             "entidade_principal": self.edital1.entidade_principal,
         }
-        client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
+        self.client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
         self.edital1.refresh_from_db()
         assert self.edital1.slug == original_slug
 
-    def test_admin_save_model_sanitizes_html(self):
+    def test_admin_save_model_sanitizes_html(self, staff_user):
         from editais.admin import EditalAdmin
 
         admin = EditalAdmin(Edital, None)
@@ -131,24 +128,24 @@ class TestEditalAdmin:
             objetivo="<img src=x onerror=alert(1)>",
         )
         mock_request = MagicMock()
-        mock_request.user = self.admin
+        mock_request.user = staff_user
         admin.save_model(mock_request, edital, None, change=False)
 
         assert "<script>" not in edital.analise
         assert "onerror" not in edital.objetivo
         assert "Texto normal" in edital.analise
 
-    def test_admin_save_model_tracks_created_by(self):
+    def test_admin_save_model_tracks_created_by(self, staff_user):
         from editais.admin import EditalAdmin
 
         admin = EditalAdmin(Edital, None)
         edital = Edital(titulo="Teste Created By", url="https://example.com/test")
         mock_request = MagicMock()
-        mock_request.user = self.admin
+        mock_request.user = staff_user
         admin.save_model(mock_request, edital, None, change=False)
-        assert edital.created_by == self.admin
+        assert edital.created_by == staff_user
 
-    def test_admin_save_model_tracks_updated_by(self):
+    def test_admin_save_model_tracks_updated_by(self, staff_user):
         from editais.admin import EditalAdmin
 
         admin = EditalAdmin(Edital, None)
@@ -156,22 +153,22 @@ class TestEditalAdmin:
             titulo="Teste Updated By", url="https://example.com/test"
         )
         mock_request = MagicMock()
-        mock_request.user = self.admin
+        mock_request.user = staff_user
         admin.save_model(mock_request, edital, None, change=True)
-        assert edital.updated_by == self.admin
+        assert edital.updated_by == staff_user
 
-    def test_created_by_tracked(self, client):
+    def test_created_by_tracked(self, staff_user):
         data = {
             "titulo": "Edital com Rastreamento",
             "url": "https://example.com/track",
             "status": "aberto",
         }
-        client.post(reverse("edital_create"), data=data)
+        self.client.post(reverse("edital_create"), data=data)
         edital = Edital.objects.get(titulo="Edital com Rastreamento")
-        assert edital.created_by == self.admin
-        assert edital.updated_by == self.admin
+        assert edital.created_by == staff_user
+        assert edital.updated_by == staff_user
 
-    def test_updated_by_tracked(self, client):
+    def test_updated_by_tracked(self, staff_user):
         data = {
             "titulo": self.edital1.titulo,
             "url": self.edital1.url,
@@ -179,9 +176,9 @@ class TestEditalAdmin:
             "numero_edital": self.edital1.numero_edital,
             "entidade_principal": self.edital1.entidade_principal,
         }
-        client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
+        self.client.post(reverse("edital_update", args=[self.edital1.pk]), data=data)
         self.edital1.refresh_from_db()
-        assert self.edital1.updated_by == self.admin
+        assert self.edital1.updated_by == staff_user
 
 
 @pytest.mark.django_db
@@ -189,11 +186,9 @@ class TestEditalAdminFilters:
     """Testes para filtros administrativos."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, client):
-        self.admin = User.objects.create_user(
-            username="admin", password="admin123", is_staff=True, is_superuser=True
-        )
-        client.login(username="admin", password="admin123")
+    def _setup(self, staff_client):
+        self.client = staff_client
+        cache.clear()
 
         self.edital_aberto = Edital.objects.create(
             titulo="Edital Aberto",
@@ -214,24 +209,24 @@ class TestEditalAdminFilters:
             entidade_principal="SEBRAE",
         )
 
-    def test_admin_can_search_by_title(self, client):
-        resp = client.get(reverse("editais_index"), {"search": "Aberto"})
+    def test_admin_can_search_by_title(self):
+        resp = self.client.get(reverse("editais_index"), {"search": "Aberto"})
         assert resp.status_code == 200
         assert self.edital_aberto.titulo in resp.content.decode()
 
-    def test_admin_can_filter_by_status(self, client):
-        resp = client.get(reverse("editais_index"), {"status": "aberto"})
+    def test_admin_can_filter_by_status(self):
+        resp = self.client.get(reverse("editais_index"), {"status": "aberto"})
         assert resp.status_code == 200
         content = resp.content.decode()
         assert self.edital_aberto.titulo in content
         assert self.edital_fechado.titulo not in content
 
-    def test_admin_can_filter_by_entity(self, client):
-        resp = client.get(reverse("editais_index"), {"search": "CNPq"})
+    def test_admin_can_filter_by_entity(self):
+        resp = self.client.get(reverse("editais_index"), {"search": "CNPq"})
         assert resp.status_code == 200
         assert self.edital_aberto.titulo in resp.content.decode()
 
-    def test_admin_can_filter_by_start_date(self, client):
+    def test_admin_can_filter_by_start_date(self):
         today = timezone.now().date()
         edital_future = Edital.objects.create(
             titulo="Edital Futuro",
@@ -239,14 +234,14 @@ class TestEditalAdminFilters:
             status="aberto",
             start_date=today + timedelta(days=30),
         )
-        resp = client.get(
+        resp = self.client.get(
             reverse("editais_index"),
             {"start_date": today.strftime("%Y-%m-%d")},
         )
         assert resp.status_code == 200
         assert edital_future.titulo in resp.content.decode()
 
-    def test_admin_can_filter_by_end_date(self, client):
+    def test_admin_can_filter_by_end_date(self):
         today = timezone.now().date()
         edital_past = Edital.objects.create(
             titulo="Edital Passado",
@@ -254,15 +249,15 @@ class TestEditalAdminFilters:
             status="fechado",
             end_date=today - timedelta(days=10),
         )
-        resp = client.get(
+        resp = self.client.get(
             reverse("editais_index"),
             {"end_date": today.strftime("%Y-%m-%d")},
         )
         assert resp.status_code == 200
         assert edital_past.titulo in resp.content.decode()
 
-    def test_admin_can_combine_search_and_filters(self, client):
-        resp = client.get(
+    def test_admin_can_combine_search_and_filters(self):
+        resp = self.client.get(
             reverse("editais_index"), {"search": "Edital", "status": "aberto"}
         )
         assert resp.status_code == 200
@@ -270,46 +265,46 @@ class TestEditalAdminFilters:
         assert self.edital_aberto.titulo in content
         assert self.edital_fechado.titulo not in content
 
-    def test_pagination_works(self, client):
+    def test_pagination_works(self):
         for i in range(15):
             Edital.objects.create(
                 titulo=f"Edital {i}",
                 url=f"https://example.com/{i}",
                 status="aberto",
             )
-        resp = client.get(reverse("editais_index"))
+        resp = self.client.get(reverse("editais_index"))
         assert resp.status_code == 200
         page_obj = resp.context["page_obj"]
         assert page_obj.paginator.num_pages > 1
         assert len(page_obj.object_list) == 12
 
-        resp = client.get(reverse("editais_index"), {"page": "2"})
+        resp = self.client.get(reverse("editais_index"), {"page": "2"})
         assert resp.status_code == 200
         page_obj = resp.context["page_obj"]
         assert len(page_obj.object_list) > 0
         assert len(page_obj.object_list) <= 12
 
-    def test_pagination_preserves_filters(self, client):
+    def test_pagination_preserves_filters(self):
         for i in range(15):
             Edital.objects.create(
                 titulo=f"Edital Aberto {i}",
                 url=f"https://example.com/aberto-{i}",
                 status="aberto",
             )
-        resp = client.get(reverse("editais_index"), {"status": "aberto", "page": "2"})
+        resp = self.client.get(reverse("editais_index"), {"status": "aberto", "page": "2"})
         assert resp.status_code == 200
         page_obj = resp.context["page_obj"]
         for edital in page_obj.object_list:
             assert edital.status == "aberto"
 
-    def test_pagination_invalid_page_returns_last_page(self, client):
+    def test_pagination_invalid_page_returns_last_page(self):
         for i in range(5):
             Edital.objects.create(
                 titulo=f"Edital {i}",
                 url=f"https://example.com/{i}",
                 status="aberto",
             )
-        resp = client.get(reverse("editais_index"), {"page": "999"})
+        resp = self.client.get(reverse("editais_index"), {"page": "999"})
         assert resp.status_code == 200
         page_obj = resp.context["page_obj"]
         assert page_obj.number == page_obj.paginator.num_pages
