@@ -239,7 +239,7 @@ class TestUpdateEditalStatusCommand:
             assert edital.status == "fechado"
 
     def test_editais_without_dates(self):
-        edital_no_start = Edital.objects.create(
+        Edital.objects.create(
             titulo="Edital Sem Start Date",
             url="https://example.com/no-start",
             status="aberto",
@@ -247,7 +247,7 @@ class TestUpdateEditalStatusCommand:
             end_date=timezone.now().date() + timedelta(days=30),
         )
 
-        edital_no_end = Edital.objects.create(
+        Edital.objects.create(
             titulo="Edital Sem End Date",
             url="https://example.com/no-end",
             status="aberto",

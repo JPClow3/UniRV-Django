@@ -9,16 +9,16 @@ class Command(BaseCommand):
 
     def _get_detailed_content(self, edital_titulo, edital_numero=""):
         """Generate detailed content for all edital detail fields based on the edital title."""
-        
+
         # Base content templates that will be customized
-        objetivo_base = f"""
+        objetivo_base = """
         <p>Este edital tem como objetivo principal fomentar a inovação e o desenvolvimento tecnológico no agronegócio brasileiro, 
         promovendo a integração entre pesquisa, desenvolvimento e mercado.</p>
         <p>Buscamos apoiar projetos que demonstrem potencial de impacto positivo no setor agrícola, 
         com foco em sustentabilidade, eficiência produtiva e inovação tecnológica.</p>
         """
-        
-        etapas_base = f"""
+
+        etapas_base = """
         <h3>Etapas do Processo</h3>
         <ol>
             <li><strong>Inscrição:</strong> Período de 30 dias para submissão de propostas através do portal oficial.</li>
@@ -29,8 +29,8 @@ class Command(BaseCommand):
             <li><strong>Contratação:</strong> Assinatura de termos e início dos projetos (30 dias).</li>
         </ol>
         """
-        
-        recursos_base = f"""
+
+        recursos_base = """
         <h3>Recursos Disponíveis</h3>
         <p>O edital disponibiliza recursos financeiros e técnicos para o desenvolvimento dos projetos aprovados:</p>
         <ul>
@@ -41,8 +41,8 @@ class Command(BaseCommand):
         </ul>
         <p><strong>Prazo de Execução:</strong> 12 a 24 meses, conforme complexidade do projeto.</p>
         """
-        
-        itens_financiaveis_base = f"""
+
+        itens_financiaveis_base = """
         <h3>Itens Financiáveis</h3>
         <p>Os recursos podem ser utilizados para os seguintes itens:</p>
         <ul>
@@ -57,8 +57,8 @@ class Command(BaseCommand):
         </ul>
         <p><strong>Não são financiáveis:</strong> Despesas administrativas gerais, impostos, financiamento de dívidas ou projetos já concluídos.</p>
         """
-        
-        criterios_elegibilidade_base = f"""
+
+        criterios_elegibilidade_base = """
         <h3>Critérios de Elegibilidade</h3>
         <p>Para participar, os proponentes devem atender aos seguintes requisitos:</p>
         <ul>
@@ -71,8 +71,8 @@ class Command(BaseCommand):
             <li>Projeto deve estar alinhado com as áreas prioritárias do edital</li>
         </ul>
         """
-        
-        criterios_avaliacao_base = f"""
+
+        criterios_avaliacao_base = """
         <h3>Critérios de Avaliação</h3>
         <p>Os projetos serão avaliados com base nos seguintes critérios e pesos:</p>
         <ul>
@@ -85,8 +85,8 @@ class Command(BaseCommand):
         </ul>
         <p><strong>Nota Mínima para Aprovação:</strong> 7,0 (sete) pontos, em escala de 0 a 10.</p>
         """
-        
-        itens_essenciais_observacoes_base = f"""
+
+        itens_essenciais_observacoes_base = """
         <h3>Itens Essenciais e Observações</h3>
         <p><strong>Documentação Obrigatória:</strong></p>
         <ul>
@@ -106,8 +106,8 @@ class Command(BaseCommand):
             <li>Projetos aprovados devem manter atualizado o cadastro junto ao órgão financiador</li>
         </ul>
         """
-        
-        detalhes_unirv_base = f"""
+
+        detalhes_unirv_base = """
         <h3>Pontos Relevantes para a UniRV</h3>
         <p>A Universidade de Rio Verde (UniRV) possui características estratégicas que favorecem a participação neste edital:</p>
         <ul>
@@ -125,8 +125,8 @@ class Command(BaseCommand):
             <li>Incluir alunos de pós-graduação como bolsistas de pesquisa</li>
         </ul>
         """
-        
-        analise_base = f"""
+
+        analise_base = """
         <h2>Análise do Edital</h2>
         <h3>Pontos-Chave</h3>
         <ul>
@@ -152,16 +152,19 @@ class Command(BaseCommand):
             <li>Prazos apertados para elaboração da proposta</li>
         </ul>
         """
-        
+
         # Customize content based on edital title keywords
-        if "sustentabilidade" in edital_titulo.lower() or "sustentável" in edital_titulo.lower():
-            objetivo_base = f"""
+        if (
+            "sustentabilidade" in edital_titulo.lower()
+            or "sustentável" in edital_titulo.lower()
+        ):
+            objetivo_base = """
             <p>Este edital tem como objetivo fomentar pesquisas e projetos que promovam a sustentabilidade no agronegócio, 
             integrando práticas ambientais, sociais e econômicas.</p>
             <p>Buscamos soluções que reduzam o impacto ambiental da produção agrícola, promovam a conservação de recursos naturais 
             e garantam a viabilidade econômica dos produtores rurais.</p>
             """
-            itens_financiaveis_base = f"""
+            itens_financiaveis_base = """
             <h3>Itens Financiáveis</h3>
             <p>Os recursos podem ser utilizados para:</p>
             <ul>
@@ -174,23 +177,23 @@ class Command(BaseCommand):
             </ul>
             """
         elif "inovação" in edital_titulo.lower() or "inovação" in edital_titulo.lower():
-            objetivo_base = f"""
+            objetivo_base = """
             <p>Este edital visa apoiar projetos de inovação tecnológica que transformem o agronegócio brasileiro, 
             promovendo a adoção de tecnologias de ponta e soluções disruptivas.</p>
             <p>Focamos em projetos que integrem inteligência artificial, IoT, biotecnologia e outras tecnologias emergentes 
             para aumentar a produtividade e competitividade do setor.</p>
             """
-        
+
         return {
-            'objetivo': objetivo_base.strip(),
-            'etapas': etapas_base.strip(),
-            'recursos': recursos_base.strip(),
-            'itens_financiaveis': itens_financiaveis_base.strip(),
-            'criterios_elegibilidade': criterios_elegibilidade_base.strip(),
-            'criterios_avaliacao': criterios_avaliacao_base.strip(),
-            'itens_essenciais_observacoes': itens_essenciais_observacoes_base.strip(),
-            'detalhes_unirv': detalhes_unirv_base.strip(),
-            'analise': analise_base.strip(),
+            "objetivo": objetivo_base.strip(),
+            "etapas": etapas_base.strip(),
+            "recursos": recursos_base.strip(),
+            "itens_financiaveis": itens_financiaveis_base.strip(),
+            "criterios_elegibilidade": criterios_elegibilidade_base.strip(),
+            "criterios_avaliacao": criterios_avaliacao_base.strip(),
+            "itens_essenciais_observacoes": itens_essenciais_observacoes_base.strip(),
+            "detalhes_unirv": detalhes_unirv_base.strip(),
+            "analise": analise_base.strip(),
         }
 
     def handle(self, *args, **options):
@@ -241,28 +244,29 @@ class Command(BaseCommand):
         # Now, populate detail fields for all existing editais
         all_editais = Edital.objects.all()
         updated_count = 0
-        
+
         for edital in all_editais:
             needs_update = False
-            detailed_content = self._get_detailed_content(edital.titulo, edital.numero_edital or "")
-            
+            detailed_content = self._get_detailed_content(
+                edital.titulo, edital.numero_edital or ""
+            )
+
             # Update fields that are empty or None
             for field, content in detailed_content.items():
                 current_value = getattr(edital, field, None)
                 if not current_value or current_value.strip() == "":
                     setattr(edital, field, content)
                     needs_update = True
-            
+
             if needs_update:
                 edital.save()
                 updated_count += 1
                 self.stdout.write(
-                    self.style.SUCCESS(f'Updated detail fields for: {edital.titulo}')
+                    self.style.SUCCESS(f"Updated detail fields for: {edital.titulo}")
                 )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f'Seed complete. Created {created_count} new edital(is). Updated {updated_count} existing edital(is) with detailed content.'
+                f"Seed complete. Created {created_count} new edital(is). Updated {updated_count} existing edital(is) with detailed content."
             )
         )
-

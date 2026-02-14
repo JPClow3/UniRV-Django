@@ -5,7 +5,7 @@ Este módulo contém a lógica de negócio extraída das views,
 seguindo o princípio de separação de responsabilidades.
 """
 
-from typing import TYPE_CHECKING, Dict, Any, Optional
+from typing import TYPE_CHECKING, Dict, Any
 from datetime import timedelta
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -131,7 +131,9 @@ class EditalService:
                     edital.save()
                     # Clear all caches including dashboard stats
                     transaction.on_commit(clear_all_caches)
-                    transaction.on_commit(lambda: EditalService.send_notification(edital))
+                    transaction.on_commit(
+                        lambda: EditalService.send_notification(edital)
+                    )
                 return edital
             except IntegrityError as e:
                 if "slug" in str(e).lower() or "unique" in str(e).lower():

@@ -21,9 +21,6 @@ from .cache_utils import (
     get_index_cache_key as _get_index_cache_key,
 )
 
-if TYPE_CHECKING:
-    from .models import Edital
-
 logger = logging.getLogger(__name__)
 
 # Allowed tags and attributes for HTML sanitization

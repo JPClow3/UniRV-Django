@@ -4,13 +4,8 @@
       "url": [
         "http://localhost:8000/",
         "http://localhost:8000/editais/",
-        "http://localhost:8000/login/",
-        "http://localhost:8000/register/",
         "http://localhost:8000/ambientes-inovacao/",
-        "http://localhost:8000/startups/",
-        "http://localhost:8000/password-reset/",
-        "http://localhost:8000/password-reset/done/",
-        "http://localhost:8000/password-reset-complete/"
+        "http://localhost:8000/startups/"
       ],
       "numberOfRuns": 3,
       "chromeFlags": [

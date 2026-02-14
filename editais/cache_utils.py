@@ -1,7 +1,7 @@
 """Funcoes utilitarias de cache para geracao padronizada de chaves."""
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional
 from django.core.cache import cache
 from django.contrib.auth.models import User
 from django.http import HttpResponse

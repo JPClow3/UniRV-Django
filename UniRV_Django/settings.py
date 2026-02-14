@@ -79,14 +79,14 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 # Detect if we're running tests
-TESTING = (
-    bool(os.environ.get("PYTEST_CURRENT_TEST"))
-    or (len(sys.argv) > 1 and (
+TESTING = bool(os.environ.get("PYTEST_CURRENT_TEST")) or (
+    len(sys.argv) > 1
+    and (
         sys.argv[1] == "test"
         or "pytest" in sys.argv[0]
         or "unittest" in sys.argv[0]
         or "test" in sys.argv
-    ))
+    )
 )
 
 # Security: explicit ALLOWED_HOSTS
@@ -103,7 +103,7 @@ else:
             "Please set ALLOWED_HOSTS with your domain(s). "
             "Example: ALLOWED_HOSTS=example.com,www.example.com"
         )
-    
+
     ALLOWED_HOSTS = parsed_hosts
 
     # Railway: automatically allow health check host used by Railway's internal health checks.
@@ -162,14 +162,13 @@ INSTALLED_APPS = [
 # Check if easy-thumbnails is available (optional dependency)
 HAS_THUMBNAILS = False
 try:
-    import easy_thumbnails
+    import importlib.util
 
-    HAS_THUMBNAILS = True
-except ImportError:
+    HAS_THUMBNAILS = importlib.util.find_spec("easy_thumbnails") is not None
+except (ImportError, ModuleNotFoundError):
     # easy-thumbnails not installed, remove from INSTALLED_APPS
     if "easy_thumbnails" in INSTALLED_APPS:
         INSTALLED_APPS.remove("easy_thumbnails")
-    pass
 
 # Add django_browser_reload only in DEBUG mode (safe for tests)
 if DEBUG:

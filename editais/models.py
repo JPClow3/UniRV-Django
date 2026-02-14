@@ -3,7 +3,14 @@ import logging
 import os
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db import models, connection, ProgrammingError, OperationalError, IntegrityError, transaction
+from django.db import (
+    models,
+    connection,
+    ProgrammingError,
+    OperationalError,
+    IntegrityError,
+    transaction,
+)
 from django.db.models import Q
 from django.urls import reverse
 from django.core.exceptions import ValidationError
@@ -205,7 +212,7 @@ class EditalQuerySet(models.QuerySet):
                 if hasattr(f, "get_internal_type")
                 and f.get_internal_type() in ("CharField", "TextField")
             }
-        except (AttributeError, TypeError) as e:
+        except (AttributeError, TypeError):
             model_fields = {
                 f.name for f in self.model._meta.get_fields() if hasattr(f, "name")
             }

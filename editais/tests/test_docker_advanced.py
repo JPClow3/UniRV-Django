@@ -14,6 +14,7 @@ import requests
 
 try:
     import docker
+
     DOCKER_SDK_AVAILABLE = True
 except ImportError:
     DOCKER_SDK_AVAILABLE = False
@@ -261,9 +262,9 @@ class TestImageLayerValidation:
             # Check that we have fewer than 50 layers (indicator of efficiency)
             layers = image_data.get("RootFS", {}).get("Layers", [])
             assert len(layers) > 0, "Image should have at least one layer"
-            assert len(layers) < 50, (
-                f"Image appears to have inefficient layering: {len(layers)} layers"
-            )
+            assert (
+                len(layers) < 50
+            ), f"Image appears to have inefficient layering: {len(layers)} layers"
         except (json.JSONDecodeError, IndexError, KeyError) as e:
             pytest.skip(f"Could not parse docker inspect output: {e}")
 
@@ -289,7 +290,7 @@ class TestImageLayerValidation:
                         size < 2 * 1024 * 1024 * 1024
                     ), f"Image size {size} bytes exceeds reasonable limit"
                     break
-        except (json.JSONDecodeError, KeyError, ValueError) as e:
+        except (json.JSONDecodeError, KeyError, ValueError):
             # Fallback: use human-readable format
             assert "unirv-django-test" in result.stdout
 
@@ -406,9 +407,7 @@ class TestDockerPerformance:
 
         assert result.returncode == 0
         # Build should complete in reasonable time (< 10 minutes expected for CI)
-        assert (
-            build_time < 600
-        ), f"Build took {build_time}s, expected < 600s"
+        assert build_time < 600, f"Build took {build_time}s, expected < 600s"
 
     def test_image_size_trend(self):
         """Verify image size is tracked and reasonable"""
@@ -465,7 +464,7 @@ class TestDockerPerformance:
 
         if result.returncode == 0:
             start = time.time()
-            run_result = subprocess.run(
+            subprocess.run(
                 [
                     "docker",
                     "run",
@@ -506,7 +505,7 @@ class TestContainerRuntime:
     def web_container(self):
         """Start web container for testing"""
         # This test requires the database to be running
-        db_result = subprocess.run(
+        subprocess.run(
             ["docker-compose", "up", "-d", "db", "redis"],
             cwd=str(PROJECT_ROOT),
             capture_output=True,
@@ -576,9 +575,9 @@ class TestContainerRuntime:
             text=True,
         )
 
-        assert result.returncode == 0, (
-            f"Container check failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
-        )
+        assert (
+            result.returncode == 0
+        ), f"Container check failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
 
     def test_container_environment_variables(self):
         """Verify container respects environment variables"""
