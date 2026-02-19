@@ -2110,12 +2110,13 @@ h1, h2, h3, .font-display {
   .home-timeline {
     padding: 6rem 0;
     background: white;
+    overflow: hidden;
   }
 
   .timeline-wrapper {
     position: relative;
     overflow-x: hidden; /* evita barra de rolagem horizontal na timeline */
-    overflow-y: auto; /* permite rolagem vertical sem depender de overflow-y: visible */
+    overflow-y: hidden; /* permite rolagem vertical sem depender de overflow-y: visible */
   }
 
   /* =========================================
